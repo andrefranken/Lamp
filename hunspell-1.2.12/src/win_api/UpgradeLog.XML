@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="Hunspell">
+</Property><Property Name="Solution File" Value="D:\Lamp\hunspell-1.2.12\src\win_api\Hunspell.sln">
+</Property><Property Name="Date" Value="Saturday, September 18, 2010">
+</Property><Property Name="Time" Value="16:56 PM">
+</Property></Properties><Event ErrorLevel="0" Project="" Source="Hunspell.sln" Description="File successfully backed up as D:\Lamp\hunspell-1.2.12\src\win_api\Hunspell.sln.old">
+</Event><Event ErrorLevel="0" Project="libhunspell" Source="libhunspell.vcproj" Description="Web deployment to the local IIS server is no longer supported. The Web Deployment build tool has been removed from your project settings.">
+</Event><Event ErrorLevel="1" Project="libhunspell" Source="libhunspell.vcproj" Description="This application has been updated to include settings related to the User Account Control (UAC) feature of Windows Vista. By default, when run on Windows Vista with UAC enabled, this application is marked to run with the same privileges as the process that launched it. This marking also disables the application from running with virtualization. You can change UAC related settings from the Property Pages of the project.">
+</Event><Event ErrorLevel="0" Project="libhunspell" Source="libhunspell.vcproj" Description="Project file successfully backed up as 'D:\Lamp\hunspell-1.2.12\src\win_api\libhunspell.vcproj.8.00.old'.">
+</Event><Event ErrorLevel="0" Project="libhunspell" Source="libhunspell.vcproj" Description="Project upgraded successfully.">
+</Event><Event ErrorLevel="3" Project="libhunspell" Source="libhunspell.vcproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="testparser" Source="testparser.vcproj" Description="Web deployment to the local IIS server is no longer supported. The Web Deployment build tool has been removed from your project settings.">
+</Event><Event ErrorLevel="1" Project="testparser" Source="testparser.vcproj" Description="This application has been updated to include settings related to the User Account Control (UAC) feature of Windows Vista. By default, when run on Windows Vista with UAC enabled, this application is marked to run with the same privileges as the process that launched it. This marking also disables the application from running with virtualization. You can change UAC related settings from the Property Pages of the project.">
+</Event><Event ErrorLevel="0" Project="testparser" Source="testparser.vcproj" Description="Project file successfully backed up as 'D:\Lamp\hunspell-1.2.12\src\win_api\testparser.vcproj.8.00.old'.">
+</Event><Event ErrorLevel="0" Project="testparser" Source="testparser.vcproj" Description="Project upgraded successfully.">
+</Event><Event ErrorLevel="3" Project="testparser" Source="testparser.vcproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="hunspell" Source="hunspell.vcproj" Description="Web deployment to the local IIS server is no longer supported. The Web Deployment build tool has been removed from your project settings.">
+</Event><Event ErrorLevel="1" Project="hunspell" Source="hunspell.vcproj" Description="This application has been updated to include settings related to the User Account Control (UAC) feature of Windows Vista. By default, when run on Windows Vista with UAC enabled, this application is marked to run with the same privileges as the process that launched it. This marking also disables the application from running with virtualization. You can change UAC related settings from the Property Pages of the project.">
+</Event><Event ErrorLevel="0" Project="hunspell" Source="hunspell.vcproj" Description="Project file successfully backed up as 'D:\Lamp\hunspell-1.2.12\src\win_api\hunspell.vcproj.8.00.old'.">
+</Event><Event ErrorLevel="0" Project="hunspell" Source="hunspell.vcproj" Description="Project upgraded successfully.">
+</Event><Event ErrorLevel="3" Project="hunspell" Source="hunspell.vcproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="Hunspell.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="Hunspell.sln" Description="Converted">
+</Event></UpgradeLog>
