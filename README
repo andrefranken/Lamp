@@ -1,1 +1,33 @@
-Blah
+- why can't I send messages?  Gah!
+
+- Find out why we don't record our new size, when we go away, if we have been snapped by windows.
+  Suspect that we are using a rect that was recorded at the wrong time.  should record it when we go away.
+
+- treat middle-click on pin as an "open in new tab" command.
+
+- middle-button panning.
+
+- middle-click on tabs to close them.  Not sure how to trap for this.
+
+- make it so that the "find text" search term is remembered globally, rather than per-view.
+
+- incremental search.  As user types, start searching from the begining with new term.
+
+- The bookmark menu's popup location is offset.  Find out why.
+
+- autoupdate.  Or, at least, auto-check-for-new-version.   
+  Hit the http://shackwiki.com/wiki/Lamp
+  wiki page and parse it's contents looking for "Lamp Version:"
+  When found, look at the digits and ' .' and determin the version number.
+  Compare that to the one defined in our resource file.
+  If different, put up a Ok/Cancel messagebox that asks if they want to go to the update?
+  If Ok, just launch that page in the browser.
+
+- save all open tabs on exit, then reopen them on startup
+
+- settings dialog.   Editing the settings.xml is a pain.  Having to restart the app is a pain.
+  Should be easy enough.  Reloading the skin should be observed carefully.
+
+- option to reassert our position on top.  Fight youtube for it.
+
+- look at charwidth issues with those weird characters
