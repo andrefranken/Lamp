@@ -1,0 +1,702 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#ifndef APSTUDIO_INVOKED\r\n"
+    "#include ""targetver.h""\r\n"
+    "#endif\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#include ""res\\Lamp.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#if !defined(_AFXDLL)\r\n"
+    "#include ""afxprint.rc""               // printing/print preview resources\r\n"
+    "#include ""afxribbon.rc""              // MFC ribbon and control bar resources\r\n"
+    "#endif\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\Lamp.ico"
+IDR_LampTYPE            ICON                    "res\\LampDoc.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New LatestChatty\tCtrl+N",   ID_FILE_NEW
+        MENUITEM "&Open Thread\tCtrl+O",        ID_FILE_OPENTHREAD
+        MENUITEM SEPARATOR
+        MENUITEM "Setup &Login Info",           ID_FILE_SETUPLOGININFO
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       ID_APP_EXIT
+    END
+    POPUP "&LOL"
+    BEGIN
+        MENUITEM "Popular LOLs",                ID_LOL_LOL
+        MENUITEM "Popular INFs",                ID_LOL_INF
+        MENUITEM "Popular UNFs",                ID_LOL_UNF
+        MENUITEM "Popular TAGs",                ID_LOL_TAG
+        MENUITEM "Popular WTFs",                ID_LOL_WTF
+        MENUITEM SEPARATOR
+        MENUITEM "Things I LOL'd",              ID_LOL_THINGS_I_LOLD
+        MENUITEM "Things I wrote",              ID_LOL_THINGS_I_WROTE
+        MENUITEM SEPARATOR
+        MENUITEM "Goto LOL page",               ID_LOL_GOTO_LOL
+    END
+    POPUP "&Search"
+    BEGIN
+        MENUITEM "My Comments",                 ID_MY_COMMENTS
+        MENUITEM "Replies To Me",               ID_REPLIES_TO_ME
+        MENUITEM "Vanity Search",               ID_VANITY_SEARCH
+        MENUITEM SEPARATOR
+        MENUITEM "Custom Search",               ID_SHACK_SEARCH
+    END
+    POPUP "Shack&Msgs"
+    BEGIN
+        MENUITEM "Inbox",                       ID_SHKMSGS_INBOX
+        MENUITEM "Sent Messages",               ID_SHKMSGS_OUTBOX
+        MENUITEM "Archived Messages",           ID_SHKMSGS_ARCHIVE
+    END
+    MENUITEM "&Bookmark",                   ID_BOOKMARK_MENU
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
+        POPUP "&Application Look"
+        BEGIN
+            MENUITEM "Windows &2000",               ID_VIEW_APPLOOK_WIN_2000
+            MENUITEM "Office &XP",                  ID_VIEW_APPLOOK_OFF_XP
+            MENUITEM "&Windows XP",                 ID_VIEW_APPLOOK_WIN_XP
+            MENUITEM "Office 200&3",                ID_VIEW_APPLOOK_OFF_2003
+            MENUITEM "Visual Studio.NET 200&5",     ID_VIEW_APPLOOK_VS_2005
+            POPUP "Office 200&7"
+            BEGIN
+                MENUITEM "&Blue Style",                 ID_VIEW_APPLOOK_OFF_2007_BLUE
+                MENUITEM "B&lack Style",                ID_VIEW_APPLOOK_OFF_2007_BLACK
+                MENUITEM "&Silver Style",               ID_VIEW_APPLOOK_OFF_2007_SILVER
+                MENUITEM "&Aqua Style",                 ID_VIEW_APPLOOK_OFF_2007_AQUA
+            END
+        END
+        MENUITEM "Smooth Scroll",               ID_VIEW_SMOOTHSCROLL
+        MENUITEM "Auto Show Loaded Images",     ID_VIEW_AUTOSHOWLOADEDIMAGES
+        MENUITEM "Allow Pinning",               ID_PINNING_MENUITEM
+        MENUITEM "Double Size Pages in Chatty", ID_DOUBLE_PAGE_STORY_MENUITEM
+        MENUITEM SEPARATOR
+        MENUITEM "Dock Top",                    ID_VIEW_DOCKTOP
+        MENUITEM "Always on Top",               ID_ALWAYSONTOP_WHENNOTDOCKED
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About Lamp...",              ID_APP_ABOUT
+        MENUITEM "Online &Help...",             ID_HELP_WIKI
+    END
+END
+
+IDR_LampTYPE MENU 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New LatestChatty\tCtrl+N",   ID_FILE_NEW
+        MENUITEM "&Open Thread\tCtrl+O",        ID_FILE_OPENTHREAD
+        MENUITEM SEPARATOR
+        MENUITEM "Setup &Login Info",           ID_FILE_SETUPLOGININFO
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       ID_APP_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
+        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+        MENUITEM "Paste &Last Post",            ID_EDIT_PASTE_LAST_POST
+        MENUITEM SEPARATOR
+        MENUITEM "&Find Text\tCtrl+F",          ID_EDIT_FIND
+        MENUITEM SEPARATOR
+        MENUITEM "&Refresh\tF5",                ID_EDIT_REFRESH
+        MENUITEM SEPARATOR
+        MENUITEM "&New Thread",                 ID_EDIT_NEWTHREAD
+    END
+    POPUP "&LOL"
+    BEGIN
+        MENUITEM "Popular LOLs",                ID_LOL_LOL
+        MENUITEM "Popular INFs",                ID_LOL_INF
+        MENUITEM "Popular UNFs",                ID_LOL_UNF
+        MENUITEM "Popular TAGs",                ID_LOL_TAG
+        MENUITEM "Popular WTFs",                ID_LOL_WTF
+        MENUITEM SEPARATOR
+        MENUITEM "Things I LOL'd",              ID_LOL_THINGS_I_LOLD
+        MENUITEM "Things I wrote",              ID_LOL_THINGS_I_WROTE
+        MENUITEM SEPARATOR
+        MENUITEM "Goto LOL page",               ID_LOL_GOTO_LOL
+    END
+    POPUP "&Search"
+    BEGIN
+        MENUITEM "My Comments",                 ID_MY_COMMENTS
+        MENUITEM "Replies To Me",               ID_REPLIES_TO_ME
+        MENUITEM "Vanity Search",               ID_VANITY_SEARCH
+        MENUITEM SEPARATOR
+        MENUITEM "Custom Search",               ID_SHACK_SEARCH
+    END
+    POPUP "Shack&Msgs"
+    BEGIN
+        MENUITEM "Inbox",                       ID_SHKMSGS_INBOX
+        MENUITEM "Sent Messages",               ID_SHKMSGS_OUTBOX
+        MENUITEM "Archived Messages",           ID_SHKMSGS_ARCHIVE
+    END
+    MENUITEM "&Bookmark",                   ID_BOOKMARK_MENU
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
+        POPUP "&Application Look"
+        BEGIN
+            MENUITEM "Windows &2000",               ID_VIEW_APPLOOK_WIN_2000
+            MENUITEM "Office &XP",                  ID_VIEW_APPLOOK_OFF_XP
+            MENUITEM "&Windows XP",                 ID_VIEW_APPLOOK_WIN_XP
+            MENUITEM "Office 200&3",                ID_VIEW_APPLOOK_OFF_2003
+            MENUITEM "Visual Studio.NET 200&5",     ID_VIEW_APPLOOK_VS_2005
+            POPUP "Office 200&7"
+            BEGIN
+                MENUITEM "&Blue Style",                 ID_VIEW_APPLOOK_OFF_2007_BLUE
+                MENUITEM "B&lack Style",                ID_VIEW_APPLOOK_OFF_2007_BLACK
+                MENUITEM "&Silver Style",               ID_VIEW_APPLOOK_OFF_2007_SILVER
+                MENUITEM "&Aqua Style",                 ID_VIEW_APPLOOK_OFF_2007_AQUA
+            END
+        END
+        MENUITEM "Smooth Scroll",               ID_VIEW_SMOOTHSCROLL
+        MENUITEM "Auto Show Loaded Images",     ID_VIEW_AUTOSHOWLOADEDIMAGES
+        MENUITEM "Allow Pinning",               ID_PINNING_MENUITEM
+        MENUITEM "Clear All Pinnings",          ID_CLEAR_ALL_PINNINGS_MENUITEM
+        MENUITEM "Double Size Pages in Chatty", ID_DOUBLE_PAGE_STORY_MENUITEM
+        MENUITEM SEPARATOR
+        MENUITEM "Increase Font Size\tCtrl+Plus", ID_VIEW_INCREASEFONTSIZE
+        MENUITEM "Decrease Font Size\tCtrl+Minus", ID_VIEW_DECREASEFONTSIZE
+        MENUITEM "Reset Font Size\tCtrl+0",     ID_VIEW_RESETFONTSIZE
+        MENUITEM SEPARATOR
+        MENUITEM "Dock Top",                    ID_VIEW_DOCKTOP
+        MENUITEM "Always on Top",               ID_ALWAYSONTOP_WHENNOTDOCKED
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About Lamp...",              ID_APP_ABOUT
+        MENUITEM "Online &Help...",             ID_HELP_WIKI
+    END
+END
+
+IDR_POPUP_EDIT MENU 
+BEGIN
+    POPUP "Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
+        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+        MENUITEM "Paste &Last Post",            ID_EDIT_PASTE_LAST_POST
+        MENUITEM SEPARATOR
+        MENUITEM "&Find Text\tCtrl+F",          ID_EDIT_FIND
+        MENUITEM SEPARATOR
+        MENUITEM "&Refresh\tF5",                ID_EDIT_REFRESH
+        MENUITEM SEPARATOR
+        MENUITEM "&New Thread",                 ID_EDIT_NEWTHREAD
+        MENUITEM SEPARATOR
+        MENUITEM "&Bookmark This Post",         ID_EDIT_BOOKMARK_THIS_POST
+        MENUITEM SEPARATOR
+        MENUITEM "Load All Images",             ID_EDIT_LOADALLIMAGES
+        MENUITEM "Close All Images",            ID_EDIT_CLOSEALLIMAGES
+    END
+END
+
+IDR_THEME_MENU MENU 
+BEGIN
+    MENUITEM "Office 2007 (&Blue Style)",   ID_VIEW_APPLOOK_OFF_2007_BLUE
+    MENUITEM "Office 2007 (B&lack Style)",  ID_VIEW_APPLOOK_OFF_2007_BLACK
+    MENUITEM "Office 2007 (&Silver Style)", ID_VIEW_APPLOOK_OFF_2007_SILVER
+    MENUITEM "Office 2007 (&Aqua Style)",   ID_VIEW_APPLOOK_OFF_2007_AQUA
+END
+
+IDR_POPUP_BOOKMARK_MENU MENU 
+BEGIN
+    POPUP "&Bookmark"
+    BEGIN
+        MENUITEM "&Bookmark this Thread",       ID_BOOKMARK_ADD
+        MENUITEM SEPARATOR
+    END
+END
+
+IDR_POPUP_COPYLINK_MENU MENU 
+BEGIN
+    POPUP "Copy Link"
+    BEGIN
+        MENUITEM "&Copy Link",                  ID_COPYLINK
+        MENUITEM "&Open Link in Browser",       ID_LAUNCHLINK
+        MENUITEM "Open in &Tab",                ID_OPENINTAB
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS 
+BEGIN
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
+    "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
+    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          ID_EDIT_REFRESH,        VIRTKEY, NOINVERT
+    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
+    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_FILE_OPENTHREAD,     VIRTKEY, CONTROL, NOINVERT
+    VK_OEM_MINUS,   ID_VIEW_DECREASEFONTSIZE, VIRTKEY, CONTROL, NOINVERT
+    VK_SUBTRACT,    ID_VIEW_DECREASEFONTSIZE, VIRTKEY, CONTROL, NOINVERT
+    VK_ADD,         ID_VIEW_INCREASEFONTSIZE, VIRTKEY, CONTROL, NOINVERT
+    VK_OEM_PLUS,    ID_VIEW_INCREASEFONTSIZE, VIRTKEY, CONTROL, NOINVERT
+    "0",            ID_VIEW_RESETFONTSIZE,  VIRTKEY, CONTROL, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About Lamp"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
+    LTEXT           "Lamp, Version 1.4",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2011",IDC_STATIC,42,26,114,8
+    DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
+END
+
+IDD_OPENTHREAD_DIALOG DIALOGEX 0, 0, 284, 49
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Open Thread"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_THREAD_EDIT,7,7,270,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,163,28,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,227,28,50,14
+END
+
+IDD_FINDTEXT_DIALOG DIALOGEX 0, 0, 149, 49
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Find Text"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_FIND_EDIT,7,7,133,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,7,28,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,91,28,50,14
+END
+
+IDD_LOGIN_DIALOG DIALOGEX 0, 0, 193, 94
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Shack Login"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_USERNAME_EDIT,7,19,179,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_PASSWORD_EDIT,7,51,179,14,ES_PASSWORD | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,7,73,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,136,73,50,14
+    LTEXT           "Username:",IDC_STATIC,7,7,179,8
+    LTEXT           "Password:",IDC_STATIC,7,39,179,8
+END
+
+IDD_AUTHOR_DIALOG DIALOGEX 0, 0, 156, 136
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_INFO_EDIT,7,7,142,99,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY
+    DEFPUSHBUTTON   "View Comments",ID_AUTHORDLG_SEARCH_BUTTON,7,115,65,14
+    PUSHBUTTON      "Send Message",ID_AUTHORDLG_MESSAGE_BUTTON,86,115,63,14
+END
+
+IDD_DOCKTAB DIALOGEX 0, 0, 57, 13
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+END
+
+IDD_SEARCH_DIALOG DIALOGEX 0, 0, 215, 137
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Custom Search"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,7,116,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,158,116,50,14
+    LTEXT           "Search For:",IDC_STATIC,7,7,38,8
+    EDITTEXT        IDC_SEARCH_TERMS_EDIT,7,20,201,14,ES_AUTOHSCROLL
+    LTEXT           "By User:",IDC_STATIC,7,43,28,8
+    EDITTEXT        IDC_SEARCH_USER_EDIT,7,57,201,14,ES_AUTOHSCROLL
+    LTEXT           "Parent User:",IDC_STATIC,7,81,42,8
+    EDITTEXT        IDC_SEARCH_PARENT_EDIT,7,94,201,14,ES_AUTOHSCROLL
+END
+
+IDD_BOOKMARK_DIALOG DIALOGEX 0, 0, 186, 53
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Bookmark"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,7,32,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,32,50,14
+    EDITTEXT        IDC_BM_TITLE_EDIT,7,7,172,14,ES_AUTOHSCROLL
+END
+
+IDD_SENDMSG_DIALOG DIALOGEX 0, 0, 316, 183
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Send Message"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_SHACKMSG_EDIT,7,56,302,97,ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL
+    PUSHBUTTON      "OK",IDOK,205,162,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,259,162,50,14
+    EDITTEXT        IDC_TO_EDIT,38,7,271,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SUBJECT_EDIT,38,31,271,14,ES_AUTOHSCROLL
+    LTEXT           "To:",IDC_STATIC,7,9,12,8
+    LTEXT           "Subject:",IDC_STATIC,7,33,28,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,4,0,0
+ PRODUCTVERSION 1,4,0,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904e4"
+        BEGIN
+            VALUE "Comments", "Why are you reading this?"
+            VALUE "CompanyName", "FooBar INC."
+            VALUE "FileDescription", "Lamp"
+            VALUE "FileVersion", "1.4"
+            VALUE "InternalName", "Lamp.exe"
+            VALUE "LegalCopyright", "Whatever"
+            VALUE "OriginalFilename", "Lamp.exe"
+            VALUE "ProductName", "Lamp"
+            VALUE "ProductVersion", "1.4"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 163
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+
+    IDD_OPENTHREAD_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 277
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 42
+    END
+
+    IDD_LOGIN_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 186
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
+    END
+
+    IDD_AUTHOR_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 149
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 129
+    END
+
+    IDD_SEARCH_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 208
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 130
+    END
+
+    IDD_BOOKMARK_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 46
+    END
+
+    IDD_SENDMSG_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 309
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 176
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDP_OLE_INIT_FAILED     "OLE initialization failed.  Make sure that the OLE libraries are the correct version."
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_STATUS_PANE1        "Pane 1"
+    IDS_STATUS_PANE2        "Pane 2"
+    IDR_MAINFRAME           "Lamp"
+    IDR_LampTYPE            "\nLamp\nLamp\nLamp Files (*.fmt)\n.fmt\nLamp.Document\nLamp.Document"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_WINDOWS_MANAGER     "&Windows..."
+END
+
+STRINGTABLE 
+BEGIN
+    AFX_IDS_APP_TITLE       "Lamp"
+    AFX_IDS_IDLEMESSAGE     "Ready"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_INDICATOR_EXT        "EXT"
+    ID_INDICATOR_CAPS       "CAP"
+    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_SCRL       "SCRL"
+    ID_INDICATOR_OVR        "OVR"
+    ID_INDICATOR_REC        "REC"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_FILE_NEW             "Create a new latest chatty view\nNew LatestChatty"
+    ID_FILE_OPEN            "Open an existing document\nOpen"
+    ID_FILE_CLOSE           "Close the active document\nClose"
+    ID_FILE_SAVE            "Save the active document\nSave"
+    ID_FILE_SAVE_AS         "Save the active document with a new name\nSave As"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
+    ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_FILE_MRU_FILE1       "Open this document"
+    ID_FILE_MRU_FILE2       "Open this document"
+    ID_FILE_MRU_FILE3       "Open this document"
+    ID_FILE_MRU_FILE4       "Open this document"
+    ID_FILE_MRU_FILE5       "Open this document"
+    ID_FILE_MRU_FILE6       "Open this document"
+    ID_FILE_MRU_FILE7       "Open this document"
+    ID_FILE_MRU_FILE8       "Open this document"
+    ID_FILE_MRU_FILE9       "Open this document"
+    ID_FILE_MRU_FILE10      "Open this document"
+    ID_FILE_MRU_FILE11      "Open this document"
+    ID_FILE_MRU_FILE12      "Open this document"
+    ID_FILE_MRU_FILE13      "Open this document"
+    ID_FILE_MRU_FILE14      "Open this document"
+    ID_FILE_MRU_FILE15      "Open this document"
+    ID_FILE_MRU_FILE16      "Open this document"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
+    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_WINDOW_NEW           "Create a new latest chatty view\nNew LatestChatty"
+    ID_WINDOW_ARRANGE       "Arrange icons at the bottom of the window\nArrange Icons"
+    ID_WINDOW_CASCADE       "Arrange windows so they overlap\nCascade Windows"
+    ID_WINDOW_TILE_HORZ     "Arrange windows as non-overlapping tiles\nTile Windows"
+    ID_WINDOW_TILE_VERT     "Arrange windows as non-overlapping tiles\nTile Windows"
+    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_EDIT_CLEAR           "Erase the selection\nErase"
+    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_VIEW_STATUS_BAR      "Show or hide the status bar\nToggle Status Bar"
+END
+
+STRINGTABLE 
+BEGIN
+    AFX_IDS_SCSIZE          "Change the window size"
+    AFX_IDS_SCMOVE          "Change the window position"
+    AFX_IDS_SCMINIMIZE      "Reduce the window to an icon"
+    AFX_IDS_SCMAXIMIZE      "Enlarge the window to full size"
+    AFX_IDS_SCNEXTWINDOW    "Switch to the next document window"
+    AFX_IDS_SCPREVWINDOW    "Switch to the previous document window"
+    AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
+END
+
+STRINGTABLE 
+BEGIN
+    AFX_IDS_SCRESTORE       "Restore the window to normal size"
+    AFX_IDS_SCTASKLIST      "Activate Task List"
+    AFX_IDS_MDICHILD        "Activate this window"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_EDIT_MENU           "Edit"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_EDIT_REFRESH         "Refresh\nRefresh"
+    ID_EDIT_NEWTHREAD       "Post a new thread in this story\nNewThread"
+    IDS_COPYLINK_MENU       "CopyLink"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#include "res\Lamp.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#if !defined(_AFXDLL)
+#include "afxprint.rc"               // printing/print preview resources
+#include "afxribbon.rc"              // MFC ribbon and control bar resources
+#endif
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
