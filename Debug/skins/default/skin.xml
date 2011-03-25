@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Skin>
+
+   <!-- 
+	All images supplied with the default skin are expected to exist and be the same dimentions.
+	There are 4 images not included.  They are used as backgrounds.  
+	If they don't exist in your skin folder, a solid color will be used instead.
+	The images, and their alternate colors are these:
+
+	background.png		else = background_color
+	post_background.png	else = post_background_color
+	rootpost_background.png	else = rootpost_background_color
+	reply_background.png	else = edit_background_color
+   -->
+
+   <!-- all colors are described in the format [red],[green],[blue] using values from 0 to 255 -->
+
+   <!-- The color mixed with underlying pixels when you hover over post previews, usernames and links  -->
+   <hover_color>255,255,255</hover_color>
+
+   <!-- This color is XOR'd against the text when it is selected -->
+   <text_selection_color>255,255,0</text_selection_color>
+
+   <!-- What to color my username with -->
+   <mypost_color>0,191,243</mypost_color>
+
+   <!-- color of the area behind and around posts and threads -->
+   <background_color>0,0,0</background_color>
+
+   <!-- color of the editing area where you write your posts -->
+   <edit_background_color>0,0,0</edit_background_color>
+
+   <!-- background color for root posts -->
+   <rootpost_background_color>34,34,34</rootpost_background_color>
+
+   <!-- background color for child posts  -->
+   <post_background_color>16,16,16</post_background_color>
+
+   <!-- what color spoiler rectangles should be  -->
+   <spoiler_color>56,56,56</spoiler_color>
+
+   <!-- the color of the line accross the top of root posts and around the edges of child posts -->
+   <post_edge_color>174,174,155</post_edge_color>
+
+   <!-- branch color for recent posts  -->
+   <branch_color>128,128,128</branch_color>
+
+   <!-- branch color for older posts ( this mixes with the branch_color over the 10 most recent posts ) -->
+   <faded_branch_color>40,40,40</faded_branch_color>
+
+   <!-- color for other people's usernames  -->
+   <author_color>255,186,0</author_color>
+
+   <!-- color for date and other misc text  -->
+   <misc_post_text_color>102,102,102</misc_post_text_color>
+
+   <!-- main color for text and recent text previews -->
+   <post_text_color>255,255,255</post_text_color>
+
+   <!-- color used for text previews on older posts ( this mixes with the post_text_color over the 10 most recent posts -->
+   <faded_post_text_color>135,135,135</faded_post_text_color>
+
+   <!-- color to line the edge of posts that are flagged as NWS -->
+   <post_INF_edge_color>0,191,243</post_INF_edge_color>
+
+   <!-- color to line the edge of posts that are flagged as INF  -->
+   <post_NWS_edge_color>255,0,0</post_NWS_edge_color>
+
+   <!-- color to line the edge of posts that are flagged as Stupid  -->
+   <post_stupid_edge_color>0,255,0</post_stupid_edge_color>
+
+   <!-- color to line the edge of posts that are flagged as Off Topic -->
+   <post_offtopic_edge_color>174,174,155</post_offtopic_edge_color>
+
+   <!-- color to line the edge of posts that are flagged as Political  -->
+   <post_political_edge_color>248,165,0</post_political_edge_color>
+
+   <!-- these are the colors used for color tagged text. -->
+   <!-- Except for purple.  He is only used by the WTF LOL flag -->
+   <tag_RED>255,0,0</tag_RED>
+   <tag_GREEN>141,198,63</tag_GREEN>
+   <tag_BLUE>68,174,223</tag_BLUE>
+   <tag_YELLOW>255,222,0</tag_YELLOW>
+   <tag_OLIVE>128,128,0</tag_OLIVE>
+   <tag_LIME>192,255,192</tag_LIME>
+   <tag_ORANGE>247,148,28</tag_ORANGE>
+   <tag_PURPLE>245,0,255</tag_PURPLE>
+   <tag_PINK>244,154,193</tag_PINK>
+
+   <!-- flag whether or not to draw all 4 sides of root posts instead of just the top -->
+   <stroke_root_edges>false</stroke_root_edges>
+
+</Skin>
