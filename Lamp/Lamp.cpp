@@ -150,8 +150,20 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
       return TRUE;
    }
    else
+   {
+      if(pMsg->message == WM_MBUTTONDOWN)
+      {
+         CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+         if(pMainFrame != NULL)
+         {
+            CPoint point(pMsg->lParam);
+            pMainFrame->MBClick(point);
+         }
+      }
+   
       // Call MFC to have it continue processing the message
       return CWinThread::PreTranslateMessage(pMsg);
+   }
 }
 
 

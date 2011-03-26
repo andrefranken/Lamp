@@ -369,7 +369,22 @@ void CMainFrame::OnTimer(UINT nIDEvent)
    }
 }
 
-
+void CMainFrame::MBClick(CPoint &point)
+{
+   CHackedTabCtrl *tabctrl = (CHackedTabCtrl*)GetCA()->FindActiveTabWnd();
+   if(tabctrl != NULL)
+   {
+      int tab = tabctrl->GetTabFromPoint(point);
+      if(tab != -1)
+      {
+         CWnd *pView = tabctrl->GetTabWnd(tab);
+         if(pView != NULL)
+         {
+            pView->PostMessageW(WM_CLOSE);
+         }
+      }
+   }
+}
 
 /*
 BEGIN_MESSAGE_MAP(CBMMenu, CMenu)

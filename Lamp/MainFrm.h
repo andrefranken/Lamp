@@ -31,6 +31,8 @@ public:
 
    CMDIClientAreaWnd *GetCA(){return &m_wndClientArea;}
 
+   void MBClick(CPoint &point);
+
 // Attributes
 public:
    void SetActiveLampView(CLampView *pView){m_pLastActiveView = pView;}
