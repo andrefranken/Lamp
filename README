@@ -1,12 +1,5 @@
 - why can't I send messages?  Gah!
 
-- Find out why we don't record our new size, when we go away, if we have been snapped by windows.
-  Suspect that we are using a rect that was recorded at the wrong time.  should record it when we go away.
-
-- treat middle-click on pin as an "open in new tab" command.
-
-- middle-button panning.
-
 - middle-click on tabs to close them.  Not sure how to trap for this.
 
 - make it so that the "find text" search term is remembered globally, rather than per-view.
