@@ -2028,7 +2028,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                            UCString author = post->GetAuthor();
                            UCString info = author;
-                           info += L"\'s info will go here.\r\nOnce we have profiles again.";
+                           info += L"\r\nProfile info will go here.\r\nOnce we have profiles again.";
 
                            AuthorDlg adlg(this);
                            adlg.m_info = info;

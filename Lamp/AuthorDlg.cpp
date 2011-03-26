@@ -41,6 +41,9 @@ BOOL AuthorDlg::OnInitDialog()
    {
       pInfo->SetWindowTextW(m_info);
    }
+
+   SetWindowTextW(m_author);
+
    CDialog::OnInitDialog();
 
    return TRUE;  // return TRUE unless you set the focus to a control
