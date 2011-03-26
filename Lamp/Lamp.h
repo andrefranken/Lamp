@@ -448,6 +448,8 @@ public:
    CDCSurface *GetPostBackground(){return &m_post_background;}
    CDCSurface *GetRootPostBackground(){return &m_rootpost_background;}
    CDCSurface *GetReplyBackground(){return &m_reply_background;}
+
+   CDCSurface *GetRMPanIcon(){return &m_mb_pan;}
       
    int GetFontHeight(){return m_fontheight;}
    int GetMiscFontHeight(){return m_miscfontheight;}
@@ -542,6 +544,8 @@ public:
    float GetMouseWheelScale(){return m_mouse_wheel_scale;}
    int GetNumMinutesCheckInbox(){return m_num_minutes_check_inbox;}
 
+   bool IsSpellCheckerEnabled(){return m_enable_spell_checker;}
+
    void AddView(CLampView *pView){m_views.push_back(pView);}
    void RemoveView(CLampView *pView){m_views.remove(pView);}
 
@@ -554,6 +558,8 @@ public:
       m_textscaler = __min(5.0f,m_textscaler);
       m_textscaler = __max(0.5f,m_textscaler);
    }
+
+   float GetMBPanScale(){return m_mb_pan_scale;}
 
    bool IsSpelledCorrectly(const UCChar *wordtotest, size_t count);
 
@@ -742,6 +748,8 @@ protected:
    CDCSurface m_forward;
    CDCSurface m_forward_hover;
 
+   CDCSurface m_mb_pan;
+
    CDCSurface m_refresh_anim[8];
 
    UCString m_hostname;
@@ -869,6 +877,10 @@ protected:
    UCString m_lastpost;
 
    int m_num_minutes_check_inbox;
+
+   float m_mb_pan_scale;
+
+   bool m_enable_spell_checker;
 
 public:
    afx_msg void OnFileSetuplogininfo();

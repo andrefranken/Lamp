@@ -11,7 +11,6 @@
 
 #define ANIM_TIMER 15
 
-
 class CLampDoc;
 
 class CHotSpot;
@@ -141,6 +140,11 @@ protected:
    bool m_bAnimating;
 
    bool m_dlgup;
+
+   CPoint m_MButtonDownPoint;
+   DWORD m_mbuttondowntime;
+   bool m_bMButtonDown;
+   bool m_bDrawMButtonDownIcon;
 // Generated message map functions
 protected:
    
@@ -156,6 +160,7 @@ public:
    afx_msg void OnMouseMove(UINT nFlags, CPoint point);
    afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
    afx_msg void OnMButtonDown(UINT nFlags, CPoint point);
+   afx_msg void OnMButtonUp(UINT nFlags, CPoint point);
    afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
    afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
    afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);

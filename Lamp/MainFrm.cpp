@@ -303,7 +303,15 @@ void CMainFrame::OnBookmarkMenu()
    theApp.PopulateBookmarkMenu(pMenu);
 
    RECT rect;
-   m_wndMenuBar.GetItemRect(4,&rect);
+
+   for(size_t i = 0; i < 10; i++)
+   {
+      if(m_wndMenuBar.GetItemID(i) == ID_BOOKMARK_MENU)
+      {
+         m_wndMenuBar.GetItemRect(i,&rect);
+         break;
+      }
+   }
 
    ClientToScreen(&rect);
 

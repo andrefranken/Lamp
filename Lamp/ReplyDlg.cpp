@@ -609,7 +609,8 @@ void CReplyDlg::RecalcCharWidths()
    }
 
    // start spelling timer
-   if(m_pView != NULL)
+   if(theApp.IsSpellCheckerEnabled() &&
+      m_pView != NULL)
    {
       m_badwords.clear();
       m_shacktags.clear();

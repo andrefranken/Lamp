@@ -339,6 +339,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_5516BD1CA6FC49BCB49AC57C1B69EBFA"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_57C3AB69EAAB42528D7D799960F5206F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -658,6 +664,12 @@
         "Entry"
         {
         "MsmKey" = "8:_C750100CB1C643D5954D56FC3D6D3317"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_C8660E579FB34B7D9F3A542DEA35FBEB"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -2068,6 +2080,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5516BD1CA6FC49BCB49AC57C1B69EBFA"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\roundshack\\mb_pan.png"
+            "TargetName" = "8:mb_pan.png"
+            "Tag" = "8:"
+            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_57C3AB69EAAB42528D7D799960F5206F"
             {
             "SourcePath" = "8:..\\Debug\\skins\\default\\thumb_hover.png"
@@ -3112,6 +3144,26 @@
             {
             "SourcePath" = "8:..\\Debug\\skins\\default\\thumb_grip_hover.png"
             "TargetName" = "8:thumb_grip_hover.png"
+            "Tag" = "8:"
+            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C8660E579FB34B7D9F3A542DEA35FBEB"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\default\\mb_pan.png"
+            "TargetName" = "8:mb_pan.png"
             "Tag" = "8:"
             "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
             "Condition" = "8:"
@@ -4665,7 +4717,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_50008E36A76240C3A2B3EEE67AF703BC"
             {
-            "SourcePath" = "8:..\\Debug\\Lamp.exe"
+            "SourcePath" = "8:..\\Release\\Lamp.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_6766E160BBE94EB68F10F66BFB9C32B1"

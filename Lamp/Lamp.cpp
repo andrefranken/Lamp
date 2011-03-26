@@ -196,6 +196,10 @@ CLampApp::CLampApp()
    m_code_fontname = L"Courier New";
 
    m_num_minutes_check_inbox = 3;
+
+   m_mb_pan_scale = 1.0f;
+
+   m_enable_spell_checker = true;
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
 }
@@ -703,6 +707,12 @@ void CLampApp::ReadSettingsFile()
    if(m_mouse_wheel_scale == 0.0f)
       m_mouse_wheel_scale = 1.0f;
 
+   setting = hostxml.FindChildElement(L"mb_pan_scale");
+   if(setting!=NULL) m_mb_pan_scale = setting->GetValue();
+   else m_mb_pan_scale = 1.0f;
+   if(m_mb_pan_scale == 0.0f)
+      m_mb_pan_scale = 1.0f;
+
    setting = hostxml.FindChildElement(L"lang");
    if(setting!=NULL) m_lang = setting->GetValue();
    else m_lang = L"en_US";
@@ -748,6 +758,10 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"num_minutes_check_inbox");
    if(setting!=NULL) m_num_minutes_check_inbox = setting->GetValue();
    else m_num_minutes_check_inbox = 3;
+
+   setting = hostxml.FindChildElement(L"enable_spell_checker");
+   if(setting!=NULL) m_enable_spell_checker = setting->GetValue();
+   else m_enable_spell_checker = true;   
 
    setting = hostxml.FindChildElement(L"normal_fontname");
    if(setting!=NULL) m_normal_fontname = setting->GetValue();
@@ -902,6 +916,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"smooth_scroll_scale",UCString(m_smoothscrollscale));
    settingsxml.AddChildElement(L"skin_folder",m_skinname);
    settingsxml.AddChildElement(L"mouse_wheel_scale",UCString(m_mouse_wheel_scale));
+   settingsxml.AddChildElement(L"mb_pan_scale",UCString(m_mb_pan_scale));
    settingsxml.AddChildElement(L"lang",m_lang);
    settingsxml.AddChildElement(L"numshow_truncated",UCString(m_numshow_truncated));
    settingsxml.AddChildElement(L"smooth_scroll",UCString(m_smooth_scroll));
@@ -913,6 +928,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"ShowLOLButtons",UCString(m_bShowLOLButtons));
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
    settingsxml.AddChildElement(L"num_minutes_check_inbox",UCString(m_num_minutes_check_inbox));
+   settingsxml.AddChildElement(L"enable_spell_checker",UCString(m_enable_spell_checker));
    settingsxml.AddChildElement(L"normal_fontname",m_normal_fontname);
    settingsxml.AddChildElement(L"quoted_fontname",m_quoted_fontname);
    settingsxml.AddChildElement(L"code_fontname",m_code_fontname);
@@ -939,8 +955,7 @@ void CLampApp::WriteSettingsFile()
    
    bmpath.PathToMe(L"settings.xml");
    if(g_bIsXP ||
-      (_waccess(bmpath,06) == 0 &&
-      bmpath.Find(L"Program Files") == NULL))
+      bmpath.Find(L"Program Files") == NULL)
    {
       settingsxml.Write(bmpath);
    }
@@ -1604,6 +1619,12 @@ void CLampApp::ReadSkinFiles()
    imagefilename += L"\\forward_hover.png";
    imagepath.PathToMe(imagefilename);
    m_forward_hover.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\mb_pan.png";
+   imagepath.PathToMe(imagefilename);
+   m_mb_pan.ReadPNG(imagepath);
 }
 
 void CLampApp::SetStatusBarText(const UCString &text, CLampView *pView)
@@ -2733,8 +2754,7 @@ void CLampApp::WriteBookmarks()
    
    bmpath.PathToMe(L"bookmarks.xml");
    if(g_bIsXP ||
-      (_waccess(bmpath,06) == 0 &&
-      bmpath.Find(L"Program Files") == NULL))
+      bmpath.Find(L"Program Files") == NULL)
    {
       bookmarksroot.Write(bmpath);
    }

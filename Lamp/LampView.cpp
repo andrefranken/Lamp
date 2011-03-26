@@ -35,6 +35,7 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_WM_RBUTTONDOWN()
    ON_WM_RBUTTONUP()
    ON_WM_MBUTTONDOWN()
+   ON_WM_MBUTTONUP()
    ON_WM_KEYDOWN()
    ON_WM_CHAR()
    ON_WM_SETCURSOR()
@@ -116,6 +117,8 @@ CLampView::CLampView()
    m_frame = 0;
    m_bAnimating = false;
    m_dlgup = false;
+   m_bMButtonDown = false;
+   m_bDrawMButtonDownIcon = false;
 
    theApp.AddView(this);
 }
@@ -459,6 +462,36 @@ void CLampView::OnDraw(CDC* pDC)
                MakePosLegal();
                InvalidateEverythingPan();
             }
+         }
+         else if(m_bMButtonDown &&
+                 abs(m_MButtonDownPoint.y - m_mousepoint.y) > 13)
+         {
+            m_bDrawMButtonDownIcon = true;
+            int ydiff = m_MButtonDownPoint.y - m_mousepoint.y;
+
+            if(theApp.GetSmoothScroll())
+            {
+               ydiff = (int)((float)ydiff * theApp.GetMBPanScale());
+            }
+            else
+            {
+               ydiff = (int)((float)ydiff / 10.0f);
+               ydiff = (int)((float)ydiff * theApp.GetMBPanScale());
+            }
+
+            m_gotopos = m_pos - ydiff;
+            MakePosLegal();
+            InvalidateEverythingPan();
+         }
+
+         if(m_bDrawMButtonDownIcon)
+         {
+            RECT mppanicon;
+            mppanicon.left = m_MButtonDownPoint.x - 13;
+            mppanicon.top = m_MButtonDownPoint.y - 13;
+            mppanicon.right = mppanicon.left + 26;
+            mppanicon.bottom = mppanicon.top + 26;
+            theApp.GetRMPanIcon()->Blit(hDC, mppanicon);
          }
       }
    }
@@ -2372,7 +2405,13 @@ void CLampView::OnMouseMove(UINT nFlags, CPoint point)
       if(m_pReplyDlg == NULL ||
          !m_pReplyDlg->OnMouseMove(nFlags, point))
       {
-         if(m_bTrackingThumb)
+         if(m_bMButtonDown &&
+            abs(m_MButtonDownPoint.y - m_mousepoint.y) > 13)
+         {
+            m_bDrawMButtonDownIcon = true;
+            InvalidateEverythingPan();
+         }
+         else if(m_bTrackingThumb)
          {
             m_gotopos = m_thumbdownpos + (int)((float)(m_mousepoint.y - m_thumbdownpoint.y) * (1.0f / m_scrollscale));
             InvalidateEverythingPan();
@@ -2573,8 +2612,24 @@ void CLampView::OnLButtonDblClk(UINT nFlags, CPoint point)
 void CLampView::OnMButtonDown(UINT nFlags, CPoint point) 
 {
    m_mousepoint = point;
-   
-   if(!GetDocument()->IsBusy())
+   m_MButtonDownPoint = point;
+   m_mbuttondowntime = ::GetTickCount();
+   m_bMButtonDown = true;
+   SetCapture();
+
+   CView::OnMButtonDown(nFlags, point);
+}
+
+void CLampView::OnMButtonUp(UINT nFlags, CPoint point) 
+{
+   m_bMButtonDown = false;
+   m_bDrawMButtonDownIcon = false;
+   ReleaseCapture();
+
+   if(abs(m_MButtonDownPoint.x - point.x) < 5 &&
+      abs(m_MButtonDownPoint.y - point.y) < 5 &&
+      (::GetTickCount() - m_mbuttondowntime) < 1000 &&
+      !GetDocument()->IsBusy())
    {
       m_textselectionpost = 0;
 
@@ -2587,32 +2642,27 @@ void CLampView::OnMButtonDown(UINT nFlags, CPoint point)
          {
             switch(m_hotspots[i].m_type)
             {
-            case HST_OPENINTAB:
-               {
-                  unsigned int id = GetDocument()->GetID(m_hotspots[i].m_id);
-                  unsigned int rootid = GetDocument()->GetRootId(id);
-                  UCString path;
-                  if(rootid != 0)
-                  {
-                     path += rootid;
-                  }
-                  else
-                  {
-                     path += id;
-                  }
-                  path += L'_';
-                  path += id;
-                  ReleaseCapture();
-                  theApp.OpenDocumentFile(path);
-               }
-               break;
             case HST_PIN:
+            case HST_OPENINTAB:
+            case HST_REFRESH:
                {
-                  ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
-                  if(post != NULL)
+                  if(GetDocument()->GetDataType() == DDT_STORY)
                   {
-                     post->SetPinned(!post->IsPinned());
-                     InvalidateEverything();
+                     unsigned int id = GetDocument()->GetID(m_hotspots[i].m_id);
+                     unsigned int rootid = GetDocument()->GetRootId(id);
+                     UCString path;
+                     if(rootid != 0)
+                     {
+                        path += rootid;
+                     }
+                     else
+                     {
+                        path += id;
+                     }
+                     path += L'_';
+                     path += id;
+                     ReleaseCapture();
+                     theApp.OpenDocumentFile(path);
                   }
                }
                break;
@@ -2622,7 +2672,6 @@ void CLampView::OnMButtonDown(UINT nFlags, CPoint point)
                   if(pPost != NULL)
                   {
                      pPost->ClearSpoilerTags(m_mousepoint.x, m_mousepoint.y);
-                     InvalidateEverything();
                   }
                }
                break;
@@ -2654,7 +2703,9 @@ void CLampView::OnMButtonDown(UINT nFlags, CPoint point)
       }
    }
 
-   CView::OnMButtonDown(nFlags, point);
+   InvalidateEverything();
+
+   CView::OnMButtonUp(nFlags, point);
 }
 
 void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags) 
