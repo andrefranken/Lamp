@@ -87,12 +87,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_1434A0C84D7B45EABAEE50A819DEBD85"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_1696B86B86AB451DB7FBF3F8E068D7F8"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -195,6 +189,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_2EAFF6D795EF4D05BE4DF1CA9485A527"
+        "OwnerKey" = "8:_C8CABE45D9244CAEA7C13361AE774345"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_308783EADEEF46ABBEC5837AAE918932"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -209,6 +209,12 @@
         {
         "MsmKey" = "8:_31E941EF5A4B43E2B1C07468840AD0EC"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_326FE4D6357E6F297D731FBE3FEE84DE"
+        "OwnerKey" = "8:_50008E36A76240C3A2B3EEE67AF703BC"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -621,12 +627,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_B4BCADB98E5B48B4B8F754C3E4444A4D"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_BD56570C26E24C488E2FDA48348220CF"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -635,6 +635,12 @@
         {
         "MsmKey" = "8:_C4176CE6621547D595DD60DC5753726C"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_C5095E25E3C14D30ADCBBBF58362124B"
+        "OwnerKey" = "8:_F158DA952CCD4A7A9740F93893B98EE6"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -659,6 +665,12 @@
         {
         "MsmKey" = "8:_C8949C88C8794DA699671D5B5F5113A2"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_C8CABE45D9244CAEA7C13361AE774345"
+        "OwnerKey" = "8:_50008E36A76240C3A2B3EEE67AF703BC"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -827,6 +839,12 @@
         {
         "MsmKey" = "8:_F1107C69809947CE8015591E448526F2"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_F158DA952CCD4A7A9740F93893B98EE6"
+        "OwnerKey" = "8:_50008E36A76240C3A2B3EEE67AF703BC"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1250,26 +1268,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1434A0C84D7B45EABAEE50A819DEBD85"
-            {
-            "SourcePath" = "8:..\\Debug\\bookmarks.xml"
-            "TargetName" = "8:bookmarks.xml"
-            "Tag" = "8:"
-            "Folder" = "8:_6766E160BBE94EB68F10F66BFB9C32B1"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1696B86B86AB451DB7FBF3F8E068D7F8"
             {
             "SourcePath" = "8:..\\Debug\\skins\\default\\lol_tags_hover.png"
@@ -1668,6 +1666,26 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_326FE4D6357E6F297D731FBE3FEE84DE"
+            {
+            "SourcePath" = "8:MSIMG32.dll"
+            "TargetName" = "8:MSIMG32.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_6766E160BBE94EB68F10F66BFB9C32B1"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_333280A2CAC846C1A7C251B9D543C92F"
@@ -2996,26 +3014,6 @@
             "TargetName" = "8:refresh_anim_4.png"
             "Tag" = "8:"
             "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B4BCADB98E5B48B4B8F754C3E4444A4D"
-            {
-            "SourcePath" = "8:..\\Debug\\settings.xml"
-            "TargetName" = "8:settings.xml"
-            "Tag" = "8:"
-            "Folder" = "8:_6766E160BBE94EB68F10F66BFB9C32B1"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -4606,12 +4604,68 @@
         }
         "MergeModule"
         {
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_2EAFF6D795EF4D05BE4DF1CA9485A527"
+            {
+            "UseDynamicProperties" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "SourcePath" = "8:microsoft_vc90_debugcrt_x86.msm"
+                "Properties"
+                {
+                }
+            "LanguageId" = "3:0"
+            "Exclude" = "11:FALSE"
+            "Folder" = "8:"
+            "Feature" = "8:"
+            "IsolateTo" = "8:"
+            }
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_C5095E25E3C14D30ADCBBBF58362124B"
+            {
+            "UseDynamicProperties" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "SourcePath" = "8:microsoft_vc90_debugmfc_x86.msm"
+                "Properties"
+                {
+                }
+            "LanguageId" = "3:0"
+            "Exclude" = "11:FALSE"
+            "Folder" = "8:"
+            "Feature" = "8:"
+            "IsolateTo" = "8:"
+            }
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_C8CABE45D9244CAEA7C13361AE774345"
+            {
+            "UseDynamicProperties" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "SourcePath" = "8:policy_9_0_Microsoft_VC90_DebugCRT_x86.msm"
+                "Properties"
+                {
+                }
+            "LanguageId" = "3:0"
+            "Exclude" = "11:FALSE"
+            "Folder" = "8:"
+            "Feature" = "8:"
+            "IsolateTo" = "8:"
+            }
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_F158DA952CCD4A7A9740F93893B98EE6"
+            {
+            "UseDynamicProperties" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "SourcePath" = "8:policy_9_0_Microsoft_VC90_DebugMFC_x86.msm"
+                "Properties"
+                {
+                }
+            "LanguageId" = "3:0"
+            "Exclude" = "11:FALSE"
+            "Folder" = "8:"
+            "Feature" = "8:"
+            "IsolateTo" = "8:"
+            }
         }
         "ProjectOutput"
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_50008E36A76240C3A2B3EEE67AF703BC"
             {
-            "SourcePath" = "8:..\\Release\\Lamp.exe"
+            "SourcePath" = "8:..\\Debug\\Lamp.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_6766E160BBE94EB68F10F66BFB9C32B1"

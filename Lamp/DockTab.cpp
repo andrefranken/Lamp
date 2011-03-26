@@ -46,7 +46,7 @@ void DockTab::OnMouseMove(UINT nFlags, CPoint point)
          theApp.m_pDockTab->ShowWindow(SW_HIDE);
       }
 
-      theApp.GetMainWnd()->ShowWindow(SW_RESTORE/*SW_SHOW*/);
+      theApp.GetMainWnd()->ShowWindow(/*SW_RESTORE*/SW_SHOW);
       
       HWND hWnd = theApp.GetMainWnd()->m_hWnd;
       //relation time of SetForegroundWindow lock	

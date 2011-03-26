@@ -2032,6 +2032,8 @@ void CLampApp::OnViewDocktop()
 
       GetMainWnd()->SetWindowPos(pWndInsertAfter, framerect.left, framerect.top, framerect.right - framerect.left, framerect.bottom - framerect.top, 0);   
 
+      GetMainWnd()->ModifyStyle(0,WS_MAXIMIZEBOX|WS_MINIMIZEBOX);
+
       if(m_pDockTab != NULL)
       {
          delete m_pDockTab;
@@ -2061,6 +2063,8 @@ void CLampApp::OnViewDocktop()
 
       //GetMainWnd()->SetWindowPos(&CWnd::wndTopMost, m_dockedrect.left, m_dockedrect.top, m_dockedrect.right - m_dockedrect.left, m_dockedrect.bottom - m_dockedrect.top, 0);   
       GetMainWnd()->SetWindowPos(&CWnd::wndTopMost, framerect.left, framerect.top, framerect.right - framerect.left, framerect.bottom - framerect.top, 0);   
+
+      GetMainWnd()->ModifyStyle(WS_MAXIMIZEBOX|WS_MINIMIZEBOX,0);
 
       m_pDockTab = new DockTab((CMainFrame*)GetMainWnd());
       m_pDockTab->m_pFrameWnd = (CMainFrame*)GetMainWnd();
