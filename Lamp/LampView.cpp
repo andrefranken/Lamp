@@ -161,6 +161,8 @@ void CLampView::OnClose()
 
 void CLampView::OnRButtonDown(UINT nFlags, CPoint point)
 {
+   m_bDrawMButtonDownIcon = false;
+
    if(m_pReplyDlg == NULL ||
       !m_pReplyDlg->OnRButtonDown(nFlags, point))
    {
@@ -463,7 +465,8 @@ void CLampView::OnDraw(CDC* pDC)
                InvalidateEverythingPan();
             }
          }
-         else if(m_bMButtonDown &&
+         else if((m_bMButtonDown ||
+                  m_bDrawMButtonDownIcon) &&
                  abs(m_MButtonDownPoint.y - m_mousepoint.y) > 13)
          {
             m_bDrawMButtonDownIcon = true;
@@ -1774,6 +1777,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
 {
    m_gotopos = m_pos;
    m_mousepoint = point;
+   m_bDrawMButtonDownIcon = false;
 
    bool bContinue = true;
 
@@ -2405,7 +2409,8 @@ void CLampView::OnMouseMove(UINT nFlags, CPoint point)
       if(m_pReplyDlg == NULL ||
          !m_pReplyDlg->OnMouseMove(nFlags, point))
       {
-         if(m_bMButtonDown &&
+         if((m_bMButtonDown ||
+            m_bDrawMButtonDownIcon) &&
             abs(m_MButtonDownPoint.y - m_mousepoint.y) > 13)
          {
             m_bDrawMButtonDownIcon = true;
@@ -2612,10 +2617,14 @@ void CLampView::OnLButtonDblClk(UINT nFlags, CPoint point)
 void CLampView::OnMButtonDown(UINT nFlags, CPoint point) 
 {
    m_mousepoint = point;
-   m_MButtonDownPoint = point;
-   m_mbuttondowntime = ::GetTickCount();
-   m_bMButtonDown = true;
-   SetCapture();
+   if(m_bDrawMButtonDownIcon == false)
+   {
+      m_MButtonDownPoint = point;
+      m_mbuttondowntime = ::GetTickCount();
+      m_bMButtonDown = true;
+      SetCapture();
+   }
+   m_bDrawMButtonDownIcon = false;
 
    CView::OnMButtonDown(nFlags, point);
 }
@@ -2632,7 +2641,7 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
       !GetDocument()->IsBusy())
    {
       m_textselectionpost = 0;
-
+      bool bHandled = false;
       for(size_t i = 0; i < m_hotspots.size(); i++)
       {
          if(m_mousepoint.x >= m_hotspots[i].m_spot.left &&
@@ -2663,6 +2672,7 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
                      path += id;
                      ReleaseCapture();
                      theApp.OpenDocumentFile(path);
+                     bHandled = true;
                   }
                }
                break;
@@ -2673,6 +2683,7 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
                   {
                      pPost->ClearSpoilerTags(m_mousepoint.x, m_mousepoint.y);
                   }
+                  bHandled = true;
                }
                break;
             case HST_LINK:
@@ -2684,6 +2695,7 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
                      pPost->GetLink(m_mousepoint.x, m_mousepoint.y, link);
                      theApp.OpenShackLink(link);
                   }
+                  bHandled = true;
                }
                break;
             case HST_IMAGELINK:
@@ -2695,14 +2707,20 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
                      pPost->GetImageLink(m_mousepoint.x, m_mousepoint.y, link);
                      theApp.OpenShackLink(link);
                   }
+                  bHandled = true;
                }
                break;
             }
             break;
          }
       }
+      
+      if(!bHandled)
+      {
+         m_bDrawMButtonDownIcon = true;
+      }
    }
-
+   
    InvalidateEverything();
 
    CView::OnMButtonUp(nFlags, point);
@@ -3152,12 +3170,14 @@ void CLampView::OnEditFindtext()
    {
       CFindTextDlg finddlg(this);
 
-      finddlg.m_findtext = theApp.GetFindText();
+      finddlg.m_pView = this;
+      finddlg.m_textselectionpost = m_textselectionpost;
+      finddlg.m_selectionstart = m_selectionstart;
+      finddlg.m_selectionend = m_selectionend;
       m_dlgup = true;
       if(finddlg.DoModal() == IDOK)
       {
-         theApp.SetFindText(finddlg.m_findtext);
-         FindNext();
+         //FindNext();
       }
       m_dlgup = false;
    }

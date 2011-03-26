@@ -65,6 +65,20 @@ public:
    void SetDLGUp(bool value){m_dlgup = value;}
    bool GetDLGUp(){return m_dlgup;}
 
+   void ResetSelection(){
+   m_textselectionpost = 0;
+   m_selectionstart = 0;
+   m_selectionend = 0;
+   }
+
+   void SetSelection(unsigned int textselectionpost, int selectionstart, int selectionend){
+   m_textselectionpost = textselectionpost;
+   m_selectionstart = selectionstart;
+   m_selectionend = selectionend;
+   }
+
+   void FindNext();
+
 protected:
    void DrawHotSpots(HDC hDC);
    void DrawCurrentHotSpots(HDC hDC);
@@ -76,7 +90,7 @@ protected:
    void DrawEverythingToBuffer(CDCSurface *pSurface = NULL, 
                                RECT *pDeviceRectangle = NULL, 
                                RECT *pScrollRectangle = NULL);
-   void FindNext();
+   
    void MakePosLegal();
    void GetDocHeight();
    CDCSurface *m_backbuffer;
