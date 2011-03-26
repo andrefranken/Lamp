@@ -109,8 +109,6 @@ protected:
 
    DWORD m_doubleclicktime;
 
-   UCString m_findtext;
-
    bool m_bdrawthumb;
    RECT m_thumbrect;
    RECT m_uprect;

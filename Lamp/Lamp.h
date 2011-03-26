@@ -637,6 +637,9 @@ public:
    void SendMessageDlg(CLampDoc *pDoc, const UCString &to, const UCString &subject, const UCString &shackmsg);
 
    void UpdateInbox();
+
+   UCString &GetFindText(){return m_findtext;}
+   void SetFindText(UCString &txt){m_findtext = txt;}
       
 // Overrides
 public:
@@ -881,6 +884,8 @@ protected:
    float m_mb_pan_scale;
 
    bool m_enable_spell_checker;
+
+   UCString m_findtext;
 
 public:
    afx_msg void OnFileSetuplogininfo();

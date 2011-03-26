@@ -1462,13 +1462,13 @@ void CLampView::FindNext()
       bHadAResult = true;
    }
 
-   bool bFound = GetDocument()->FindNext(m_findtext, m_textselectionpost, m_selectionstart, m_selectionend);
+   bool bFound = GetDocument()->FindNext(theApp.GetFindText(), m_textselectionpost, m_selectionstart, m_selectionend);
 
    if(!bFound && bHadAResult)
    {
       // wrap around and try again
       m_textselectionpost = 0;
-      bFound = GetDocument()->FindNext(m_findtext, m_textselectionpost, m_selectionstart, m_selectionend);
+      bFound = GetDocument()->FindNext(theApp.GetFindText(), m_textselectionpost, m_selectionstart, m_selectionend);
    }
 
    if(bFound)
@@ -2743,7 +2743,7 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
          else if(nChar == VK_F3 &&
                  m_pReplyDlg == NULL)
          {
-            if(!m_findtext.IsEmpty())
+            if(!theApp.GetFindText().IsEmpty())
             {
                FindNext();
             }
@@ -3152,11 +3152,11 @@ void CLampView::OnEditFindtext()
    {
       CFindTextDlg finddlg(this);
 
-      finddlg.m_findtext = m_findtext;
+      finddlg.m_findtext = theApp.GetFindText();
       m_dlgup = true;
       if(finddlg.DoModal() == IDOK)
       {
-         m_findtext = finddlg.m_findtext;
+         theApp.SetFindText(finddlg.m_findtext);
          FindNext();
       }
       m_dlgup = false;
