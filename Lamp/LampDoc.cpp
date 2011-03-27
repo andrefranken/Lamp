@@ -2867,7 +2867,7 @@ void CLampDoc::FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcat
    ::SelectObject(hDC,oldbrush);
 }
 
-void CLampDoc::DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipped, int shade, COLORREF AuthorColor)
+void CLampDoc::DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipped, int shade, COLORREF AuthorColor, const UCString &rootauthor)
 {
    HFONT oldfont = (HFONT)::SelectObject(hDC,m_normalfont);
 
@@ -2887,6 +2887,30 @@ void CLampDoc::DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipp
    }
 
    ::SetTextColor(hDC,AuthorColor);
+
+   if(rootauthor == text)
+   {
+      HPEN oldpen = (HPEN)::SelectObject(hDC,m_nullpen);
+      COLORREF backcolor = theApp.GetBackgroundColor();
+      COLORREF color = RGB((GetRValue(AuthorColor) + (GetRValue(backcolor)*3)) / 4,
+                           (GetGValue(AuthorColor) + (GetGValue(backcolor)*3)) / 4,
+                           (GetBValue(AuthorColor) + (GetBValue(backcolor)*3)) / 4);
+      HBRUSH newbrush = ::CreateSolidBrush(color);
+      HBRUSH oldbrush = (HBRUSH)::SelectObject(hDC,newbrush);
+      
+      if(theApp.RoundedPosts())
+      {
+         ::RoundRect(hDC,rect.left + offset - 5, rect.top, rect.right, rect.bottom, (rect.bottom - rect.top)/2, (rect.bottom - rect.top)/2);
+      }
+      else
+      {
+         ::Rectangle(hDC,rect.left + offset - 5, rect.top, rect.right, rect.bottom);
+      }
+
+      ::SelectObject(hDC,oldpen);
+      ::SelectObject(hDC,oldbrush);
+      ::DeleteObject(newbrush);
+   }
 
    ::ExtTextOutW(hDC, rect.left + offset, rect.bottom, 0, NULL, text, text.Length(), NULL);
 

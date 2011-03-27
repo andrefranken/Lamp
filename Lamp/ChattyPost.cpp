@@ -1256,7 +1256,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          {
             if((*it) != NULL)
             {
-               pos = (*it)->DrawReply(hDC, DeviceRectangle, pos, hotspots, indent, current_id, trunkatingposts);
+               pos = (*it)->DrawReply(hDC, DeviceRectangle, pos, hotspots, indent, current_id, trunkatingposts, m_author);
             }
             it++;
          }
@@ -1266,7 +1266,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
    return pos;
 }
 
-int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, int indent, unsigned int current_id, int &trunkatingposts)
+int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, int indent, unsigned int current_id, int &trunkatingposts, const UCString &rootauthor)
 {
    if(m_pDoc != NULL)
    {
@@ -1736,7 +1736,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                {
                   authorrect.right = authorrect.left + abs(theApp.GetCellHeight() / 3) + 5 + m_authorpreviewsize + 5;
                }
-               m_pDoc->DrawPreviewAuthor(hDC, authorrect, m_author, clipped, m_previewshade, m_AuthorColor);
+               m_pDoc->DrawPreviewAuthor(hDC, authorrect, m_author, clipped, m_previewshade, m_AuthorColor, rootauthor);
 
                if(clipped)
                {
@@ -1865,7 +1865,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
       {
          if((*it) != NULL)
          {
-            pos = (*it)->DrawReply(hDC, DeviceRectangle, pos, hotspots, indent, current_id, trunkatingposts);
+            pos = (*it)->DrawReply(hDC, DeviceRectangle, pos, hotspots, indent, current_id, trunkatingposts, rootauthor);
          }
          it++;
       }

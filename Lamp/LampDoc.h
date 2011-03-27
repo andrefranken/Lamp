@@ -133,7 +133,7 @@ public:
    void DrawDate(HDC hDC, RECT &rect, UCString &date, COLORREF ago_color, bool bGetExtents=false);
    void DrawRepliesHint(HDC hDC, RECT &rect, int m_reportedchildcount);
    void DrawCollapseNote(HDC hDC, RECT &rect);
-   void DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipped, int shade, COLORREF AuthorColor);
+   void DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipped, int shade, COLORREF AuthorColor, const UCString &rootauthor);
    void DrawBranch(HDC hDC, RECT &rect, indenttype type, int shade, newness Newness);
    int GetHeight(){return m_height;}
    bool FindNext(const UCChar *search, unsigned int &textselectionpost, int &selectionstart, int &selectionend);
