@@ -2515,41 +2515,29 @@ ChattyPost *CLampDoc::FindPost(unsigned int id)
    return NULL;
 }
 
-void CLampDoc::GetCharWidths(UCString &text, int *widths, bool bold, bool sample, const UCChar *fontname)
+void CLampDoc::GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic, bool bold, bool sample, const UCChar *fontname)
 {
    GCP_RESULTS results;
    memset(&results,0,sizeof(GCP_RESULTS));
    results.lStructSize = sizeof(GCP_RESULTS);
-   results.nGlyphs = text.Length();
+   results.nGlyphs = numchars;
    results.lpDx = widths;
    HFONT hCreatedFont = NULL;
    HFONT oldfont = NULL;
-
-   if(fontname != NULL)
+      
+   int fsize = theApp.GetFontHeight();
+   if(sample)
    {
-      int fsize = theApp.GetFontHeight();
-      if(sample)
-      {
-         fsize = theApp.GetSampleFontHeight();
-      }
-      int weight = FW_NORMAL;
-      if(bold) weight = FW_EXTRABOLD;
-      hCreatedFont = ::CreateFontW(fsize,0,0,0,weight,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,fontname);
-      oldfont = (HFONT)::SelectObject(m_hTempDC,hCreatedFont);
+      fsize = theApp.GetSampleFontHeight();
    }
-   else
-   {
-      if(bold)
-      {
-         oldfont = (HFONT)::SelectObject(m_hTempDC,m_boldfont);
-      }
-      else
-      {
-         oldfont = (HFONT)::SelectObject(m_hTempDC,m_normalfont);
-      }
-   }
-
-   ::GetCharacterPlacementW(m_hTempDC,text,text.Length(),0,&results,GCP_USEKERNING);
+   int weight = FW_NORMAL;
+   if(bold) weight = FW_EXTRABOLD;
+   DWORD ditlc = 0;
+   if(italic) ditlc = 1;
+   hCreatedFont = ::CreateFontW(fsize,0,0,0,weight,ditlc,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,fontname);
+   oldfont = (HFONT)::SelectObject(m_hTempDC,hCreatedFont);
+   
+   ::GetCharacterPlacementW(m_hTempDC,text,numchars,0,&results,GCP_USEKERNING);
 
    ::SelectObject(m_hTempDC,oldfont);
 

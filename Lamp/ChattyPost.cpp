@@ -1933,164 +1933,77 @@ void ChattyPost::SetupCharWidths()
    {
       int numchars = m_bodytext.Length();
       m_pCharWidths = (int*)malloc(sizeof(int) * numchars);
-      m_pDoc->GetCharWidths(m_bodytext, m_pCharWidths, false, false, NULL);
 
       // go through and massage based on shacktags
       // also, give newlines a width so that they look ok in previews
-      bool hasbold = false;
-      bool hascode = false;
-      bool hasquote = false;
-      bool hassample = false;
-      bool hascodebold = false;
-      bool hasquotebold = false;
-      bool hassamplebold = false;
+      std::vector<shacktagpos> fonttags;
 
+      for(int i = 0; i < (int)m_shacktags.size(); i++)
+      {
+         switch(m_shacktags[i].m_tag)
+         {
+         case ST_ITALIC:
+         case ST_ITALIC_END:
+         case ST_BOLD:
+         case ST_BOLD_END:
+         case ST_CODE: 
+         case ST_CODE_END:
+         case ST_SAMPLE: 
+         case ST_SAMPLE_END:
+         case ST_QUOTE: 
+         case ST_QUOTE_END:
+            fonttags.push_back(m_shacktags[i]);
+         }
+      }
+      
+      bool italic = false;
       bool bold = false;
       bool code = false;
       bool quote = false;
       bool sample = false;
-
-      std::vector<shacktagpos>::iterator it = m_shacktags.begin();
-      std::vector<shacktagpos>::iterator end = m_shacktags.end();
-
-      for(int i = 0; i < numchars; i++)
-      {
-         while(it != end && 
-               i >= (*it).m_pos)
-         {
-            switch((*it).m_tag)
-            {
-            case ST_BOLD:
-               if(code) hascodebold = true;
-               else if(quote) hasquotebold = true;
-               else if(sample) hassamplebold = true;
-               else hasbold = true;
-               bold = true;
-               break;
-            case ST_BOLD_END: bold = false;break;
-            case ST_CODE: 
-               if(bold) hascodebold = true;
-               else hascode = true;
-               code = true;
-               break;
-            case ST_CODE_END: code = false;break;
-            case ST_SAMPLE: 
-               if(bold) hassamplebold = true;
-               else hassample = true;
-               sample = true;
-               break;
-            case ST_SAMPLE_END: sample = false;break;
-            case ST_QUOTE: 
-               if(bold) hasquotebold = true;
-               else hasquote = true;
-               quote = true;
-               break;
-            case ST_QUOTE_END: quote = false;break;
-            }
-            it++;
-         }
-      }
       
-      int *boldwidths = NULL;
-      int *codewidths = NULL;
-      int *quotewidths = NULL;
-      int *samplewidths = NULL;
-      int *codeboldwidths = NULL;
-      int *quoteboldwidths = NULL;
-      int *sampleboldwidths = NULL;
-
-      if(hasbold)
+      int lastpos = 0;
+      for(int i = 0; i < (int)fonttags.size(); i++)
       {
-         boldwidths = (int*)malloc(sizeof(int) * numchars);
-         m_pDoc->GetCharWidths(m_bodytext, boldwidths, true, false,NULL);
-      }
-      if(hascode)
-      {
-         codewidths = (int*)malloc(sizeof(int) * numchars);
-         m_pDoc->GetCharWidths(m_bodytext, codewidths, false, false, theApp.GetCodeFontName());
-      }
-      if(hasquote)
-      {
-         quotewidths = (int*)malloc(sizeof(int) * numchars);
-         m_pDoc->GetCharWidths(m_bodytext, quotewidths, false, false, theApp.GetQuotedFontName());
-      }
-      if(hassample)
-      {
-         samplewidths = (int*)malloc(sizeof(int) * numchars);
-         m_pDoc->GetCharWidths(m_bodytext, samplewidths, false, true, theApp.GetNormalFontName());
-      }
-      if(hascodebold)
-      {
-         codeboldwidths = (int*)malloc(sizeof(int) * numchars);
-         m_pDoc->GetCharWidths(m_bodytext, codeboldwidths, true, false, theApp.GetCodeFontName());
-      }
-      if(hasquotebold)
-      {
-         quoteboldwidths = (int*)malloc(sizeof(int) * numchars);
-         m_pDoc->GetCharWidths(m_bodytext, quoteboldwidths, true, false, theApp.GetQuotedFontName());
-      }
-      if(hassamplebold)
-      {
-         sampleboldwidths = (int*)malloc(sizeof(int) * numchars);
-         m_pDoc->GetCharWidths(m_bodytext, sampleboldwidths, true, true, theApp.GetNormalFontName());
-      }
-      
-      bold = false;
-      code = false;
-      quote = false;
-      sample = false;      
-      it = m_shacktags.begin();
-      for(int i = 0; i < numchars; i++)
-      {
-         while(it != end && 
-               i >= (*it).m_pos)
+         int thispos = __min(fonttags[i].m_pos,numchars);
+         if(thispos > lastpos)
          {
-            switch((*it).m_tag)
-            {
-            case ST_BOLD: bold = true;break;
-            case ST_BOLD_END: bold = false;break;
-            case ST_CODE: code = true;break;
-            case ST_CODE_END: code = false;break;
-            case ST_SAMPLE: sample = true;break;
-            case ST_SAMPLE_END: sample = false;break;
-            case ST_QUOTE: quote = true;break;
-            case ST_QUOTE_END: quote = false;break;
-            }
-            it++;
+            const UCChar *fontname = theApp.GetNormalFontName();
+            if(quote) fontname = theApp.GetQuotedFontName();
+            else if(code) fontname = theApp.GetCodeFontName();
+
+            m_pDoc->GetCharWidths(m_bodytext.Str() + lastpos, m_pCharWidths + lastpos, thispos - lastpos, italic, bold, sample, fontname);
+            lastpos = thispos;
          }
 
+         switch(fonttags[i].m_tag)
+         {
+         case ST_ITALIC:      italic = true; break;
+         case ST_ITALIC_END:  italic = false; break;
+         case ST_BOLD:        bold = true; break;
+         case ST_BOLD_END:    bold = false; break;
+         case ST_CODE:        code = true; break;
+         case ST_CODE_END:    code = false; break;
+         case ST_SAMPLE:      sample = true; break;
+         case ST_SAMPLE_END:  sample = false; break;
+         case ST_QUOTE:       quote = true; break;
+         case ST_QUOTE_END:   quote = false; break;
+         }
+      }
+
+      if(numchars > lastpos)
+      {
+         const UCChar *fontname = theApp.GetNormalFontName();
+         if(quote) fontname = theApp.GetQuotedFontName();
+         else if(code) fontname = theApp.GetCodeFontName();
+         m_pDoc->GetCharWidths(m_bodytext.Str() + lastpos, m_pCharWidths + lastpos, numchars - lastpos, italic, bold, sample, fontname);
+      }
+      
+      for(int i = 0; i < numchars; i++)
+      {
          if(m_bodytext[i] == L'\n')
          {
             m_pCharWidths[i] = 4;
-         }
-
-         if(bold && code)
-         {
-            m_pCharWidths[i] = codeboldwidths[i];
-         }
-         else if(bold && quote)
-         {
-            m_pCharWidths[i] = quoteboldwidths[i];
-         }
-         else if(bold && sample)
-         {
-            m_pCharWidths[i] = sampleboldwidths[i];
-         }
-         else if(code)
-         {
-            m_pCharWidths[i] = codewidths[i];
-         }
-         else if(quote)
-         {
-            m_pCharWidths[i] = quotewidths[i];
-         }
-         else if(sample)
-         {
-            m_pCharWidths[i] = samplewidths[i];
-         }
-         else if(bold)
-         {
-            m_pCharWidths[i] = boldwidths[i];
          }
 
          if(m_pCharWidths[i] == 0)
@@ -2119,36 +2032,35 @@ void ChattyPost::SetupCharWidths()
                      m_pCharWidths[i] = abs(theApp.GetFontHeight()) / 2;
                   }
                }
+               else if(iswalnum(m_bodytext[i]) == 0)
+               {
+                  // is printable, but isn't alphanumeric
+                  // must be punctuation
+                  // give it some width
+                  if(sample)
+                  {
+                     m_pCharWidths[i] = abs(theApp.GetSampleFontHeight()) / 2;
+                  }
+                  else
+                  {
+                     m_pCharWidths[i] = abs(theApp.GetFontHeight()) / 2;
+                  }
+               }
             }
          }
       }
-            
-      if(boldwidths != NULL)
-         free(boldwidths);
-      if(codewidths != NULL)
-         free(codewidths);
-      if(quotewidths != NULL)
-         free(quotewidths);
-      if(samplewidths != NULL)
-         free(samplewidths);
-      if(codeboldwidths != NULL)
-         free(codeboldwidths);
-      if(quoteboldwidths != NULL)
-         free(quoteboldwidths);
-      if(sampleboldwidths != NULL)
-         free(sampleboldwidths);
    }
 
    m_pAuthorCharWidths = (int*)malloc(sizeof(int) * m_author.Length());
 
-   m_pDoc->GetCharWidths(m_author, m_pAuthorCharWidths, false, false, NULL);
+   m_pDoc->GetCharWidths(m_author, m_pAuthorCharWidths, m_author.Length(), false, false, false, NULL);
    m_authorpreviewsize = 0;
    for(size_t i = 0; i < (size_t)m_author.Length(); i++)
    {
       m_authorpreviewsize += m_pAuthorCharWidths[i];
    }
 
-   m_pDoc->GetCharWidths(m_author, m_pAuthorCharWidths, true, false, NULL);
+   m_pDoc->GetCharWidths(m_author, m_pAuthorCharWidths, m_author.Length(), false, true, false, NULL);
    m_authorsize = 0;
    for(size_t i = 0; i < (size_t)m_author.Length(); i++)
    {
@@ -2159,7 +2071,7 @@ void ChattyPost::SetupCharWidths()
    {
       m_pSubjectCharWidths = (int*)malloc(sizeof(int) * m_subject.Length());
 
-      m_pDoc->GetCharWidths(m_subject, m_pSubjectCharWidths, false, false, NULL);
+      m_pDoc->GetCharWidths(m_subject, m_pSubjectCharWidths, m_subject.Length(), false, false, false, NULL);
    }
 }
 
