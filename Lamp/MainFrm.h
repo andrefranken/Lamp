@@ -33,6 +33,8 @@ public:
 
    void MBClick(CPoint &point);
 
+   void CloseFindDlg();
+
 // Attributes
 public:
    void SetActiveLampView(CLampView *pView){m_pLastActiveView = pView;}

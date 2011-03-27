@@ -21,11 +21,15 @@ public:
 	enum { IDD = IDD_FINDTEXT_DIALOG };
 
 protected:
+   virtual void PostNcDestroy();   // default to delete this.
+   virtual void OnOK();
+   virtual void OnCancel();
    virtual BOOL OnInitDialog();
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 	DECLARE_MESSAGE_MAP()
 public:
    afx_msg void OnBnClickedOk();
+   afx_msg void OnBnNext();
    afx_msg void OnEditChange();
 };

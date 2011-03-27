@@ -386,6 +386,17 @@ void CMainFrame::MBClick(CPoint &point)
    }
 }
 
+
+void CMainFrame::CloseFindDlg()
+{
+   CLampView *pView = GetActiveLampView();
+
+   if(pView != NULL)
+   {
+      pView->CloseFindDlg();
+   }
+}
+
 /*
 BEGIN_MESSAGE_MAP(CBMMenu, CMenu)
    ON_WM_LBUTTONDOWN()

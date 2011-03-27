@@ -8,6 +8,7 @@
 #include "DCSurface.h"
 #include "MainFrm.h"
 #include "chattypost.h"
+#include "FindTextDlg.h"
 
 #define ANIM_TIMER 15
 
@@ -77,7 +78,17 @@ public:
    m_selectionend = selectionend;
    }
 
+   void GetSelection(unsigned int &textselectionpost, int &selectionstart, int &selectionend){
+   textselectionpost = m_textselectionpost;
+   selectionstart = m_selectionstart;
+   selectionend = m_selectionend;
+   }
+
    void FindNext();
+
+   void FindDlgClosing(){m_pFindDlg = NULL;}
+
+   void CloseFindDlg();
 
 protected:
    void DrawHotSpots(HDC hDC);
@@ -157,6 +168,9 @@ protected:
    DWORD m_mbuttondowntime;
    bool m_bMButtonDown;
    bool m_bDrawMButtonDownIcon;
+
+
+   CFindTextDlg *m_pFindDlg;
 // Generated message map functions
 protected:
    

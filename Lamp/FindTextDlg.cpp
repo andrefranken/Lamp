@@ -29,6 +29,7 @@ void CFindTextDlg::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CFindTextDlg, CDialog)
    ON_BN_CLICKED(IDOK, &CFindTextDlg::OnBnClickedOk)
+   ON_BN_CLICKED(ID_FIND_NEXT_BUTTON, &CFindTextDlg::OnBnNext)
    ON_EN_CHANGE(IDC_FIND_EDIT, &CFindTextDlg::OnEditChange)
 END_MESSAGE_MAP()
 
@@ -47,6 +48,28 @@ void CFindTextDlg::OnBnClickedOk()
    }
    
    OnOK();
+}
+
+void CFindTextDlg::OnBnNext()
+{
+   m_pView->GetSelection(m_textselectionpost,m_selectionstart,m_selectionend);
+   m_pView->FindNext();
+}
+
+void CFindTextDlg::PostNcDestroy()
+{
+   m_pView->FindDlgClosing();
+   delete this;
+}
+
+void CFindTextDlg::OnOK()
+{
+   DestroyWindow();
+}
+
+void CFindTextDlg::OnCancel()
+{
+   DestroyWindow();
 }
 
 BOOL CFindTextDlg::OnInitDialog() 

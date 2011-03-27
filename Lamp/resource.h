@@ -92,6 +92,8 @@
 #define ID_SHKMSGS_ARCHIVE              32816
 #define ID_AUTHORDLG_SEARCH_BUTTON      32817
 #define ID_AUTHORDLG_MESSAGE_BUTTON     32818
+#define ID_FIND_NEXT_BUTTON             32819
+
 #define ID_BOOKMARK_MENUITEM            32852
 
 // Next default values for new objects
@@ -99,7 +101,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        327
-#define _APS_NEXT_COMMAND_VALUE         32853
+#define _APS_NEXT_COMMAND_VALUE         32820
 #define _APS_NEXT_CONTROL_VALUE         1012
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

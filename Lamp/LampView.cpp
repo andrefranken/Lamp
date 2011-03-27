@@ -8,7 +8,6 @@
 #include "LampDoc.h"
 #include "LampView.h"
 #include "MainFrm.h"
-#include "FindTextDlg.h"
 #include "ReplyDlg.h"
 #include "DockTab.h"
 #include "BookmarkDlg.h"
@@ -120,11 +119,19 @@ CLampView::CLampView()
    m_bMButtonDown = false;
    m_bDrawMButtonDownIcon = false;
 
+   m_pFindDlg = NULL;
+
    theApp.AddView(this);
 }
 
 CLampView::~CLampView()
 {
+   if(m_pFindDlg != NULL)
+   {
+      delete(m_pFindDlg);
+      m_pFindDlg = NULL;
+   }
+
    ((CMainFrame*)theApp.GetMainWnd())->SetActiveLampView(NULL);
    if(m_pReplyDlg != NULL)
    {
@@ -1455,6 +1462,14 @@ void CLampView::InvalidateSkin()
    }
 
    InvalidateEverything();
+}
+
+void CLampView::CloseFindDlg()
+{
+   if(m_pFindDlg != NULL)
+   {
+      m_pFindDlg->PostMessageW(WM_CLOSE);
+   }
 }
 
 void CLampView::FindNext()
@@ -3168,18 +3183,15 @@ void CLampView::OnEditFindtext()
 {
    if(m_pReplyDlg == NULL)
    {
-      CFindTextDlg finddlg(this);
+      m_pFindDlg = new CFindTextDlg(this);
 
-      finddlg.m_pView = this;
-      finddlg.m_textselectionpost = m_textselectionpost;
-      finddlg.m_selectionstart = m_selectionstart;
-      finddlg.m_selectionend = m_selectionend;
-      m_dlgup = true;
-      if(finddlg.DoModal() == IDOK)
-      {
-         //FindNext();
-      }
-      m_dlgup = false;
+      m_pFindDlg->m_pView = this;
+      m_pFindDlg->m_textselectionpost = m_textselectionpost;
+      m_pFindDlg->m_selectionstart = m_selectionstart;
+      m_pFindDlg->m_selectionend = m_selectionend;
+      
+      m_pFindDlg->Create(IDD_FINDTEXT_DIALOG,this);
+      m_pFindDlg->ShowWindow(SW_SHOW);
    }
 }
 
@@ -3439,6 +3451,7 @@ void CLampView::OnKillFocus(CWnd* pNewWnd)
 
 void CLampView::OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView) 
 {
+   ((CMainFrame*)theApp.GetMainWnd())->CloseFindDlg();
    if(bActivate)
    {
       ((CMainFrame*)theApp.GetMainWnd())->SetActiveLampView(this);
