@@ -9,6 +9,10 @@
 
 #define WM_THREAD_DOWNLOAD               (WM_USER + 50)
 
+UINT DownloadThreadProc( LPVOID pParam );
+
+bool GetXMLDataFromString(CXMLTree &xmldata, const char *data, int datasize);
+
 typedef enum 
 {
    DDT_EPICFAILD     = 0,
@@ -31,7 +35,8 @@ typedef enum
    DT_STORY_2      = 7,
    DT_SHACKMSG     = 8,
    DT_READMSG      = 9,
-   DT_SENDMSG      = 10
+   DT_SENDMSG      = 10,
+   DT_CHECK_UPDATE = 11
 } DownloadType;
 
 typedef enum 
@@ -69,7 +74,7 @@ public:
    UCString m_password;
    void *m_data;
    int m_datasize;
-   CLampDoc *m_WhoWants;
+   void *m_WhoWants;
    DownloadType m_dt;
    unsigned int m_id;
    unsigned int m_refreshid;
@@ -222,7 +227,6 @@ public:
 #endif
 
 protected:
-   bool GetXMLDataFromString(CXMLTree &xmldata, const char *data, int datasize);
    void SetDataType(DocDataType datatype){m_datatype = datatype;}
    bool ReadFromRoot(CXMLTree &xmldata, std::vector<unsigned int> &existing_threads);
    bool ReadSearchResultsFromRoot(CXMLTree &xmldata);

@@ -130,6 +130,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
    CMFCMenuBar::SetShowAllCommands();
 
    SetTimer(INBOX_TIMER,(UINT)60000 * (UINT)theApp.GetNumMinutesCheckInbox(),NULL);
+
+   SetTimer(UPDATE_TIMER,(UINT)60000 * 2,NULL); // check for updates in 2 minutes
       
 	return 0;
 }
@@ -366,6 +368,11 @@ void CMainFrame::OnTimer(UINT nIDEvent)
    if(nIDEvent == INBOX_TIMER)
    {
       theApp.UpdateInbox();
+   }
+   else if(nIDEvent == UPDATE_TIMER)
+   {
+      KillTimer(UPDATE_TIMER);
+      theApp.CheckForUpdates();
    }
 }
 

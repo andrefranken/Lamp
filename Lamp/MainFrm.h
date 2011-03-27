@@ -6,6 +6,7 @@
 #include "LampView.h"
 
 #define INBOX_TIMER 16
+#define UPDATE_TIMER 17
 
 class CBMMenu : public CMenu
 {

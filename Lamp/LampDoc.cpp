@@ -2186,7 +2186,7 @@ int CLampDoc::DrawMessages(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<
    return pos;
 }
 
-bool CLampDoc::GetXMLDataFromString(CXMLTree &xmldata, const char *data, int datasize)
+bool GetXMLDataFromString(CXMLTree &xmldata, const char *data, int datasize)
 {
    bool result = false;
    // find where the xml section begins

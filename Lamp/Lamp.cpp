@@ -120,29 +120,156 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
       if(pDD != NULL &&
          pDD->m_WhoWants != NULL)
       {
-         std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
-         std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
-
-         bool bDocHandledIt = false;
-
-         while(it != end)
+         if(pDD->m_WhoWants == this)
          {
-            if((*it) == pDD->m_WhoWants)
+            if(pDD->m_dt == DT_CHECK_UPDATE)
             {
-               pDD->m_WhoWants->ProcessDownload(pDD);
-               bDocHandledIt = true;
-               break;
-            }
-            it++;
-         }
+               if(pDD->m_data != NULL &&
+                  pDD->m_datasize > 0)
+               {
+                  char *pText = (char *)pDD->m_data;
 
-         if(!bDocHandledIt)
-         {
+                  CXMLTree xmldata;
+                  if(GetXMLDataFromString(xmldata, (const char *)pDD->m_data, pDD->m_datasize))
+                  {
+                     int majorversion = xmldata.GetElementValue(L"MajorVersion");
+
+                     int minorversion = xmldata.GetElementValue(L"MinorVersion");
+
+                     if(majorversion > LAMP_VERSION_MAJOR ||
+                       (majorversion == LAMP_VERSION_MAJOR &&
+                        minorversion > LAMP_VERSION_MINOR))
+                     {
+                        UCString msg(L"There is a newer version (");
+                        msg += majorversion;
+                        msg += L'.';
+                        msg += minorversion;
+                        msg += L") available.\r\nWould you like to download it?";
+                        int ret = GetMainWnd()->MessageBox(msg,L"Lamp",MB_YESNO);
+                        if(ret == IDYES)
+                        {
+                           UCString link(L"http://shackwiki.com/wiki/Lamp#-_Download");
+                           OpenShackLink(link);
+                        }
+                     }                     
+
+                     CXMLElement *pMods = xmldata.FindChildElement(L"Mods");
+                     CXMLElement *pEmps = xmldata.FindChildElement(L"ShackEmployees");
+                     CXMLElement *pDevs = xmldata.FindChildElement(L"GameDevs");
+                     if(pMods != NULL &&
+                        pEmps != NULL &&
+                        pDevs != NULL)
+                     {
+                        m_namelist.clear();
+
+                        // the update doesn't have colors, so preserve them
+                        UCString existingcolor = m_Mods.GetAttributeValue(L"color");
+                        UCString existingenable = m_Mods.GetAttributeValue(L"enable");
+                        m_Mods = *pMods;
+                        m_Mods.AddAttribute(L"color",existingcolor);
+                        m_Mods.AddAttribute(L"enable",existingenable);
+
+                        COLORREF color = m_Mods.GetAttributeValue(L"color");
+                        bool enabled = m_Mods.GetAttributeValue(L"enable");
+                        if(enabled)
+                        {
+                           int count = pMods->CountChildren();
+                           for(int i = 0; i < count; i++)
+                           {
+                              CXMLElement *name = pMods->GetChildElement(i);
+                              if(name != NULL && name->GetTag() == L"name")
+                              {
+                                 UCString temp = name->GetValue();
+                                 temp.MakeLower();
+                                 m_namelist[temp] = color;
+                              }
+                           }
+                        }
+                     
+                        // the update doesn't have colors, so preserve them
+                        existingcolor = m_ShackEmployees.GetAttributeValue(L"color");
+                        existingenable = m_ShackEmployees.GetAttributeValue(L"enable");
+                        m_ShackEmployees = *pEmps;
+                        m_ShackEmployees.AddAttribute(L"color",existingcolor);
+                        m_ShackEmployees.AddAttribute(L"enable",existingenable);
+
+                        color = m_ShackEmployees.GetAttributeValue(L"color");
+                        enabled = m_ShackEmployees.GetAttributeValue(L"enable");
+                        if(enabled)
+                        {
+                           int count = pEmps->CountChildren();
+                           for(int i = 0; i < count; i++)
+                           {
+                              CXMLElement *name = pEmps->GetChildElement(i);
+                              if(name != NULL && name->GetTag() == L"name")
+                              {
+                                 UCString temp = name->GetValue();
+                                 temp.MakeLower();
+                                 m_namelist[temp] = color;
+                              }
+                           }
+                        }
+                     
+                        // the update doesn't have colors, so preserve them
+                        existingcolor = m_GameDevs.GetAttributeValue(L"color");
+                        existingenable = m_GameDevs.GetAttributeValue(L"enable");
+                        m_GameDevs = *pDevs;
+                        m_GameDevs.AddAttribute(L"color",existingcolor);
+                        m_GameDevs.AddAttribute(L"enable",existingenable);
+
+                        color = m_GameDevs.GetAttributeValue(L"color");
+                        enabled = m_GameDevs.GetAttributeValue(L"enable");
+                        if(enabled)
+                        {
+                           int count = pDevs->CountChildren();
+                           for(int i = 0; i < count; i++)
+                           {
+                              CXMLElement *name = pDevs->GetChildElement(i);
+                              if(name != NULL && name->GetTag() == L"name")
+                              {
+                                 UCString temp = name->GetValue();
+                                 temp.MakeLower();
+                                 m_namelist[temp] = color;
+                              }
+                           }
+                        }
+                     }                     
+                  }
+               }
+            }
+
             if(pDD->m_data != NULL)
             {
                free(pDD->m_data);
             }
             delete pDD;
+         }
+         else
+         {
+            std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
+            std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
+
+            bool bDocHandledIt = false;
+
+            while(it != end)
+            {
+               if((*it) == pDD->m_WhoWants)
+               {
+                  ((CLampDoc*)pDD->m_WhoWants)->ProcessDownload(pDD);
+                  bDocHandledIt = true;
+                  break;
+               }
+               it++;
+            }
+
+            if(!bDocHandledIt)
+            {
+               if(pDD->m_data != NULL)
+               {
+                  free(pDD->m_data);
+               }
+               delete pDD;
+            }
          }
       }
 
@@ -1745,6 +1872,24 @@ bool CLampApp::Login()
       have = true;
    }
    return have;
+}
+
+void CLampApp::CheckForUpdates()
+{
+   CDownloadData *pDD = new CDownloadData();
+
+   // http://shacklamp.omgninja.com/update.xml"
+
+   pDD->m_host = L"shacklamp.omgninja.com";
+   pDD->m_path = L"/update.xml";
+   pDD->m_WhoWants = this;
+   pDD->m_dt = DT_CHECK_UPDATE;
+   pDD->m_id = 0;
+   pDD->m_refreshid = 0;
+   pDD->reply_to_id = 0;
+   pDD->m_postrootid = 0;
+
+   AfxBeginThread(DownloadThreadProc, pDD);
 }
 
 void CLampApp::UpdateInbox()
