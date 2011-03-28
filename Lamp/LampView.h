@@ -239,6 +239,36 @@ public:
    afx_msg void OnUpdateOpenInTab(CCmdUI *pCmdUI);
    afx_msg void OnHelpWiki();
    afx_msg void OnUpdateHelpWiki(CCmdUI *pCmdUI);
+   afx_msg void OnShowLOLButtons();
+   afx_msg void OnUpdateShowLOLButtons(CCmdUI *pCmdUI);
+   afx_msg void OnCheckSpelling();
+   afx_msg void OnUpdateCheckSpelling(CCmdUI *pCmdUI);
+   afx_msg void OnFilterNWS();
+   afx_msg void OnUpdateFilterNWS(CCmdUI *pCmdUI);
+   afx_msg void OnFilterINF();
+   afx_msg void OnUpdateFilterINF(CCmdUI *pCmdUI);
+   afx_msg void OnFilterOFFTOPIC();
+   afx_msg void OnUpdateFilterOFFTOPIC(CCmdUI *pCmdUI);
+   afx_msg void OnFilterSTUPID();
+   afx_msg void OnUpdateFilterSTUPID(CCmdUI *pCmdUI);
+   afx_msg void OnFilterPOLITICAL();
+   afx_msg void OnUpdateFilterPOLITICAL(CCmdUI *pCmdUI);
+   afx_msg void OnSkinRoundShack();
+   afx_msg void OnUpdateSkinRoundShack(CCmdUI *pCmdUI);
+   afx_msg void OnSkinSquareShack();
+   afx_msg void OnUpdateSkinSquareShack(CCmdUI *pCmdUI);
+   afx_msg void OnSkinCustom();
+   afx_msg void OnUpdateSkinCustom(CCmdUI *pCmdUI);
+   afx_msg void OnHighlightOP();
+   afx_msg void OnUpdateHighlightOP(CCmdUI *pCmdUI);
+   afx_msg void OnShowSettings();
+   afx_msg void OnUpdateShowSettings(CCmdUI *pCmdUI);
+   afx_msg void OnNormalFont();
+   afx_msg void OnUpdateNormalFont(CCmdUI *pCmdUI);
+   afx_msg void OnQuotedFont();
+   afx_msg void OnUpdateQuotedFont(CCmdUI *pCmdUI);
+   afx_msg void OnCodeFont();
+   afx_msg void OnUpdateCodeFont(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp

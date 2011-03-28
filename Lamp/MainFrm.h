@@ -36,6 +36,8 @@ public:
 
    void CloseFindDlg();
 
+   void UpdateInboxTimer();
+
 // Attributes
 public:
    void SetActiveLampView(CLampView *pView){m_pLastActiveView = pView;}

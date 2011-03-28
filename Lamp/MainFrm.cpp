@@ -136,6 +136,12 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	return 0;
 }
 
+void CMainFrame::UpdateInboxTimer()
+{
+   KillTimer(INBOX_TIMER);
+   SetTimer(INBOX_TIMER,(UINT)60000 * (UINT)theApp.GetNumMinutesCheckInbox(),NULL);
+}
+
 
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 {

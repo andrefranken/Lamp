@@ -9,6 +9,7 @@
 #include "ReplyDlg.h"
 #include <math.h>
 
+UCString blank_string;
 
 void ChattyPost::UpdateAuthorColor()
 {
@@ -1256,7 +1257,12 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          {
             if((*it) != NULL)
             {
-               pos = (*it)->DrawReply(hDC, DeviceRectangle, pos, hotspots, indent, current_id, trunkatingposts, m_author);
+               UCString &rootauthor = blank_string;
+               if(theApp.GetHighlightOP())
+               {
+                  rootauthor = m_author;
+               }                  
+               pos = (*it)->DrawReply(hDC, DeviceRectangle, pos, hotspots, indent, current_id, trunkatingposts, rootauthor);
             }
             it++;
          }
@@ -2053,14 +2059,14 @@ void ChattyPost::SetupCharWidths()
 
    m_pAuthorCharWidths = (int*)malloc(sizeof(int) * m_author.Length());
 
-   m_pDoc->GetCharWidths(m_author, m_pAuthorCharWidths, m_author.Length(), false, false, false, NULL);
+   m_pDoc->GetCharWidths(m_author, m_pAuthorCharWidths, m_author.Length(), false, false, false, theApp.GetNormalFontName());
    m_authorpreviewsize = 0;
    for(size_t i = 0; i < (size_t)m_author.Length(); i++)
    {
       m_authorpreviewsize += m_pAuthorCharWidths[i];
    }
 
-   m_pDoc->GetCharWidths(m_author, m_pAuthorCharWidths, m_author.Length(), false, true, false, NULL);
+   m_pDoc->GetCharWidths(m_author, m_pAuthorCharWidths, m_author.Length(), false, true, false, theApp.GetNormalFontName());
    m_authorsize = 0;
    for(size_t i = 0; i < (size_t)m_author.Length(); i++)
    {
@@ -2071,7 +2077,7 @@ void ChattyPost::SetupCharWidths()
    {
       m_pSubjectCharWidths = (int*)malloc(sizeof(int) * m_subject.Length());
 
-      m_pDoc->GetCharWidths(m_subject, m_pSubjectCharWidths, m_subject.Length(), false, false, false, NULL);
+      m_pDoc->GetCharWidths(m_subject, m_pSubjectCharWidths, m_subject.Length(), false, false, false, theApp.GetNormalFontName());
    }
 }
 
@@ -3948,6 +3954,8 @@ void ChattyPost::InvalidateSkin()
    m_pos = 0;
 
    SetupCharWidths();
+
+   UpdateAuthorColor();
 
    std::list<ChattyPost*>::iterator it = m_children.begin();
    std::list<ChattyPost*>::iterator end = m_children.end();

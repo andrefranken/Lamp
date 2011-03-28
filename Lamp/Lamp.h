@@ -528,12 +528,17 @@ public:
    COLORREF GetExpiringTextColor(){return m_expiring_color;}
 
    int GetNumToShowWhenTruncated(){return m_numshow_truncated;}
+   void SetNumToShowWhenTruncated(int value){m_numshow_truncated = value;}
 
    COLORREF GetUserColor(UCString &name);
 
    const UCChar *GetNormalFontName(){return m_normal_fontname;}
    const UCChar *GetQuotedFontName(){return m_quoted_fontname;}
    const UCChar *GetCodeFontName(){return m_code_fontname;}
+
+   void SetNormalFontName(const UCChar *value){m_normal_fontname = value;InvalidateSkinAllViews();}
+   void SetQuotedFontName(const UCChar *value){m_quoted_fontname = value;InvalidateSkinAllViews();}
+   void SetCodeFontName(const UCChar *value){m_code_fontname = value;InvalidateSkinAllViews();}
 
    bool RoundedPosts(){return m_rounded_posts;}
 
@@ -546,8 +551,15 @@ public:
    float GetSmoothScrollScale(){return m_smoothscrollscale;}
    float GetMouseWheelScale(){return m_mouse_wheel_scale;}
    int GetNumMinutesCheckInbox(){return m_num_minutes_check_inbox;}
+   void SetNumMinutesCheckInbox(int value);
+
+   void SetMouseWheelScale(float value){m_mouse_wheel_scale = value;}
 
    bool IsSpellCheckerEnabled(){return m_enable_spell_checker;}
+   void SetIsSpellCheckerEnabled(bool value){m_enable_spell_checker = value;}
+
+   bool GetHighlightOP(){return m_highlight_OP;}
+   void SetHighlightOP(bool value){m_highlight_OP = value;}
 
    void AddView(CLampView *pView){m_views.push_back(pView);}
    void RemoveView(CLampView *pView){m_views.remove(pView);}
@@ -563,6 +575,7 @@ public:
    }
 
    float GetMBPanScale(){return m_mb_pan_scale;}
+   void SetMBPanScale(float value){m_mb_pan_scale = value;}
 
    bool IsSpelledCorrectly(const UCChar *wordtotest, size_t count);
 
@@ -597,6 +610,15 @@ public:
    bool EnableStupid(){return m_enable_stupid;}
    bool EnablePolitical(){return m_enable_political;}
 
+   void SetEnableNWS(bool value){m_enable_nws = value;}
+   void SetEnableINF(bool value){m_enable_inf = value;}
+   void SetEnableOffTopic(bool value){m_enable_offtopic = value;}
+   void SetEnableStupid(bool value){m_enable_stupid = value;}
+   void SetEnablePolitical(bool value){m_enable_political = value;}
+
+   UCString &GetSkinFolder(){return m_skinname;}
+   void SetSkinFolder(const UCChar *skinname);
+
    void AddBookmark(const CShackBookmark &bookmark)
    {
       m_Bookmarks.push_back(bookmark);
@@ -627,6 +649,8 @@ public:
    void SetDoublePageStory(bool value){m_bDoublePageStory = value;}
 
    bool ShowLOLButtons(){return m_bShowLOLButtons;}
+
+   void SetShowLOLButtons(bool value){m_bShowLOLButtons = value;}
 
    bool AlwaysOnTopWhenNotDocked(){return m_bAlwaysOnTopWhenNotDocked;}
 
@@ -889,6 +913,8 @@ protected:
    float m_mb_pan_scale;
 
    bool m_enable_spell_checker;
+
+   bool m_highlight_OP;
 
    UCString m_findtext;
 

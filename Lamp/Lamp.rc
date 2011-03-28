@@ -138,13 +138,6 @@ BEGIN
                 MENUITEM "&Aqua Style",                 ID_VIEW_APPLOOK_OFF_2007_AQUA
             END
         END
-        MENUITEM "Smooth Scroll",               ID_VIEW_SMOOTHSCROLL
-        MENUITEM "Auto Show Loaded Images",     ID_VIEW_AUTOSHOWLOADEDIMAGES
-        MENUITEM "Allow Pinning",               ID_PINNING_MENUITEM
-        MENUITEM "Double Size Pages in Chatty", ID_DOUBLE_PAGE_STORY_MENUITEM
-        MENUITEM SEPARATOR
-        MENUITEM "Dock Top",                    ID_VIEW_DOCKTOP
-        MENUITEM "Always on Top",               ID_ALWAYSONTOP_WHENNOTDOCKED
     END
     POPUP "&Help"
     BEGIN
@@ -230,13 +223,43 @@ BEGIN
         MENUITEM "Allow Pinning",               ID_PINNING_MENUITEM
         MENUITEM "Clear All Pinnings",          ID_CLEAR_ALL_PINNINGS_MENUITEM
         MENUITEM "Double Size Pages in Chatty", ID_DOUBLE_PAGE_STORY_MENUITEM
+        MENUITEM "Show LOL Buttons",            ID_SHOW_LOL_BUTTONS
+        MENUITEM "Check Spelling",              ID_CHECK_SPELLING
+        MENUITEM "Highlight OP's Replies",      ID_HIGHLIGHT_OP
         MENUITEM SEPARATOR
-        MENUITEM "Increase Font Size\tCtrl+Plus", ID_VIEW_INCREASEFONTSIZE
-        MENUITEM "Decrease Font Size\tCtrl+Minus", ID_VIEW_DECREASEFONTSIZE
-        MENUITEM "Reset Font Size\tCtrl+0",     ID_VIEW_RESETFONTSIZE
+        POPUP "Fonts"
+        BEGIN
+            MENUITEM "Font for Normal Text",    ID_NORM_FONT
+            MENUITEM "Font for Quoted Text",    ID_QUOTE_FONT
+            MENUITEM "Font for Code Text",      ID_CODE_FONT
+        END
+        POPUP "Font size"
+        BEGIN
+            MENUITEM "Increase Font Size\tCtrl+Plus", ID_VIEW_INCREASEFONTSIZE
+            MENUITEM "Decrease Font Size\tCtrl+Minus", ID_VIEW_DECREASEFONTSIZE
+            MENUITEM "Reset Font Size\tCtrl+0",     ID_VIEW_RESETFONTSIZE
+        END        
         MENUITEM SEPARATOR
         MENUITEM "Dock Top",                    ID_VIEW_DOCKTOP
         MENUITEM "Always on Top",               ID_ALWAYSONTOP_WHENNOTDOCKED
+        MENUITEM SEPARATOR
+        POPUP "Filters"
+        BEGIN
+           MENUITEM "Enable NWS threads",          ID_FILTER_ENABLE_NWS
+           MENUITEM "Enable INF threads",          ID_FILTER_ENABLE_INF
+           MENUITEM "Enable Off Topic threads",    ID_FILTER_ENABLE_OFFTOPIC
+           MENUITEM "Enable Stupid threads",       ID_FILTER_ENABLE_STUPID
+           MENUITEM "Enable Political threads",    ID_FILTER_ENABLE_POLITICAL
+        END
+        MENUITEM SEPARATOR
+        POPUP "&Skin"
+        BEGIN
+            MENUITEM "Round Shack",                 ID_SKIN_ROUNDSHACK
+            MENUITEM "Square Shack",                ID_SKIN_DEFAULT
+            MENUITEM "Custom",                      ID_SKIN_CUSTOM
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Other Settings",              ID_SHOW_SETTINGS_DIALOG
     END
     POPUP "&Help"
     BEGIN
@@ -423,6 +446,23 @@ BEGIN
     LTEXT           "Subject:",IDC_STATIC,7,33,28,8
 END
 
+IDD_SETTINGS_DIALOG DIALOGEX 0, 0, 245, 142
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "More Settings"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,141,121,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,188,121,50,14
+    EDITTEXT        IDC_MOUSE_WHEEL_SPEED_EDIT,184,15,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_MB_PAN_SPEED_EDIT,184,39,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_NUM_SHOW_TRUNC_EDIT,184,63,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_NUM_MIN_INBOX_EDIT,184,87,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Mouse wheel speed factor",IDC_STATIC,94,17,85,8
+    LTEXT           "Mouse middle-button pan speed factor",IDC_STATIC,55,41,124,8
+    LTEXT           "Number of replies to show when thread truncated",IDC_STATIC,19,65,160,8
+    LTEXT           "Number of minutes to wait to periodically check Inbox",IDC_STATIC,7,89,172,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -526,6 +566,14 @@ BEGIN
         RIGHTMARGIN, 309
         TOPMARGIN, 7
         BOTTOMMARGIN, 176
+    END
+
+    IDD_SETTINGS_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 238
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 135
     END
 END
 #endif    // APSTUDIO_INVOKED

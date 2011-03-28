@@ -4,7 +4,7 @@
 
 #include "stdafx.h"
 #include "Lamp.h"
-
+#include "SettingsDlg.h"
 #include "LampDoc.h"
 #include "LampView.h"
 #include "MainFrm.h"
@@ -84,6 +84,36 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_OPENINTAB, &CLampView::OnUpdateOpenInTab)
    ON_COMMAND(ID_HELP_WIKI, &CLampView::OnHelpWiki)
    ON_UPDATE_COMMAND_UI(ID_HELP_WIKI, &CLampView::OnUpdateHelpWiki)
+   ON_COMMAND(ID_SHOW_LOL_BUTTONS, &CLampView::OnShowLOLButtons)
+   ON_UPDATE_COMMAND_UI(ID_SHOW_LOL_BUTTONS, &CLampView::OnUpdateShowLOLButtons)
+   ON_COMMAND(ID_CHECK_SPELLING, &CLampView::OnCheckSpelling)
+   ON_UPDATE_COMMAND_UI(ID_CHECK_SPELLING, &CLampView::OnUpdateCheckSpelling)
+   ON_COMMAND(ID_FILTER_ENABLE_NWS, &CLampView::OnFilterNWS)
+   ON_UPDATE_COMMAND_UI(ID_FILTER_ENABLE_NWS, &CLampView::OnUpdateFilterNWS)
+   ON_COMMAND(ID_FILTER_ENABLE_INF, &CLampView::OnFilterINF)
+   ON_UPDATE_COMMAND_UI(ID_FILTER_ENABLE_INF, &CLampView::OnUpdateFilterINF)
+   ON_COMMAND(ID_FILTER_ENABLE_OFFTOPIC, &CLampView::OnFilterOFFTOPIC)
+   ON_UPDATE_COMMAND_UI(ID_FILTER_ENABLE_OFFTOPIC, &CLampView::OnUpdateFilterOFFTOPIC)
+   ON_COMMAND(ID_FILTER_ENABLE_STUPID, &CLampView::OnFilterSTUPID)
+   ON_UPDATE_COMMAND_UI(ID_FILTER_ENABLE_STUPID, &CLampView::OnUpdateFilterSTUPID)
+   ON_COMMAND(ID_FILTER_ENABLE_POLITICAL, &CLampView::OnFilterPOLITICAL)
+   ON_UPDATE_COMMAND_UI(ID_FILTER_ENABLE_POLITICAL, &CLampView::OnUpdateFilterPOLITICAL)
+   ON_COMMAND(ID_SKIN_ROUNDSHACK, &CLampView::OnSkinRoundShack)
+   ON_UPDATE_COMMAND_UI(ID_SKIN_ROUNDSHACK, &CLampView::OnUpdateSkinRoundShack)
+   ON_COMMAND(ID_SKIN_DEFAULT, &CLampView::OnSkinSquareShack)
+   ON_UPDATE_COMMAND_UI(ID_SKIN_DEFAULT, &CLampView::OnUpdateSkinSquareShack)
+   ON_COMMAND(ID_SKIN_CUSTOM, &CLampView::OnSkinCustom)
+   ON_UPDATE_COMMAND_UI(ID_SKIN_CUSTOM, &CLampView::OnUpdateSkinCustom)
+   ON_COMMAND(ID_HIGHLIGHT_OP, &CLampView::OnHighlightOP)
+   ON_UPDATE_COMMAND_UI(ID_HIGHLIGHT_OP, &CLampView::OnUpdateHighlightOP)
+   ON_COMMAND(ID_SHOW_SETTINGS_DIALOG, &CLampView::OnShowSettings)
+   ON_UPDATE_COMMAND_UI(ID_SHOW_SETTINGS_DIALOG, &CLampView::OnUpdateShowSettings)
+   ON_COMMAND(ID_NORM_FONT, &CLampView::OnNormalFont)
+   ON_UPDATE_COMMAND_UI(ID_NORM_FONT, &CLampView::OnUpdateNormalFont)
+   ON_COMMAND(ID_QUOTE_FONT, &CLampView::OnQuotedFont)
+   ON_UPDATE_COMMAND_UI(ID_QUOTE_FONT, &CLampView::OnUpdateQuotedFont)
+   ON_COMMAND(ID_CODE_FONT, &CLampView::OnCodeFont)
+   ON_UPDATE_COMMAND_UI(ID_CODE_FONT, &CLampView::OnUpdateCodeFont)
 
 END_MESSAGE_MAP()
 
@@ -1460,6 +1490,8 @@ void CLampView::InvalidateSkin()
    {
       m_pReplyDlg->InvalidateSkin();
    }
+
+   m_whitebuffer.Fill(GetRValue(theApp.GetHoverColor()),GetGValue(theApp.GetHoverColor()),GetBValue(theApp.GetHoverColor()));
 
    InvalidateEverything();
 }
@@ -3744,6 +3776,325 @@ void CLampView::OnHelpWiki()
 }
 
 void CLampView::OnUpdateHelpWiki(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+}
+
+void CLampView::OnShowLOLButtons()
+{
+   theApp.SetShowLOLButtons(!theApp.ShowLOLButtons());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateShowLOLButtons(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.ShowLOLButtons())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnCheckSpelling()
+{
+   theApp.SetIsSpellCheckerEnabled(!theApp.IsSpellCheckerEnabled());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateCheckSpelling(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.IsSpellCheckerEnabled())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnFilterNWS()
+{
+   theApp.SetEnableNWS(!theApp.EnableNWS());
+}
+
+void CLampView::OnUpdateFilterNWS(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.EnableNWS())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnFilterINF()
+{
+   theApp.SetEnableINF(!theApp.EnableINF());
+}
+
+void CLampView::OnUpdateFilterINF(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.EnableINF())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnFilterOFFTOPIC()
+{
+   theApp.SetEnableOffTopic(!theApp.EnableOffTopic());
+}
+
+void CLampView::OnUpdateFilterOFFTOPIC(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.EnableOffTopic())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnFilterSTUPID()
+{
+   theApp.SetEnableStupid(!theApp.EnableStupid());
+}
+
+void CLampView::OnUpdateFilterSTUPID(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.EnableStupid())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnFilterPOLITICAL()
+{
+   theApp.SetEnablePolitical(!theApp.EnablePolitical());
+}
+
+void CLampView::OnUpdateFilterPOLITICAL(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.EnablePolitical())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnSkinRoundShack()
+{
+   theApp.SetSkinFolder(L"roundshack");
+}
+
+void CLampView::OnUpdateSkinRoundShack(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.GetSkinFolder() == L"roundshack")
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnSkinSquareShack()
+{
+   theApp.SetSkinFolder(L"default");
+}
+
+void CLampView::OnUpdateSkinSquareShack(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.GetSkinFolder() == L"default")
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnSkinCustom()
+{
+   UCString skinfilename = L"skins\\";
+   skinfilename += theApp.GetSkinFolder();
+   skinfilename += L"\\skin.xml";
+
+   UCString skinpath;
+   skinpath.PathToMe(skinfilename);
+
+   wchar_t szFilters[] = L"Skin.xml Files (*.xml)|*.xml|All Files (*.*)|*.*||";
+
+   CFileDialog getskin(TRUE,//BOOL bOpenFileDialog,
+                       L"xml",//LPCTSTR lpszDefExt = NULL,
+                       skinpath,//LPCTSTR lpszFileName = NULL,
+                       OFN_FILEMUSTEXIST | OFN_HIDEREADONLY,//DWORD dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+                       szFilters,//LPCTSTR lpszFilter = NULL,
+                       this,//CWnd* pParentWnd = NULL,
+                       0);//DWORD dwSize = 0
+
+   if( getskin.DoModal() == IDOK )
+   {
+      CString pathName = getskin.GetPathName();
+
+      const wchar_t *begin = pathName;
+      const wchar_t *end = begin + pathName.GetLength();
+
+      while(end > begin && *end != L'\\')end--;
+
+      const wchar_t *first = end - 1;
+
+      while(first > begin && *first != L'\\')first--;
+   
+      UCString foldername;
+      foldername.AppendUnicodeString(first + 1, end - first - 1);
+
+      theApp.SetSkinFolder(foldername);
+   }
+}
+
+void CLampView::OnUpdateSkinCustom(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.GetSkinFolder() != L"roundshack" &&
+      theApp.GetSkinFolder() != L"default")
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnHighlightOP()
+{
+   theApp.SetHighlightOP(!theApp.GetHighlightOP());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateHighlightOP(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.GetHighlightOP())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnShowSettings()
+{
+   CSettingsDlg settingsdlg(this);
+   settingsdlg.DoModal();
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateShowSettings(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+}
+
+void CLampView::OnNormalFont()
+{
+   LOGFONTW lf;
+   memset(&lf,0,sizeof(LOGFONTW));
+   wcscpy_s(lf.lfFaceName,LF_FACESIZE,theApp.GetNormalFontName());
+   lf.lfHeight = 16;
+
+   CFontDialog fontdlg(&lf,0,NULL,this);
+   if(fontdlg.DoModal() == IDOK)
+   {
+      CString temp = fontdlg.GetFaceName();
+      theApp.SetNormalFontName(temp);
+   }
+}
+
+void CLampView::OnUpdateNormalFont(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+}
+
+void CLampView::OnQuotedFont()
+{
+   LOGFONTW lf;
+   memset(&lf,0,sizeof(LOGFONTW));
+   wcscpy_s(lf.lfFaceName,LF_FACESIZE,theApp.GetQuotedFontName());
+   lf.lfHeight = 16;
+
+   CFontDialog fontdlg(&lf,0,NULL,this);
+   if(fontdlg.DoModal() == IDOK)
+   {
+      CString temp = fontdlg.GetFaceName();
+      theApp.SetQuotedFontName(temp);
+   }
+}
+
+void CLampView::OnUpdateQuotedFont(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+}
+
+void CLampView::OnCodeFont()
+{
+   LOGFONTW lf;
+   memset(&lf,0,sizeof(LOGFONTW));
+   wcscpy_s(lf.lfFaceName,LF_FACESIZE,theApp.GetCodeFontName());
+   lf.lfHeight = 16;
+
+   CFontDialog fontdlg(&lf,0,NULL,this);
+   if(fontdlg.DoModal() == IDOK)
+   {
+      CString temp = fontdlg.GetFaceName();
+      theApp.SetCodeFontName(temp);
+   }
+}
+
+void CLampView::OnUpdateCodeFont(CCmdUI *pCmdUI)
 {
    pCmdUI->Enable(TRUE);
 }

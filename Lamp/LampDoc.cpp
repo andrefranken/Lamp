@@ -1226,9 +1226,12 @@ void CLampDoc::SendMessage(const UCString &to, const UCString &subject, const UC
    UCString path = L"/messages/send/";   
 
    UCString post_data;
+
+   UCString userlower = theApp.GetUsername();
+   userlower.MakeLower();
    
    post_data += L"username=";
-   char *enc_username = url_encode((char*)theApp.GetUsername().str8(false,CET_UTF8));
+   char *enc_username = url_encode((char*)userlower.str8(false,CET_UTF8));
    post_data += enc_username;
 
    post_data += L"&password=";
@@ -1254,7 +1257,7 @@ void CLampDoc::SendMessage(const UCString &to, const UCString &subject, const UC
                  0,
                  0,
                  post_data,
-                 theApp.GetUsername(),
+                 userlower,
                  theApp.GetPassword());
 
    free(enc_username);

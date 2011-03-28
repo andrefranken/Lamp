@@ -36,6 +36,7 @@
 #define IDD_SEARCH_DIALOG               324
 #define IDD_BOOKMARK_DIALOG             325
 #define IDD_SENDMSG_DIALOG              326
+#define IDD_SETTINGS_DIALOG             327
 #define IDC_THREAD_EDIT                 1000
 #define IDC_FIND_EDIT                   1001
 #define IDC_USERNAME_EDIT               1002
@@ -49,6 +50,10 @@
 #define IDC_BM_TITLE_EDIT               1009
 #define IDC_SUBJECT_EDIT                1010
 #define IDC_SHACKMSG_EDIT               1011
+#define IDC_MOUSE_WHEEL_SPEED_EDIT      1012
+#define IDC_MB_PAN_SPEED_EDIT           1013
+#define IDC_NUM_SHOW_TRUNC_EDIT         1014
+#define IDC_NUM_MIN_INBOX_EDIT          1015
 #define ID_FILE_OPENTHREAD              32771
 #define ID_EDIT_REFRESH                 32773
 #define ID_FILE_SETUPLOGININFO          32774
@@ -93,6 +98,21 @@
 #define ID_AUTHORDLG_SEARCH_BUTTON      32817
 #define ID_AUTHORDLG_MESSAGE_BUTTON     32818
 #define ID_FIND_NEXT_BUTTON             32819
+#define ID_SHOW_LOL_BUTTONS             32820
+#define ID_CHECK_SPELLING               32821
+#define ID_FILTER_ENABLE_NWS            32822
+#define ID_FILTER_ENABLE_INF            32823
+#define ID_FILTER_ENABLE_OFFTOPIC       32824
+#define ID_FILTER_ENABLE_STUPID         32825
+#define ID_FILTER_ENABLE_POLITICAL      32826
+#define ID_SKIN_ROUNDSHACK              32827
+#define ID_SKIN_DEFAULT                 32828
+#define ID_SKIN_CUSTOM                  32829
+#define ID_HIGHLIGHT_OP                 32830
+#define ID_SHOW_SETTINGS_DIALOG         32831
+#define ID_NORM_FONT                    32832
+#define ID_QUOTE_FONT                   32833
+#define ID_CODE_FONT                    32834
 
 #define ID_BOOKMARK_MENUITEM            32852
 
@@ -100,9 +120,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        327
-#define _APS_NEXT_COMMAND_VALUE         32820
-#define _APS_NEXT_CONTROL_VALUE         1012
+#define _APS_NEXT_RESOURCE_VALUE        328
+#define _APS_NEXT_COMMAND_VALUE         32833
+#define _APS_NEXT_CONTROL_VALUE         1016
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

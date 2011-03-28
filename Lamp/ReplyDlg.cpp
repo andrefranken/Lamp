@@ -597,7 +597,7 @@ void CReplyDlg::RecalcCharWidths()
    {
       int numchars = m_replytext.Length();
       m_pCharWidths = (int*)malloc(sizeof(int) * numchars);
-      m_pDoc->GetCharWidths(m_replytext, m_pCharWidths, m_replytext.Length(), false, false, false, NULL);
+      m_pDoc->GetCharWidths(m_replytext, m_pCharWidths, m_replytext.Length(), false, false, false, theApp.GetNormalFontName());
 
       for(int i = 0; i < m_replytext.Length(); i++)
       {
@@ -609,8 +609,7 @@ void CReplyDlg::RecalcCharWidths()
    }
 
    // start spelling timer
-   if(theApp.IsSpellCheckerEnabled() &&
-      m_pView != NULL)
+   if(m_pView != NULL)
    {
       m_badwords.clear();
       m_shacktags.clear();
@@ -618,7 +617,11 @@ void CReplyDlg::RecalcCharWidths()
       {
          m_pView->KillTimer(m_timer);
       }
-      m_timer = m_pView->SetTimer(5,500,NULL); // half a second delay
+
+      if(theApp.IsSpellCheckerEnabled())
+      {
+         m_timer = m_pView->SetTimer(5,500,NULL); // half a second delay
+      }
    }
 }
 
@@ -2205,7 +2208,7 @@ bool CReplyDlg::OnRButtonDown(UINT nFlags, CPoint point)
                {
                   int numchars = m_suggestions[j].Length();
                   int *pCharWidths = (int*)malloc(sizeof(int) * numchars);
-                  m_pView->GetDocument()->GetCharWidths(m_suggestions[j], pCharWidths, m_suggestions[j].Length(), false, false, false, NULL);
+                  m_pView->GetDocument()->GetCharWidths(m_suggestions[j], pCharWidths, m_suggestions[j].Length(), false, false, false, theApp.GetNormalFontName());
                   int thiswidth = 0;
                   for(int k = 0; k < numchars; k++)
                   {

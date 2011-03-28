@@ -282,6 +282,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SettingsDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stack.cpp"
 				>
 			</File>
@@ -437,6 +441,10 @@
 			</File>
 			<File
 				RelativePath=".\set.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SettingsDlg.h"
 				>
 			</File>
 			<File

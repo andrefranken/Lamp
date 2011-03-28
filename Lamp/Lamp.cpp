@@ -339,6 +339,7 @@ CLampApp::CLampApp()
    m_mb_pan_scale = 1.0f;
 
    m_enable_spell_checker = true;
+   m_highlight_OP = true;
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
 }
@@ -902,6 +903,10 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_enable_spell_checker = setting->GetValue();
    else m_enable_spell_checker = true;   
 
+   setting = hostxml.FindChildElement(L"highlight_OP");
+   if(setting!=NULL) m_highlight_OP = setting->GetValue();
+   else m_highlight_OP = true;
+
    setting = hostxml.FindChildElement(L"normal_fontname");
    if(setting!=NULL) m_normal_fontname = setting->GetValue();
    else m_normal_fontname = L"Arial";
@@ -1068,6 +1073,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
    settingsxml.AddChildElement(L"num_minutes_check_inbox",UCString(m_num_minutes_check_inbox));
    settingsxml.AddChildElement(L"enable_spell_checker",UCString(m_enable_spell_checker));
+   settingsxml.AddChildElement(L"highlight_OP",UCString(m_highlight_OP));
    settingsxml.AddChildElement(L"normal_fontname",m_normal_fontname);
    settingsxml.AddChildElement(L"quoted_fontname",m_quoted_fontname);
    settingsxml.AddChildElement(L"code_fontname",m_code_fontname);
@@ -1124,6 +1130,13 @@ COLORREF CLampApp::GetUserColor(UCString &name)
    }
 
    return m_author_color;
+}
+
+void CLampApp::SetSkinFolder(const UCChar *skinname)
+{
+   m_skinname = skinname;
+   ReadSkinFiles();
+   InvalidateSkinAllViews();
 }
 
 void CLampApp::ReadSkinFiles()
@@ -3040,3 +3053,12 @@ void CLampApp::SendMessageDlg(CLampDoc *pDoc, const UCString &to, const UCString
    dlg.DoModal();
 }
 
+void CLampApp::SetNumMinutesCheckInbox(int value)
+{
+   m_num_minutes_check_inbox = value;
+   CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+   if(pMainFrame != NULL)
+   {
+      pMainFrame->UpdateInboxTimer();
+   }
+}
