@@ -1135,7 +1135,7 @@ void CLampDoc::PerformSearch()
    m_rootposts.clear();
 
    theApp.SetLastSearchParms(m_search_author, m_search_parent_author, m_search_terms);
-
+   
    UCString path = L"/search.xml?author=";
    path += m_search_author;
    path += L"&parent_author=";
@@ -1143,10 +1143,19 @@ void CLampDoc::PerformSearch()
    path += L"&terms=";
    path += m_search_terms;
 
+   path += L"&terms=";
+   path += m_search_terms;
+   
+   // these don't work
+   //path += L"&SearchType=n";
+   //path += L"&SearchType=i";
+
    StartDownload(theApp.GetHostName(),
                  path,
                  DT_SEARCH,
                  0);
+
+   
 }
 
 void CLampDoc::GetShackMessages()

@@ -22,6 +22,8 @@
 #define new DEBUG_NEW
 #endif
 
+UCString g_PathToMe;
+
 bool g_bIsXP = false;
 
 chattyerror download(const char* host, const char* path, char** out_response, int *psize/*=NULL*/)
@@ -353,6 +355,16 @@ CLampApp theApp;
 
 BOOL CLampApp::InitInstance()
 {
+   // Parse command line for standard shell commands, DDE, file open
+
+   if(m_lpCmdLine != NULL)
+   {
+      g_PathToMe = m_lpCmdLine;
+   }
+	//CCommandLineInfo cmdInfo;
+	//ParseCommandLine(cmdInfo);
+   // g_PathToMe
+
    // make sure the user path exists
    wchar_t path[MAX_PATH+1]={0,0,0};
 
@@ -499,15 +511,6 @@ BOOL CLampApp::InitInstance()
 	EnableShellOpen();
 	RegisterShellFileTypes(TRUE);
 
-	// Parse command line for standard shell commands, DDE, file open
-	CCommandLineInfo cmdInfo;
-	ParseCommandLine(cmdInfo);
-
-
-	// Dispatch commands specified on the command line.  Will return FALSE if
-	// app was launched with /RegServer, /Register, /Unregserver or /Unregister.
-	if (!ProcessShellCommand(cmdInfo))
-		return FALSE;
 	// The main window has been initialized, so show and update it
 	pMainFrame->ShowWindow(m_nCmdShow);
 	pMainFrame->UpdateWindow();
@@ -521,6 +524,9 @@ BOOL CLampApp::InitInstance()
       m_bAlwaysOnTopWhenNotDocked = false;// because the next call toggles it
       OnAlwaysOnTopWhenNotDocked();
    }
+
+   // launch a latestchatty tab
+   OnFileNew();
 
    return TRUE;
 }
@@ -877,7 +883,7 @@ void CLampApp::ReadSettingsFile()
 
    setting = hostxml.FindChildElement(L"DockedMode");
    if(setting!=NULL) m_bStartInDockedMode = setting->GetValue();
-   else m_bStartInDockedMode = true;
+   else m_bStartInDockedMode = false;
 
    setting = hostxml.FindChildElement(L"PinningInStories");
    if(setting!=NULL) m_bPinningInStories = setting->GetValue();

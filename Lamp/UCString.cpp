@@ -2,6 +2,8 @@
 #include "UCString.h"
 #include "Lamp.h"
 
+extern UCString g_PathToMe;
+
 UCString::UCString()
 {
    Init();
@@ -2637,43 +2639,60 @@ int UCString::HexToInt(const UCChar* p, int length)
 
 void UCString::PathToMe( const UCChar *filename)
 {
-   UCChar path_buffer[1024];
-   path_buffer[0] = L'\0';
-   
-   int strlength = ::GetModuleFileNameW(theApp.m_hInstance, path_buffer, 1024);
-   
-   if(strlength > 0)
+   if(g_PathToMe.IsEmpty())
    {
-      UCChar *pChar = path_buffer + strlength - 1;
-
-      while(pChar > path_buffer)
+      UCChar path_buffer[1024];
+      path_buffer[0] = L'\0';
+      
+      int strlength = ::GetModuleFileNameW(theApp.m_hInstance, path_buffer, 1024);
+      
+      if(strlength > 0)
       {
-         if(*pChar == L'\\' ||
-            *pChar == L'/')
+         UCChar *pChar = path_buffer + strlength - 1;
+
+         while(pChar > path_buffer)
          {
-            pChar++;
-            break;
+            if(*pChar == L'\\' ||
+               *pChar == L'/')
+            {
+               pChar++;
+               break;
+            }
+            else
+            {         
+               pChar--;
+            }
+         }
+
+         if(filename != NULL &&
+            1024 > pChar - path_buffer + (int)wcslen(filename))
+         {
+            wcsncpy_s(pChar, 1024 - (pChar - path_buffer), filename,_TRUNCATE);
          }
          else
-         {         
-            pChar--;
+         {
+            path_buffer[0] = L'\0';
          }
       }
 
-      if(filename != NULL &&
-         1024 > pChar - path_buffer + (int)wcslen(filename))
-      {
-         wcsncpy_s(pChar, 1024 - (pChar - path_buffer), filename,_TRUNCATE);
-      }
-      else
-      {
-         path_buffer[0] = L'\0';
-      }
+      FreeString(true);
+      AppendUnicodeString(path_buffer, StringLength(path_buffer));
+      FreeMetaStrings();
    }
-      
-   FreeString(true);
-   AppendUnicodeString(path_buffer, StringLength(path_buffer));
-   FreeMetaStrings();
+   else
+   {
+      FreeString(true);
+      AppendUnicodeString(g_PathToMe.Str(), g_PathToMe.Length());
+
+      if(g_PathToMe[g_PathToMe.Length()-1] != L'\\')
+      {
+         AppendUnicodeString(L"\\", 1);
+      }
+
+      AppendUnicodeString(filename, wcslen(filename));
+
+      FreeMetaStrings();
+   }
 }
 
 void UCString::splitpath( UCString *pdrive, UCString *pdir, UCString *pfname, UCString *pext) const
