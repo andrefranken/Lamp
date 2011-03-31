@@ -114,6 +114,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_QUOTE_FONT, &CLampView::OnUpdateQuotedFont)
    ON_COMMAND(ID_CODE_FONT, &CLampView::OnCodeFont)
    ON_UPDATE_COMMAND_UI(ID_CODE_FONT, &CLampView::OnUpdateCodeFont)
+   ON_COMMAND(ID_SMALL_LOL, &CLampView::OnSmallLOL)
+   ON_UPDATE_COMMAND_UI(ID_SMALL_LOL, &CLampView::OnUpdateSmallLOL)
 
 END_MESSAGE_MAP()
 
@@ -1121,27 +1123,27 @@ void CLampView::DrawCurrentHotSpots(HDC hDC)
                break;
             case HST_LOLTAG:
                {
-                  theApp.GetLolTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,0,0);
+                  GetDocument()->DrawLOLField(hDC, LTT_LOL, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
                }
                break;
             case HST_INFTAG:
                {
-                  theApp.GetLolTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,(theApp.GetLolTagsImage(false)->GetWidth() / 5),0);
+                  GetDocument()->DrawLOLField(hDC, LTT_INF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
                }
                break;
             case HST_UNFTAG:
                {
-                  theApp.GetLolTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,(theApp.GetLolTagsImage(false)->GetWidth() / 5) * 2,0);
+                  GetDocument()->DrawLOLField(hDC, LTT_UNF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
                }
                break;
             case HST_TAGTAG:
                {
-                  theApp.GetLolTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,(theApp.GetLolTagsImage(false)->GetWidth() / 5) * 3,0);
+                  GetDocument()->DrawLOLField(hDC, LTT_TAG, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
                }
                break;
             case HST_WTFTAG:
                {
-                  theApp.GetLolTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,(theApp.GetLolTagsImage(false)->GetWidth() / 5) * 4,0);
+                  GetDocument()->DrawLOLField(hDC, LTT_WTF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
                }
                break;
             }
@@ -1404,27 +1406,27 @@ void CLampView::DrawCurrentHotSpots(HDC hDC)
                break;
             case HST_LOLTAG:
                {
-                  theApp.GetLolTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,0,0);
+                  GetDocument()->DrawLOLField(hDC, LTT_LOL, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
                }
                break;
             case HST_INFTAG:
                {
-                  theApp.GetLolTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,(theApp.GetLolTagsImage(false)->GetWidth() / 5),0);
+                  GetDocument()->DrawLOLField(hDC, LTT_INF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
                }
                break;
             case HST_UNFTAG:
                {
-                  theApp.GetLolTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,(theApp.GetLolTagsImage(false)->GetWidth() / 5) * 2,0);
+                  GetDocument()->DrawLOLField(hDC, LTT_UNF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
                }
                break;
             case HST_TAGTAG:
                {
-                  theApp.GetLolTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,(theApp.GetLolTagsImage(false)->GetWidth() / 5) * 3,0);
+                  GetDocument()->DrawLOLField(hDC, LTT_TAG, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
                }
                break;
             case HST_WTFTAG:
                {
-                  theApp.GetLolTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,(theApp.GetLolTagsImage(false)->GetWidth() / 5) * 4,0);
+                  GetDocument()->DrawLOLField(hDC, LTT_WTF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
                }
                break;
             }
@@ -2322,8 +2324,8 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         if(pPost != NULL)
                         {
                            GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_LOL);
-                           pPost->AddLolTag(LTT_LOL);
                            theApp.AddMyLol(m_hotspots[i].m_id,LTT_LOL);
+                           pPost->AddLolTag(LTT_LOL);                           
                            InvalidateEverything();
                         }
                      }
@@ -2334,8 +2336,8 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         if(pPost != NULL)
                         {
                            GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_INF);
-                           pPost->AddLolTag(LTT_INF);
                            theApp.AddMyLol(m_hotspots[i].m_id,LTT_INF);
+                           pPost->AddLolTag(LTT_INF);                           
                            InvalidateEverything();
                         }
                      }
@@ -2346,8 +2348,8 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         if(pPost != NULL)
                         {
                            GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_UNF);
-                           pPost->AddLolTag(LTT_UNF);
                            theApp.AddMyLol(m_hotspots[i].m_id,LTT_UNF);
+                           pPost->AddLolTag(LTT_UNF);
                            InvalidateEverything();
                         }
                      }
@@ -2358,8 +2360,8 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         if(pPost != NULL)
                         {
                            GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_TAG);
-                           pPost->AddLolTag(LTT_TAG);
                            theApp.AddMyLol(m_hotspots[i].m_id,LTT_TAG);
+                           pPost->AddLolTag(LTT_TAG);
                            InvalidateEverything();
                         }
                      }
@@ -2370,8 +2372,8 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         if(pPost != NULL)
                         {
                            GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_WTF);
-                           pPost->AddLolTag(LTT_WTF);
                            theApp.AddMyLol(m_hotspots[i].m_id,LTT_WTF);
+                           pPost->AddLolTag(LTT_WTF);
                            InvalidateEverything();
                         }
                      }
@@ -4097,4 +4099,24 @@ void CLampView::OnCodeFont()
 void CLampView::OnUpdateCodeFont(CCmdUI *pCmdUI)
 {
    pCmdUI->Enable(TRUE);
+}
+
+void CLampView::OnSmallLOL()
+{
+   theApp.SetShowSmallLOL(!theApp.ShowSmallLOL());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateSmallLOL(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.ShowSmallLOL())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
 }

@@ -27,6 +27,8 @@
 #pragma once
 #include "chattyerror.h"
 
+void SetUserAgent(const char *str);
+
 chattyerror webclient_download(const char* host, 
                                const char* path, 
                                const char* username, 

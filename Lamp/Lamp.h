@@ -68,7 +68,6 @@ public:
    UCString m_author;
 };
 
-
 class CImageCacheItem
 {
 public:
@@ -373,22 +372,6 @@ public:
       }
    }   
 
-   CDCSurface *GetLolTagsImage(bool bHover)
-   {
-      if(bHover)
-      {
-         return &m_lol_tags_hover;
-      }
-      else
-      {
-         return &m_lol_tags;
-      }
-   }
-
-   CDCSurface *GetLolTagsMineImage()
-   {
-      return &m_lol_tags_mine;
-   }
 
    CDCSurface *GetPinImage(bool on, bool bHover)
    {
@@ -667,8 +650,22 @@ public:
 
    void CheckForUpdates();
 
+   void RefreshLOLs();
+
    UCString &GetFindText(){return m_findtext;}
    void SetFindText(UCString &txt){m_findtext = txt;}
+
+   void AddLOL_LOL(unsigned int post_id, unsigned int count);
+   void AddLOL_INF(unsigned int post_id, unsigned int count);
+   void AddLOL_UNF(unsigned int post_id, unsigned int count);
+   void AddLOL_TAG(unsigned int post_id, unsigned int count);
+   void AddLOL_WTF(unsigned int post_id, unsigned int count);
+   CLOLFlags &GetKnownLOLFlags(unsigned int post_id);
+
+   int GetLOLFieldWidth(){return m_LOLFieldWidth;}
+
+   bool ShowSmallLOL(){return m_bShowSmallLOL;}
+   void SetShowSmallLOL(bool value);
       
 // Overrides
 public:
@@ -759,9 +756,6 @@ protected:
    CDCSurface m_preview;
    CDCSurface m_preview_hover;
    CDCSurface m_docktabimage;
-   CDCSurface m_lol_tags;
-   CDCSurface m_lol_tags_hover;
-   CDCSurface m_lol_tags_mine;
 
    CDCSurface m_pin_hover;
    CDCSurface m_pin_on;
@@ -895,6 +889,8 @@ protected:
    std::map<unsigned int,CXMLElement *> m_cachedthreadreplies;
    int m_numcachedthreadreplyinserts;
 
+   std::map<unsigned int,CLOLFlags> m_cachedLOLposts;
+
    UCString m_userpath;
    UCString m_appdatapath;
 
@@ -917,6 +913,10 @@ protected:
    bool m_highlight_OP;
 
    UCString m_findtext;
+
+   int m_LOLFieldWidth;
+
+   bool m_bShowSmallLOL;
 
 public:
    afx_msg void OnFileSetuplogininfo();

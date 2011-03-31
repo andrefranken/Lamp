@@ -5,6 +5,7 @@
 #include "xmlelement.h"
 #include "Chatty.h"
 #include "thread.h"
+#include "Lamp.h"
 #include <list>
 
 typedef enum 
@@ -86,6 +87,29 @@ public:
    unsigned int   m_id;
    bool           m_bAnim;
    bool           m_bOn;
+
+   UCString       m_loltext;
+   bool           m_lolvoted;
+   bool           m_lolroot;
+};
+
+class CLOLFlags
+{
+public:
+   CLOLFlags()
+   {
+      m_LOLd = 0;
+      m_INFd = 0;
+      m_UNFd = 0;
+      m_TAGd = 0;
+      m_WTFd = 0;
+   }
+
+   unsigned int m_LOLd;
+   unsigned int m_INFd;
+   unsigned int m_UNFd;
+   unsigned int m_TAGd;
+   unsigned int m_WTFd;
 };
 
 
@@ -249,6 +273,9 @@ public:
       m_ago_color = 0;
       m_bHaveRead = false;
       m_bIsInbox = false;
+      m_plol_preview_charwidths = NULL;
+      m_lol_preview_size = 0;
+      m_bHaveLOLPreview = false;
    }
    virtual ~ChattyPost();
 
@@ -325,7 +352,10 @@ public:
 
    void DecodeShackTagsString(UCString &from);
 
-   void AddLolTag(loltagtype tag){m_mylols |= tag;}
+   void AddLolTag(loltagtype tag){m_mylols |= tag; UpdateLOLs();}
+
+   void UpdateLOLs();
+   void UpdateLOLsRecurse();
 
    void LoadAllImageLinks();
    void CloseAllImageLinks();
@@ -434,4 +464,18 @@ protected:
 
    bool                    m_bHaveRead;
    bool                    m_bIsInbox;
+
+   CLOLFlags               m_lolflags;
+
+   UCString                m_lol_text;
+   UCString                m_inf_text;
+   UCString                m_unf_text;
+   UCString                m_tag_text;
+   UCString                m_wtf_text;
+
+   UCString                m_lol_preview_text;
+   int                    *m_plol_preview_charwidths;
+   std::vector<shacktagpos> m_lol_preview_shacktags;
+   int                     m_lol_preview_size;
+   bool                    m_bHaveLOLPreview;
 };

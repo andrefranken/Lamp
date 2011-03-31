@@ -223,7 +223,8 @@ BEGIN
         MENUITEM "Allow Pinning",               ID_PINNING_MENUITEM
         MENUITEM "Clear All Pinnings",          ID_CLEAR_ALL_PINNINGS_MENUITEM
         MENUITEM "Double Size Pages in Chatty", ID_DOUBLE_PAGE_STORY_MENUITEM
-        MENUITEM "Show LOL Buttons",            ID_SHOW_LOL_BUTTONS
+        MENUITEM "Show LOL Stuff",              ID_SHOW_LOL_BUTTONS
+        MENUITEM "Small LOL Stuff",             ID_SMALL_LOL
         MENUITEM "Check Spelling",              ID_CHECK_SPELLING
         MENUITEM "Highlight OP's Replies",      ID_HIGHLIGHT_OP
         MENUITEM SEPARATOR

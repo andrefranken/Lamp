@@ -13,6 +13,8 @@ UINT DownloadThreadProc( LPVOID pParam );
 
 bool GetXMLDataFromString(CXMLTree &xmldata, const char *data, int datasize);
 
+void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic, bool bold, bool sample, const UCChar *fontname);
+
 typedef enum 
 {
    DDT_EPICFAILD     = 0,
@@ -36,7 +38,8 @@ typedef enum
    DT_SHACKMSG     = 8,
    DT_READMSG      = 9,
    DT_SENDMSG      = 10,
-   DT_CHECK_UPDATE = 11
+   DT_CHECK_UPDATE = 11,
+   DT_REFRESH_LOLS = 12
 } DownloadType;
 
 typedef enum 
@@ -135,6 +138,7 @@ public:
    void DrawCollapseNote(HDC hDC, RECT &rect);
    void DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipped, int shade, COLORREF AuthorColor, const UCString &rootauthor);
    void DrawBranch(HDC hDC, RECT &rect, indenttype type, int shade, newness Newness);
+   void DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols, bool bHover, bool bVoted, bool bRoot);
    int GetHeight(){return m_height;}
    bool FindNext(const UCChar *search, unsigned int &textselectionpost, int &selectionstart, int &selectionend);
    void RefreshAllRoots();
@@ -144,6 +148,7 @@ public:
    unsigned int GetInitialPostId(void){return m_initialpostid;}
    void SetInitialPostId(unsigned int id){m_initialpostid = id;}
    void SetReplyDlg(CReplyDlg *pReplyDlg){m_pReplyDlg = pReplyDlg;}
+   void UpdateLOLsRecurse();
 
    int GetPage(){return m_page;}
    void SetPage(int page);
@@ -258,7 +263,6 @@ protected:
 
    std::list<ChattyPost*> m_rootposts;
 
-   HDC    m_hTempDC;
    HBRUSH m_backgroundbrush;
    HBRUSH m_rootbackgroundbrush;
    HBRUSH m_replyexpandedbackgroundbrush;
@@ -279,6 +283,7 @@ protected:
    HFONT  m_boldfont;
    HFONT  m_miscfont;
    HFONT  m_pagefont;
+   HFONT  m_miscboldfont;
 
    UCString m_title;
    UCString m_actualtitle;
@@ -303,6 +308,12 @@ protected:
    bool m_bBusy;
 
    ShackMsgType m_shackmsgtype;
+
+   UCString                m_lol_text;
+   UCString                m_inf_text;
+   UCString                m_unf_text;
+   UCString                m_tag_text;
+   UCString                m_wtf_text;
 // Generated message map functions
 protected:
 	DECLARE_MESSAGE_MAP()

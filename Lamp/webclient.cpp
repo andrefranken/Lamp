@@ -30,6 +30,13 @@
 #include "platform.h"
 #include "webclient.h"
 
+char g_useragent[256];
+
+void SetUserAgent(const char *str)
+{
+   strcpy_s(g_useragent, 256, str);
+}
+
 /** webclient_download *********************************************************
  *  PARAMETERS: host - [in] Hostname.
  *              path - [in] Path starting with /
@@ -53,6 +60,7 @@ chattyerror webclient_download(const char* host,
 
    opt.user     = (uint8_t*)username;
    opt.pass     = (uint8_t*)password;
+   opt.useragent = (uint8_t*)g_useragent;
    opt.from     = 0;//-1;
    opt.tot      = 0;//-1;
    opt.verbose  = 0;//-1;
@@ -103,6 +111,7 @@ chattyerror webclient_post(const char* host,
 
    opt.user     = (uint8_t*)username;
    opt.pass     = (uint8_t*)password;
+   opt.useragent = (uint8_t*)g_useragent;
    opt.from     = 0;//-1;
    opt.tot      = 0;//-1;
    opt.verbose  = 0;//-1;

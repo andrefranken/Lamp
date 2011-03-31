@@ -239,6 +239,125 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                   }
                }
             }
+            else if(pDD->m_dt == DT_REFRESH_LOLS)
+            {
+               if(pDD->m_data != NULL &&
+                  pDD->m_datasize > 0)
+               {
+                  char *pText = (char *)pDD->m_data;
+                  char *pEnd = pText + pDD->m_datasize;
+
+                  if(*pText == L'{')
+                  {
+                     pText++;
+                     while(pText < pEnd)
+                     {
+                        if(*pText == L'\"')
+                        {
+                           pText++;
+                           // find the rest of the digit
+                           UCString str_id;
+                           while(pText < pEnd &&
+                                 iswdigit(*pText))
+                           {
+                              str_id += *pText;
+                              pText++;
+                           }
+
+                           if(pEnd - pText > 2 &&
+                              *pText == L'\"' &&
+                              *(pText+1) == L':'&&
+                              *(pText+2) == L'{')
+                           {
+                              pText += 3;
+                              unsigned int id = str_id;
+                              while(pText < pEnd &&
+                                   *pText == L'\"')
+                              {
+                                 pText++;
+                                 // find the rest of the lol category
+                                 UCString category;
+                                 while(pText < pEnd &&
+                                       iswalpha(*pText))
+                                 {
+                                    category += *pText;
+                                    pText++;
+                                 }
+
+                                 if(pEnd - pText > 3 &&
+                                    *pText == L'\"' &&
+                                    *(pText+1) == L':' &&
+                                    *(pText+2) == L'\"')
+                                 {
+                                    pText += 3;
+
+                                    // find the rest of the count
+                                    UCString str_count;
+                                    while(pText < pEnd &&
+                                          iswdigit(*pText))
+                                    {
+                                       str_count += *pText;
+                                       pText++;
+                                    }
+
+                                    if(pText < pEnd &&
+                                       *pText == L'\"')
+                                    {
+                                       pText++;
+                                       if(*pText == L',')
+                                       {
+                                          pText++;
+                                       }
+
+                                       unsigned int count = str_count;
+
+                                       if(category == L"lol")      AddLOL_LOL(id, count);
+                                       else if(category == L"inf") AddLOL_INF(id, count);
+                                       else if(category == L"unf") AddLOL_UNF(id, count);
+                                       else if(category == L"tag") AddLOL_TAG(id, count);
+                                       else if(category == L"wtf") AddLOL_WTF(id, count);
+                                    }
+                                    else
+                                    {
+                                       pText = pEnd; // quit
+                                    }
+                                 }
+                                 else
+                                 {
+                                    pText = pEnd; // quit
+                                 }
+                              }
+
+                              if(pEnd - pText > 2 &&
+                                 *pText == L'}' &&
+                                 *(pText+1) == L',')
+                              {
+                                 pText+=2;
+                              }
+                           }
+                           else
+                           {
+                              pText = pEnd; // quit
+                           }
+                        }
+                        else
+                        {
+                           pText = pEnd; // quit
+                        }
+                     }
+                  }                  
+
+                  // have all the tabs update their lol count info
+                  std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
+                  std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
+
+                  while(it != end)
+                  {
+                     (*it)->UpdateLOLsRecurse();
+                     it++;
+                  }
+               }
+            }
 
             if(pDD->m_data != NULL)
             {
@@ -361,6 +480,13 @@ BOOL CLampApp::InitInstance()
    {
       g_PathToMe = m_lpCmdLine;
    }
+
+   UCString useragent = L"Lamp v";
+   useragent += (int)LAMP_VERSION_MAJOR;
+   useragent += L".";
+   useragent += (int)LAMP_VERSION_MINOR;
+
+   SetUserAgent(useragent.str8());
 	//CCommandLineInfo cmdInfo;
 	//ParseCommandLine(cmdInfo);
    // g_PathToMe
@@ -472,6 +598,10 @@ BOOL CLampApp::InitInstance()
    m_samplefontheight = (int)(-9.0f * m_textscaler);
    m_textheight = (int)(16.0f * m_textscaler);
    m_cellheight = (int)(20.0f * m_textscaler);
+
+   int widths[4];
+   GetCharWidths(L"wag", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
+   m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
    
 	InitContextMenuManager();
 
@@ -527,6 +657,9 @@ BOOL CLampApp::InitInstance()
 
    // launch a latestchatty tab
    OnFileNew();
+
+   // get lols
+   RefreshLOLs();
 
    return TRUE;
 }
@@ -897,6 +1030,10 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_bShowLOLButtons = setting->GetValue();
    else m_bShowLOLButtons = true;   
 
+   setting = hostxml.FindChildElement(L"SmallLOLButtons");
+   if(setting!=NULL) m_bShowSmallLOL = setting->GetValue();
+   else m_bShowSmallLOL = true;   
+   
    setting = hostxml.FindChildElement(L"AlwaysOnTopWhenNotDocked");
    if(setting!=NULL) m_bAlwaysOnTopWhenNotDocked = setting->GetValue();
    else m_bAlwaysOnTopWhenNotDocked = false;
@@ -1076,6 +1213,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"PinningInStories",UCString(m_bPinningInStories));
    settingsxml.AddChildElement(L"DoublePageStory",UCString(m_bDoublePageStory));
    settingsxml.AddChildElement(L"ShowLOLButtons",UCString(m_bShowLOLButtons));
+   settingsxml.AddChildElement(L"SmallLOLButtons",UCString(m_bShowSmallLOL));
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
    settingsxml.AddChildElement(L"num_minutes_check_inbox",UCString(m_num_minutes_check_inbox));
    settingsxml.AddChildElement(L"enable_spell_checker",UCString(m_enable_spell_checker));
@@ -1629,24 +1767,6 @@ void CLampApp::ReadSkinFiles()
    imagefilename += L"\\docktab.png";
    imagepath.PathToMe(imagefilename);
    m_docktabimage.ReadPNG(imagepath);
-   
-   imagefilename = L"skins\\";
-   imagefilename += m_skinname;
-   imagefilename += L"\\lol_tags.png";
-   imagepath.PathToMe(imagefilename);
-   m_lol_tags.ReadPNG(imagepath);
-   
-   imagefilename = L"skins\\";
-   imagefilename += m_skinname;
-   imagefilename += L"\\lol_tags_hover.png";
-   imagepath.PathToMe(imagefilename);
-   m_lol_tags_hover.ReadPNG(imagepath);
-
-   imagefilename = L"skins\\";
-   imagefilename += m_skinname;
-   imagefilename += L"\\lol_tags_mine.png";
-   imagepath.PathToMe(imagefilename);
-   m_lol_tags_mine.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
@@ -1911,6 +2031,25 @@ void CLampApp::CheckForUpdates()
    AfxBeginThread(DownloadThreadProc, pDD);
 }
 
+
+void CLampApp::RefreshLOLs()
+{
+   CDownloadData *pDD = new CDownloadData();
+
+   // http://lmnopc.com/greasemonkey/shacklol/api.php?special=getcounts
+
+   pDD->m_host = L"lmnopc.com";
+   pDD->m_path = L"/greasemonkey/shacklol/api.php?special=getcounts";
+   pDD->m_WhoWants = this;
+   pDD->m_dt = DT_REFRESH_LOLS;
+   pDD->m_id = 0;
+   pDD->m_refreshid = 0;
+   pDD->reply_to_id = 0;
+   pDD->m_postrootid = 0;
+
+   AfxBeginThread(DownloadThreadProc, pDD);
+}
+
 void CLampApp::UpdateInbox()
 {
    std::list<CLampView*>::iterator it = m_views.begin();
@@ -1929,6 +2068,24 @@ void CLampApp::UpdateInbox()
    }
 }
 
+void CLampApp::SetShowSmallLOL(bool value)
+{
+   m_bShowSmallLOL = value;
+   int widths[4];
+   GetCharWidths(L"wag", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
+   m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
+
+   // have all the tabs update their lol count info
+   std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
+   std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
+
+   while(it != end)
+   {
+      (*it)->UpdateLOLsRecurse();
+      it++;
+   }
+}
+
 void CLampApp::InvalidateSkinAllViews()
 {
    m_fontheight = (int)(-13.0f * m_textscaler);
@@ -1936,6 +2093,10 @@ void CLampApp::InvalidateSkinAllViews()
    m_samplefontheight = (int)(-9.0f * m_textscaler);
    m_textheight = (int)(16.0f * m_textscaler);
    m_cellheight = (int)(20.0f * m_textscaler);
+
+   int widths[4];
+   GetCharWidths(L"wag", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
+   m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
 
    std::list<CLampView*>::iterator it = m_views.begin();
    std::list<CLampView*>::iterator end = m_views.end();
@@ -2089,6 +2250,17 @@ void CLampApp::AddMyLol(unsigned int post_id, loltagtype tag)
       {
          m_mylols.pop_front();
       }
+   }
+
+   CLOLFlags &flags = GetKnownLOLFlags(post_id);
+
+   switch(tag)
+   {
+   case LTT_LOL: AddLOL_LOL(post_id, flags.m_LOLd + 1); break;
+   case LTT_INF: AddLOL_INF(post_id, flags.m_INFd + 1); break;
+   case LTT_UNF: AddLOL_UNF(post_id, flags.m_UNFd + 1); break;
+   case LTT_TAG: AddLOL_TAG(post_id, flags.m_TAGd + 1); break;
+   case LTT_WTF: AddLOL_WTF(post_id, flags.m_WTFd + 1); break;
    }
 }
 
@@ -3068,3 +3240,44 @@ void CLampApp::SetNumMinutesCheckInbox(int value)
       pMainFrame->UpdateInboxTimer();
    }
 }
+
+CLOLFlags &CLampApp::GetKnownLOLFlags(unsigned int post_id)
+{
+   return m_cachedLOLposts[post_id];
+}
+
+void CLampApp::AddLOL_LOL(unsigned int post_id, unsigned int count)
+{
+   CLOLFlags flags = m_cachedLOLposts[post_id];
+   flags.m_LOLd = count;
+   m_cachedLOLposts[post_id] = flags;
+}
+
+void CLampApp::AddLOL_INF(unsigned int post_id, unsigned int count)
+{
+   CLOLFlags flags = m_cachedLOLposts[post_id];
+   flags.m_INFd = count;
+   m_cachedLOLposts[post_id] = flags;
+}
+
+void CLampApp::AddLOL_UNF(unsigned int post_id, unsigned int count)
+{
+   CLOLFlags flags = m_cachedLOLposts[post_id];
+   flags.m_UNFd = count;
+   m_cachedLOLposts[post_id] = flags;
+}
+
+void CLampApp::AddLOL_TAG(unsigned int post_id, unsigned int count)
+{
+   CLOLFlags flags = m_cachedLOLposts[post_id];
+   flags.m_TAGd = count;
+   m_cachedLOLposts[post_id] = flags;
+}
+
+void CLampApp::AddLOL_WTF(unsigned int post_id, unsigned int count)
+{
+   CLOLFlags flags = m_cachedLOLposts[post_id];
+   flags.m_WTFd = count;
+   m_cachedLOLposts[post_id] = flags;
+}
+

@@ -597,7 +597,7 @@ void CReplyDlg::RecalcCharWidths()
    {
       int numchars = m_replytext.Length();
       m_pCharWidths = (int*)malloc(sizeof(int) * numchars);
-      m_pDoc->GetCharWidths(m_replytext, m_pCharWidths, m_replytext.Length(), false, false, false, theApp.GetNormalFontName());
+      GetCharWidths(m_replytext, m_pCharWidths, m_replytext.Length(), false, false, false, theApp.GetNormalFontName());
 
       for(int i = 0; i < m_replytext.Length(); i++)
       {
@@ -2208,7 +2208,7 @@ bool CReplyDlg::OnRButtonDown(UINT nFlags, CPoint point)
                {
                   int numchars = m_suggestions[j].Length();
                   int *pCharWidths = (int*)malloc(sizeof(int) * numchars);
-                  m_pView->GetDocument()->GetCharWidths(m_suggestions[j], pCharWidths, m_suggestions[j].Length(), false, false, false, theApp.GetNormalFontName());
+                  GetCharWidths(m_suggestions[j], pCharWidths, m_suggestions[j].Length(), false, false, false, theApp.GetNormalFontName());
                   int thiswidth = 0;
                   for(int k = 0; k < numchars; k++)
                   {

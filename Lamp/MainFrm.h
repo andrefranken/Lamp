@@ -5,8 +5,10 @@
 
 #include "LampView.h"
 
+#define ANIM_TIMER 15
 #define INBOX_TIMER 16
 #define UPDATE_TIMER 17
+#define REFRESH_LOL_TIMER 18
 
 class CBMMenu : public CMenu
 {

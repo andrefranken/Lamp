@@ -10,8 +10,6 @@
 #include "chattypost.h"
 #include "FindTextDlg.h"
 
-#define ANIM_TIMER 15
-
 class CLampDoc;
 
 class CHotSpot;
@@ -269,6 +267,8 @@ public:
    afx_msg void OnUpdateQuotedFont(CCmdUI *pCmdUI);
    afx_msg void OnCodeFont();
    afx_msg void OnUpdateCodeFont(CCmdUI *pCmdUI);
+   afx_msg void OnSmallLOL();
+   afx_msg void OnUpdateSmallLOL(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp

@@ -45,6 +45,45 @@ UINT DownloadThreadProc( LPVOID pParam )
 }
 
 
+void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic, bool bold, bool sample, const UCChar *fontname)
+{
+   GCP_RESULTS results;
+   memset(&results,0,sizeof(GCP_RESULTS));
+   results.lStructSize = sizeof(GCP_RESULTS);
+   results.nGlyphs = numchars;
+   results.lpDx = widths;
+   HFONT hCreatedFont = NULL;
+   HFONT oldfont = NULL;
+      
+   int fsize = theApp.GetFontHeight();
+   if(sample)
+   {
+      fsize = theApp.GetSampleFontHeight();
+   }
+   int weight = FW_NORMAL;
+   if(bold) weight = FW_EXTRABOLD;
+   DWORD ditlc = 0;
+   if(italic) ditlc = 1;
+   hCreatedFont = ::CreateFontW(fsize,0,0,0,weight,ditlc,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,fontname);
+   HDC hTempDC = ::CreateCompatibleDC(NULL);
+   oldfont = (HFONT)::SelectObject(hTempDC,hCreatedFont);
+   
+   ::GetCharacterPlacementW(hTempDC,text,numchars,0,&results,GCP_USEKERNING);
+
+   ::SelectObject(hTempDC,oldfont);
+
+   if(hTempDC != NULL)
+   {
+      ::DeleteDC(hTempDC);
+   }
+
+   if(hCreatedFont != NULL)
+   {
+      ::DeleteObject(hCreatedFont);
+   }
+}
+
+
 void CDownloadData::download(int numtries)
 {
    chattyerror err = ERR_NOT_IMPLEMENTED;
@@ -612,6 +651,12 @@ CLampDoc::CLampDoc()
    m_bBusy = false;
    m_shackmsgtype = SMT_INBOX;
 
+   m_lol_text = L"lol";
+   m_inf_text = L"inf";
+   m_unf_text = L"unf";
+   m_tag_text = L"tag";
+   m_wtf_text = L"wtf";
+
    m_spoilerbrush = ::CreateSolidBrush(theApp.GetSpoilerColor());
 
    if(theApp.GetBackground()->GetBitmap() != NULL)
@@ -654,11 +699,11 @@ CLampDoc::CLampDoc()
    m_branchpenisnew = ::CreatePen(PS_SOLID,0,theApp.GetBranchColorShade(0,N_NEW));
    m_branchpenislast = ::CreatePen(PS_SOLID,0,theApp.GetBranchColorShade(0,N_LAST));
    m_normalfont = ::CreateFontW(theApp.GetFontHeight(),0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
-   m_hTempDC = ::CreateCompatibleDC(NULL);
-   
+      
    m_miscfont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
    m_boldfont = ::CreateFontW(theApp.GetFontHeight(),0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
    m_pagefont = ::CreateFontW(-13,0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
+   m_miscboldfont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
 }
 
 CLampDoc::~CLampDoc()
@@ -755,10 +800,11 @@ CLampDoc::~CLampDoc()
       ::DeleteObject(m_miscfont);
    }
 
-   if(m_hTempDC != NULL)
+   if(m_miscboldfont != NULL)
    {
-      ::DeleteDC(m_hTempDC);
+      ::DeleteObject(m_miscboldfont);
    }
+     
 
    std::list<ChattyPost*>::iterator it = m_rootposts.begin();
    std::list<ChattyPost*>::iterator end = m_rootposts.end();
@@ -1366,6 +1412,14 @@ void CLampDoc::ProcessLOLData(char *data, int datasize)
                work -= 3;
                
                loltag.AppendEncodedString(work,3,CET_UTF8);
+
+               //
+                    if(loltag == L"lol") theApp.AddLOL_LOL((unsigned int)id, (unsigned int)lolcount);
+               else if(loltag == L"inf") theApp.AddLOL_INF((unsigned int)id, (unsigned int)lolcount);
+               else if(loltag == L"unf") theApp.AddLOL_UNF((unsigned int)id, (unsigned int)lolcount);
+               else if(loltag == L"tag") theApp.AddLOL_TAG((unsigned int)id, (unsigned int)lolcount);
+               else if(loltag == L"wtf") theApp.AddLOL_WTF((unsigned int)id, (unsigned int)lolcount);               
+               //
                
                work = strstr(work,"<span class=\"post-author\">By <a href=\"");
 
@@ -2527,38 +2581,6 @@ ChattyPost *CLampDoc::FindPost(unsigned int id)
    return NULL;
 }
 
-void CLampDoc::GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic, bool bold, bool sample, const UCChar *fontname)
-{
-   GCP_RESULTS results;
-   memset(&results,0,sizeof(GCP_RESULTS));
-   results.lStructSize = sizeof(GCP_RESULTS);
-   results.nGlyphs = numchars;
-   results.lpDx = widths;
-   HFONT hCreatedFont = NULL;
-   HFONT oldfont = NULL;
-      
-   int fsize = theApp.GetFontHeight();
-   if(sample)
-   {
-      fsize = theApp.GetSampleFontHeight();
-   }
-   int weight = FW_NORMAL;
-   if(bold) weight = FW_EXTRABOLD;
-   DWORD ditlc = 0;
-   if(italic) ditlc = 1;
-   hCreatedFont = ::CreateFontW(fsize,0,0,0,weight,ditlc,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,fontname);
-   oldfont = (HFONT)::SelectObject(m_hTempDC,hCreatedFont);
-   
-   ::GetCharacterPlacementW(m_hTempDC,text,numchars,0,&results,GCP_USEKERNING);
-
-   ::SelectObject(m_hTempDC,oldfont);
-
-   if(hCreatedFont != NULL)
-   {
-      ::DeleteObject(hCreatedFont);
-   }
-}
-
 void CLampDoc::CalcBodyText(RECT &rect, 
                             const UCChar *text, 
                             const int *widths, 
@@ -2867,6 +2889,137 @@ void CLampDoc::FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcat
    ::SelectObject(hDC,oldbrush);
 }
 
+void CLampDoc::DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols, bool bHover, bool bVoted, bool bRoot)
+{
+   HFONT oldfont = NULL;
+
+   if(lols.Length() > 0 || bHover)
+   {
+      if(theApp.ShowSmallLOL())
+      {
+         oldfont = (HFONT)::SelectObject(hDC,m_miscboldfont);
+      }
+      else
+      {
+         oldfont = (HFONT)::SelectObject(hDC,m_boldfont);
+      }
+   }
+   else
+   {
+      if(theApp.ShowSmallLOL())
+      {
+         oldfont = (HFONT)::SelectObject(hDC,m_miscfont);
+      }
+      else
+      {
+         oldfont = (HFONT)::SelectObject(hDC,m_normalfont);
+      }
+   }
+
+   COLORREF color = 0;
+
+   UCString *text = &lols;
+
+   switch(type)
+   {
+      case LTT_LOL: color = theApp.GetOrange(); break;
+      case LTT_INF: color = theApp.GetBlue(); break;
+      case LTT_UNF: color = theApp.GetRed(); break;
+      case LTT_TAG: color = theApp.GetGreen(); break;
+      case LTT_WTF: color = theApp.GetPurple(); break;
+   }
+
+   COLORREF thiscolor = color;
+
+   if(text->Length() == 0 && !bHover)
+   {
+      if(text->Length() == 0)
+      {
+         COLORREF backcolor = 0;
+
+         if(bRoot)
+         {
+            backcolor = theApp.GetRootPostBackgroundColor();
+         }
+         else
+         {
+            backcolor = theApp.GetPostBackgroundColor();
+         }
+
+         color = RGB((GetRValue(color) + GetRValue(backcolor)) / 2,
+                     (GetGValue(color) + GetGValue(backcolor)) / 2,
+                     (GetBValue(color) + GetBValue(backcolor)) / 2);
+      }
+   }
+
+   if(text->Length() == 0 || bHover)
+   {
+      switch(type)
+      {
+         case LTT_LOL: text = &m_lol_text; break;
+         case LTT_INF: text = &m_inf_text; break;
+         case LTT_UNF: text = &m_unf_text; break;
+         case LTT_TAG: text = &m_tag_text; break;
+         case LTT_WTF: text = &m_wtf_text; break;
+      }
+   }
+
+
+   if(bVoted)
+   {
+      COLORREF backcolor = 0;
+
+      if(bRoot)
+      {
+         backcolor = theApp.GetRootPostBackgroundColor();
+      }
+      else
+      {
+         backcolor = theApp.GetPostBackgroundColor();
+      }
+
+      thiscolor = RGB((GetRValue(thiscolor) + GetRValue(backcolor)) / 2,
+                      (GetGValue(thiscolor) + GetGValue(backcolor)) / 2,
+                      (GetBValue(thiscolor) + GetBValue(backcolor)) / 2);
+   
+      HBRUSH newbrush = ::CreateSolidBrush(thiscolor);
+      HBRUSH oldbrush = (HBRUSH)::SelectObject(hDC,newbrush);
+      HPEN oldpen = (HPEN)::SelectObject(hDC,m_nullpen);
+
+      if(theApp.RoundedPosts())
+      {
+         ::RoundRect(hDC,rect.left,rect.top,rect.right,rect.bottom, (rect.bottom - rect.top) / 2, (rect.bottom - rect.top) / 2);
+      }
+      else
+      {
+         ::Rectangle(hDC,rect.left,rect.top,rect.right,rect.bottom);
+      }
+      ::SelectObject(hDC,oldpen);
+      ::SelectObject(hDC,oldbrush);
+      ::DeleteObject(newbrush);
+   }
+   else if(bRoot)
+   {
+      ::FillRect(hDC,&rect,m_rootbackgroundbrush);
+   }
+   else
+   {
+      ::FillRect(hDC,&rect,m_replyexpandedbackgroundbrush);
+   }   
+   
+   ::SetTextColor(hDC,color);
+
+   ::SetTextAlign(hDC,TA_CENTER|TA_BOTTOM);
+
+   ::SetBkMode(hDC,TRANSPARENT);
+
+   ::ExtTextOutW(hDC, (rect.right + rect.left) / 2, rect.bottom, ETO_CLIPPED, &rect, text->Str(), text->Length(), NULL);
+
+   ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
+   
+   ::SelectObject(hDC,oldfont);
+}
+
 void CLampDoc::DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipped, int shade, COLORREF AuthorColor, const UCString &rootauthor)
 {
    HFONT oldfont = (HFONT)::SelectObject(hDC,m_normalfont);
@@ -2995,7 +3148,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
    int length = 0;
    for(int i = 0; i < text.Length(); i++)
    {
-      if(length + charwidths[i] < width)
+      if(length + charwidths[i] <= width)
       {
          length += charwidths[i];
          numchars++;
@@ -4053,9 +4206,9 @@ void CLampDoc::InvalidateSkin()
       ::DeleteObject(m_miscfont);
    }
 
-   if(m_hTempDC != NULL)
+   if(m_miscboldfont != NULL)
    {
-      ::DeleteDC(m_hTempDC);
+      ::DeleteObject(m_miscboldfont);
    }
 
    m_spoilerbrush = ::CreateSolidBrush(theApp.GetSpoilerColor());
@@ -4100,11 +4253,11 @@ void CLampDoc::InvalidateSkin()
    m_branchpenisnew = ::CreatePen(PS_SOLID,0,theApp.GetBranchColorShade(0,N_NEW));
    m_branchpenislast = ::CreatePen(PS_SOLID,0,theApp.GetBranchColorShade(0,N_LAST));
    m_normalfont = ::CreateFontW(theApp.GetFontHeight(),0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
-   m_hTempDC = ::CreateCompatibleDC(NULL);
-   
+      
    m_miscfont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
    m_boldfont = ::CreateFontW(theApp.GetFontHeight(),0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
    m_pagefont = ::CreateFontW(-13,0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
+   m_miscboldfont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
 
 
    std::list<ChattyPost*>::iterator it = m_rootposts.begin();
@@ -4214,5 +4367,19 @@ void CLampDoc::SetPage(int page)
          it++;
       }
       m_rootposts.clear();
+   }
+}
+
+void CLampDoc::UpdateLOLsRecurse()
+{
+   std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+   std::list<ChattyPost*>::iterator end = m_rootposts.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         (*it)->UpdateLOLsRecurse();
+      }
+      it++;
    }
 }
