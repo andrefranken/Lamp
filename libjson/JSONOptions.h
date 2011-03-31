@@ -11,7 +11,7 @@
  *  JSON_LIBRARY must be declared if libjson is compiled as a static or dynamic 
  *  library.  This exposes a C-style interface, but none of the inner workings of libjson
  */
-#define JSON_LIBRARY
+//#define JSON_LIBRARY
 
 
 /*
@@ -109,7 +109,7 @@
  *  JSON_ITERATORS turns on all of libjson's iterating functionality.  This would usually
  *  only be turned off while compiling for use with C
  */
-//#define JSON_ITERATORS
+#define JSON_ITERATORS
 
 
 /*

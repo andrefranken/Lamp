@@ -18,9 +18,16 @@
 #include "CustomSearchDlg.h"
 #include "SendMsgDlg.h"
 
+#define NDEBUG
+
+#include "JSONOptions.h"
+#include "libjson.h"
+#include "JSONNode.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+
 
 UCString g_PathToMe;
 
@@ -245,108 +252,53 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                   pDD->m_datasize > 0)
                {
                   char *pText = (char *)pDD->m_data;
-                  char *pEnd = pText + pDD->m_datasize;
 
-                  if(*pText == L'{')
+                  UCString temp;
+                  temp.AppendEncodedString(pText,pDD->m_datasize);
+
+                  json_string jsondata = temp;
+
+                  JSONNode n = libjson::parse(jsondata);
+                  JSONNode::json_iterator i = n.begin();
+                  while (i != n.end())
                   {
-                     pText++;
-                     while(pText < pEnd)
+                     json_string root_name = (*i).name();
+
+                     JSONNode::json_iterator j = (*i).begin();
+                     while (j != (*i).end())
                      {
-                        if(*pText == L'\"')
+                        json_string str_id = (*j).name();
+
+                        JSONNode::json_iterator k = (*j).begin();
+                        while (k != (*j).end())
                         {
-                           pText++;
-                           // find the rest of the digit
-                           UCString str_id;
-                           while(pText < pEnd &&
-                                 iswdigit(*pText))
-                           {
-                              str_id += *pText;
-                              pText++;
-                           }
+                           json_string str_category = (*k).name();
 
-                           if(pEnd - pText > 2 &&
-                              *pText == L'\"' &&
-                              *(pText+1) == L':'&&
-                              *(pText+2) == L'{')
-                           {
-                              pText += 3;
-                              unsigned int id = str_id;
-                              while(pText < pEnd &&
-                                   *pText == L'\"')
-                              {
-                                 pText++;
-                                 // find the rest of the lol category
-                                 UCString category;
-                                 while(pText < pEnd &&
-                                       iswalpha(*pText))
-                                 {
-                                    category += *pText;
-                                    pText++;
-                                 }
+                           json_string str_count = (*k).as_string();
 
-                                 if(pEnd - pText > 3 &&
-                                    *pText == L'\"' &&
-                                    *(pText+1) == L':' &&
-                                    *(pText+2) == L'\"')
-                                 {
-                                    pText += 3;
+                           UCString thread_id = (const wchar_t*)str_id.data();
+                           UCString category = (const wchar_t*)str_category.data();
+                           UCString uccount = (const wchar_t*)str_count.data();
 
-                                    // find the rest of the count
-                                    UCString str_count;
-                                    while(pText < pEnd &&
-                                          iswdigit(*pText))
-                                    {
-                                       str_count += *pText;
-                                       pText++;
-                                    }
+                           unsigned int id = thread_id;
+                           unsigned int count = uccount;
 
-                                    if(pText < pEnd &&
-                                       *pText == L'\"')
-                                    {
-                                       pText++;
-                                       if(*pText == L',')
-                                       {
-                                          pText++;
-                                       }
+                           if(category == L"lol")      AddLOL_LOL(id, count);
+                           else if(category == L"inf") AddLOL_INF(id, count);
+                           else if(category == L"unf") AddLOL_UNF(id, count);
+                           else if(category == L"tag") AddLOL_TAG(id, count);
+                           else if(category == L"wtf") AddLOL_WTF(id, count);
 
-                                       unsigned int count = str_count;
-
-                                       if(category == L"lol")      AddLOL_LOL(id, count);
-                                       else if(category == L"inf") AddLOL_INF(id, count);
-                                       else if(category == L"unf") AddLOL_UNF(id, count);
-                                       else if(category == L"tag") AddLOL_TAG(id, count);
-                                       else if(category == L"wtf") AddLOL_WTF(id, count);
-                                    }
-                                    else
-                                    {
-                                       pText = pEnd; // quit
-                                    }
-                                 }
-                                 else
-                                 {
-                                    pText = pEnd; // quit
-                                 }
-                              }
-
-                              if(pEnd - pText > 2 &&
-                                 *pText == L'}' &&
-                                 *(pText+1) == L',')
-                              {
-                                 pText+=2;
-                              }
-                           }
-                           else
-                           {
-                              pText = pEnd; // quit
-                           }
+                           k++;
                         }
-                        else
-                        {
-                           pText = pEnd; // quit
-                        }
+
+                        j++;
                      }
-                  }                  
 
+                     i++;
+                  }
+
+                                    
                   // have all the tabs update their lol count info
                   std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
                   std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
@@ -2061,7 +2013,7 @@ void CLampApp::UpdateInbox()
          (*it)->GetDocument()->GetShackMessageType() == SMT_INBOX &&
          !(*it)->GetDLGUp())
       {
-         (*it)->GetDocument()->Refresh();
+         (*it)->GetDocument()->GetShackMessages();
          (*it)->InvalidateEverything();
       }
       it++;

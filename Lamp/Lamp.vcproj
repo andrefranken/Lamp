@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\hunspell-1.2.12\src\hunspell\"
+				AdditionalIncludeDirectories="&quot;..\hunspell-1.2.12\src\hunspell\&quot;;..\libjson\Source\;..\libjson\"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG;HUNSPELL_STATIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -127,7 +127,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\hunspell-1.2.12\src\hunspell\"
+				AdditionalIncludeDirectories="&quot;..\hunspell-1.2.12\src\hunspell\&quot;;..\libjson\Source\;..\libjson\"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;HUNSPELL_STATIC"
 				MinimalRebuild="false"
 				RuntimeLibrary="2"

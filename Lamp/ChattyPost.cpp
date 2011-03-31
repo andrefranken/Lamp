@@ -2063,17 +2063,7 @@ void ChattyPost::SetupCharWidths()
       GetCharWidths(m_subject, m_pSubjectCharWidths, m_subject.Length(), false, false, false, theApp.GetNormalFontName());
    }
 
-   if(m_bHaveLOLPreview)
-   {
-      m_plol_preview_charwidths = (int*)malloc(sizeof(int) * m_lol_preview_text.Length());
-
-      GetCharWidths(m_lol_preview_text, m_plol_preview_charwidths, m_lol_preview_text.Length(), false, false, false, theApp.GetNormalFontName());
-      m_lol_preview_size = 0;
-      for(size_t i = 0; i < (size_t)m_lol_preview_text.Length(); i++)
-      {
-         m_lol_preview_size += m_plol_preview_charwidths[i];
-      }
-   }
+   UpdateLOLs();
 }
 
 void ChattyPost::PopTag(std::vector<shacktag> &shacktags, shacktag who)

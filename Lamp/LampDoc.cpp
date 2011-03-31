@@ -17,6 +17,7 @@
 #define new DEBUG_NEW
 #endif
 
+DWORD g_LastPostTime = 0;
 
 UINT DownloadThreadProc( LPVOID pParam )
 {
@@ -183,7 +184,8 @@ void CLampDoc::StartDownload(const UCChar *host,
                              unsigned int reply_to_id/* = 0*/,
                              const UCChar *post_data/* = NULL*/,
                              const UCChar *username/* = NULL*/,
-                             const UCChar *password/* = NULL*/)
+                             const UCChar *password/* = NULL*/,
+                             bool bIgnoreTimeStamp /*= false*/)
 {
    if(dt != DT_THREAD_START &&
       dt != DT_THREAD &&
@@ -211,6 +213,11 @@ void CLampDoc::StartDownload(const UCChar *host,
    if(dt == DT_POST)
    {
       pDD->m_postrootid = GetRootId(id);
+   }
+
+   if(!bIgnoreTimeStamp)
+   {
+      g_LastPostTime = ::GetTickCount();
    }
 
    AfxBeginThread(DownloadThreadProc, pDD);
@@ -1235,7 +1242,8 @@ void CLampDoc::GetShackMessages()
                  0,
                  NULL,
                  theApp.GetUsername(),
-                 theApp.GetPassword());
+                 theApp.GetPassword(), 
+                 true);
 }
 
 void CLampDoc::MarkShackMessageRead(unsigned int id)

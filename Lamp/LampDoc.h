@@ -184,7 +184,8 @@ public:
                       unsigned int reply_to_id = 0,
                       const UCChar *post_data = NULL,
                       const UCChar *username = NULL,
-                      const UCChar *password = NULL);
+                      const UCChar *password = NULL,
+                      bool bIgnoreTimeStamp = false);
 
    void ProcessDownload(CDownloadData *pDD);
 
@@ -223,6 +224,8 @@ public:
 
    void SendMessage(const UCString &to, const UCString &subject, const UCString &shackmsg);
 
+   void GetShackMessages();
+
 // Implementation
 public:
 	virtual ~CLampDoc();
@@ -237,8 +240,7 @@ protected:
    bool ReadSearchResultsFromRoot(CXMLTree &xmldata);
    bool ReadShackMessages(CXMLTree &xmldata);
    void ReadLatestChatty();
-   void ReadLatestChattyPart2();
-   void GetShackMessages();
+   void ReadLatestChattyPart2();   
    void ReadLOL();
    void PerformSearch();
    bool ReadExistingThreadFromRoot(CXMLTree &xmldata, unsigned int id, bool bDoingNewFlags);
