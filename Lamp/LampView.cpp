@@ -3308,7 +3308,8 @@ void CLampView::OnCopyLink()
 {
    for(size_t i = 0; i < m_hotspots.size(); i++)
    {
-      if(m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
+      if(GetDocument()->GetDataType() != DDT_SHACKMSG &&
+         m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
          m_rbuttondownpoint.x < m_hotspots[i].m_spot.right &&
          m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
          m_rbuttondownpoint.y < m_hotspots[i].m_spot.bottom &&
@@ -3316,7 +3317,9 @@ void CLampView::OnCopyLink()
           m_hotspots[i].m_type == HST_IMAGELINK ||
           m_hotspots[i].m_type == HST_OPENINTAB ||
           m_hotspots[i].m_type == HST_PIN ||
-          m_hotspots[i].m_type == HST_REFRESH))
+          m_hotspots[i].m_type == HST_REFRESH ||
+          m_hotspots[i].m_type == HST_REPLIESTOROOTPOSTHINT ||
+          m_hotspots[i].m_type == HST_TEXT))
       {
          ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
          if(pPost != NULL)
@@ -3346,7 +3349,30 @@ void CLampView::OnCopyLink()
 
 void CLampView::OnUpdateCopyLink(CCmdUI *pCmdUI)
 {
-   pCmdUI->Enable(TRUE);
+   BOOL enable = FALSE;
+   for(size_t i = 0; i < m_hotspots.size(); i++)
+   {
+      if(GetDocument()->GetDataType() != DDT_SHACKMSG &&
+         m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
+         m_rbuttondownpoint.x < m_hotspots[i].m_spot.right &&
+         m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
+         m_rbuttondownpoint.y < m_hotspots[i].m_spot.bottom &&
+         (m_hotspots[i].m_type == HST_LINK ||
+          m_hotspots[i].m_type == HST_IMAGELINK ||
+          m_hotspots[i].m_type == HST_OPENINTAB ||
+          m_hotspots[i].m_type == HST_PIN ||
+          m_hotspots[i].m_type == HST_REFRESH ||
+          m_hotspots[i].m_type == HST_REPLIESTOROOTPOSTHINT ||
+          m_hotspots[i].m_type == HST_TEXT))
+      {
+         ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+         if(pPost != NULL)
+         {
+            enable = TRUE;
+         }
+      }
+   }
+   pCmdUI->Enable(enable);
 }
 
 void CLampView::OnLaunchLink()
@@ -3737,13 +3763,12 @@ void CLampView::OnOpenInTab()
 {
    for(size_t i = 0; i < m_hotspots.size(); i++)
    {
-      if(m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
+      if(GetDocument()->GetDataType() != DDT_THREAD &&
+         m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
          m_rbuttondownpoint.x < m_hotspots[i].m_spot.right &&
          m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
          m_rbuttondownpoint.y < m_hotspots[i].m_spot.bottom &&
-         (m_hotspots[i].m_type == HST_LINK ||
-          m_hotspots[i].m_type == HST_IMAGELINK ||
-          m_hotspots[i].m_type == HST_OPENINTAB ||
+         (m_hotspots[i].m_type == HST_OPENINTAB ||
           m_hotspots[i].m_type == HST_PIN ||
           m_hotspots[i].m_type == HST_REFRESH))
       {
@@ -3768,7 +3793,22 @@ void CLampView::OnOpenInTab()
 
 void CLampView::OnUpdateOpenInTab(CCmdUI *pCmdUI)
 {
-   pCmdUI->Enable(TRUE);
+   BOOL enable = FALSE;
+   for(size_t i = 0; i < m_hotspots.size(); i++)
+   {
+      if(GetDocument()->GetDataType() != DDT_THREAD &&
+         m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
+         m_rbuttondownpoint.x < m_hotspots[i].m_spot.right &&
+         m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
+         m_rbuttondownpoint.y < m_hotspots[i].m_spot.bottom &&
+         (m_hotspots[i].m_type == HST_OPENINTAB ||
+          m_hotspots[i].m_type == HST_PIN ||
+          m_hotspots[i].m_type == HST_REFRESH))
+      {
+         enable = TRUE;
+      }
+   }
+   pCmdUI->Enable(enable);
 }
 
 void CLampView::OnHelpWiki()
