@@ -560,18 +560,50 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                }
                else
                {
-                  if(m_pView != NULL)
+                  bool bCloseAndRefresh = true;
+                  const char *result = (const char *)pDD->m_data;
+                  if(result != NULL &&
+                     *result != 0)
                   {
-                     m_pView->CloseReplyDialog();
+                     if(_strnicmp(result,"error_login_failed",18) == 0)
+                     {
+                        m_pView->MessageBox(L"Invalid username or password");
+                        bCloseAndRefresh = false;
+                     }
+
+                     if(_strnicmp(result,"error_communication_authentication",34) == 0)
+                     {
+                        m_pView->MessageBox(L"Invalid username or password");
+                        bCloseAndRefresh = false;
+                     }
+
+                     if(_strnicmp(result,"error_account_banned",20) == 0)
+                     {
+                        m_pView->MessageBox(L"You are naughty and banned");
+                     }
+
+                     if(_strnicmp(result,"error_post_rate_limiter",23) == 0)
+                     {
+                        m_pView->MessageBox(L"PRL'd (slow down)");
+                        bCloseAndRefresh = false;
+                     }
                   }
 
-                  if(pDD->m_id)
+                  if(bCloseAndRefresh)
                   {
-                     RefreshThread(GetRootId(pDD->m_id),pDD->m_id,false,pDD->m_id);
-                  }
-                  else
-                  {
-                     Refresh();
+                     if(m_pView != NULL)
+                     {
+                        m_pView->CloseReplyDialog();
+                     }
+
+                     if(pDD->m_id)
+                     {
+                        RefreshThread(GetRootId(pDD->m_id),pDD->m_id,false,pDD->m_id);
+                     }
+                     else
+                     {
+                        Refresh();
+                     }
                   }
                }
             }

@@ -970,6 +970,13 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_bStartInDockedMode = setting->GetValue();
    else m_bStartInDockedMode = false;
 
+#ifdef _DEBUG
+   // don't allow dock top mode in debug
+   // it messes up the debugger when focus changes
+   m_bStartInDockedMode = false;
+#endif
+
+
    setting = hostxml.FindChildElement(L"PinningInStories");
    if(setting!=NULL) m_bPinningInStories = setting->GetValue();
    else m_bPinningInStories = true;
