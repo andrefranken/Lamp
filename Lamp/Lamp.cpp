@@ -1051,8 +1051,22 @@ void CLampApp::ReadSettingsFile()
    if(setting != NULL)
    {
       m_Mods = *setting;
-      COLORREF color = setting->GetAttributeValue(L"color");
-      bool enabled = setting->GetAttributeValue(L"enable");
+      COLORREF color;
+      bool enabled;
+      UCString attr = setting->GetAttributeValue(L"color");
+
+      if(attr.IsEmpty())
+      {
+         color = RGB(255,0,0);
+         enabled = true;
+         m_Mods.SetAttributeValue(L"color",L"255,0,0");
+         m_Mods.SetAttributeValue(L"enable",L"true");
+      }
+      else
+      {
+         color = attr;
+         enabled = setting->GetAttributeValue(L"enable");
+      }
       if(enabled)
       {
          int count = setting->CountChildren();
@@ -1067,14 +1081,34 @@ void CLampApp::ReadSettingsFile()
             }
          }
       }
+   }
+   else
+   {
+      m_Mods.SetTag(L"Mods");
+      m_Mods.SetAttributeValue(L"color",L"255,0,0");
+      m_Mods.SetAttributeValue(L"enable",L"true");
    }
 
    setting = hostxml.FindChildElement(L"ShackEmployees");
    if(setting != NULL)
    {
       m_ShackEmployees = *setting;
-      COLORREF color = setting->GetAttributeValue(L"color");
-      bool enabled = setting->GetAttributeValue(L"enable");
+      COLORREF color;
+      bool enabled;
+      UCString attr = setting->GetAttributeValue(L"color");
+
+      if(attr.IsEmpty())
+      {
+         color = RGB(0,255,0);
+         enabled = true;
+         m_ShackEmployees.SetAttributeValue(L"color",L"0,255,0");
+         m_ShackEmployees.SetAttributeValue(L"enable",L"true");
+      }
+      else
+      {
+         color = attr;
+         enabled = setting->GetAttributeValue(L"enable");
+      }
       if(enabled)
       {
          int count = setting->CountChildren();
@@ -1090,13 +1124,33 @@ void CLampApp::ReadSettingsFile()
          }
       }
    }
+   else
+   {
+      m_ShackEmployees.SetTag(L"ShackEmployees");
+      m_ShackEmployees.SetAttributeValue(L"color",L"0,255,0");
+      m_ShackEmployees.SetAttributeValue(L"enable",L"true");
+   }
 
    setting = hostxml.FindChildElement(L"GameDevs");
    if(setting != NULL)
    {
       m_GameDevs = *setting;
-      COLORREF color = setting->GetAttributeValue(L"color");
-      bool enabled = setting->GetAttributeValue(L"enable");
+      COLORREF color;
+      bool enabled;
+      UCString attr = setting->GetAttributeValue(L"color");
+
+      if(attr.IsEmpty())
+      {
+         color = RGB(255,0,255);
+         enabled = true;
+         m_GameDevs.SetAttributeValue(L"color",L"255,0,255");
+         m_GameDevs.SetAttributeValue(L"enable",L"true");
+      }
+      else
+      {
+         color = attr;
+         enabled = setting->GetAttributeValue(L"enable");
+      }
       if(enabled)
       {
          int count = setting->CountChildren();
@@ -1111,6 +1165,12 @@ void CLampApp::ReadSettingsFile()
             }
          }
       }
+   }
+   else
+   {
+      m_GameDevs.SetTag(L"GameDevs");
+      m_GameDevs.SetAttributeValue(L"color",L"255,0,255");
+      m_GameDevs.SetAttributeValue(L"enable",L"true");
    }
 }
 
