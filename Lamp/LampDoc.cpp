@@ -48,6 +48,7 @@ UINT DownloadThreadProc( LPVOID pParam )
 
 void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic, bool bold, bool sample, const UCChar *fontname)
 {
+   memset(widths,0,sizeof(int) * numchars);
    GCP_RESULTS results;
    memset(&results,0,sizeof(GCP_RESULTS));
    results.lStructSize = sizeof(GCP_RESULTS);

@@ -20,7 +20,7 @@
 #define WM_EXPAND_TABS (WM_USER + 101)
 
 #define LAMP_VERSION_MAJOR 1
-#define LAMP_VERSION_MINOR 5
+#define LAMP_VERSION_MINOR 6
 
 chattyerror download(const char* host, const char* path, char** out_response, int *psize=NULL);
 
