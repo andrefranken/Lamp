@@ -49,36 +49,13 @@ void DockTab::OnMouseMove(UINT nFlags, CPoint point)
       theApp.GetMainWnd()->ShowWindow(/*SW_RESTORE*/SW_SHOW);
       
       HWND hWnd = theApp.GetMainWnd()->m_hWnd;
-      //relation time of SetForegroundWindow lock	
-      DWORD lockTimeOut = 0;	
-      HWND  hCurrWnd = ::GetForegroundWindow();	
-      DWORD dwThisTID = ::GetCurrentThreadId(),	      
-            dwCurrTID = ::GetWindowThreadProcessId(hCurrWnd,0);	
-      
-      //we need to bypass some limitations from Microsoft :)	
-      if(dwThisTID != dwCurrTID)	
-      {		
-         ::AttachThreadInput(dwThisTID, dwCurrTID, TRUE);
-         ::SystemParametersInfo(SPI_GETFOREGROUNDLOCKTIMEOUT,0,&lockTimeOut,0);		
-         ::SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT,0,0,SPIF_SENDWININICHANGE | SPIF_UPDATEINIFILE);		
-         ::AllowSetForegroundWindow(ASFW_ANY);	
-      }	
-      
+
+      AttachThreadInput(GetWindowThreadProcessId(::GetForegroundWindow(),NULL),GetCurrentThreadId(),TRUE);
+            
       ::SetForegroundWindow(hWnd);	
       ::SetFocus(hWnd);
-      /*
-      ::MoveWindow(hWnd,
-                   theApp.m_dockedrect.left,
-                   theApp.m_dockedrect.top,
-                   theApp.m_dockedrect.right - theApp.m_dockedrect.left,
-                   theApp.m_dockedrect.bottom - theApp.m_dockedrect.top, 
-                   TRUE);
-      */
-      if(dwThisTID != dwCurrTID)	
-      {		
-         ::SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT,0,(PVOID)lockTimeOut,SPIF_SENDWININICHANGE | SPIF_UPDATEINIFILE);		
-         ::AttachThreadInput(dwThisTID, dwCurrTID, FALSE);	
-      }
+      
+      AttachThreadInput(GetWindowThreadProcessId(::GetForegroundWindow(),NULL),GetCurrentThreadId(),FALSE);
    }
 
    CDialog::OnMouseMove(nFlags, point);
