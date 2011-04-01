@@ -1,18 +1,43 @@
-- why can't I send messages?  Gah!
+- make an ignore file for Git.
 
-- autoupdate.  Or, at least, auto-check-for-new-version.   
-  Hit the http://shackwiki.com/wiki/Lamp
-  wiki page and parse it's contents looking for "Lamp Version:"
-  When found, look at the digits and ' .' and determin the version number.
-  Compare that to the one defined in our resource file.
-  If different, put up a Ok/Cancel messagebox that asks if they want to go to the update?
-  If Ok, just launch that page in the browser.
+- Make it so that people can't LOL vote for their own posts.
+
+- When saving a thread to the cache, keep it's newness flags.
+
+- When refreshing a story page, allow new marks, if we already have cached 
+children.
+
+- Ya, the umlatt in cambria freaks things out.  Calibri has wierd behavior too.     
+Thanks, I will look into those things.
+
+- When entering posts, support for standardized keyboard shortcuts for bold, italics 
+and underline (ctrl+b, ctrl+i and ctrl+u respectively).
+
+- option to dissable the flared/triangle branchends. Some people just like the lines.
+
+- see if adding proxy support is easy or not.
+
+- Make option to change the color of the OP.  The color would overrule other colors.
+
+- Add option to append pixels to the bottom of a thread's height, when viewing in 
+thread mode.
+
+- Make the "Click to see all x replies" stand out more.
+
+- search results don't need "posted in Latest Chatty".  They all come from there now.
 
 - save all open tabs on exit, then reopen them on startup
 
-- settings dialog.   Editing the settings.xml is a pain.  Having to restart the app is a pain.
-  Should be easy enough.  Reloading the skin should be observed carefully.
+- when closing a story thread, add it's pinned threads to a list.   
+  Save that list either to bookmarks, or settings.xml.
 
-- option to reassert our position on top.  Fight youtube for it.
+- when the inbox changes it's name, and the window is hidden, nothing happens to 
+the tab.
+
+- when docked, reassert our position on top.  Fight youtube for it.
 
 - look at charwidth issues with those weird characters
+
+- Add ability to add a misspelled word to the dictionary.  Maybe build our own.
+
+- true autoupdate.
