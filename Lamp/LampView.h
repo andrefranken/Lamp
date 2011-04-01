@@ -275,6 +275,8 @@ public:
    afx_msg void OnUpdateSelectBlue(CCmdUI *pCmdUI);
    afx_msg void OnSelectYellow();
    afx_msg void OnUpdateSelectYellow(CCmdUI *pCmdUI);
+   afx_msg void OnSelectPaleYellow();
+   afx_msg void OnUpdateSelectPaleYellow(CCmdUI *pCmdUI);
    afx_msg void OnSelectCustom();
    afx_msg void OnUpdateSelectCustom(CCmdUI *pCmdUI);
 };

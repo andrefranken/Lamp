@@ -122,6 +122,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_SELECT_BLUE, &CLampView::OnUpdateSelectBlue)
    ON_COMMAND(ID_SELECT_YELLOW, &CLampView::OnSelectYellow)
    ON_UPDATE_COMMAND_UI(ID_SELECT_YELLOW, &CLampView::OnUpdateSelectYellow)
+   ON_COMMAND(ID_SELECT_PALE_YELLOW, &CLampView::OnSelectPaleYellow)
+   ON_UPDATE_COMMAND_UI(ID_SELECT_PALE_YELLOW, &CLampView::OnUpdateSelectPaleYellow)
    ON_COMMAND(ID_SELECT_CUSTOM, &CLampView::OnSelectCustom)
    ON_UPDATE_COMMAND_UI(ID_SELECT_CUSTOM, &CLampView::OnUpdateSelectCustom)
 
@@ -4226,6 +4228,25 @@ void CLampView::OnUpdateSelectYellow(CCmdUI *pCmdUI)
    }
 }
 
+void CLampView::OnSelectPaleYellow()
+{
+   theApp.SetTextSelectionColor(RGB(255,255,128));
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateSelectPaleYellow(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+   if(theApp.GetTextSelectionColor() == RGB(255,255,128))
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
 void CLampView::OnSelectCustom()
 {
    CColorDialog clrdlg(theApp.GetTextSelectionColor(),CC_ANYCOLOR|CC_FULLOPEN,this);
@@ -4241,7 +4262,8 @@ void CLampView::OnUpdateSelectCustom(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
    if(theApp.GetTextSelectionColor() != RGB(0,0,128) &&
       theApp.GetTextSelectionColor() != RGB(0,0,255) &&
-      theApp.GetTextSelectionColor() != RGB(255,255,0))
+      theApp.GetTextSelectionColor() != RGB(255,255,0) &&
+      theApp.GetTextSelectionColor() != RGB(255,255,128))
    {
       pCmdUI->SetCheck(TRUE);
    }
