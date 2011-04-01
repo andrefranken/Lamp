@@ -1228,9 +1228,6 @@ void CLampDoc::PerformSearch()
    path += m_search_parent_author;
    path += L"&terms=";
    path += m_search_terms;
-
-   path += L"&terms=";
-   path += m_search_terms;
    
    // these don't work
    //path += L"&SearchType=n";
