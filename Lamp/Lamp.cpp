@@ -1014,6 +1014,10 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_code_fontname = setting->GetValue();
    else m_code_fontname = L"Courier New";
 
+   setting = hostxml.FindChildElement(L"text_selection_color");
+   if(setting!=NULL) m_text_selection_color = setting->GetValue();
+   else m_text_selection_color = RGB(0,0,255);
+
 
 
    setting = hostxml.FindChildElement(L"enable_nws");
@@ -1174,6 +1178,13 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"quoted_fontname",m_quoted_fontname);
    settingsxml.AddChildElement(L"code_fontname",m_code_fontname);
 
+   UCString temp = GetRValue(m_text_selection_color);
+   temp += L',';
+   temp += GetGValue(m_text_selection_color);
+   temp += L',';
+   temp += GetBValue(m_text_selection_color);
+   settingsxml.AddChildElement(L"text_selection_color",temp);
+
    settingsxml.AddChildComment(L"Check your filters!");
    settingsxml.AddChildElement(L"enable_nws",UCString(m_enable_nws));
    settingsxml.AddChildElement(L"enable_inf",UCString(m_enable_inf));
@@ -1248,10 +1259,6 @@ void CLampApp::ReadSkinFiles()
    CXMLTree settings;
    settings.Read(skinpath);
    CXMLElement *setting;
-
-   setting = settings.FindChildElement(L"text_selection_color");
-   if(setting!=NULL) m_text_selection_color = setting->GetValue();
-   else m_text_selection_color = RGB(255,255,0);
 
    setting = settings.FindChildElement(L"hover_color");
    if(setting!=NULL) m_hover_color = setting->GetValue();

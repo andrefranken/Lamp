@@ -241,6 +241,14 @@ BEGIN
             MENUITEM "Reset Font Size\tCtrl+0",     ID_VIEW_RESETFONTSIZE
         END        
         MENUITEM SEPARATOR
+        POPUP "Text Select Color"
+        BEGIN
+            MENUITEM "Dark Blue",     ID_SELECT_DARK_BLUE
+            MENUITEM "Blue",          ID_SELECT_BLUE
+            MENUITEM "Yellow",        ID_SELECT_YELLOW
+            MENUITEM "Custom",        ID_SELECT_CUSTOM
+        END        
+        MENUITEM SEPARATOR
         MENUITEM "Dock Top",                    ID_VIEW_DOCKTOP
         MENUITEM "Always on Top",               ID_ALWAYSONTOP_WHENNOTDOCKED
         MENUITEM SEPARATOR

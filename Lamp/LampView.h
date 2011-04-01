@@ -269,6 +269,14 @@ public:
    afx_msg void OnUpdateCodeFont(CCmdUI *pCmdUI);
    afx_msg void OnSmallLOL();
    afx_msg void OnUpdateSmallLOL(CCmdUI *pCmdUI);
+   afx_msg void OnSelectDarkBlue();
+   afx_msg void OnUpdateSelectDarkBlue(CCmdUI *pCmdUI);
+   afx_msg void OnSelectBlue();
+   afx_msg void OnUpdateSelectBlue(CCmdUI *pCmdUI);
+   afx_msg void OnSelectYellow();
+   afx_msg void OnUpdateSelectYellow(CCmdUI *pCmdUI);
+   afx_msg void OnSelectCustom();
+   afx_msg void OnUpdateSelectCustom(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp

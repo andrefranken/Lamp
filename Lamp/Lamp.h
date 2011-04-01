@@ -493,6 +493,7 @@ public:
    COLORREF GetBranchIsLast(){return m_branchislast_color;}
    COLORREF GetSpoilerColor(){return m_spoiler_color;}
    COLORREF GetTextSelectionColor(){return m_text_selection_color;}
+   void SetTextSelectionColor(COLORREF color){m_text_selection_color = color;}
    COLORREF GetMyPostColor(){return m_mypost_color;}
    COLORREF GetHoverColor(){return m_hover_color;}
 

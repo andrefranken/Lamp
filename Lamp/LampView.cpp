@@ -116,6 +116,14 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_CODE_FONT, &CLampView::OnUpdateCodeFont)
    ON_COMMAND(ID_SMALL_LOL, &CLampView::OnSmallLOL)
    ON_UPDATE_COMMAND_UI(ID_SMALL_LOL, &CLampView::OnUpdateSmallLOL)
+   ON_COMMAND(ID_SELECT_DARK_BLUE, &CLampView::OnSelectDarkBlue)
+   ON_UPDATE_COMMAND_UI(ID_SELECT_DARK_BLUE, &CLampView::OnUpdateSelectDarkBlue)
+   ON_COMMAND(ID_SELECT_BLUE, &CLampView::OnSelectBlue)
+   ON_UPDATE_COMMAND_UI(ID_SELECT_BLUE, &CLampView::OnUpdateSelectBlue)
+   ON_COMMAND(ID_SELECT_YELLOW, &CLampView::OnSelectYellow)
+   ON_UPDATE_COMMAND_UI(ID_SELECT_YELLOW, &CLampView::OnUpdateSelectYellow)
+   ON_COMMAND(ID_SELECT_CUSTOM, &CLampView::OnSelectCustom)
+   ON_UPDATE_COMMAND_UI(ID_SELECT_CUSTOM, &CLampView::OnUpdateSelectCustom)
 
 END_MESSAGE_MAP()
 
@@ -4152,6 +4160,88 @@ void CLampView::OnUpdateSmallLOL(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(theApp.ShowSmallLOL())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnSelectDarkBlue()
+{
+   theApp.SetTextSelectionColor(RGB(0,0,128));
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateSelectDarkBlue(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+   if(theApp.GetTextSelectionColor() == RGB(0,0,128))
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnSelectBlue()
+{
+   theApp.SetTextSelectionColor(RGB(0,0,255));
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateSelectBlue(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+   if(theApp.GetTextSelectionColor() == RGB(0,0,255))
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnSelectYellow()
+{
+   theApp.SetTextSelectionColor(RGB(255,255,0));
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateSelectYellow(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+   if(theApp.GetTextSelectionColor() == RGB(255,255,0))
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnSelectCustom()
+{
+   CColorDialog clrdlg(theApp.GetTextSelectionColor(),CC_ANYCOLOR|CC_FULLOPEN,this);
+   if(clrdlg.DoModal() == IDOK)
+   {
+      theApp.SetTextSelectionColor(clrdlg.GetColor());
+      InvalidateEverything();
+   }
+}
+
+void CLampView::OnUpdateSelectCustom(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+   if(theApp.GetTextSelectionColor() != RGB(0,0,128) &&
+      theApp.GetTextSelectionColor() != RGB(0,0,255) &&
+      theApp.GetTextSelectionColor() != RGB(255,255,0))
    {
       pCmdUI->SetCheck(TRUE);
    }
