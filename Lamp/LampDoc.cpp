@@ -3925,9 +3925,11 @@ void CLampDoc::DrawRepliesHint(HDC hDC, RECT &rect, int m_reportedchildcount)
    ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM|TA_UPDATECP);
    ::MoveToEx(hDC, rect.left + 5, rect.bottom - 5, NULL); 
    ::ExtTextOutW(hDC, rect.left + 5, rect.bottom - 5, 0, NULL, L"Click to see all ", 17, NULL);
+   ::SelectObject(hDC,m_miscboldfont);
    UCString text = m_reportedchildcount;
    ::SetTextColor(hDC,theApp.GetMyPostColor());
    ::ExtTextOutW(hDC, rect.left + 5 + (theApp.GetMiscFontHeight() * -7), rect.bottom - 5, 0, NULL, text, text.Length(), NULL);
+   ::SelectObject(hDC,m_miscfont);
    ::SetTextColor(hDC,theApp.GetMiscPostTextColor());
    ::ExtTextOutW(hDC, rect.left + 5 + (theApp.GetMiscFontHeight() * -7) + ((theApp.GetFontHeight() / -2) * text.Length()), rect.bottom - 5, 0, NULL, L" replies", 8, NULL);
 

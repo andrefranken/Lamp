@@ -2365,7 +2365,7 @@ void CLampApp::OnViewDocktop()
          pWndInsertAfter = &CWnd::wndTopMost;
       }
 
-      GetMainWnd()->SetWindowPos(pWndInsertAfter, framerect.left, framerect.top, framerect.right - framerect.left, framerect.bottom - framerect.top, 0);   
+      GetMainWnd()->SetWindowPos(pWndInsertAfter, framerect.left, framerect.top, framerect.right - framerect.left, framerect.bottom - framerect.top, SWP_NOMOVE|SWP_NOSIZE);   
 
       GetMainWnd()->ModifyStyle(0,WS_MAXIMIZEBOX|WS_MINIMIZEBOX);
 
