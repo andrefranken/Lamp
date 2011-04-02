@@ -399,6 +399,8 @@ public:
    const UCString &GetBodyText(){return m_bodytext;}
    const UCString &GetDateText(){return m_datetext;}
 
+   void SetBodyText(const UCString &text){m_bodytext = text;}
+
 protected:
    void SetupCharWidths();
    void SetupBodyText(RECT &textrect);

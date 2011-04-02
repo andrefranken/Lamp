@@ -234,28 +234,32 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
 {
    if(pDD != NULL)
    {
-      if(pDD->m_data != NULL)
+      bool bDoingNewFlags = true;
+      switch(pDD->m_dt)
       {
-         bool bDoingNewFlags = true;
-         switch(pDD->m_dt)
+      case DT_THREAD_START:
          {
-         case DT_THREAD_START:
+            ChattyPost *post = FindRootPost(pDD->m_id);
+            if(post == NULL)
             {
-               ChattyPost *post = FindRootPost(pDD->m_id);
-               if(post == NULL)
-               {
-                  post = new ChattyPost();
-                  post->SetId(pDD->m_id);
-                  m_rootposts.push_back(post);
-               }
-               if(post != NULL &&
-                  !post->IsPinned())
-               {
-                  bDoingNewFlags = false;
-               }
+               post = new ChattyPost();
+               post->SetId(pDD->m_id);
+               post->SetDoc(this);
+               UCString text = L"Nuked?  Or timed out.";
+               post->SetBodyText(text);
+               post->InvalidateSkin();
+               m_rootposts.push_back(post);
             }
-            // fall through
-         case DT_THREAD:
+            if(post != NULL &&
+               !post->IsPinned())
+            {
+               bDoingNewFlags = false;
+            }
+         }
+         // fall through
+      case DT_THREAD:
+         {
+            if(pDD->m_data != NULL)
             {
                CXMLTree xmldata;
                if(GetXMLDataFromString(xmldata, (const char *)pDD->m_data, pDD->m_datasize))
@@ -291,138 +295,144 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                      }
                   }
                }
+            }
 
-               if(pDD->reply_to_id != 0)
+            if(pDD->reply_to_id != 0)
+            {
+               bool bGotIt = false;
+               // check to see if there is a new post by me on there.
+               ChattyPost *pReplyToPost = FindPost(pDD->reply_to_id);
+               if(pReplyToPost != NULL)
                {
-                  bool bGotIt = false;
-                  // check to see if there is a new post by me on there.
-                  ChattyPost *pReplyToPost = FindPost(pDD->reply_to_id);
-                  if(pReplyToPost != NULL)
+                  std::list<ChattyPost*> *pChildren = pReplyToPost->GetChildren();
+                  if(pChildren != NULL)
                   {
-                     std::list<ChattyPost*> *pChildren = pReplyToPost->GetChildren();
-                     if(pChildren != NULL)
+                     std::list<ChattyPost*>::iterator begin = pChildren->begin();
+                     std::list<ChattyPost*>::iterator it = pChildren->end();
+                     if(begin != it)
                      {
-                        std::list<ChattyPost*>::iterator begin = pChildren->begin();
-                        std::list<ChattyPost*>::iterator it = pChildren->end();
-                        if(begin != it)
+                        it--;
+                        unsigned int new_id = 0;
+                        bool bDone = false;
+                        while(!bDone)
                         {
-                           it--;
-                           unsigned int new_id = 0;
-                           bool bDone = false;
-                           while(!bDone)
+                           if(begin == it)
                            {
-                              if(begin == it)
-                              {
-                                 bDone = true;
-                              }
-                              
-                              if((*it)->IsNew()  &&
-                                 (*it)->GetAuthor() == theApp.GetUsername())
-                              {
-                                 new_id = (*it)->GetId();
-                                 bDone = true;
-                                 break;
-                              }
-
-                              if(!bDone)
-                              {
-                                 it--;
-                              }
+                              bDone = true;
+                           }
+                           
+                           if((*it)->IsNew()  &&
+                              (*it)->GetAuthor() == theApp.GetUsername())
+                           {
+                              new_id = (*it)->GetId();
+                              bDone = true;
+                              break;
                            }
 
-                           if(new_id != 0 &&
-                              m_pView != NULL)
+                           if(!bDone)
                            {
-                              m_pView->SetCurrentId(new_id);
-                              bGotIt = true;
+                              it--;
                            }
+                        }
+
+                        if(new_id != 0 &&
+                           m_pView != NULL)
+                        {
+                           m_pView->SetCurrentId(new_id);
+                           bGotIt = true;
                         }
                      }
                   }
-
-                  if(bGotIt == false)
-                  {
-                     //assert(0);
-                  }
                }
 
-               // tell the thread that he is done refreshing
-               ChattyPost *pPost = FindPost(pDD->m_refreshid);
-               if(pPost != NULL)
+               if(bGotIt == false)
                {
-                  pPost->SetRefreshing(false);
-                  if(m_pView)
-                     m_pView->InvalidateEverything();
+                  //assert(0);
                }
             }
-            break;
-         case DT_STORY:
-            {
-               std::vector<unsigned int> existing_threads;
-               std::list<ChattyPost*> newroots;
-               std::list<ChattyPost*>::iterator it = m_rootposts.begin();
-               std::list<ChattyPost*>::iterator end = m_rootposts.end();
-               while(it != end)
-               {
-                  if((*it) != NULL)
-                  {
-                     if((*it)->IsPinned())
-                     {
-                        existing_threads.push_back((*it)->GetId());
-                        newroots.push_back((*it));
-                     }
-                     else
-                     {
-                        delete (*it);
-                     }
-                     (*it) = NULL;
-                  }
-                  it++;
-               }
-               m_rootposts.clear();
-               m_rootposts = newroots;
 
+            // tell the thread that he is done refreshing
+            ChattyPost *pPost = FindPost(pDD->m_refreshid);
+            if(pPost != NULL)
+            {
+               pPost->SetRefreshing(false);
+               if(m_pView)
+                  m_pView->InvalidateEverything();
+            }
+         }
+         break;
+      case DT_STORY:
+         {
+            std::vector<unsigned int> existing_threads;
+            std::list<ChattyPost*> newroots;
+            std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+            std::list<ChattyPost*>::iterator end = m_rootposts.end();
+            while(it != end)
+            {
+               if((*it) != NULL)
+               {
+                  if((*it)->IsPinned())
+                  {
+                     existing_threads.push_back((*it)->GetId());
+                     newroots.push_back((*it));
+                  }
+                  else
+                  {
+                     delete (*it);
+                  }
+                  (*it) = NULL;
+               }
+               it++;
+            }
+            m_rootposts.clear();
+            m_rootposts = newroots;
+
+            if(pDD->m_data != NULL)
+            {
                CXMLTree xmldata;
                if(GetXMLDataFromString(xmldata, (const char *)pDD->m_data, pDD->m_datasize))
                {
                   ReadFromRoot(xmldata, existing_threads);
                }
-
-               it = m_rootposts.begin();
-               end = m_rootposts.end();
-               while(it != end)
-               {
-                  if((*it) != NULL)
-                  {
-                     (*it)->ShowAsTruncated();
-                  }
-                  it++;
-               }
-
-               if(theApp.IsDoublePageStory())
-               {
-                  ReadLatestChattyPart2();
-               }
-               else
-               {
-                  RefreshAllRoots();
-               }
             }
-            break;
-         case DT_STORY_2:
-            {
-               std::vector<unsigned int> existing_threads;
-               std::list<ChattyPost*>::iterator it = m_rootposts.begin();
-               std::list<ChattyPost*>::iterator end = m_rootposts.end();
-               while(it != end)
-               {
-                  if((*it) != NULL)
-                  {
-                     existing_threads.push_back((*it)->GetId());
-                  }
-                  it++;
-               }
 
+            it = m_rootposts.begin();
+            end = m_rootposts.end();
+            while(it != end)
+            {
+               if((*it) != NULL)
+               {
+                  (*it)->ShowAsTruncated();
+               }
+               it++;
+            }
+
+            if(theApp.IsDoublePageStory())
+            {
+               ReadLatestChattyPart2();
+            }
+            else
+            {
+               RefreshAllRoots();
+            }
+         }
+         break;
+      case DT_STORY_2:
+         {
+            std::vector<unsigned int> existing_threads;
+            std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+            std::list<ChattyPost*>::iterator end = m_rootposts.end();
+            while(it != end)
+            {
+               if((*it) != NULL)
+               {
+                  existing_threads.push_back((*it)->GetId());
+               }
+               it++;
+            }
+
+            if(pDD->m_data != NULL)
+            {
                CXMLTree xmldata;
                if(GetXMLDataFromString(xmldata, (const char *)pDD->m_data, pDD->m_datasize))
                {
@@ -430,22 +440,25 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                   ReadFromRoot(xmldata, existing_threads);
                   m_page = page;
                }
-
-               it = m_rootposts.begin();
-               end = m_rootposts.end();
-               while(it != end)
-               {
-                  if((*it) != NULL)
-                  {
-                     (*it)->ShowAsTruncated();
-                  }
-                  it++;
-               }
-
-               RefreshAllRoots();
             }
-            break;
-         case DT_SEARCH:
+
+            it = m_rootposts.begin();
+            end = m_rootposts.end();
+            while(it != end)
+            {
+               if((*it) != NULL)
+               {
+                  (*it)->ShowAsTruncated();
+               }
+               it++;
+            }
+
+            RefreshAllRoots();
+         }
+         break;
+      case DT_SEARCH:
+         {
+            if(pDD->m_data != NULL)
             {
                CXMLTree xmldata;
                if(GetXMLDataFromString(xmldata, (const char *)pDD->m_data, pDD->m_datasize))
@@ -453,13 +466,19 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                   ReadSearchResultsFromRoot(xmldata);
                }
             }
-            break;
-         case DT_LOL:
+         }
+         break;
+      case DT_LOL:
+         {
+            if(pDD->m_data != NULL)
             {
                ProcessLOLData((char *)pDD->m_data, pDD->m_datasize);
             }
-            break;
-         case DT_AUTHOR:
+         }
+         break;
+      case DT_AUTHOR:
+         {
+            if(pDD->m_data != NULL)
             {
                CXMLTree xmldata;
                if(GetXMLDataFromString(xmldata, (const char *)pDD->m_data, pDD->m_datasize))
@@ -549,17 +568,20 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                   }
                }
             }
-            break;
-         case DT_POST:
+         }
+         break;
+      case DT_POST:
+         {
+            if(!pDD->m_errmsg.IsEmpty())
             {
-               if(!pDD->m_errmsg.IsEmpty())
+               if(m_pView != NULL)
                {
-                  if(m_pView != NULL)
-                  {
-                     m_pView->MessageBox(pDD->m_errmsg);
-                  }
+                  m_pView->MessageBox(pDD->m_errmsg);
                }
-               else
+            }
+            else
+            {
+               if(pDD->m_data != NULL)
                {
                   bool bCloseAndRefresh = true;
                   const char *result = (const char *)pDD->m_data;
@@ -607,9 +629,21 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                      }
                   }
                }
+               else
+               {
+                  // new thread
+                  if(m_pView != NULL)
+                  {
+                     m_pView->CloseReplyDialog();
+                  }
+                  Refresh();
+               }
             }
-            break;
-         case DT_SHACKMSG:
+         }
+         break;
+      case DT_SHACKMSG:
+         {
+            if(pDD->m_data != NULL)
             {
                CXMLTree xmldata;
                if(GetXMLDataFromString(xmldata, (const char *)pDD->m_data, pDD->m_datasize))
@@ -618,13 +652,16 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                   UpdateUnreadShackMessagesCount();
                }
             }
-            break;
-         case DT_READMSG:
-            {
-               // nothing to do
-            }
-            break;
-         case DT_SENDMSG:
+         }
+         break;
+      case DT_READMSG:
+         {
+            // nothing to do
+         }
+         break;
+      case DT_SENDMSG:
+         {
+            if(pDD->m_data != NULL)
             {
                const char *result = (const char *)pDD->m_data;
                if(result != NULL &&
@@ -636,20 +673,15 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                   }
                }
             }
-            break;
          }
-         free(pDD->m_data);
-      }
-      else if(pDD->m_dt == DT_POST)
-      {
-         // new thread
-         if(m_pView != NULL)
-         {
-            m_pView->CloseReplyDialog();
-         }
-         Refresh();
+         break;
       }
       
+      if(pDD->m_data != NULL)
+      {
+         free(pDD->m_data);
+      }
+
       delete pDD;
    }
 

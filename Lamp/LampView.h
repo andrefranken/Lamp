@@ -279,6 +279,8 @@ public:
    afx_msg void OnUpdateSelectPaleYellow(CCmdUI *pCmdUI);
    afx_msg void OnSelectCustom();
    afx_msg void OnUpdateSelectCustom(CCmdUI *pCmdUI);
+   afx_msg void OnKeepMeFromGTLT();
+   afx_msg void OnUpdateKeepMeFromGTLT(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp

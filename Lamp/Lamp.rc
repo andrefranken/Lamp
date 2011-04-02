@@ -227,6 +227,7 @@ BEGIN
         MENUITEM "Small LOL Stuff",             ID_SMALL_LOL
         MENUITEM "Check Spelling",              ID_CHECK_SPELLING
         MENUITEM "Highlight OP's Replies",      ID_HIGHLIGHT_OP
+        MENUITEM "Keep me from using < or >",   ID_KEEPMEFROMGTLT
         MENUITEM SEPARATOR
         POPUP "Fonts"
         BEGIN

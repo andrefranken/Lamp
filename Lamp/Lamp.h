@@ -668,6 +668,9 @@ public:
    bool ShowSmallLOL(){return m_bShowSmallLOL;}
    void SetShowSmallLOL(bool value);
 
+   bool KeepMeFromGTLT(){return m_bKeepMeFromGTLT;}
+   void SetKeepMeFromGTLT(bool value){m_bKeepMeFromGTLT = value;}   
+
    void ClearSession(){m_session.clear();}
 
    void AddToSession(UCString &launch){m_session.push_back(launch);}
@@ -922,6 +925,8 @@ protected:
    int m_LOLFieldWidth;
 
    bool m_bShowSmallLOL;
+
+   bool m_bKeepMeFromGTLT;
 
    std::vector<UCString> m_session;
 

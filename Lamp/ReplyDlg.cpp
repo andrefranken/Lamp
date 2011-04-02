@@ -723,6 +723,14 @@ void CReplyDlg::GetTextSelectionRects(int selectionstart, int selectionend, std:
 
 void CReplyDlg::InsertChar(UCChar thechar)
 {
+   if((thechar == L'<' ||
+       thechar == L'>') &&
+       theApp.KeepMeFromGTLT())
+   {
+      if(thechar == L'<') thechar = L'(';
+      else if(thechar == L'>') thechar = L')';
+   }
+
    if(m_bLastEventWasInsertChar)
    {
       // leave the undo buffer alone
@@ -763,7 +771,17 @@ void CReplyDlg::InsertString(const UCString &text)
    const UCChar *end = text.Str() + text.Length();
    while(work < end)
    {
-      m_replytext.InsertChar(*work,m_caretpos);
+      if((*work == L'<' ||
+          *work == L'>') &&
+          theApp.KeepMeFromGTLT())
+      {
+         if(*work == L'<') m_replytext.InsertChar(L'(',m_caretpos);
+         else if(*work == L'>') m_replytext.InsertChar(L')',m_caretpos);
+      }
+      else
+      {
+         m_replytext.InsertChar(*work,m_caretpos);
+      }
       m_caretpos++;
       work++;
    }

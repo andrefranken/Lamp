@@ -1005,6 +1005,10 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"SmallLOLButtons");
    if(setting!=NULL) m_bShowSmallLOL = setting->GetValue();
    else m_bShowSmallLOL = true;   
+
+   setting = hostxml.FindChildElement(L"KeepMeFromGTLT");
+   if(setting!=NULL) m_bKeepMeFromGTLT = setting->GetValue();
+   else m_bKeepMeFromGTLT = true;      
    
    setting = hostxml.FindChildElement(L"AlwaysOnTopWhenNotDocked");
    if(setting!=NULL) m_bAlwaysOnTopWhenNotDocked = setting->GetValue();
@@ -1265,6 +1269,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"DoublePageStory",UCString(m_bDoublePageStory));
    settingsxml.AddChildElement(L"ShowLOLButtons",UCString(m_bShowLOLButtons));
    settingsxml.AddChildElement(L"SmallLOLButtons",UCString(m_bShowSmallLOL));
+   settingsxml.AddChildElement(L"KeepMeFromGTLT",UCString(m_bKeepMeFromGTLT));
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
    settingsxml.AddChildElement(L"num_minutes_check_inbox",UCString(m_num_minutes_check_inbox));
    settingsxml.AddChildElement(L"enable_spell_checker",UCString(m_enable_spell_checker));

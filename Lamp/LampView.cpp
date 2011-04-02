@@ -127,6 +127,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_SELECT_PALE_YELLOW, &CLampView::OnUpdateSelectPaleYellow)
    ON_COMMAND(ID_SELECT_CUSTOM, &CLampView::OnSelectCustom)
    ON_UPDATE_COMMAND_UI(ID_SELECT_CUSTOM, &CLampView::OnUpdateSelectCustom)
+   ON_COMMAND(ID_KEEPMEFROMGTLT, &CLampView::OnKeepMeFromGTLT)
+   ON_UPDATE_COMMAND_UI(ID_KEEPMEFROMGTLT, &CLampView::OnUpdateKeepMeFromGTLT)
 
 END_MESSAGE_MAP()
 
@@ -4268,6 +4270,25 @@ void CLampView::OnUpdateSelectCustom(CCmdUI *pCmdUI)
       theApp.GetTextSelectionColor() != RGB(0,0,255) &&
       theApp.GetTextSelectionColor() != RGB(255,255,0) &&
       theApp.GetTextSelectionColor() != RGB(255,255,128))
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnKeepMeFromGTLT()
+{
+   theApp.SetKeepMeFromGTLT(!theApp.KeepMeFromGTLT());
+}
+
+void CLampView::OnUpdateKeepMeFromGTLT(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.KeepMeFromGTLT())
    {
       pCmdUI->SetCheck(TRUE);
    }
