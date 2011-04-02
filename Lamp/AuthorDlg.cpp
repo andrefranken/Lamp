@@ -2,6 +2,8 @@
 //
 
 #include "stdafx.h"
+#include "comm.h"
+#include "html.h"
 #include "Lamp.h"
 #include "AuthorDlg.h"
 
@@ -55,7 +57,14 @@ void AuthorDlg::OnBnClickedSearchButton()
    if(!m_author.IsEmpty())
    {
       theApp.SetLastSearchParms(m_author, UCString(), UCString());
-      theApp.OpenDocumentFile(L"CUSTOMSEARCH");
+
+      UCString path = L"CUSTOMSEARCH:";
+      char *enc = url_encode(m_author.str8());
+      path += enc;
+      free(enc);
+      path += L"::";
+
+      theApp.OpenDocumentFile(path);
       PostMessageW(WM_CLOSE);
    }
 }

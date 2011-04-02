@@ -606,9 +606,22 @@ BOOL CLampApp::InitInstance()
       m_bAlwaysOnTopWhenNotDocked = false;// because the next call toggles it
       OnAlwaysOnTopWhenNotDocked();
    }
+   
+   if(m_session.size() > 0)
+   {
+      // load the tabs that were closed in the last session
+      for(size_t i = 0; i < m_session.size(); i++)
+      {
+         OpenDocumentFile(m_session[i]);
+      }
 
-   // launch a latestchatty tab
-   OnFileNew();
+      m_session.clear();
+   }
+   else
+   {
+      // launch a latestchatty tab
+      OnFileNew();
+   }
 
    // get lols
    RefreshLOLs();
@@ -1172,6 +1185,21 @@ void CLampApp::ReadSettingsFile()
       m_GameDevs.SetAttributeValue(L"color",L"255,0,255");
       m_GameDevs.SetAttributeValue(L"enable",L"true");
    }
+
+   // save session
+   setting = hostxml.FindChildElement(L"Session");
+   if(setting != NULL)
+   {
+      int num = setting->CountChildren();
+      for(int i = 0; i < num; i++)
+      {
+         CXMLElement *tab = setting->GetChildElement(i);
+         if(tab != NULL && tab->GetTag() == L"tab")
+         {
+            m_session.push_back(tab->GetValue());
+         }
+      }
+   }
 }
 
 void CLampApp::WriteSettingsFile()
@@ -1268,6 +1296,19 @@ void CLampApp::WriteSettingsFile()
 
    CXMLElement *dev = settingsxml.AddChildElement();
    *dev = m_GameDevs;
+
+   // save session
+   if(m_session.size() > 0)
+   {
+      settingsxml.AddChildComment(L"Saved session.  These tabs were open on exit.");
+      CXMLElement *session = settingsxml.AddChildElement();
+      session->SetTag(L"Session");
+
+      for(size_t i = 0; i < m_session.size(); i++)
+      {
+         session->AddChildElement(L"tab",m_session[i]);
+      }
+   }
 
    // try the program files folder
    UCString bmpath;
@@ -2678,7 +2719,21 @@ void CLampApp::OnShackSearch()
       m_last_search_author = csdlg.m_user;
       m_last_search_parent_author = csdlg.m_parent;
       m_last_search_terms = csdlg.m_terms;
-      OpenDocumentFile(L"CUSTOMSEARCH");
+
+      UCString path = L"CUSTOMSEARCH:";
+      char *enc = url_encode(m_last_search_author.str8());
+      path += enc;
+      free(enc);
+      path += L":";
+      enc = url_encode(m_last_search_parent_author.str8());
+      path += enc;
+      free(enc);
+      path += L":";
+      enc = url_encode(m_last_search_terms.str8());
+      path += enc;
+      free(enc);
+
+      OpenDocumentFile(path);
    }
 }
 

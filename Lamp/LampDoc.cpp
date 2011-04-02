@@ -912,6 +912,7 @@ BOOL CLampDoc::OnOpenDocument( LPCTSTR lpszPathName )
 
    const UCChar *start = lpszPathName;
    const UCChar *end = lpszPathName + wcslen(lpszPathName);
+   const UCChar *newstart = NULL;
 
    const UCChar *http = wcsstr(start, L"http:\\www.shacknews.com\\");
    if(http != NULL)
@@ -952,10 +953,16 @@ BOOL CLampDoc::OnOpenDocument( LPCTSTR lpszPathName )
       m_lastpage = 1;
       isstory = true;
    }
-   else if(end - start > 11 &&
-           _wcsnicmp(start,L"chatty?id=",10) == 0)
+   else if(wcsstr(start,L"LATESTCHATTY") != NULL)
    {
-      const UCChar *work = start + 10;
+      m_storyid = 0;
+      m_page = 1;
+      m_lastpage = 1;
+      isstory = true;
+   }
+   else if((newstart = wcsstr(start,L"chatty?id=")) != NULL)
+   {
+      const UCChar *work = newstart + 10;
 
       while(work < end && 
             iswdigit(*work))
@@ -1048,9 +1055,31 @@ BOOL CLampDoc::OnOpenDocument( LPCTSTR lpszPathName )
 
          issearch = true;
       }
-      else if(wcsstr(start,L"CUSTOMSEARCH") != NULL)
+      else if((newstart = wcsstr(start,L"CUSTOMSEARCH:")) != NULL)
       {
-         theApp.GetLastSearchParms(m_search_author, m_search_parent_author, m_search_terms);
+         const UCChar *work = newstart + 13;
+         m_search_author = L"";
+         m_search_parent_author = L"";
+         m_search_terms = L"";
+         while(work < end && *work != L':'){m_search_author += *work;work++;}
+         if(work < end && *work == L':')work++;
+         while(work < end && *work != L':'){m_search_parent_author += *work;work++;}
+         if(work < end && *work == L':')work++;
+         while(work < end && *work != L':'){m_search_terms += *work;work++;}
+
+         char *enc = url_encode(m_search_author.str8());
+         m_search_author = enc;
+         free(enc);
+
+         enc = url_encode(m_search_parent_author.str8());
+         m_search_parent_author = enc;
+         free(enc);
+
+         enc = url_encode(m_search_terms.str8());
+         m_search_terms = enc;
+         free(enc);
+
+         //theApp.GetLastSearchParms(m_search_author, m_search_parent_author, m_search_terms);
          
          if(!m_search_author.IsEmpty() &&
             m_search_parent_author.IsEmpty() &&
@@ -1160,7 +1189,7 @@ BOOL CLampDoc::OnOpenDocument( LPCTSTR lpszPathName )
    else if(isstory)
    {
       SetDataType(DDT_STORY);
-      m_title = L"story";
+      m_title = L"latestchatty";
       MySetTitle(m_title);
       ReadLatestChatty();
    }
@@ -4421,5 +4450,83 @@ void CLampDoc::UpdateLOLsRecurse()
          (*it)->UpdateLOLsRecurse();
       }
       it++;
+   }
+}
+
+void CLampDoc::GetLaunchString(UCString &launch, unsigned int current_id)
+{
+   switch(m_datatype)
+   {
+   case DDT_EPICFAILD:
+      // do nothing
+      break;
+   case DDT_STORY:
+      launch = L"LATESTCHATTY";
+      break;
+   case DDT_THREAD:
+      launch = L"chatty?id=";
+      launch += current_id;
+      break;
+   case DDT_LOLS:
+      launch = L"LOL";
+      if(m_ThingsILOLD)
+      {
+         launch += L"ILOLD";
+      }
+      else if(m_ThingsIWrote)
+      {
+         launch += L"IWROTE";
+      }
+      else
+      {
+         launch += L"POP";
+         launch += m_loltag;
+      }
+      break;
+   case DDT_SEARCH:
+
+      if(m_search_author == theApp.GetUsername() &&
+         m_search_parent_author.IsEmpty() &&
+         m_search_terms.IsEmpty())
+      {
+         launch = L"MYCOMMENTS";
+      }
+      else if(m_search_author.IsEmpty() &&
+              m_search_parent_author == theApp.GetUsername() &&
+              m_search_terms.IsEmpty())
+      {
+         launch = L"REPLIESTOME";
+      }
+      else if(m_search_author.IsEmpty() &&
+              m_search_parent_author.IsEmpty() &&
+              m_search_terms == theApp.GetUsername())
+      {
+         launch = L"VANITYSEARCH";
+      }
+      else
+      {
+         launch = L"CUSTOMSEARCH:";
+         char *enc = url_encode(m_search_author.str8());
+         launch += enc;
+         free(enc);
+         launch += L":";
+         enc = url_encode(m_search_parent_author.str8());
+         launch += enc;
+         free(enc);
+         launch += L":";
+         enc = url_encode(m_search_terms.str8());
+         launch += enc;
+         free(enc);
+      }
+      break;
+   case DDT_SHACKMSG:
+      launch = L"SHACKMSG_";
+      switch(m_shackmsgtype)
+      {
+      case SMT_INBOX: launch += L"INBOX"; break;
+      case SMT_OUTBOX: launch += L"OUTBOX"; break;
+      case SMT_ARCHIVE: launch += L"ARCHIVE"; break;
+      }
+      break;
    }
 }

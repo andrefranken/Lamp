@@ -311,3 +311,77 @@ char* url_encode(const char* string)
 
    return encoded;
 }
+
+
+
+char* url_decode(const char* string)
+{
+   size_t       string_len = strlen(string);
+   char*        encoded    = (char*)malloc(string_len + 1);
+   char*        write = encoded;
+   const char*  read = string;
+   const char*  string_end = string + string_len;
+
+   memset(encoded, 0, (string_len + 1) * 3);
+
+   while(read < string_end)
+   {
+      if(*read == '%')
+      {
+         read++;
+         int a = 0;
+         switch(*read)
+         {
+         case '0': a = 0; break;
+         case '1': a = 1; break;
+         case '2': a = 2; break;
+         case '3': a = 3; break;
+         case '4': a = 4; break;
+         case '5': a = 5; break;
+         case '6': a = 6; break;
+         case '7': a = 7; break;
+         case '8': a = 8; break;
+         case '9': a = 9; break;
+         case 'a':case 'A': a = 10; break;
+         case 'b':case 'B': a = 11; break;
+         case 'c':case 'C': a = 12; break;
+         case 'd':case 'D': a = 13; break;
+         case 'e':case 'E': a = 14; break;
+         case 'f':case 'F': a = 15; break;
+         }
+         read++;
+         int b = 0;
+         switch(*read)
+         {
+         case '0': b = 0; break;
+         case '1': b = 1; break;
+         case '2': b = 2; break;
+         case '3': b = 3; break;
+         case '4': b = 4; break;
+         case '5': b = 5; break;
+         case '6': b = 6; break;
+         case '7': b = 7; break;
+         case '8': b = 8; break;
+         case '9': b = 9; break;
+         case 'a':case 'A': b = 10; break;
+         case 'b':case 'B': b = 11; break;
+         case 'c':case 'C': b = 12; break;
+         case 'd':case 'D': b = 13; break;
+         case 'e':case 'E': b = 14; break;
+         case 'f':case 'F': b = 15; break;
+         }
+
+         char ch = b + (a << 4);
+         *write = ch;
+      }
+      else
+      {
+         *write = *read;
+      }
+      
+      read++;
+      write++;
+   }   
+
+   return encoded;
+}

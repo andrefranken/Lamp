@@ -10,6 +10,10 @@ class CChildFrame : public CMDIChildWndEx
 public:
 	CChildFrame();
 
+   CLampView *GetView(){return m_pView;}
+
+   void SetView(CLampView *value){m_pView = value;}
+
 // Attributes
 public:
 
@@ -26,6 +30,9 @@ public:
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
 #endif
+
+private:
+   CLampView *m_pView;
 
 // Generated message map functions
 protected:

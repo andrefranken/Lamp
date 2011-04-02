@@ -226,6 +226,8 @@ public:
 
    void GetShackMessages();
 
+   void GetLaunchString(UCString &launch, unsigned int current_id);
+
 // Implementation
 public:
 	virtual ~CLampDoc();

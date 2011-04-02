@@ -12,6 +12,7 @@
 #include "DockTab.h"
 #include "BookmarkDlg.h"
 #include "AuthorDlg.h"
+#include "ChildFrm.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -195,6 +196,9 @@ BOOL CLampView::PreCreateWindow(CREATESTRUCT& cs)
 void CLampView::OnInitialUpdate()
 {
 	CView::OnInitialUpdate();
+
+   CChildFrame *pFrame = (CChildFrame*)GetParentFrame();
+   pFrame->SetView(this);
 
    SetFocus();
 

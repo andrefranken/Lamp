@@ -667,6 +667,10 @@ public:
 
    bool ShowSmallLOL(){return m_bShowSmallLOL;}
    void SetShowSmallLOL(bool value);
+
+   void ClearSession(){m_session.clear();}
+
+   void AddToSession(UCString &launch){m_session.push_back(launch);}
       
 // Overrides
 public:
@@ -918,6 +922,8 @@ protected:
    int m_LOLFieldWidth;
 
    bool m_bShowSmallLOL;
+
+   std::vector<UCString> m_session;
 
 public:
    afx_msg void OnFileSetuplogininfo();

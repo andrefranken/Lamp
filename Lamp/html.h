@@ -15,4 +15,5 @@
 
 char* html_entity_decode(char* string);
 char* url_encode        (const char* string);
+char* url_decode        (const char* string);
 

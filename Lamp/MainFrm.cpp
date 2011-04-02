@@ -241,10 +241,35 @@ void CMainFrame::OnUpdateApplicationLook(CCmdUI* pCmdUI)
 
 void CMainFrame::OnClose() 
 {
-   if(theApp.m_bDockedMode)
+   theApp.ClearSession();
+   CHackedTabCtrl *tabctrl = (CHackedTabCtrl*)GetCA()->FindActiveTabWnd();
+   if(tabctrl != NULL)
    {
-      
+      int numtabs = tabctrl->GetTabsNum();
+      for(int i=0; i < numtabs; i++)
+      {
+         CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
+         if(pFrame != NULL)
+         {
+            CLampView *pView = pFrame->GetView();
+            if(pView != NULL)
+            {
+               unsigned int current_id = pView->GetCurrentId();
+               CLampDoc *pDoc = pView->GetDocument();
+               if(pDoc != NULL)
+               {
+                  UCString launch;
+                  pDoc->GetLaunchString(launch, current_id);
+                  if(!launch.IsEmpty())
+                  {
+                     theApp.AddToSession(launch);
+                  }
+               }
+            }
+         }
+      }
    }
+
 	CMDIFrameWndEx::OnClose();
 }
 
