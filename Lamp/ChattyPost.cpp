@@ -409,14 +409,14 @@ void ChattyPost::ReadSearchResult(CXMLElement *pElement, CLampDoc *pDoc)
       UpdateLOLs();
 
       UCString body = pElement->GetAttributeValue(L"preview");
-
+      /*
       temp = pElement->GetAttributeValue(L"story_name");// "Evening Reading"
 
       body += L"<br/><br/><i><span class=\"jt_blue\">Posted in: ";
       body += L"";
       body += temp;
       body += L"</span></i>";
-      
+      */
       m_bodytext = L"";
       m_shacktags.clear();
       DecodeString(body,m_bodytext,m_shacktags);
