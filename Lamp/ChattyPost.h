@@ -276,6 +276,7 @@ public:
       m_plol_preview_charwidths = NULL;
       m_lol_preview_size = 0;
       m_bHaveLOLPreview = false;
+      m_bIsMe = false;
    }
    virtual ~ChattyPost();
 
@@ -453,6 +454,7 @@ protected:
    size_t                  m_familysize;
 
    COLORREF                m_AuthorColor;
+   bool                    m_bIsMe;
 
    bool                    m_bRefreshing;
 
