@@ -1419,7 +1419,7 @@ void CReplyDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
    {
       switch(nChar)
       {
-      case 0x41:// 'a'
+      case 0x41:// 'A'
          {
             if(GetAsyncKeyState(VK_CONTROL) & 0xFF00)
             {
@@ -1433,6 +1433,36 @@ void CReplyDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
       case 0x09:// TAB
          {
             m_bLastCharWasTab = !m_bLastCharWasTab;
+         }
+         break;
+      case 0x42:// 'B'
+         {
+            if(GetAsyncKeyState(VK_CONTROL) & 0xFF00)
+            {
+               Enclose(L"b[",L"]b");
+               SetHasFocus(true);
+               m_pView->InvalidateEverything();
+            }
+         }
+         break;
+      case 0x49:// 'I'
+         {
+            if(GetAsyncKeyState(VK_CONTROL) & 0xFF00)
+            {
+               Enclose(L"/[",L"]/");
+               SetHasFocus(true);
+               m_pView->InvalidateEverything();
+            }
+         }
+         break;
+      case 0x55:// 'U'
+         {
+            if(GetAsyncKeyState(VK_CONTROL) & 0xFF00)
+            {
+               Enclose(L"_[",L"]_");
+               SetHasFocus(true);
+               m_pView->InvalidateEverything();
+            }
          }
          break;
       case VK_DELETE: 

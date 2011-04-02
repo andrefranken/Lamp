@@ -671,6 +671,9 @@ public:
    bool KeepMeFromGTLT(){return m_bKeepMeFromGTLT;}
    void SetKeepMeFromGTLT(bool value){m_bKeepMeFromGTLT = value;}   
 
+   bool FlaredBranches(){return m_bFlaredBranches;}
+   void SetFlaredBranches(bool value){m_bFlaredBranches = value;}
+
    void ClearSession(){m_session.clear();}
 
    void AddToSession(UCString &launch){m_session.push_back(launch);}
@@ -927,6 +930,8 @@ protected:
    bool m_bShowSmallLOL;
 
    bool m_bKeepMeFromGTLT;
+
+   bool m_bFlaredBranches;
 
    std::vector<UCString> m_session;
 

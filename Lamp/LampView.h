@@ -281,6 +281,8 @@ public:
    afx_msg void OnUpdateSelectCustom(CCmdUI *pCmdUI);
    afx_msg void OnKeepMeFromGTLT();
    afx_msg void OnUpdateKeepMeFromGTLT(CCmdUI *pCmdUI);
+   afx_msg void OnFlaredBranches();
+   afx_msg void OnUpdateFlaredBranches(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp

@@ -4034,7 +4034,7 @@ void CLampDoc::DrawBranch(HDC hDC, RECT &rect, indenttype type, int shade, newne
          ::MoveToEx(hDC,rect.left + 8, rect.top,NULL);
          ::LineTo(hDC,rect.left + 8, rect.bottom);
 
-         if(shade > 2)
+         if(shade > 2 && theApp.FlaredBranches())
          {
             int shadecount = shade;
             while(shade > 0)
@@ -4065,7 +4065,7 @@ void CLampDoc::DrawBranch(HDC hDC, RECT &rect, indenttype type, int shade, newne
          ::MoveToEx(hDC,rect.left + 8, rect.top,NULL);
          ::LineTo(hDC,rect.left + 8, rect.top + stem);
 
-         if(shade > 2)
+         if(shade > 2 && theApp.FlaredBranches())
          {
             int shadecount = shade;
             while(shade > 0)

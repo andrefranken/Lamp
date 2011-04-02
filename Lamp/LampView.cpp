@@ -129,6 +129,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_SELECT_CUSTOM, &CLampView::OnUpdateSelectCustom)
    ON_COMMAND(ID_KEEPMEFROMGTLT, &CLampView::OnKeepMeFromGTLT)
    ON_UPDATE_COMMAND_UI(ID_KEEPMEFROMGTLT, &CLampView::OnUpdateKeepMeFromGTLT)
+   ON_COMMAND(ID_FLAREDBRANCHES, &CLampView::OnFlaredBranches)
+   ON_UPDATE_COMMAND_UI(ID_FLAREDBRANCHES, &CLampView::OnUpdateFlaredBranches)
 
 END_MESSAGE_MAP()
 
@@ -4289,6 +4291,26 @@ void CLampView::OnUpdateKeepMeFromGTLT(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(theApp.KeepMeFromGTLT())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnFlaredBranches()
+{
+   theApp.SetFlaredBranches(!theApp.FlaredBranches());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateFlaredBranches(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.FlaredBranches())
    {
       pCmdUI->SetCheck(TRUE);
    }
