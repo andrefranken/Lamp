@@ -2546,6 +2546,14 @@ void ChattyPost::DecodeString(UCString &from, UCString &to, std::vector<shacktag
    from.Replace(L"\n",L"");// ?
    from.Replace(L"&#13;",L"");
 
+   UCChar bom[2];
+   bom[0] = 0xFEFF;
+   bom[1] = 0;
+   from.Replace(bom,L"");
+   bom[0] = 0xFFFE;
+   bom[1] = 0;
+   from.Replace(bom,L"");
+
    RemoveSomeTags(from);
    
    int red = 0;
