@@ -69,8 +69,35 @@ void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic
    hCreatedFont = ::CreateFontW(fsize,0,0,0,weight,ditlc,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,fontname);
    HDC hTempDC = ::CreateCompatibleDC(NULL);
    oldfont = (HFONT)::SelectObject(hTempDC,hCreatedFont);
-   
-   ::GetCharacterPlacementW(hTempDC,text,numchars,0,&results,GCP_USEKERNING);
+
+   DWORD info = ::GetFontLanguageInfo(hTempDC);
+
+   bool bGCP_DBCS         = (info & GCP_DBCS) ?true:false;
+   bool bGCP_DIACRITIC    = (info & GCP_DIACRITIC) ?true:false;
+   bool bFLI_GLYPHS       = (info & FLI_GLYPHS) ?true:false;
+   bool bGCP_GLYPHSHAPE   = (info & GCP_GLYPHSHAPE) ?true:false;
+   bool bGCP_KASHIDA      = (info & GCP_KASHIDA) ?true:false;
+   bool bGCP_LIGATE       = (info & GCP_LIGATE) ?true:false;
+   bool bGCP_USEKERNING   = (info & GCP_USEKERNING) ?true:false;
+   bool bGCP_REORDER      = (info & GCP_REORDER) ?true:false;
+
+   if(bFLI_GLYPHS)
+   {
+      for (size_t i = 0; i < numchars; i++)
+      {
+         SIZE temp_textSize;
+         int temp_dx;
+         int temp_nFit;
+         ::GetTextExtentExPointW(hTempDC, text + i, 1, 5000000, &temp_nFit, &temp_dx, &temp_textSize);
+         widths[i] = temp_dx;
+      }
+   }
+   else
+   {
+      DWORD flags = 0;
+      if(bGCP_USEKERNING) flags |= GCP_USEKERNING;   
+      ::GetCharacterPlacementW(hTempDC,text,numchars,0,&results,flags);
+   }
 
    ::SelectObject(hTempDC,oldfont);
 
@@ -1099,15 +1126,15 @@ BOOL CLampDoc::OnOpenDocument( LPCTSTR lpszPathName )
          if(work < end && *work == L':')work++;
          while(work < end && *work != L':'){m_search_terms += *work;work++;}
 
-         char *enc = url_encode(m_search_author.str8());
+         char *enc = url_decode(m_search_author.str8());
          m_search_author = enc;
          free(enc);
 
-         enc = url_encode(m_search_parent_author.str8());
+         enc = url_decode(m_search_parent_author.str8());
          m_search_parent_author = enc;
          free(enc);
 
-         enc = url_encode(m_search_terms.str8());
+         enc = url_decode(m_search_terms.str8());
          m_search_terms = enc;
          free(enc);
 
@@ -4561,4 +4588,58 @@ void CLampDoc::GetLaunchString(UCString &launch, unsigned int current_id)
       }
       break;
    }
+}
+
+
+
+unsigned int CLampDoc::GetNextRoot()
+{
+   unsigned int id = 0;
+
+   if(m_datatype == DDT_STORY)
+   {
+      std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+      std::list<ChattyPost*>::iterator end = m_rootposts.end();
+      
+      while(it != end)
+      {
+         if((*it) != NULL && (*it)->GetPos() > 20)
+         {         
+            id = (*it)->GetId();
+            break;         
+         }
+
+         it++;
+      }
+   }
+
+   return id;
+}
+
+unsigned int CLampDoc::GetPrevRoot()
+{
+   unsigned int id = 0;
+
+   if(m_datatype == DDT_STORY)
+   {
+      std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+      std::list<ChattyPost*>::iterator end = m_rootposts.end();
+      
+      while(it != end)
+      {
+         if((*it) != NULL && (*it)->GetPos() < 20)
+         {         
+            id = (*it)->GetId();
+         }
+
+         if((*it) != NULL && (*it)->GetPos() > 20)
+         {         
+            break;         
+         }
+
+         it++;
+      }
+   }
+
+   return id;
 }

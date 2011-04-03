@@ -228,6 +228,9 @@ public:
 
    void GetLaunchString(UCString &launch, unsigned int current_id);
 
+   unsigned int GetNextRoot();
+   unsigned int GetPrevRoot();
+
 // Implementation
 public:
 	virtual ~CLampDoc();

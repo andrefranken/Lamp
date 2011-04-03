@@ -293,6 +293,10 @@ BEGIN
         MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
         MENUITEM "Paste &Last Post",            ID_EDIT_PASTE_LAST_POST
         MENUITEM SEPARATOR
+        MENUITEM "Google selected text",        ID_GOOGLE_SELECTED
+        MENUITEM "Google selected, in quotes",  ID_GOOGLE_SELECTED_W_QUOTES
+        MENUITEM "Wikipedia selected text",     ID_WIKIPEDIA_SELECTED
+        MENUITEM SEPARATOR
         MENUITEM "&Find Text\tCtrl+F",          ID_EDIT_FIND
         MENUITEM SEPARATOR
         MENUITEM "&Refresh\tF5",                ID_EDIT_REFRESH

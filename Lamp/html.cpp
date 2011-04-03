@@ -322,7 +322,7 @@ char* url_decode(const char* string)
    const char*  read = string;
    const char*  string_end = string + string_len;
 
-   memset(encoded, 0, (string_len + 1) * 3);
+   memset(encoded, 0, string_len + 1);
 
    while(read < string_end)
    {

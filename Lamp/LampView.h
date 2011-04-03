@@ -283,6 +283,12 @@ public:
    afx_msg void OnUpdateKeepMeFromGTLT(CCmdUI *pCmdUI);
    afx_msg void OnFlaredBranches();
    afx_msg void OnUpdateFlaredBranches(CCmdUI *pCmdUI);
+   afx_msg void OnGoogleSelected();
+   afx_msg void OnUpdateGoogleSelected(CCmdUI *pCmdUI);
+   afx_msg void OnGoogleSelectedWQuotes();
+   afx_msg void OnUpdateGoogleSelectedWQuotes(CCmdUI *pCmdUI);
+   afx_msg void OnWikipediaSelected();
+   afx_msg void OnUpdateWikipediaSelected(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp

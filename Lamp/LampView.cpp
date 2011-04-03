@@ -3,6 +3,8 @@
 //
 
 #include "stdafx.h"
+#include "comm.h"
+#include "html.h"
 #include "Lamp.h"
 #include "SettingsDlg.h"
 #include "LampDoc.h"
@@ -131,6 +133,12 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_KEEPMEFROMGTLT, &CLampView::OnUpdateKeepMeFromGTLT)
    ON_COMMAND(ID_FLAREDBRANCHES, &CLampView::OnFlaredBranches)
    ON_UPDATE_COMMAND_UI(ID_FLAREDBRANCHES, &CLampView::OnUpdateFlaredBranches)
+   ON_COMMAND(ID_GOOGLE_SELECTED, &CLampView::OnGoogleSelected)
+   ON_UPDATE_COMMAND_UI(ID_GOOGLE_SELECTED, &CLampView::OnUpdateGoogleSelected)
+   ON_COMMAND(ID_GOOGLE_SELECTED_W_QUOTES, &CLampView::OnGoogleSelectedWQuotes)
+   ON_UPDATE_COMMAND_UI(ID_GOOGLE_SELECTED_W_QUOTES, &CLampView::OnUpdateGoogleSelectedWQuotes)
+   ON_COMMAND(ID_WIKIPEDIA_SELECTED, &CLampView::OnWikipediaSelected)
+   ON_UPDATE_COMMAND_UI(ID_WIKIPEDIA_SELECTED, &CLampView::OnUpdateWikipediaSelected)
 
 END_MESSAGE_MAP()
 
@@ -2948,6 +2956,51 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                }
             }
          }
+
+         if(m_pos == m_gotopos &&
+            GetDocument()->GetDataType() == DDT_STORY &&
+           (nChar == 'j' ||
+            nChar == 'J'||
+            nChar == 'k' ||
+            nChar == 'K'))
+         {
+            unsigned int id = 0;
+
+            if(nChar == 'j' ||
+               nChar == 'J')
+            {
+               // select prev reply
+               id = GetDocument()->GetNextRoot();
+            }
+            else if(nChar == 'k' ||
+                    nChar == 'K')
+            {
+               // select next reply
+               id = GetDocument()->GetPrevRoot();
+            }
+
+            if(id != 0)
+            {
+               // force a draw so that positions are updated
+               ChattyPost *pPost = GetDocument()->FindPost(id);
+               if(pPost != NULL)
+               {            
+                  DrawEverythingToBuffer();
+                  int top = pPost->GetPos();
+                  int bottom = top + pPost->GetHeight();
+
+                  RECT DeviceRectangle;
+                  GetClientRect(&DeviceRectangle);
+                  DeviceRectangle.top += 20;
+                  DeviceRectangle.bottom -= 20;
+                  
+                  m_gotopos = m_pos + (top - DeviceRectangle.top);
+                  
+                  MakePosLegal();
+                  InvalidateEverything();
+               }
+            }
+         }
       }
    }
 
@@ -4321,5 +4374,183 @@ void CLampView::OnUpdateFlaredBranches(CCmdUI *pCmdUI)
    else
    {
       pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnGoogleSelected()
+{
+   UCString selectedtext;
+
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->GetHasFocus() &&
+      !m_pReplyDlg->AreSuggestionsUp())
+   {
+      if(m_pReplyDlg->HasSelection())
+      {
+         m_pReplyDlg->GetSelectedText(selectedtext);
+      }
+   }
+   else if(m_textselectionpost != 0 &&
+           m_selectionstart != m_selectionend)
+   {
+      ChattyPost *pPost = GetDocument()->FindPost(m_textselectionpost);
+      if(pPost != NULL)
+      {
+         pPost->GetSelectedText(m_selectionstart, m_selectionend, selectedtext);
+      }
+   }
+
+   if(!selectedtext.IsEmpty())
+   {
+      UCString link = L"http://www.google.com/search?q=";
+      char *enc = url_encode(selectedtext.str8());
+      link += enc;
+      free(enc);
+      theApp.OpenShackLink(link);
+   }
+}
+
+void CLampView::OnUpdateGoogleSelected(CCmdUI *pCmdUI)
+{
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->GetHasFocus() &&
+      !m_pReplyDlg->AreSuggestionsUp())
+   {
+      if(m_pReplyDlg->HasSelection())
+      {
+         pCmdUI->Enable(TRUE);
+      }
+      else
+      {
+         pCmdUI->Enable(FALSE);
+      }
+   }
+   else if(m_textselectionpost != 0 &&
+           m_selectionstart != m_selectionend)
+   {
+      pCmdUI->Enable(TRUE);
+   }
+   else
+   {
+      pCmdUI->Enable(FALSE);
+   }
+}
+
+void CLampView::OnGoogleSelectedWQuotes()
+{
+   UCString selectedtext;
+
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->GetHasFocus() &&
+      !m_pReplyDlg->AreSuggestionsUp())
+   {
+      if(m_pReplyDlg->HasSelection())
+      {
+         m_pReplyDlg->GetSelectedText(selectedtext);
+      }
+   }
+   else if(m_textselectionpost != 0 &&
+           m_selectionstart != m_selectionend)
+   {
+      ChattyPost *pPost = GetDocument()->FindPost(m_textselectionpost);
+      if(pPost != NULL)
+      {
+         pPost->GetSelectedText(m_selectionstart, m_selectionend, selectedtext);
+      }
+   }
+
+   if(!selectedtext.IsEmpty())
+   {
+      UCString link = L"http://www.google.com/search?q=\\\"";
+      char *enc = url_encode(selectedtext.str8());
+      link += enc;
+      link += L"\\\"";
+      free(enc);
+      theApp.OpenShackLink(link);
+   }
+}
+
+void CLampView::OnUpdateGoogleSelectedWQuotes(CCmdUI *pCmdUI)
+{
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->GetHasFocus() &&
+      !m_pReplyDlg->AreSuggestionsUp())
+   {
+      if(m_pReplyDlg->HasSelection())
+      {
+         pCmdUI->Enable(TRUE);
+      }
+      else
+      {
+         pCmdUI->Enable(FALSE);
+      }
+   }
+   else if(m_textselectionpost != 0 &&
+           m_selectionstart != m_selectionend)
+   {
+      pCmdUI->Enable(TRUE);
+   }
+   else
+   {
+      pCmdUI->Enable(FALSE);
+   }
+}
+
+void CLampView::OnWikipediaSelected()
+{
+   UCString selectedtext;
+
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->GetHasFocus() &&
+      !m_pReplyDlg->AreSuggestionsUp())
+   {
+      if(m_pReplyDlg->HasSelection())
+      {
+         m_pReplyDlg->GetSelectedText(selectedtext);
+      }
+   }
+   else if(m_textselectionpost != 0 &&
+           m_selectionstart != m_selectionend)
+   {
+      ChattyPost *pPost = GetDocument()->FindPost(m_textselectionpost);
+      if(pPost != NULL)
+      {
+         pPost->GetSelectedText(m_selectionstart, m_selectionend, selectedtext);
+      }
+   }
+
+   if(!selectedtext.IsEmpty())
+   {
+      UCString link = L"http://en.wikipedia.org/wiki/";
+      char *enc = url_encode(selectedtext.str8());
+      link += enc;
+      free(enc);
+      theApp.OpenShackLink(link);
+   }
+}
+
+void CLampView::OnUpdateWikipediaSelected(CCmdUI *pCmdUI)
+{
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->GetHasFocus() &&
+      !m_pReplyDlg->AreSuggestionsUp())
+   {
+      if(m_pReplyDlg->HasSelection())
+      {
+         pCmdUI->Enable(TRUE);
+      }
+      else
+      {
+         pCmdUI->Enable(FALSE);
+      }
+   }
+   else if(m_textselectionpost != 0 &&
+           m_selectionstart != m_selectionend)
+   {
+      pCmdUI->Enable(TRUE);
+   }
+   else
+   {
+      pCmdUI->Enable(FALSE);
    }
 }
