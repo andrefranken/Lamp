@@ -401,17 +401,7 @@ LRESULT CMainFrame::OnMenuRBUMessage(WPARAM wparam, LPARAM lparam)
 
 void CMainFrame::OnTimer(UINT nIDEvent) 
 {
-   if(nIDEvent == UPDATE_TIMER)
-   {
-      if(m_bFirstUpdate)
-      {
-         m_bFirstUpdate = false;
-         KillTimer(UPDATE_TIMER);
-         SetTimer(UPDATE_TIMER,(UINT)60000 * 30,NULL); // check for updates every 30 minutes
-      }
-      theApp.CheckForUpdates();
-   }
-   else if(::GetTickCount() < g_LastPostTime + ((UINT)60000 * 15))
+   if(::GetTickCount() < g_LastPostTime + ((UINT)60000 * 15))
    {
       // ^^^ If the user hasn't done anything web-wise in the past 15 minutes,
       // assume they walked away.   Don't hammer the servers with automated
@@ -423,6 +413,16 @@ void CMainFrame::OnTimer(UINT nIDEvent)
       else if(nIDEvent == REFRESH_LOL_TIMER)
       {
          theApp.RefreshLOLs();
+      }
+      else if(nIDEvent == UPDATE_TIMER)
+      {
+         if(m_bFirstUpdate)
+         {
+            m_bFirstUpdate = false;
+            KillTimer(UPDATE_TIMER);
+            SetTimer(UPDATE_TIMER,(UINT)60000 * 30,NULL); // check for updates every 30 minutes
+         }
+         theApp.CheckForUpdates();
       }
    }
    else
