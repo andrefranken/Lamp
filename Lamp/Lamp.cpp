@@ -2009,15 +2009,13 @@ void CLampApp::OpenShackLink(const UCString &shackpath)
 {
    bool bIsMine = false;
 
-   if(_wcsnicmp(shackpath,L"http://www.shacknews.com/laryn.x?story=",39) == 0)
+   if(_wcsnicmp(shackpath,L"http://www.shacknews.com/",25) == 0)
    {
-      // todo new story urls
-      bIsMine = true;
-   }
-   else if(_wcsnicmp(shackpath,L"http://www.shacknews.com/chatty?id=",35) == 0 ||
-           _wcsnicmp(shackpath,L"http://www.shacknews.com/laryn.x?id=",36) == 0)
-   {
-      bIsMine = true;
+      const UCChar *work = wcsstr(shackpath,L"?id=");
+      if(work != NULL)
+      {
+         bIsMine = true;
+      }
    }
    else
    {

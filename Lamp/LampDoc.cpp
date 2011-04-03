@@ -1019,26 +1019,9 @@ BOOL CLampDoc::OnOpenDocument( LPCTSTR lpszPathName )
       m_lastpage = 1;
       isstory = true;
    }
-   else if((newstart = wcsstr(start,L"chatty?id=")) != NULL)
+   else if((newstart = wcsstr(start,L"?id=")) != NULL)
    {
-      const UCChar *work = newstart + 10;
-
-      while(work < end && 
-            iswdigit(*work))
-      {
-         rootid += *work;
-         work++;
-      }
-
-      m_initialpostid = rootid;
-
-      bAllowPreLoadingOfThread = false;
-   }
-   else if(end - start > 12 &&
-           _wcsnicmp(start,L"laryn.x?id=",11) == 0)
-   {
-      //laryn.x?id=24937945#itemanchor_24937945
-      const UCChar *work = start + 11;
+      const UCChar *work = newstart + 4;
 
       while(work < end && 
             iswdigit(*work))
