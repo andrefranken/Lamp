@@ -66,6 +66,8 @@ protected:  // control bar embedded members
 
    CLampView *m_pLastActiveView;
 
+   bool m_bFirstUpdate;
+
 // Generated message map functions
 protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);

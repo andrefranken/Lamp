@@ -133,7 +133,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
    SetTimer(INBOX_TIMER,(UINT)60000 * (UINT)theApp.GetNumMinutesCheckInbox(),NULL);
 
-   SetTimer(UPDATE_TIMER,(UINT)60000 * 2,NULL); // check for updates in 2 minutes
+   m_bFirstUpdate = true;
+   SetTimer(UPDATE_TIMER,(UINT)60000 * 1,NULL); // check for updates starting in 1 minutes
 
    SetTimer(REFRESH_LOL_TIMER,(UINT)60000 * 5,NULL); // check for updates in 5 minutes
       
@@ -402,7 +403,12 @@ void CMainFrame::OnTimer(UINT nIDEvent)
 {
    if(nIDEvent == UPDATE_TIMER)
    {
-      KillTimer(UPDATE_TIMER);
+      if(m_bFirstUpdate)
+      {
+         m_bFirstUpdate = false;
+         KillTimer(UPDATE_TIMER);
+         SetTimer(UPDATE_TIMER,(UINT)60000 * 30,NULL); // check for updates every 30 minutes
+      }
       theApp.CheckForUpdates();
    }
    else if(::GetTickCount() < g_LastPostTime + ((UINT)60000 * 15))
