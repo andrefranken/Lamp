@@ -293,6 +293,7 @@ void CLampView::OnContextMenu(CWnd* pWnd, CPoint point)
          {
             m_rbuttonmenufromid = m_hotspots[i].m_id;
          }
+         break;
       }
    }
 
@@ -3361,6 +3362,7 @@ void CLampView::OnCopyLink()
 
             link.PushToClipboard();
          }
+         break;
       }
    }
 }
@@ -3388,6 +3390,7 @@ void CLampView::OnUpdateCopyLink(CCmdUI *pCmdUI)
          {
             enable = TRUE;
          }
+         break;
       }
    }
    pCmdUI->Enable(enable);
@@ -3434,6 +3437,7 @@ void CLampView::OnLaunchLink()
                     NULL,
                     SW_SHOW);
          }
+         break;
       }
    }
 }
