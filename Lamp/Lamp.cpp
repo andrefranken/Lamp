@@ -1006,10 +1006,6 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_bShowSmallLOL = setting->GetValue();
    else m_bShowSmallLOL = true;   
 
-   setting = hostxml.FindChildElement(L"KeepMeFromGTLT");
-   if(setting!=NULL) m_bKeepMeFromGTLT = setting->GetValue();
-   else m_bKeepMeFromGTLT = true;      
-
    setting = hostxml.FindChildElement(L"FlaredBranches");
    if(setting!=NULL) m_bFlaredBranches = setting->GetValue();
    else m_bFlaredBranches = true;
@@ -1194,6 +1190,47 @@ void CLampApp::ReadSettingsFile()
       m_GameDevs.SetAttributeValue(L"enable",L"true");
    }
 
+   // cheat sheet
+   setting = hostxml.FindChildElement(L"CheatSheet");
+   if(setting != NULL)
+   {
+      int num = setting->CountChildren();
+      for(int i = 0; i < num; i++)
+      {
+         CXMLElement *cheat = setting->GetChildElement(i);
+         if(cheat != NULL && cheat->GetTag() == L"cheat")
+         {
+            m_cheatsheet.push_back(cheat->GetValue());
+         }
+      }
+   }
+   /*
+   else
+   {
+      UCChar foo[2];
+      foo[1] = 0;
+      foo[0] = 0x2665; //heart
+      m_cheatsheet.push_back(UCString(foo));
+      foo[0] = 0x266B; //musical note
+      m_cheatsheet.push_back(UCString(foo));
+      foo[0] = 0x221E; //infinity
+      m_cheatsheet.push_back(UCString(foo));
+      foo[0] = 0x2122; //TM
+      m_cheatsheet.push_back(UCString(foo));
+      foo[0] = 0x20AC; //Euro
+      m_cheatsheet.push_back(UCString(foo));
+      foo[0] = 0x00A5; //Yen
+      m_cheatsheet.push_back(UCString(foo));
+      foo[0] = 0x00A3; //Pound
+      m_cheatsheet.push_back(UCString(foo));
+      foo[0] = 0x00A9; //Copyright
+      m_cheatsheet.push_back(UCString(foo));
+      foo[0] = 0x00AE; //Registered
+      m_cheatsheet.push_back(UCString(foo));
+      foo[0] = 0x00B0; //Degree
+      m_cheatsheet.push_back(UCString(foo));            
+   }
+   */
    // save session
    setting = hostxml.FindChildElement(L"Session");
    if(setting != NULL)
@@ -1273,7 +1310,6 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"DoublePageStory",UCString(m_bDoublePageStory));
    settingsxml.AddChildElement(L"ShowLOLButtons",UCString(m_bShowLOLButtons));
    settingsxml.AddChildElement(L"SmallLOLButtons",UCString(m_bShowSmallLOL));
-   settingsxml.AddChildElement(L"KeepMeFromGTLT",UCString(m_bKeepMeFromGTLT));
    settingsxml.AddChildElement(L"FlaredBranches",UCString(m_bFlaredBranches));
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
    settingsxml.AddChildElement(L"num_minutes_check_inbox",UCString(m_num_minutes_check_inbox));
@@ -1306,6 +1342,19 @@ void CLampApp::WriteSettingsFile()
 
    CXMLElement *dev = settingsxml.AddChildElement();
    *dev = m_GameDevs;
+
+   // save cheatsheet
+   if(m_cheatsheet.size() > 0)
+   {
+      settingsxml.AddChildComment(L"Cheat Sheet.  These strings will be listed in pop-up.");
+      CXMLElement *cheatsheet = settingsxml.AddChildElement();
+      cheatsheet->SetTag(L"CheatSheet");
+
+      for(size_t i = 0; i < m_cheatsheet.size(); i++)
+      {
+         cheatsheet->AddChildElement(L"cheat",m_cheatsheet[i]);
+      }
+   }
 
    // save session
    if(m_session.size() > 0)

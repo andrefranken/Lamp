@@ -279,8 +279,6 @@ public:
    afx_msg void OnUpdateSelectPaleYellow(CCmdUI *pCmdUI);
    afx_msg void OnSelectCustom();
    afx_msg void OnUpdateSelectCustom(CCmdUI *pCmdUI);
-   afx_msg void OnKeepMeFromGTLT();
-   afx_msg void OnUpdateKeepMeFromGTLT(CCmdUI *pCmdUI);
    afx_msg void OnFlaredBranches();
    afx_msg void OnUpdateFlaredBranches(CCmdUI *pCmdUI);
    afx_msg void OnGoogleSelected();

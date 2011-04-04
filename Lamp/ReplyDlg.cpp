@@ -519,6 +519,13 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
          m_suggestionsrect.right = m_suggestionsrect.left + m_widest_suggestion + 5 + 5;
          m_suggestionsrect.bottom = m_suggestionsrect.top + (m_suggestions.size() * theApp.GetTextHeight());
 
+         if(m_suggestionsrect.bottom > DeviceRectangle.bottom)
+         {
+            // make the list go up
+            m_suggestionsrect.bottom = y - theApp.GetTextHeight();
+            m_suggestionsrect.top = m_suggestionsrect.bottom - (m_suggestions.size() * theApp.GetTextHeight());
+         }
+
          m_pView->GetDocument()->FillBackground(hDC,m_suggestionsrect);
          HPEN newpen = m_pView->GetDocument()->GetRootTopPen();
          HPEN oldpen = (HPEN)::SelectObject(hDC,newpen);
@@ -530,7 +537,7 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
          ::SelectObject(hDC,oldpen);
 
          x += 5;
-         y += theApp.GetTextHeight();
+         y = m_suggestionsrect.top + theApp.GetTextHeight();
 
          HFONT newfont = ::CreateFontW(theApp.GetFontHeight(),0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
          HFONT oldfont = (HFONT)::SelectObject(hDC,newfont);
@@ -723,14 +730,6 @@ void CReplyDlg::GetTextSelectionRects(int selectionstart, int selectionend, std:
 
 void CReplyDlg::InsertChar(UCChar thechar)
 {
-   if((thechar == L'<' ||
-       thechar == L'>') &&
-       theApp.KeepMeFromGTLT())
-   {
-      if(thechar == L'<') thechar = L'(';
-      else if(thechar == L'>') thechar = L')';
-   }
-
    if(m_bLastEventWasInsertChar)
    {
       // leave the undo buffer alone
@@ -771,17 +770,7 @@ void CReplyDlg::InsertString(const UCString &text)
    const UCChar *end = text.Str() + text.Length();
    while(work < end)
    {
-      if((*work == L'<' ||
-          *work == L'>') &&
-          theApp.KeepMeFromGTLT())
-      {
-         if(*work == L'<') m_replytext.InsertChar(L'(',m_caretpos);
-         else if(*work == L'>') m_replytext.InsertChar(L')',m_caretpos);
-      }
-      else
-      {
-         m_replytext.InsertChar(*work,m_caretpos);
-      }
+      m_replytext.InsertChar(*work,m_caretpos);
       m_caretpos++;
       work++;
    }
@@ -1761,8 +1750,42 @@ void CReplyDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
          break;
       case VK_ADD: break;
       case VK_SUBTRACT: break;
-      }
+      case VK_F9:
+         {
+            if(theApp.GetCheatSheetSize() > 0)
+            {
+               m_suggestions.clear();
+               
+               m_suggestions = theApp.GetCheatSheet();
+               
+               m_bSuggestionsUp = true;
+               m_suggestion_who.begin = __min(m_caretpos,m_caretanchor);
+               m_suggestion_who.end = __max(m_caretpos,m_caretanchor);
+               m_widest_suggestion = 0;
 
+               for(size_t j = 0; j < m_suggestions.size(); j++)
+               {
+                  int numchars = m_suggestions[j].Length();
+                  int *pCharWidths = (int*)malloc(sizeof(int) * numchars);
+                  GetCharWidths(m_suggestions[j], pCharWidths, m_suggestions[j].Length(), false, false, false, theApp.GetNormalFontName());
+                  int thiswidth = 0;
+                  for(int k = 0; k < numchars; k++)
+                  {
+                     thiswidth += pCharWidths[k];
+                  }
+
+                  if(thiswidth > m_widest_suggestion)
+                  {
+                     m_widest_suggestion = thiswidth;
+                  }
+               }
+
+               m_pView->InvalidateEverything();
+            }
+         }
+         break;
+      }
+      
       if(nChar != 0x09)// TAB
       {
          m_bLastCharWasTab = false;

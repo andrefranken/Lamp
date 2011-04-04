@@ -40,6 +40,8 @@ void ChattyPost::ReadLOL(CLampDoc *pDoc,
    m_bodytext = L"";
    m_shacktags.clear();
    DecodeString(body,m_bodytext,m_shacktags);
+   m_bodytext.ReplaceAll(0x02C2,L'<');
+   m_bodytext.ReplaceAll(0x02C3,L'>');
    SetupCharWidths();
    m_lines_of_text.clear();
    m_charsizes.clear();
@@ -174,6 +176,8 @@ void ChattyPost::Read(CXMLElement *pElement, CLampDoc *pDoc, bool bDoingNewFlags
       if(pBody != NULL)
       {
          UCString &temp = pBody->GetValue();
+         temp.ReplaceAll(0x02C2,L'<');
+         temp.ReplaceAll(0x02C3,L'>');
          m_bodytext = L"";
          m_shacktags.clear();
          DecodeString(temp,m_bodytext,m_shacktags);
@@ -355,6 +359,8 @@ void ChattyPost::ReadShackMessage(CXMLElement *pElement, CLampDoc *pDoc, bool bI
       m_id = temp;
 
       m_subject = pElement->GetAttributeValue(L"subject");
+      m_subject.ReplaceAll(0x02C2,L'<');
+      m_subject.ReplaceAll(0x02C3,L'>');
 
       m_bHaveRead = false;
       temp = pElement->GetAttributeValue(L"status");
@@ -367,6 +373,8 @@ void ChattyPost::ReadShackMessage(CXMLElement *pElement, CLampDoc *pDoc, bool bI
       body.Replace(L"<br>",L"<br/>");
       body.Replace(L"<p>",L"");
       body.Replace(L"</p>",L"");
+      body.ReplaceAll(0x02C2,L'<');
+      body.ReplaceAll(0x02C3,L'>');
       
       m_bodytext = L"";
       m_shacktags.clear();
@@ -421,6 +429,8 @@ void ChattyPost::ReadSearchResult(CXMLElement *pElement, CLampDoc *pDoc)
       m_bodytext = L"";
       m_shacktags.clear();
       DecodeString(body,m_bodytext,m_shacktags);
+      m_bodytext.ReplaceAll(0x02C2,L'<');
+      m_bodytext.ReplaceAll(0x02C3,L'>');
       //m_bodytext.MakeNormal();
       SetupCharWidths();
       m_lines_of_text.clear();

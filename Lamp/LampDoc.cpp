@@ -1403,7 +1403,12 @@ void CLampDoc::SendMessage(const UCString &to, const UCString &subject, const UC
    post_data += enc_password;
 
    post_data += L"&subject=";
-   char *enc_subject = url_encode((char*)subject.str8(false,CET_UTF8));
+
+   UCString temp = subject;
+   temp.ReplaceAll(L'<',0x02C2);
+   temp.ReplaceAll(L'>',0x02C3);
+
+   char *enc_subject = url_encode((char*)temp.str8(false,CET_UTF8));
    post_data += enc_subject;
 
    post_data += L"&to=";
@@ -1411,7 +1416,12 @@ void CLampDoc::SendMessage(const UCString &to, const UCString &subject, const UC
    post_data += enc_to;
    
    post_data += L"&body=";
-   char *enc_shackmsg = url_encode((char*)shackmsg.str8(false,CET_UTF8));
+
+   temp = shackmsg;
+   temp.ReplaceAll(L'<',0x02C2);
+   temp.ReplaceAll(L'>',0x02C3);
+
+   char *enc_shackmsg = url_encode((char*)temp.str8(false,CET_UTF8));
    post_data += enc_shackmsg;
    
    StartDownload(theApp.GetHostName(),
@@ -1910,7 +1920,12 @@ bool CLampDoc::PostReply(const UCString &replytext, unsigned int to_id)
    }
 
    post_data += L"&body=";
-   char *enc_reply = url_encode((char*)replytext.str8(false,CET_UTF8));
+
+   UCString temp = replytext;
+   temp.ReplaceAll(L'<',0x02C2);
+   temp.ReplaceAll(L'>',0x02C3);
+
+   char *enc_reply = url_encode((char*)temp.str8(false,CET_UTF8));
    post_data += enc_reply;
    
    StartDownload(theApp.GetHostName(),
