@@ -2924,6 +2924,15 @@ CDCSurface *CImageCacheItem::GetImage()
             temphost = L"www.shackpics.com";
          }
 
+         if(m_host == L"www.chattypics.com" ||
+            m_host == L"chattypics.com")
+         {
+            // http://www.shackpics.com/viewer.x?file=pic.jpg
+            // http://www.shackpics.com/files/pic.jpg
+            temppath.Replace(L"viewer.php?file=",L"files/");
+            temphost = L"www.chattypics.com";
+         }
+
          if(m_host == L"www.fukung.net" ||
             m_host == L"fukung.net")
          {
