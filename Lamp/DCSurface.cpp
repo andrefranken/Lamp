@@ -92,30 +92,30 @@ bool CDCSurface::Resize( int pixelwidth, int pixelheight )
 
    m_currentinsertionscanline = pixelheight - 1;
 
+   if(m_DC != NULL)
+   {
+      // if our bitmap is selected into the DC,
+      // deselect it
+      if(m_hPreviousBitmap != NULL)
+      {
+         ::SelectObject(m_DC, m_hPreviousBitmap);
+      }
+
+      ::DeleteDC( m_DC );
+      m_DC = NULL;         
+   }
+
+   if( m_hBitmap != NULL )
+   {
+      ::DeleteObject(m_hBitmap);
+      m_hBitmap = NULL;
+   }
+
    if(pixelheight > 0 && pixelwidth > 0 &&
       (m_hBitmap == NULL ||
        pixelwidth != m_PixelWidth ||
        pixelheight != m_PixelHeight))
    {
-      if(m_DC != NULL)
-      {
-         // if our bitmap is selected into the DC,
-         // deselect it
-         if(m_hPreviousBitmap != NULL)
-         {
-            ::SelectObject(m_DC, m_hPreviousBitmap);
-         }
-
-         ::DeleteDC( m_DC );
-         m_DC = NULL;         
-      }
-
-      if( m_hBitmap != NULL )
-      {
-         ::DeleteObject(m_hBitmap);
-         m_hBitmap = NULL;
-      }
-
       bDidResize = true;
       HBITMAP hNewbmp = (HBITMAP)Size( pixelwidth, pixelheight, &m_pBits, &m_DC, &m_ImageByteSize );
 
