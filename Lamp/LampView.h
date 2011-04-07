@@ -99,6 +99,10 @@ protected:
    void DrawEverythingToBuffer(CDCSurface *pSurface = NULL, 
                                RECT *pDeviceRectangle = NULL, 
                                RECT *pScrollRectangle = NULL);
+
+   void BeginInertiaPanning();
+   void CancelInertiaPanning();
+   void TrackMouse(CPoint &point);
    
    void MakePosLegal();
    void GetDocHeight();
@@ -145,7 +149,6 @@ protected:
    float m_scrollscale;
 
    CPoint m_rbuttondownpoint;
-   bool m_rbuttondown;
    int m_rbuttondownpos;
 
    CPoint m_panpoint;
@@ -167,6 +170,13 @@ protected:
    bool m_bMButtonDown;
    bool m_bDrawMButtonDownIcon;
 
+   bool m_bInertialPanning;
+   bool m_bStartedTrackingMouse;
+   float m_inertia;
+   std::deque<int> m_mousehistory;
+   std::deque<int> m_mousetimehistory;
+   DWORD m_lastmousetime;
+   bool m_brakes;
 
    CFindTextDlg *m_pFindDlg;
 // Generated message map functions

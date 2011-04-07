@@ -160,7 +160,6 @@ CLampView::CLampView()
    m_doubleclicktime = 0;
    m_bTrackingThumb = false;
    m_bLButtonDownOnScrollArrow = false;
-   m_rbuttondown = false;
    m_bPanning = false;
    m_panpos = 0;
    m_rbuttonmenufromid = 0;
@@ -171,6 +170,10 @@ CLampView::CLampView()
    m_dlgup = false;
    m_bMButtonDown = false;
    m_bDrawMButtonDownIcon = false;
+   m_bInertialPanning = false;
+   m_inertia = 0.0f;
+   m_bStartedTrackingMouse = false;
+   m_brakes = false;
 
    m_pFindDlg = NULL;
 
@@ -224,30 +227,42 @@ void CLampView::OnClose()
 
 void CLampView::OnRButtonDown(UINT nFlags, CPoint point)
 {
-   m_bDrawMButtonDownIcon = false;
+   SetCapture();   
+   CancelInertiaPanning();
+   m_bStartedTrackingMouse = true;
+   m_lastmousetime = ::GetTickCount();
+   m_mousepoint = point;
 
-   if(m_pReplyDlg == NULL ||
-      !m_pReplyDlg->OnRButtonDown(nFlags, point))
+   if(!m_brakes)
    {
-      m_rbuttondownpoint = point;
-      m_rbuttondown = true;
-      m_rbuttondownpos = m_pos;
+      m_bDrawMButtonDownIcon = false;
 
+      if(m_pReplyDlg == NULL ||
+         !m_pReplyDlg->OnRButtonDown(nFlags, point))
+      {
+         m_rbuttondownpoint = point;
+         m_rbuttondownpos = m_pos;
+
+         m_panpoint = point;
+         m_bPanning = true;
+         m_panpos = m_pos;
+      }
+   }
+   else
+   {
       m_panpoint = point;
       m_bPanning = true;
       m_panpos = m_pos;
-
-      SetCapture();   
    }
 }
 
 void CLampView::OnRButtonUp(UINT nFlags, CPoint point)
 {
-   if(m_rbuttondown)
+   TrackMouse(point);
+   ReleaseCapture();
+      
+   if(!m_brakes)
    {
-      m_rbuttondown = false;
-      ReleaseCapture();
-
       if(m_bPanning)
       {
          m_bPanning = false;
@@ -255,7 +270,7 @@ void CLampView::OnRButtonUp(UINT nFlags, CPoint point)
          m_gotopos = m_panpos + ydiff;
          MakePosLegal();
          m_pos = m_gotopos;// no smooth on pan
-         InvalidateEverything();
+         BeginInertiaPanning();
       }
 
       // force a draw so that hotspots are updated
@@ -264,16 +279,90 @@ void CLampView::OnRButtonUp(UINT nFlags, CPoint point)
       if(abs(point.x - m_rbuttondownpoint.x) < 3 &&
          abs(point.y - m_rbuttondownpoint.y) < 3)
       {
-	      ClientToScreen(&point);
-	      OnContextMenu(this, point);
+         // stop the attempt to start inertial panning
+         CancelInertiaPanning();
+         ClientToScreen(&point);
+         OnContextMenu(this, point);
       }
    }
+   else if(m_bPanning)
+   {
+      m_bPanning = false;
+      int ydiff = m_panpoint.y - point.y;
+      m_gotopos = m_panpos + ydiff;
+      MakePosLegal();
+      m_pos = m_gotopos;// no smooth on pan
+      BeginInertiaPanning();
+   }
+   m_brakes = false;
+}
+
+void CLampView::TrackMouse(CPoint &point)
+{
+   if(m_bStartedTrackingMouse)
+   {
+      m_mousehistory.push_back(point.y - m_mousepoint.y);
+      while(m_mousehistory.size() > 10) m_mousehistory.pop_front();
+      DWORD thistime = ::GetTickCount();
+      m_mousetimehistory.push_back(thistime - m_lastmousetime);
+      while(m_mousetimehistory.size() > 10) m_mousetimehistory.pop_front();
+      m_lastmousetime = thistime;
+   }
+   m_bStartedTrackingMouse = true;
+   m_mousepoint = point;
+}
+
+void CLampView::CancelInertiaPanning()
+{
+   if(m_bInertialPanning)
+   {
+      m_brakes = true;
+   }
+   m_inertia = 0.0f;
+   m_bInertialPanning = false;
+   m_mousehistory.clear();
+   m_mousetimehistory.clear();
+}
+
+void CLampView::BeginInertiaPanning()
+{
+   m_bInertialPanning = true;
+   m_inertia = 0.0f;
+   int numused = 0;
+   if(m_mousehistory.size() == m_mousetimehistory.size())
+   {
+      for(size_t i = 0; i < m_mousehistory.size(); i++)
+      {
+         int diff = m_mousehistory[i];
+         int time = m_mousetimehistory[i];
+         if(time < 25) time = 1;
+         if(diff != 0 && time != 0)
+         {
+            m_inertia += (float)(diff * time);
+         }
+         numused += time;
+      }
+   }
+   if(numused > 0)
+   {
+      m_inertia = m_inertia / (float)numused;
+   }
+   else
+   {
+      m_bInertialPanning = false;
+      m_inertia = 0.0f;
+   }
+   m_mousehistory.clear();
+   m_mousetimehistory.clear();
+
+   InvalidateEverythingPan();
 }
 
 void CLampView::OnContextMenu(CWnd* pWnd, CPoint point)
 {
    CPoint worldpoint = point;
    ScreenToClient(&worldpoint);
+   
    m_mousepoint = worldpoint;
 
    m_rbuttonmenufromid = 0;
@@ -549,6 +638,27 @@ void CLampView::OnDraw(CDC* pDC)
             m_gotopos = m_pos - ydiff;
             MakePosLegal();
             InvalidateEverythingPan();
+         }
+         else if(m_bInertialPanning)
+         {
+            m_inertia = m_inertia * (1.0f - theApp.GetInertiaFriction());
+            m_gotopos = m_pos - (int)m_inertia;
+            m_pos = m_gotopos;
+            MakePosLegal();
+            
+            if(m_pos != m_gotopos || // testing whether or not MakePosLegal() hit a wall
+               (m_inertia <= 1.0f &&
+                m_inertia >= -1.0f))
+            {
+               m_pos = m_gotopos;
+               m_inertia = 0.0f;
+               m_bInertialPanning = false;
+               InvalidateEverything();
+            }
+            else
+            {
+               InvalidateEverythingPan();
+            }
          }
 
          if(m_bDrawMButtonDownIcon)
@@ -1849,37 +1959,75 @@ void CLampView::CloseReplyDialog()
 
 void CLampView::OnLButtonDown(UINT nFlags, CPoint point) 
 {
+   SetCapture();   
    m_gotopos = m_pos;
+   CancelInertiaPanning();
+   m_bStartedTrackingMouse = true;
+   m_lastmousetime = ::GetTickCount();
    m_mousepoint = point;
    m_bDrawMButtonDownIcon = false;
 
-   bool bContinue = true;
-
-   if(!GetDocument()->IsBusy())
+   if(!m_brakes)
    {
-      if(m_pReplyDlg != NULL)
-      {
-         bool bCloseReplyDlg = false;
-         bContinue = !m_pReplyDlg->OnLButtonDown(nFlags, point, bCloseReplyDlg);
+      bool bContinue = true;
 
-         if(bCloseReplyDlg)
+      if(!GetDocument()->IsBusy())
+      {
+         if(m_pReplyDlg != NULL)
          {
-            CloseReplyDialog();
-         }
-      
-         if(!bContinue)
-         {
-            m_textselectionpost = 0;
-         }
-      }
-      
-      if(bContinue)
-      {   
-         if(m_doubleclicktime != 0)
-         {
-            if(::GetTickCount() - m_doubleclicktime < 1000)
+            bool bCloseReplyDlg = false;
+            bContinue = !m_pReplyDlg->OnLButtonDown(nFlags, point, bCloseReplyDlg);
+
+            if(bCloseReplyDlg)
             {
-               // triple click mutha fucka!
+               CloseReplyDialog();
+            }
+         
+            if(!bContinue)
+            {
+               m_textselectionpost = 0;
+            }
+         }
+         
+         if(bContinue)
+         {   
+            if(m_doubleclicktime != 0)
+            {
+               if(::GetTickCount() - m_doubleclicktime < 1000)
+               {
+                  // triple click mutha fucka!
+                  for(size_t i = 0; i < m_hotspots.size(); i++)
+                  {
+                     if(m_mousepoint.x >= m_hotspots[i].m_spot.left &&
+                        m_mousepoint.x < m_hotspots[i].m_spot.right &&
+                        m_mousepoint.y >= m_hotspots[i].m_spot.top &&
+                        m_mousepoint.y < m_hotspots[i].m_spot.bottom)
+                     {
+                        if(m_hotspots[i].m_type == HST_TEXT)
+                        {
+                           ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(pPost != NULL)
+                           {
+                              pPost->GetCharPosesForPara(m_mousepoint.x, m_mousepoint.y, m_selectionstart, m_selectionend);
+                              m_textselectionpost = m_hotspots[i].m_id;
+                              InvalidateEverything();
+                              bContinue = false;
+                           }
+                        }
+                        break;
+                     }
+                  }
+               }
+            }
+
+            m_doubleclicktime = 0;
+                
+            if(bContinue)
+            {
+               m_textselectionpost = 0;
+
+               bool bHandledByHotspot = false;
+
                for(size_t i = 0; i < m_hotspots.size(); i++)
                {
                   if(m_mousepoint.x >= m_hotspots[i].m_spot.left &&
@@ -1887,588 +2035,571 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                      m_mousepoint.y >= m_hotspots[i].m_spot.top &&
                      m_mousepoint.y < m_hotspots[i].m_spot.bottom)
                   {
-                     if(m_hotspots[i].m_type == HST_TEXT)
+                     bHandledByHotspot = true;
+                     switch(m_hotspots[i].m_type)
                      {
-                        ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
-                        if(pPost != NULL)
+                     case HST_SCROLLBAR_UP:
                         {
-                           pPost->GetCharPosesForPara(m_mousepoint.x, m_mousepoint.y, m_selectionstart, m_selectionend);
-                           m_textselectionpost = m_hotspots[i].m_id;
-                           InvalidateEverything();
-                           bContinue = false;
+                           m_bLButtonDownOnScrollArrow = true;
+                           m_gotopos -= 20;
+                           MakePosLegal();
+                           InvalidateEverythingPan();
                         }
-                     }
-                     break;
-                  }
-               }
-            }
-         }
-
-         m_doubleclicktime = 0;
-             
-         if(bContinue)
-         {
-            m_textselectionpost = 0;
-
-            bool bHandledByHotspot = false;
-
-            for(size_t i = 0; i < m_hotspots.size(); i++)
-            {
-               if(m_mousepoint.x >= m_hotspots[i].m_spot.left &&
-                  m_mousepoint.x < m_hotspots[i].m_spot.right &&
-                  m_mousepoint.y >= m_hotspots[i].m_spot.top &&
-                  m_mousepoint.y < m_hotspots[i].m_spot.bottom)
-               {
-                  bHandledByHotspot = true;
-                  switch(m_hotspots[i].m_type)
-                  {
-                  case HST_SCROLLBAR_UP:
-                     {
-                        m_bLButtonDownOnScrollArrow = true;
-                        SetCapture();
-                        m_gotopos -= 20;
-                        MakePosLegal();
-                        InvalidateEverythingPan();
-                     }
-                     break;
-                  case HST_SCROLLBAR_DOWN:
-                     {
-                        m_bLButtonDownOnScrollArrow = true;
-                        SetCapture();
-                        m_gotopos += 20;
-                        MakePosLegal();
-                        InvalidateEverythingPan();
-                     }
-                     break;
-                  case HST_SCROLLBAR_THUMB:
-                     {
-                        m_bTrackingThumb = true;
-                        m_thumbdownpoint = m_mousepoint;
-                        m_thumbdownpos = m_pos;
-                        SetCapture();
-                     }
-                     break;
-                  case HST_SCROLLBAR:
-                     {               
-                        if(m_mousepoint.x >= m_uptrackrect.left &&
-                           m_mousepoint.x < m_uptrackrect.right &&
-                           m_mousepoint.y >= m_uptrackrect.top &&
-                           m_mousepoint.y < m_uptrackrect.bottom)
+                        break;
+                     case HST_SCROLLBAR_DOWN:
                         {
-                           RECT DeviceRectangle;
-                           GetClientRect(&DeviceRectangle);
+                           m_bLButtonDownOnScrollArrow = true;
+                           m_gotopos += 20;
+                           MakePosLegal();
+                           InvalidateEverythingPan();
+                        }
+                        break;
+                     case HST_SCROLLBAR_THUMB:
+                        {
+                           m_bTrackingThumb = true;
+                           m_thumbdownpoint = m_mousepoint;
+                           m_thumbdownpos = m_pos;
+                        }
+                        break;
+                     case HST_SCROLLBAR:
+                        {               
+                           if(m_mousepoint.x >= m_uptrackrect.left &&
+                              m_mousepoint.x < m_uptrackrect.right &&
+                              m_mousepoint.y >= m_uptrackrect.top &&
+                              m_mousepoint.y < m_uptrackrect.bottom)
+                           {
+                              RECT DeviceRectangle;
+                              GetClientRect(&DeviceRectangle);
 
-                           if(m_mousepoint.y >= (m_uptrackrect.bottom - (m_thumbrect.bottom - m_thumbrect.top)))
-                           {
-                              // prev page
-                              m_gotopos -= ((DeviceRectangle.bottom - DeviceRectangle.top) - 20);
-                              MakePosLegal();
-                              InvalidateEverythingPan();
+                              if(m_mousepoint.y >= (m_uptrackrect.bottom - (m_thumbrect.bottom - m_thumbrect.top)))
+                              {
+                                 // prev page
+                                 m_gotopos -= ((DeviceRectangle.bottom - DeviceRectangle.top) - 20);
+                                 MakePosLegal();
+                                 InvalidateEverythingPan();
+                              }
+                              else
+                              {
+                                 // goto spot
+                                 m_gotopos = ((int)((float)(m_mousepoint.y - 16) * (1.0f / m_scrollscale))) - ((DeviceRectangle.bottom - DeviceRectangle.top) >> 1);
+                                 MakePosLegal();
+                                 InvalidateEverythingPan();
+                              }
                            }
-                           else
+                           else if(m_mousepoint.x >= m_downtrackrect.left &&
+                                   m_mousepoint.x < m_downtrackrect.right &&
+                                   m_mousepoint.y >= m_downtrackrect.top &&
+                                   m_mousepoint.y < m_downtrackrect.bottom)
                            {
-                              // goto spot
-                              m_gotopos = ((int)((float)(m_mousepoint.y - 16) * (1.0f / m_scrollscale))) - ((DeviceRectangle.bottom - DeviceRectangle.top) >> 1);
-                              MakePosLegal();
-                              InvalidateEverythingPan();
+                              RECT DeviceRectangle;
+                              GetClientRect(&DeviceRectangle);
+
+                              if(m_mousepoint.y <= (m_downtrackrect.top + (m_thumbrect.bottom - m_thumbrect.top)))
+                              {
+                                 // next page
+                                 m_gotopos += ((DeviceRectangle.bottom - DeviceRectangle.top) - 20);
+                                 MakePosLegal();
+                                 InvalidateEverythingPan();
+                              }
+                              else
+                              {
+                                 // goto spot
+                                 m_gotopos = ((int)((float)(m_mousepoint.y - 16) * (1.0f / m_scrollscale))) - ((DeviceRectangle.bottom - DeviceRectangle.top) >> 1);
+                                 MakePosLegal();
+                                 InvalidateEverythingPan();
+                              }
                            }
                         }
-                        else if(m_mousepoint.x >= m_downtrackrect.left &&
-                                m_mousepoint.x < m_downtrackrect.right &&
-                                m_mousepoint.y >= m_downtrackrect.top &&
-                                m_mousepoint.y < m_downtrackrect.bottom)
+                        break;
+                     case HST_REPLIESTOROOTPOSTHINT:
                         {
-                           RECT DeviceRectangle;
-                           GetClientRect(&DeviceRectangle);
-
-                           if(m_mousepoint.y <= (m_downtrackrect.top + (m_thumbrect.bottom - m_thumbrect.top)))
+                           ChattyPost *pPost = GetDocument()->GetRootPost(m_hotspots[i].m_id);
+                           if(pPost != NULL)
                            {
-                              // next page
-                              m_gotopos += ((DeviceRectangle.bottom - DeviceRectangle.top) - 20);
-                              MakePosLegal();
-                              InvalidateEverythingPan();
-                           }
-                           else
-                           {
-                              // goto spot
-                              m_gotopos = ((int)((float)(m_mousepoint.y - 16) * (1.0f / m_scrollscale))) - ((DeviceRectangle.bottom - DeviceRectangle.top) >> 1);
-                              MakePosLegal();
-                              InvalidateEverythingPan();
+                              pPost->UnShowAsTruncated();
+                              InvalidateEverything();
                            }
                         }
-                     }
-                     break;
-                  case HST_REPLIESTOROOTPOSTHINT:
-                     {
-                        ChattyPost *pPost = GetDocument()->GetRootPost(m_hotspots[i].m_id);
-                        if(pPost != NULL)
+                        break;
+                     case HST_REFRESH: 
                         {
-                           pPost->UnShowAsTruncated();
+                           GetDocument()->RefreshThread(GetDocument()->GetRootId(m_hotspots[i].m_id), m_hotspots[i].m_id);
+                        }
+                        break;
+                     case HST_CLOSEREPLY: 
+                        {
+                           m_current_id = 0;
                            InvalidateEverything();
                         }
-                     }
-                     break;
-                  case HST_REFRESH: 
-                     {
-                        GetDocument()->RefreshThread(GetDocument()->GetRootId(m_hotspots[i].m_id), m_hotspots[i].m_id);
-                     }
-                     break;
-                  case HST_CLOSEREPLY: 
-                     {
-                        m_current_id = 0;
-                        InvalidateEverything();
-                     }
-                     break;
-                  case HST_CLOSE_MESSAGE:
-                     {
-                        ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
-                        if(post != NULL)
-                        {
-                           post->Collapse();
-                           InvalidateEverything();
-                        }
-                     }
-                     break;
-                  case HST_COLLAPSEPOST:
-                     {
-                        ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
-                        if(post != NULL)
-                        {
-                           post->Collapse();
-                           theApp.AddMyCollapse(m_hotspots[i].m_id);
-                           InvalidateEverything();
-                        }
-                     }
-                     break;
-                  case HST_EXPAND:
-                     {
-                        ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
-                        if(post != NULL)
-                        {
-                           post->Expand();
-                           theApp.RemoveMyCollapse(m_hotspots[i].m_id);
-                           if(GetDocument()->GetDataType() == DDT_SHACKMSG &&
-                              post->GetHaveRead() == false)
-                           {
-                              post->SetHaveRead(true);
-                              GetDocument()->UpdateUnreadShackMessagesCount();
-                              GetDocument()->MarkShackMessageRead(m_hotspots[i].m_id);
-                           }
-                           InvalidateEverything();
-                        }
-                     }
-                     break;
-                  case HST_OPENINTAB:
-                     {
-                        unsigned int id = GetDocument()->GetID(m_hotspots[i].m_id);
-                        unsigned int rootid = GetDocument()->GetRootId(id);
-                        UCString path;
-                        if(rootid != 0)
-                        {
-                           path += rootid;
-                        }
-                        else
-                        {
-                           path += id;
-                        }
-                        path += L'_';
-                        path += id;
-                        ReleaseCapture();
-                        theApp.OpenDocumentFile(path);
-                     }
-                     break;
-                  case HST_PIN:
-                     {
-                        ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
-                        if(post != NULL)
-                        {
-                           post->SetPinned(!post->IsPinned());
-                           InvalidateEverything();
-                        }
-                     }
-                     break;
-                  case HST_NEWTHREAD:
-                     {
-                        OnEditNewthread();
-                     }
-                     break;
-                  case HST_COMPOSE_MESSAGE:
-                     {
-                        m_dlgup = true;
-                        theApp.SendMessageDlg(GetDocument(),UCString(),UCString(),UCString());
-                        m_dlgup = false;
-                     }
-                     break;
-                  case HST_REFRESHSTORY:
-                     {
-                        OnEditRefresh();
-                     }
-                     break;
-                  case HST_REPLYPREVIEW:
-                     {
-                        ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
-                        if(post != NULL)
-                        {
-                           ChattyPost *pParent = post;
-                           while(pParent->GetParent() != NULL) pParent = pParent->GetParent();
-                           pParent->UnShowAsTruncated();
-
-                           m_current_id = m_hotspots[i].m_id;
-                           // force a draw so that positions are updated
-                           DrawEverythingToBuffer();
-                           int top = post->GetPos();
-                           int bottom = top + post->GetHeight();
-                           if(m_mousepoint.y < top ||
-                              m_mousepoint.y > bottom)
-                           {
-                              m_gotopos = m_pos + (((top + bottom) / 2) - m_mousepoint.y);
-                              MakePosLegal();
-                              m_pos = m_gotopos;// don't animate to the pos
-                           }
-                           InvalidateEverything();
-                        }
-                     }
-                     break;
-                  case HST_AUTHOR:
-                  case HST_AUTHORPREVIEW:
-                     {
-                        //GetDocument()->GetAuthorInfo(m_hotspots[i].m_id);
-                        
-                        ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
-                        if(post != NULL)
-                        {
-                           UCString author = post->GetAuthor();
-                           UCString info = author;
-                           info += L"\r\nProfile info will go here.\r\nOnce we have profiles again.";
-
-                           AuthorDlg adlg(this);
-                           adlg.m_info = info;
-                           adlg.m_author = author;
-                           m_dlgup = true;
-                           adlg.DoModal();
-                           m_dlgup = false;
-                           if(adlg.m_bSendMessage)
-                           {
-                              m_dlgup = true;
-                              theApp.SendMessageDlg(GetDocument(),author,UCString(),UCString());
-                              m_dlgup = false;
-                           }
-                        }
-                     }
-                     break;
-                  case HST_PREV_PAGE:
-                     {
-                        GetDocument()->SetPage(GetDocument()->GetPage() - 1);
-                        GetDocument()->Refresh();
-                        m_gotopos = 0;
-                        InvalidateEverything();
-                     }
-                     break;
-                  case HST_NEXT_PAGE:
-                     {
-                        GetDocument()->SetPage(GetDocument()->GetPage() + 1);
-                        GetDocument()->Refresh();
-                        m_gotopos = 0;
-                        InvalidateEverything();
-                     }
-                     break;
-                  case HST_PAGE:
-                     {
-                        GetDocument()->SetPage((int)m_hotspots[i].m_id);
-                        GetDocument()->Refresh();
-                        m_gotopos = 0;
-                        InvalidateEverything();
-                     }
-                     break;
-                  case HST_CREATEREPLY:
-                     {
-                        if(theApp.HaveLogin())
+                        break;
+                     case HST_CLOSE_MESSAGE:
                         {
                            ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
                            if(post != NULL)
                            {
-                              m_textselectionpost = 0;
-                              m_pReplyDlg = new CReplyDlg(this);
-                              m_pReplyDlg->SetDoc(GetDocument());
-                              m_pReplyDlg->SetReplyId(m_hotspots[i].m_id);
-                              post->SetReplyDlg(m_pReplyDlg);
-                              
-                              RECT DeviceRectangle;
-                              GetClientRect(&DeviceRectangle);
-
-                              int top = post->GetPos() + post->GetHeight();
-                              int bottom = top + m_pReplyDlg->GetHeight();
-                              
-                              if(bottom > DeviceRectangle.bottom)
+                              post->Collapse();
+                              InvalidateEverything();
+                           }
+                        }
+                        break;
+                     case HST_COLLAPSEPOST:
+                        {
+                           ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(post != NULL)
+                           {
+                              post->Collapse();
+                              theApp.AddMyCollapse(m_hotspots[i].m_id);
+                              InvalidateEverything();
+                           }
+                        }
+                        break;
+                     case HST_EXPAND:
+                        {
+                           ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(post != NULL)
+                           {
+                              post->Expand();
+                              theApp.RemoveMyCollapse(m_hotspots[i].m_id);
+                              if(GetDocument()->GetDataType() == DDT_SHACKMSG &&
+                                 post->GetHaveRead() == false)
                               {
-                                 m_gotopos = m_pos + (bottom - DeviceRectangle.bottom) + 20;
-                                 DrawEverythingToBuffer();
-                                 MakePosLegal();
+                                 post->SetHaveRead(true);
+                                 GetDocument()->UpdateUnreadShackMessagesCount();
+                                 GetDocument()->MarkShackMessageRead(m_hotspots[i].m_id);
                               }
                               InvalidateEverything();
                            }
                         }
-                     }
-                     break;
-                  case HST_REPLY_TO_MESSAGE:
-                     {
-                        if(GetDocument()->GetDataType() == DDT_SHACKMSG)
+                        break;
+                     case HST_OPENINTAB:
                         {
+                           unsigned int id = GetDocument()->GetID(m_hotspots[i].m_id);
+                           unsigned int rootid = GetDocument()->GetRootId(id);
+                           UCString path;
+                           if(rootid != 0)
+                           {
+                              path += rootid;
+                           }
+                           else
+                           {
+                              path += id;
+                           }
+                           path += L'_';
+                           path += id;
+                           ReleaseCapture();
+                           theApp.OpenDocumentFile(path);
+                        }
+                        break;
+                     case HST_PIN:
+                        {
+                           ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(post != NULL)
+                           {
+                              post->SetPinned(!post->IsPinned());
+                              InvalidateEverything();
+                           }
+                        }
+                        break;
+                     case HST_NEWTHREAD:
+                        {
+                           OnEditNewthread();
+                        }
+                        break;
+                     case HST_COMPOSE_MESSAGE:
+                        {
+                           m_dlgup = true;
+                           theApp.SendMessageDlg(GetDocument(),UCString(),UCString(),UCString());
+                           m_dlgup = false;
+                        }
+                        break;
+                     case HST_REFRESHSTORY:
+                        {
+                           OnEditRefresh();
+                        }
+                        break;
+                     case HST_REPLYPREVIEW:
+                        {
+                           ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(post != NULL)
+                           {
+                              ChattyPost *pParent = post;
+                              while(pParent->GetParent() != NULL) pParent = pParent->GetParent();
+                              pParent->UnShowAsTruncated();
+
+                              m_current_id = m_hotspots[i].m_id;
+                              // force a draw so that positions are updated
+                              DrawEverythingToBuffer();
+                              int top = post->GetPos();
+                              int bottom = top + post->GetHeight();
+                              if(m_mousepoint.y < top ||
+                                 m_mousepoint.y > bottom)
+                              {
+                                 m_gotopos = m_pos + (((top + bottom) / 2) - m_mousepoint.y);
+                                 MakePosLegal();
+                                 m_pos = m_gotopos;// don't animate to the pos
+                              }
+                              InvalidateEverything();
+                           }
+                        }
+                        break;
+                     case HST_AUTHOR:
+                     case HST_AUTHORPREVIEW:
+                        {
+                           //GetDocument()->GetAuthorInfo(m_hotspots[i].m_id);
+                           
                            ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
                            if(post != NULL)
                            {
                               UCString author = post->GetAuthor();
+                              UCString info = author;
+                              info += L"\r\nProfile info will go here.\r\nOnce we have profiles again.";
 
-                              UCString subject = L"Re: ";
-                              subject += post->GetSubject();
-
-                              UCString shackmsg = L"\r\nOn ";
-                              shackmsg += post->GetDateText();
-                              shackmsg += L" ";
-                              shackmsg += author;
-                              shackmsg += L" wrote:\r\n";
-
-                              UCString temp = post->GetBodyText();
-                              temp.Replace(L"\n",L"\r\n");
-                              shackmsg += temp;
-
+                              AuthorDlg adlg(this);
+                              adlg.m_info = info;
+                              adlg.m_author = author;
                               m_dlgup = true;
-                              theApp.SendMessageDlg(GetDocument(),author,subject,shackmsg);
+                              adlg.DoModal();
                               m_dlgup = false;
-                              
-                              InvalidateEverything();
-                           }
-                        }
-                     }
-                     break;
-                  case HST_FORWARD_MESSAGE:
-                     {
-                        if(GetDocument()->GetDataType() == DDT_SHACKMSG)
-                        {
-                           ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
-                           if(post != NULL)
-                           {
-                              UCString subject = L"Fwd: ";
-                              subject += post->GetSubject();
-
-                              UCString shackmsg = L"\r\nOn ";
-                              shackmsg += post->GetDateText();
-                              shackmsg += L" ";
-                              shackmsg += post->GetAuthor();
-                              shackmsg += L" wrote:\r\n";
-
-                              UCString temp = post->GetBodyText();
-                              temp.Replace(L"\n",L"\r\n");
-                              shackmsg += temp;
-
-                              m_dlgup = true;
-                              theApp.SendMessageDlg(GetDocument(),UCString(),subject,shackmsg);
-                              m_dlgup = false;
-                              
-                              InvalidateEverything();
-                           }
-                        }
-                     }
-                     break;
-                  case HST_SPOILER:
-                     {
-                        ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
-                        if(pPost != NULL)
-                        {
-                           pPost->ClearSpoilerTags(m_mousepoint.x, m_mousepoint.y);
-                           InvalidateEverything();
-                        }
-                     }
-                     break;
-                  case HST_TEXT:
-                     {
-                        ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
-                        if(pPost != NULL)
-                        {
-                           m_selectionstart = pPost->GetCharPos(m_mousepoint.x, m_mousepoint.y);
-                           m_textselectionpost = m_hotspots[i].m_id;
-                           SetCapture();
-                           m_bDraggingTextSelection = true;
-                           m_lastcharpos = m_selectionend_actual = m_selectionstart_actual = m_selectionend = m_selectionstart;
-                           InvalidateEverything();
-                        }
-                     }
-                     break;
-                  case HST_LINK:
-                     {
-                        ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
-                        if(pPost != NULL)
-                        {
-                           UCString link;
-                           pPost->GetLink(m_mousepoint.x, m_mousepoint.y, link);
-
-                           const UCChar *begin = link;
-                           const UCChar *end = begin + link.Length();
-                           const UCChar *ext = end;
-                           while(ext > begin && *ext != L'.') ext--;
-
-                           bool bMadeImage = false;
-
-                           if(_wcsicmp(ext,L".png") == 0 ||
-                              _wcsicmp(ext,L".jpg") == 0 || 
-                              _wcsicmp(ext,L".jpeg") == 0)
-                           {
-                              unsigned int index;
-                              CDCSurface *pImage = theApp.GetLinkedImage(link,index);
-                              if(pImage != NULL &&
-                                 pImage->GetDC() != NULL &&
-                                 pImage->GetWidth() > 0 &&
-                                 pImage->GetHeight() > 0)
+                              if(adlg.m_bSendMessage)
                               {
-                                 pPost->MakeLinkIntoImage(m_mousepoint.x, m_mousepoint.y, index);
-                                 bMadeImage = true;
+                                 m_dlgup = true;
+                                 theApp.SendMessageDlg(GetDocument(),author,UCString(),UCString());
+                                 m_dlgup = false;
+                              }
+                           }
+                        }
+                        break;
+                     case HST_PREV_PAGE:
+                        {
+                           GetDocument()->SetPage(GetDocument()->GetPage() - 1);
+                           GetDocument()->Refresh();
+                           m_gotopos = 0;
+                           InvalidateEverything();
+                        }
+                        break;
+                     case HST_NEXT_PAGE:
+                        {
+                           GetDocument()->SetPage(GetDocument()->GetPage() + 1);
+                           GetDocument()->Refresh();
+                           m_gotopos = 0;
+                           InvalidateEverything();
+                        }
+                        break;
+                     case HST_PAGE:
+                        {
+                           GetDocument()->SetPage((int)m_hotspots[i].m_id);
+                           GetDocument()->Refresh();
+                           m_gotopos = 0;
+                           InvalidateEverything();
+                        }
+                        break;
+                     case HST_CREATEREPLY:
+                        {
+                           if(theApp.HaveLogin())
+                           {
+                              ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
+                              if(post != NULL)
+                              {
+                                 m_textselectionpost = 0;
+                                 m_pReplyDlg = new CReplyDlg(this);
+                                 m_pReplyDlg->SetDoc(GetDocument());
+                                 m_pReplyDlg->SetReplyId(m_hotspots[i].m_id);
+                                 post->SetReplyDlg(m_pReplyDlg);
+                                 
+                                 RECT DeviceRectangle;
+                                 GetClientRect(&DeviceRectangle);
+
+                                 int top = post->GetPos() + post->GetHeight();
+                                 int bottom = top + m_pReplyDlg->GetHeight();
+                                 
+                                 if(bottom > DeviceRectangle.bottom)
+                                 {
+                                    m_gotopos = m_pos + (bottom - DeviceRectangle.bottom) + 20;
+                                    DrawEverythingToBuffer();
+                                    MakePosLegal();
+                                 }
                                  InvalidateEverything();
                               }
                            }
-
-                           if(!bMadeImage)
+                        }
+                        break;
+                     case HST_REPLY_TO_MESSAGE:
+                        {
+                           if(GetDocument()->GetDataType() == DDT_SHACKMSG)
                            {
-                              theApp.OpenShackLink(link);
+                              ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
+                              if(post != NULL)
+                              {
+                                 UCString author = post->GetAuthor();
+
+                                 UCString subject = L"Re: ";
+                                 subject += post->GetSubject();
+
+                                 UCString shackmsg = L"\r\nOn ";
+                                 shackmsg += post->GetDateText();
+                                 shackmsg += L" ";
+                                 shackmsg += author;
+                                 shackmsg += L" wrote:\r\n";
+
+                                 UCString temp = post->GetBodyText();
+                                 temp.Replace(L"\n",L"\r\n");
+                                 shackmsg += temp;
+
+                                 m_dlgup = true;
+                                 theApp.SendMessageDlg(GetDocument(),author,subject,shackmsg);
+                                 m_dlgup = false;
+                                 
+                                 InvalidateEverything();
+                              }
                            }
                         }
-                     }
-                     break;
-                  case HST_IMAGELINK:
-                     {
-                        ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
-                        if(pPost != NULL)
+                        break;
+                     case HST_FORWARD_MESSAGE:
                         {
-                           pPost->MakeImageIntoLink(m_mousepoint.x, m_mousepoint.y);
-                           InvalidateEverything();
+                           if(GetDocument()->GetDataType() == DDT_SHACKMSG)
+                           {
+                              ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
+                              if(post != NULL)
+                              {
+                                 UCString subject = L"Fwd: ";
+                                 subject += post->GetSubject();
+
+                                 UCString shackmsg = L"\r\nOn ";
+                                 shackmsg += post->GetDateText();
+                                 shackmsg += L" ";
+                                 shackmsg += post->GetAuthor();
+                                 shackmsg += L" wrote:\r\n";
+
+                                 UCString temp = post->GetBodyText();
+                                 temp.Replace(L"\n",L"\r\n");
+                                 shackmsg += temp;
+
+                                 m_dlgup = true;
+                                 theApp.SendMessageDlg(GetDocument(),UCString(),subject,shackmsg);
+                                 m_dlgup = false;
+                                 
+                                 InvalidateEverything();
+                              }
+                           }
                         }
-                     }
-                     break;
-                  case HST_LOLTAG:
-                     {
-                        ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
-                        if(pPost != NULL)
+                        break;
+                     case HST_SPOILER:
                         {
-                           GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_LOL);
-                           theApp.AddMyLol(m_hotspots[i].m_id,LTT_LOL);
-                           pPost->AddLolTag(LTT_LOL);                           
-                           InvalidateEverything();
+                           ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(pPost != NULL)
+                           {
+                              pPost->ClearSpoilerTags(m_mousepoint.x, m_mousepoint.y);
+                              InvalidateEverything();
+                           }
                         }
-                     }
-                     break;
-                  case HST_INFTAG:
-                     {
-                        ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
-                        if(pPost != NULL)
+                        break;
+                     case HST_TEXT:
                         {
-                           GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_INF);
-                           theApp.AddMyLol(m_hotspots[i].m_id,LTT_INF);
-                           pPost->AddLolTag(LTT_INF);                           
-                           InvalidateEverything();
+                           ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(pPost != NULL)
+                           {
+                              m_selectionstart = pPost->GetCharPos(m_mousepoint.x, m_mousepoint.y);
+                              m_textselectionpost = m_hotspots[i].m_id;
+                              m_bDraggingTextSelection = true;
+                              m_lastcharpos = m_selectionend_actual = m_selectionstart_actual = m_selectionend = m_selectionstart;
+                              InvalidateEverything();
+                           }
                         }
-                     }
-                     break;
-                  case HST_UNFTAG:
-                     {
-                        ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
-                        if(pPost != NULL)
+                        break;
+                     case HST_LINK:
                         {
-                           GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_UNF);
-                           theApp.AddMyLol(m_hotspots[i].m_id,LTT_UNF);
-                           pPost->AddLolTag(LTT_UNF);
-                           InvalidateEverything();
+                           ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(pPost != NULL)
+                           {
+                              UCString link;
+                              pPost->GetLink(m_mousepoint.x, m_mousepoint.y, link);
+
+                              const UCChar *begin = link;
+                              const UCChar *end = begin + link.Length();
+                              const UCChar *ext = end;
+                              while(ext > begin && *ext != L'.') ext--;
+
+                              bool bMadeImage = false;
+
+                              if(_wcsicmp(ext,L".png") == 0 ||
+                                 _wcsicmp(ext,L".jpg") == 0 || 
+                                 _wcsicmp(ext,L".jpeg") == 0)
+                              {
+                                 unsigned int index;
+                                 CDCSurface *pImage = theApp.GetLinkedImage(link,index);
+                                 if(pImage != NULL &&
+                                    pImage->GetDC() != NULL &&
+                                    pImage->GetWidth() > 0 &&
+                                    pImage->GetHeight() > 0)
+                                 {
+                                    pPost->MakeLinkIntoImage(m_mousepoint.x, m_mousepoint.y, index);
+                                    bMadeImage = true;
+                                    InvalidateEverything();
+                                 }
+                              }
+
+                              if(!bMadeImage)
+                              {
+                                 theApp.OpenShackLink(link);
+                              }
+                           }
                         }
-                     }
-                     break;
-                  case HST_TAGTAG:
-                     {
-                        ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
-                        if(pPost != NULL)
+                        break;
+                     case HST_IMAGELINK:
                         {
-                           GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_TAG);
-                           theApp.AddMyLol(m_hotspots[i].m_id,LTT_TAG);
-                           pPost->AddLolTag(LTT_TAG);
-                           InvalidateEverything();
+                           ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(pPost != NULL)
+                           {
+                              pPost->MakeImageIntoLink(m_mousepoint.x, m_mousepoint.y);
+                              InvalidateEverything();
+                           }
                         }
-                     }
-                     break;
-                  case HST_WTFTAG:
-                     {
-                        ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
-                        if(pPost != NULL)
+                        break;
+                     case HST_LOLTAG:
                         {
-                           GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_WTF);
-                           theApp.AddMyLol(m_hotspots[i].m_id,LTT_WTF);
-                           pPost->AddLolTag(LTT_WTF);
-                           InvalidateEverything();
+                           ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(pPost != NULL)
+                           {
+                              GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_LOL);
+                              theApp.AddMyLol(m_hotspots[i].m_id,LTT_LOL);
+                              pPost->AddLolTag(LTT_LOL);                           
+                              InvalidateEverything();
+                           }
                         }
+                        break;
+                     case HST_INFTAG:
+                        {
+                           ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(pPost != NULL)
+                           {
+                              GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_INF);
+                              theApp.AddMyLol(m_hotspots[i].m_id,LTT_INF);
+                              pPost->AddLolTag(LTT_INF);                           
+                              InvalidateEverything();
+                           }
+                        }
+                        break;
+                     case HST_UNFTAG:
+                        {
+                           ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(pPost != NULL)
+                           {
+                              GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_UNF);
+                              theApp.AddMyLol(m_hotspots[i].m_id,LTT_UNF);
+                              pPost->AddLolTag(LTT_UNF);
+                              InvalidateEverything();
+                           }
+                        }
+                        break;
+                     case HST_TAGTAG:
+                        {
+                           ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(pPost != NULL)
+                           {
+                              GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_TAG);
+                              theApp.AddMyLol(m_hotspots[i].m_id,LTT_TAG);
+                              pPost->AddLolTag(LTT_TAG);
+                              InvalidateEverything();
+                           }
+                        }
+                        break;
+                     case HST_WTFTAG:
+                        {
+                           ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(pPost != NULL)
+                           {
+                              GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_WTF);
+                              theApp.AddMyLol(m_hotspots[i].m_id,LTT_WTF);
+                              pPost->AddLolTag(LTT_WTF);
+                              InvalidateEverything();
+                           }
+                        }
+                        break;
                      }
                      break;
                   }
-                  break;
                }
-            }
 
-            if(!bHandledByHotspot)
-            {
-               m_panpoint = point;
-               m_bPanning = true;
-               m_panpos = m_pos;
-               InvalidateEverything();
+               if(!bHandledByHotspot)
+               {
+                  m_panpoint = point;
+                  m_bPanning = true;
+                  m_panpos = m_pos;
+                  InvalidateEverything();
+               }
             }
          }
       }
+   }
+   else
+   {
+      m_panpoint = point;
+      m_bPanning = true;
+      m_panpos = m_pos;
+      InvalidateEverything();
    }
    CView::OnLButtonDown(nFlags, point);
 }
 
 void CLampView::OnLButtonUp(UINT nFlags, CPoint point) 
 {
-   m_mousepoint = point;
+   ReleaseCapture();
+   TrackMouse(point);
 
-   if(!GetDocument()->IsBusy())
+   if(!m_brakes)
    {
-      if(m_pReplyDlg == NULL ||
-         !m_pReplyDlg->OnLButtonUp(nFlags, point))
+      if(!GetDocument()->IsBusy())
       {
-         if(m_bLButtonDownOnScrollArrow)
+         if(m_pReplyDlg == NULL ||
+            !m_pReplyDlg->OnLButtonUp(nFlags, point))
          {
-            m_bLButtonDownOnScrollArrow = false;
-            ReleaseCapture();
-            InvalidateEverything();
-         }
-         else if(m_bTrackingThumb)
-         {
-            m_bTrackingThumb = false;
-            m_gotopos = m_thumbdownpos + (int)((float)(m_mousepoint.y - m_thumbdownpoint.y) * (1.0f / m_scrollscale));
-            InvalidateEverything();
-            ReleaseCapture();
-         }
-         else if(m_bDraggingTextSelection)
-         {
-            m_bDraggingTextSelection = false;
-            ChattyPost *pPost = GetDocument()->FindPost(m_textselectionpost);
-            if(pPost != NULL)
+            if(m_bLButtonDownOnScrollArrow)
             {
-               m_selectionend = pPost->GetCharPos(m_mousepoint.x, m_mousepoint.y);
-               if(m_selectionstart == m_selectionend)
-               {
-                  m_textselectionpost = 0;
-               }
+               m_bLButtonDownOnScrollArrow = false;
+               InvalidateEverything();
             }
-            ReleaseCapture();
-            InvalidateEverything();
-         }
-         else if(m_bPanning)
-         {
-            m_bPanning = false;
-            int ydiff = m_panpoint.y - point.y;
-            m_gotopos = m_panpos + ydiff;
-            MakePosLegal();
-            m_pos = m_gotopos;// no smooth on pan
-            InvalidateEverything();
+            else if(m_bTrackingThumb)
+            {
+               m_bTrackingThumb = false;
+               m_gotopos = m_thumbdownpos + (int)((float)(m_mousepoint.y - m_thumbdownpoint.y) * (1.0f / m_scrollscale));
+               InvalidateEverything();
+            }
+            else if(m_bDraggingTextSelection)
+            {
+               m_bDraggingTextSelection = false;
+               ChattyPost *pPost = GetDocument()->FindPost(m_textselectionpost);
+               if(pPost != NULL)
+               {
+                  m_selectionend = pPost->GetCharPos(m_mousepoint.x, m_mousepoint.y);
+                  if(m_selectionstart == m_selectionend)
+                  {
+                     m_textselectionpost = 0;
+                  }
+               }
+               InvalidateEverything();
+            }
+            else if(m_bPanning)
+            {
+               m_bPanning = false;
+               int ydiff = m_panpoint.y - point.y;
+               m_gotopos = m_panpos + ydiff;
+               MakePosLegal();
+               m_pos = m_gotopos;// no smooth on pan
+               BeginInertiaPanning();
+            }
          }
       }
    }
+   else if(m_bPanning)
+   {
+      m_bPanning = false;
+      int ydiff = m_panpoint.y - point.y;
+      m_gotopos = m_panpos + ydiff;
+      MakePosLegal();
+      m_pos = m_gotopos;// no smooth on pan
+      BeginInertiaPanning();
+   }
+   m_brakes = false;
    
    CView::OnLButtonUp(nFlags, point);
 }
@@ -2476,178 +2607,189 @@ void CLampView::OnLButtonUp(UINT nFlags, CPoint point)
 
 void CLampView::OnMouseMove(UINT nFlags, CPoint point) 
 {
-   m_mousepoint = point;
+   TrackMouse(point);
 
-   if(!GetDocument()->IsBusy())
+   if(!m_brakes)
    {
-      if(m_pReplyDlg == NULL ||
-         !m_pReplyDlg->OnMouseMove(nFlags, point))
+      if(!GetDocument()->IsBusy())
       {
-         if((m_bMButtonDown ||
-            m_bDrawMButtonDownIcon) &&
-            abs(m_MButtonDownPoint.y - m_mousepoint.y) > 13)
+         if(m_pReplyDlg == NULL ||
+            !m_pReplyDlg->OnMouseMove(nFlags, point))
          {
-            m_bDrawMButtonDownIcon = true;
-            InvalidateEverythingPan();
-         }
-         else if(m_bTrackingThumb)
-         {
-            m_gotopos = m_thumbdownpos + (int)((float)(m_mousepoint.y - m_thumbdownpoint.y) * (1.0f / m_scrollscale));
-            InvalidateEverythingPan();
-         }
-         else if(m_bDraggingTextSelection)
-         {
-            ChattyPost *pPost = GetDocument()->FindPost(m_textselectionpost);
-            if(pPost != NULL)
+            if((m_bMButtonDown ||
+               m_bDrawMButtonDownIcon) &&
+               abs(m_MButtonDownPoint.y - m_mousepoint.y) > 13)
             {
-               m_selectionend_actual = pPost->GetCharPos(m_mousepoint.x, m_mousepoint.y);
-
-               //m_selectionend = m_selectionend_actual;
-               //= m_selectionstart_actual = 
-
-               //////////////////////////////
-               // at this point, the enhanced text selection logic happens
-               // try to move the carets away from eachother towards word boundries
-
-               if((size_t)m_selectionend_actual != m_lastcharpos)
+               m_bDrawMButtonDownIcon = true;
+               InvalidateEverythingPan();
+            }
+            else if(m_bTrackingThumb)
+            {
+               m_gotopos = m_thumbdownpos + (int)((float)(m_mousepoint.y - m_thumbdownpoint.y) * (1.0f / m_scrollscale));
+               InvalidateEverythingPan();
+            }
+            else if(m_bDraggingTextSelection)
+            {
+               ChattyPost *pPost = GetDocument()->FindPost(m_textselectionpost);
+               if(pPost != NULL)
                {
-                  bool bMovingAway = false;
+                  m_selectionend_actual = pPost->GetCharPos(m_mousepoint.x, m_mousepoint.y);
 
-                  if((m_selectionend_actual > m_selectionstart_actual &&
-                      m_selectionend_actual > m_lastcharpos) ||
-                     (m_selectionend_actual < m_selectionstart_actual &&
-                      m_selectionend_actual < m_lastcharpos))
-                  {
-                     bMovingAway = true;
-                  }
+                  //m_selectionend = m_selectionend_actual;
+                  //= m_selectionstart_actual = 
 
-                  m_lastcharpos = m_selectionend_actual;
-                  m_selectionstart = m_selectionstart_actual;
-                  m_selectionend = m_selectionend_actual;
-               }
-                  /*
-                  IDLDocument *pDoc = pView->GetIDoc();
-                  if(pDoc != NULL &&
-                     m_ETSS != ETSS_RETURN_INSIDE_ORIGIN)
+                  //////////////////////////////
+                  // at this point, the enhanced text selection logic happens
+                  // try to move the carets away from eachother towards word boundries
+
+                  if((size_t)m_selectionend_actual != m_lastcharpos)
                   {
-                     CDLTextSearchDocument *pTextSearchDocument = pDoc->GetTextSearchDocument();
-                     if(pTextSearchDocument != NULL)
+                     bool bMovingAway = false;
+
+                     if((m_selectionend_actual > m_selectionstart_actual &&
+                         m_selectionend_actual > m_lastcharpos) ||
+                        (m_selectionend_actual < m_selectionstart_actual &&
+                         m_selectionend_actual < m_lastcharpos))
                      {
-                        CDLTextIndex *pTextIndex = pTextSearchDocument->GetTextIndex();
-                        if(pTextIndex != NULL)
+                        bMovingAway = true;
+                     }
+
+                     m_lastcharpos = m_selectionend_actual;
+                     m_selectionstart = m_selectionstart_actual;
+                     m_selectionend = m_selectionend_actual;
+                  }
+                     /*
+                     IDLDocument *pDoc = pView->GetIDoc();
+                     if(pDoc != NULL &&
+                        m_ETSS != ETSS_RETURN_INSIDE_ORIGIN)
+                     {
+                        CDLTextSearchDocument *pTextSearchDocument = pDoc->GetTextSearchDocument();
+                        if(pTextSearchDocument != NULL)
                         {
-                           bool bForward = true;
-                           if(m_anchorCharPosition_used > m_currentCharPosition_used)
+                           CDLTextIndex *pTextIndex = pTextSearchDocument->GetTextIndex();
+                           if(pTextIndex != NULL)
                            {
-                              bForward = false;
-                           }
-
-                           if(bMovingAway)
-                           {
-                              if(charpos >= (int)m_originword_min &&
-                                 charpos <= (int)m_originword_max)
+                              bool bForward = true;
+                              if(m_anchorCharPosition_used > m_currentCharPosition_used)
                               {
-                                 // use raw values
-                                 // make the precise word harmless
-                                 m_preciseword_min = m_originword_min;
-                                 m_preciseword_max = m_originword_max;
-
-                                 if(m_ETSS == ETSS_OUTSIDE_ORIGIN)
-                                 {
-                                    m_ETSS = ETSS_RETURN_INSIDE_ORIGIN;
-                                 }
+                                 bForward = false;
                               }
-                              else 
+
+                              if(bMovingAway)
                               {
-                                 if(charpos >= (int)m_preciseword_min &&
-                                    charpos <= (int)m_preciseword_max)
+                                 if(charpos >= (int)m_originword_min &&
+                                    charpos <= (int)m_originword_max)
                                  {
-                                    // use raw value for current
-                                    // but snap anchor
-                                    m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
+                                    // use raw values
+                                    // make the precise word harmless
+                                    m_preciseword_min = m_originword_min;
+                                    m_preciseword_max = m_originword_max;
+
+                                    if(m_ETSS == ETSS_OUTSIDE_ORIGIN)
+                                    {
+                                       m_ETSS = ETSS_RETURN_INSIDE_ORIGIN;
+                                    }
+                                 }
+                                 else 
+                                 {
+                                    if(charpos >= (int)m_preciseword_min &&
+                                       charpos <= (int)m_preciseword_max)
+                                    {
+                                       // use raw value for current
+                                       // but snap anchor
+                                       m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
+
+                                       if(m_ETSS == ETSS_START_INSIDE_ORIGIN)
+                                       {
+                                          m_ETSS = ETSS_OUTSIDE_ORIGIN;
+                                       }
+                                    }
+                                    else
+                                    {
+                                       // do both
+                                       m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
+                                       m_currentCharPosition_used = pTextIndex->FindWordEdge((int)m_currentCharPosition_used, page, bForward);
+
+                                       // make the precise word harmless
+                                       m_preciseword_min = m_originword_min;
+                                       m_preciseword_max = m_originword_max;
+                                    }
 
                                     if(m_ETSS == ETSS_START_INSIDE_ORIGIN)
                                     {
                                        m_ETSS = ETSS_OUTSIDE_ORIGIN;
                                     }
                                  }
-                                 else
-                                 {
-                                    // do both
-                                    m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
-                                    m_currentCharPosition_used = pTextIndex->FindWordEdge((int)m_currentCharPosition_used, page, bForward);
-
-                                    // make the precise word harmless
-                                    m_preciseword_min = m_originword_min;
-                                    m_preciseword_max = m_originword_max;
-                                 }
-
-                                 if(m_ETSS == ETSS_START_INSIDE_ORIGIN)
-                                 {
-                                    m_ETSS = ETSS_OUTSIDE_ORIGIN;
-                                 }
-                              }
-                           }
-                           else
-                           {
-                              if(charpos >= (int)m_originword_min &&
-                                 charpos <= (int)m_originword_max)
-                              {
-                                 // use raw values
-                                 // make the precise word harmless
-                                 m_preciseword_min = m_originword_min;
-                                 m_preciseword_max = m_originword_max;
-
-                                 if(m_ETSS == ETSS_OUTSIDE_ORIGIN)
-                                 {
-                                    m_ETSS = ETSS_RETURN_INSIDE_ORIGIN;
-                                 }
                               }
                               else
                               {
-                                 // use raw value for current
-                                 // but snap anchor
-                                 m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
-
-                                 // record the word we are in so that we can move forward in it precisly later.
-                                 int begin, end;
-                                 pTextIndex->FindWord(charpos, page, begin, end);
-                                 m_preciseword_min = (size_t)begin;
-                                 m_preciseword_max = (size_t)end;
-
-                                 if(m_ETSS == ETSS_START_INSIDE_ORIGIN)
+                                 if(charpos >= (int)m_originword_min &&
+                                    charpos <= (int)m_originword_max)
                                  {
-                                    m_ETSS = ETSS_OUTSIDE_ORIGIN;
+                                    // use raw values
+                                    // make the precise word harmless
+                                    m_preciseword_min = m_originword_min;
+                                    m_preciseword_max = m_originword_max;
+
+                                    if(m_ETSS == ETSS_OUTSIDE_ORIGIN)
+                                    {
+                                       m_ETSS = ETSS_RETURN_INSIDE_ORIGIN;
+                                    }
+                                 }
+                                 else
+                                 {
+                                    // use raw value for current
+                                    // but snap anchor
+                                    m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
+
+                                    // record the word we are in so that we can move forward in it precisly later.
+                                    int begin, end;
+                                    pTextIndex->FindWord(charpos, page, begin, end);
+                                    m_preciseword_min = (size_t)begin;
+                                    m_preciseword_max = (size_t)end;
+
+                                    if(m_ETSS == ETSS_START_INSIDE_ORIGIN)
+                                    {
+                                       m_ETSS = ETSS_OUTSIDE_ORIGIN;
+                                    }
                                  }
                               }
                            }
                         }
                      }
                   }
-               }
-               */
-               //////////////////////////////
+                  */
+                  //////////////////////////////
 
-               InvalidateEverything();
+                  InvalidateEverything();
+               }
+            }
+            else if(m_bPanning)
+            {
+               int ydiff = m_panpoint.y - point.y;
+               m_gotopos = m_panpos + ydiff;
+               MakePosLegal();
+               m_pos = m_gotopos;// no smooth on pan
+               InvalidateEverythingPan();
+            }   
+            else
+            {
+               UpdateHotspotPosition();
             }
          }
-         else if(m_bPanning)
-         {
-            int ydiff = m_panpoint.y - point.y;
-            m_gotopos = m_panpos + ydiff;
-            MakePosLegal();
-            m_pos = m_gotopos;// no smooth on pan
-            InvalidateEverythingPan();
-         }   
          else
          {
             UpdateHotspotPosition();
          }
       }
-      else
-      {
-         UpdateHotspotPosition();
-      }
+   }
+   else if(m_bPanning)
+   {
+      int ydiff = m_panpoint.y - point.y;
+      m_gotopos = m_panpos + ydiff;
+      MakePosLegal();
+      m_pos = m_gotopos;// no smooth on pan
+      InvalidateEverythingPan();
    }
 
    CView::OnMouseMove(nFlags, point);
@@ -2690,111 +2832,123 @@ void CLampView::OnLButtonDblClk(UINT nFlags, CPoint point)
 
 void CLampView::OnMButtonDown(UINT nFlags, CPoint point) 
 {
+   SetCapture();   
+   CancelInertiaPanning();
+   m_bStartedTrackingMouse = true;
+   m_lastmousetime = ::GetTickCount();
    m_mousepoint = point;
-   if(m_bDrawMButtonDownIcon == false)
-   {
-      m_MButtonDownPoint = point;
-      m_mbuttondowntime = ::GetTickCount();
-      m_bMButtonDown = true;
-      SetCapture();
+
+   if(!m_brakes)
+   {   
+      if(m_bDrawMButtonDownIcon == false)
+      {
+         m_MButtonDownPoint = point;
+         m_mbuttondowntime = ::GetTickCount();
+         m_bMButtonDown = true;
+      }
+      m_bDrawMButtonDownIcon = false;
    }
-   m_bDrawMButtonDownIcon = false;
 
    CView::OnMButtonDown(nFlags, point);
 }
 
 void CLampView::OnMButtonUp(UINT nFlags, CPoint point) 
 {
+   TrackMouse(point);
    m_bMButtonDown = false;
    m_bDrawMButtonDownIcon = false;
    ReleaseCapture();
 
-   if(abs(m_MButtonDownPoint.x - point.x) < 5 &&
-      abs(m_MButtonDownPoint.y - point.y) < 5 &&
-      (::GetTickCount() - m_mbuttondowntime) < 1000 &&
-      !GetDocument()->IsBusy())
+   if(!m_brakes)
    {
-      m_textselectionpost = 0;
-      bool bHandled = false;
-      for(size_t i = 0; i < m_hotspots.size(); i++)
+      if(abs(m_MButtonDownPoint.x - point.x) < 5 &&
+         abs(m_MButtonDownPoint.y - point.y) < 5 &&
+         (::GetTickCount() - m_mbuttondowntime) < 1000 &&
+         !GetDocument()->IsBusy())
       {
-         if(m_mousepoint.x >= m_hotspots[i].m_spot.left &&
-            m_mousepoint.x < m_hotspots[i].m_spot.right &&
-            m_mousepoint.y >= m_hotspots[i].m_spot.top &&
-            m_mousepoint.y < m_hotspots[i].m_spot.bottom)
+         m_textselectionpost = 0;
+         bool bHandled = false;
+         for(size_t i = 0; i < m_hotspots.size(); i++)
          {
-            switch(m_hotspots[i].m_type)
+            if(m_mousepoint.x >= m_hotspots[i].m_spot.left &&
+               m_mousepoint.x < m_hotspots[i].m_spot.right &&
+               m_mousepoint.y >= m_hotspots[i].m_spot.top &&
+               m_mousepoint.y < m_hotspots[i].m_spot.bottom)
             {
-            case HST_PIN:
-            case HST_OPENINTAB:
-            case HST_REFRESH:
+               switch(m_hotspots[i].m_type)
                {
-                  if(GetDocument()->GetDataType() == DDT_STORY)
+               case HST_PIN:
+               case HST_OPENINTAB:
+               case HST_REFRESH:
                   {
-                     unsigned int id = GetDocument()->GetID(m_hotspots[i].m_id);
-                     unsigned int rootid = GetDocument()->GetRootId(id);
-                     UCString path;
-                     if(rootid != 0)
+                     if(GetDocument()->GetDataType() == DDT_STORY)
                      {
-                        path += rootid;
-                     }
-                     else
-                     {
+                        unsigned int id = GetDocument()->GetID(m_hotspots[i].m_id);
+                        unsigned int rootid = GetDocument()->GetRootId(id);
+                        UCString path;
+                        if(rootid != 0)
+                        {
+                           path += rootid;
+                        }
+                        else
+                        {
+                           path += id;
+                        }
+                        path += L'_';
                         path += id;
+                        ReleaseCapture();
+                        theApp.OpenDocumentFile(path);
+                        bHandled = true;
                      }
-                     path += L'_';
-                     path += id;
-                     ReleaseCapture();
-                     theApp.OpenDocumentFile(path);
+                  }
+                  break;
+               case HST_SPOILER:
+                  {
+                     ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                     if(pPost != NULL)
+                     {
+                        pPost->ClearSpoilerTags(m_mousepoint.x, m_mousepoint.y);
+                     }
                      bHandled = true;
                   }
-               }
-               break;
-            case HST_SPOILER:
-               {
-                  ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
-                  if(pPost != NULL)
+                  break;
+               case HST_LINK:
                   {
-                     pPost->ClearSpoilerTags(m_mousepoint.x, m_mousepoint.y);
+                     ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                     if(pPost != NULL)
+                     {
+                        UCString link;
+                        pPost->GetLink(m_mousepoint.x, m_mousepoint.y, link);
+                        theApp.OpenShackLink(link);
+                     }
+                     bHandled = true;
                   }
-                  bHandled = true;
-               }
-               break;
-            case HST_LINK:
-               {
-                  ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
-                  if(pPost != NULL)
+                  break;
+               case HST_IMAGELINK:
                   {
-                     UCString link;
-                     pPost->GetLink(m_mousepoint.x, m_mousepoint.y, link);
-                     theApp.OpenShackLink(link);
+                     ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                     if(pPost != NULL)
+                     {
+                        UCString link;
+                        pPost->GetImageLink(m_mousepoint.x, m_mousepoint.y, link);
+                        theApp.OpenShackLink(link);
+                     }
+                     bHandled = true;
                   }
-                  bHandled = true;
-               }
-               break;
-            case HST_IMAGELINK:
-               {
-                  ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
-                  if(pPost != NULL)
-                  {
-                     UCString link;
-                     pPost->GetImageLink(m_mousepoint.x, m_mousepoint.y, link);
-                     theApp.OpenShackLink(link);
-                  }
-                  bHandled = true;
+                  break;
                }
                break;
             }
-            break;
+         }
+         
+         if(!bHandled)
+         {
+            m_bDrawMButtonDownIcon = true;
          }
       }
-      
-      if(!bHandled)
-      {
-         m_bDrawMButtonDownIcon = true;
-      }
    }
-   
+   m_brakes = false;
+
    InvalidateEverything();
 
    CView::OnMButtonUp(nFlags, point);
@@ -2949,6 +3103,11 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                      
                      MakePosLegal();
                      m_pos = m_gotopos;// don't animate to the pos
+
+                     m_inertia = 0.0f;
+                     m_bInertialPanning = false;
+                     m_mousehistory.clear();
+                     m_mousetimehistory.clear();
                   }
                   InvalidateEverything();
                }
@@ -2996,6 +3155,10 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                   
                   MakePosLegal();
                   InvalidateEverything();
+
+                  m_inertia = 0.0f;
+                  m_bInertialPanning = false;
+                  m_mousehistory.clear();
                }
             }
          }
@@ -3287,6 +3450,7 @@ void CLampView::OnEditFindtext()
 {
    if(m_pReplyDlg == NULL)
    {
+      ReleaseCapture();
       m_pFindDlg = new CFindTextDlg(this);
 
       m_pFindDlg->m_pView = this;
@@ -4070,6 +4234,7 @@ void CLampView::OnUpdateSkinSquareShack(CCmdUI *pCmdUI)
 
 void CLampView::OnSkinCustom()
 {
+   ReleaseCapture();
    UCString skinfilename = L"skins\\";
    skinfilename += theApp.GetSkinFolder();
    skinfilename += L"\\skin.xml";
@@ -4156,6 +4321,7 @@ void CLampView::OnUpdateShowSettings(CCmdUI *pCmdUI)
 
 void CLampView::OnNormalFont()
 {
+   ReleaseCapture();
    LOGFONTW lf;
    memset(&lf,0,sizeof(LOGFONTW));
    wcscpy_s(lf.lfFaceName,LF_FACESIZE,theApp.GetNormalFontName());
@@ -4176,6 +4342,7 @@ void CLampView::OnUpdateNormalFont(CCmdUI *pCmdUI)
 
 void CLampView::OnQuotedFont()
 {
+   ReleaseCapture();
    LOGFONTW lf;
    memset(&lf,0,sizeof(LOGFONTW));
    wcscpy_s(lf.lfFaceName,LF_FACESIZE,theApp.GetQuotedFontName());
@@ -4196,6 +4363,7 @@ void CLampView::OnUpdateQuotedFont(CCmdUI *pCmdUI)
 
 void CLampView::OnCodeFont()
 {
+   ReleaseCapture();
    LOGFONTW lf;
    memset(&lf,0,sizeof(LOGFONTW));
    wcscpy_s(lf.lfFaceName,LF_FACESIZE,theApp.GetCodeFontName());
@@ -4312,6 +4480,7 @@ void CLampView::OnUpdateSelectPaleYellow(CCmdUI *pCmdUI)
 
 void CLampView::OnSelectCustom()
 {
+   ReleaseCapture();
    CColorDialog clrdlg(theApp.GetTextSelectionColor(),CC_ANYCOLOR|CC_FULLOPEN,this);
    if(clrdlg.DoModal() == IDOK)
    {

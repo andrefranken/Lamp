@@ -410,6 +410,7 @@ CLampApp::CLampApp()
    m_num_minutes_check_inbox = 3;
 
    m_mb_pan_scale = 1.0f;
+   m_inertia_friction = 0.01f;
 
    m_enable_spell_checker = true;
    m_highlight_OP = true;
@@ -957,6 +958,14 @@ void CLampApp::ReadSettingsFile()
    if(m_mb_pan_scale == 0.0f)
       m_mb_pan_scale = 1.0f;
 
+   setting = hostxml.FindChildElement(L"inertia_friction");
+   if(setting!=NULL) m_inertia_friction = setting->GetValue();
+   else m_inertia_friction = 0.01f;
+   if(m_inertia_friction < 0.000000001f)
+      m_inertia_friction = 0.000000001f;
+   if(m_inertia_friction > 1.0f)
+      m_inertia_friction = 1.0f;
+
    setting = hostxml.FindChildElement(L"lang");
    if(setting!=NULL) m_lang = setting->GetValue();
    else m_lang = L"en_US";
@@ -1300,6 +1309,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"skin_folder",m_skinname);
    settingsxml.AddChildElement(L"mouse_wheel_scale",UCString(m_mouse_wheel_scale));
    settingsxml.AddChildElement(L"mb_pan_scale",UCString(m_mb_pan_scale));
+   settingsxml.AddChildElement(L"inertia_friction",UCString(m_inertia_friction));
    settingsxml.AddChildElement(L"lang",m_lang);
    settingsxml.AddChildElement(L"numshow_truncated",UCString(m_numshow_truncated));
    settingsxml.AddChildElement(L"smooth_scroll",UCString(m_smooth_scroll));

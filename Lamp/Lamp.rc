@@ -231,36 +231,36 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "Fonts"
         BEGIN
-            MENUITEM "Font for Normal Text",    ID_NORM_FONT
-            MENUITEM "Font for Quoted Text",    ID_QUOTE_FONT
-            MENUITEM "Font for Code Text",      ID_CODE_FONT
+            MENUITEM "Font for Normal Text",        ID_NORM_FONT
+            MENUITEM "Font for Quoted Text",        ID_QUOTE_FONT
+            MENUITEM "Font for Code Text",          ID_CODE_FONT
         END
         POPUP "Font size"
         BEGIN
             MENUITEM "Increase Font Size\tCtrl+Plus", ID_VIEW_INCREASEFONTSIZE
             MENUITEM "Decrease Font Size\tCtrl+Minus", ID_VIEW_DECREASEFONTSIZE
             MENUITEM "Reset Font Size\tCtrl+0",     ID_VIEW_RESETFONTSIZE
-        END        
+        END
         MENUITEM SEPARATOR
         POPUP "Text Select Color"
         BEGIN
-            MENUITEM "Dark Blue",     ID_SELECT_DARK_BLUE
-            MENUITEM "Blue",          ID_SELECT_BLUE
-            MENUITEM "Yellow",        ID_SELECT_YELLOW
-            MENUITEM "Pale Yellow",   ID_SELECT_PALE_YELLOW
-            MENUITEM "Custom",        ID_SELECT_CUSTOM
-        END        
+            MENUITEM "Dark Blue",                   ID_SELECT_DARK_BLUE
+            MENUITEM "Blue",                        ID_SELECT_BLUE
+            MENUITEM "Yellow",                      ID_SELECT_YELLOW
+            MENUITEM "Pale Yellow",                 ID_SELECT_PALE_YELLOW
+            MENUITEM "Custom",                      ID_SELECT_CUSTOM
+        END
         MENUITEM SEPARATOR
         MENUITEM "Dock Top",                    ID_VIEW_DOCKTOP
         MENUITEM "Always on Top",               ID_ALWAYSONTOP_WHENNOTDOCKED
         MENUITEM SEPARATOR
         POPUP "Filters"
         BEGIN
-           MENUITEM "Enable NWS threads",          ID_FILTER_ENABLE_NWS
-           MENUITEM "Enable INF threads",          ID_FILTER_ENABLE_INF
-           MENUITEM "Enable Off Topic threads",    ID_FILTER_ENABLE_OFFTOPIC
-           MENUITEM "Enable Stupid threads",       ID_FILTER_ENABLE_STUPID
-           MENUITEM "Enable Political threads",    ID_FILTER_ENABLE_POLITICAL
+            MENUITEM "Enable NWS threads",          ID_FILTER_ENABLE_NWS
+            MENUITEM "Enable INF threads",          ID_FILTER_ENABLE_INF
+            MENUITEM "Enable Off Topic threads",    ID_FILTER_ENABLE_OFFTOPIC
+            MENUITEM "Enable Stupid threads",       ID_FILTER_ENABLE_STUPID
+            MENUITEM "Enable Political threads",    ID_FILTER_ENABLE_POLITICAL
         END
         MENUITEM SEPARATOR
         POPUP "&Skin"
@@ -463,21 +463,23 @@ BEGIN
     LTEXT           "Subject:",IDC_STATIC,7,33,28,8
 END
 
-IDD_SETTINGS_DIALOG DIALOGEX 0, 0, 245, 142
+IDD_SETTINGS_DIALOG DIALOGEX 0, 0, 245, 156
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "More Settings"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,141,121,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,188,121,50,14
+    DEFPUSHBUTTON   "OK",IDOK,124,135,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,188,135,50,14
     EDITTEXT        IDC_MOUSE_WHEEL_SPEED_EDIT,184,15,40,14,ES_AUTOHSCROLL
     EDITTEXT        IDC_MB_PAN_SPEED_EDIT,184,39,40,14,ES_AUTOHSCROLL
     EDITTEXT        IDC_NUM_SHOW_TRUNC_EDIT,184,63,40,14,ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        IDC_NUM_MIN_INBOX_EDIT,184,87,40,14,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "Mouse wheel speed factor",IDC_STATIC,94,17,85,8
-    LTEXT           "Mouse middle-button pan speed factor",IDC_STATIC,55,41,124,8
-    LTEXT           "Number of replies to show when thread truncated",IDC_STATIC,19,65,160,8
-    LTEXT           "Number of minutes to wait to periodically check Inbox",IDC_STATIC,7,89,172,8
+    EDITTEXT        IDC_INERTIA_EDIT,184,110,40,14,ES_AUTOHSCROLL
+    RTEXT           "Mouse wheel speed factor",IDC_STATIC,7,17,172,8
+    RTEXT           "Mouse middle-button pan speed factor",IDC_STATIC,7,41,172,8
+    RTEXT           "Number of replies to show when thread truncated",IDC_STATIC,7,65,172,8
+    RTEXT           "Number of minutes to wait to periodically check Inbox",IDC_STATIC,7,89,172,8
+    RTEXT           "Inertia Friction",IDC_STATIC,7,112,172,8
 END
 
 
@@ -590,7 +592,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 238
         TOPMARGIN, 7
-        BOTTOMMARGIN, 135
+        BOTTOMMARGIN, 149
     END
 END
 #endif    // APSTUDIO_INVOKED

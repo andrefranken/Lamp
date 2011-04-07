@@ -13,6 +13,7 @@
 #include <list>
 #include <map>
 #include <vector>
+#include <deque>
 // CLampApp:
 // See Lamp.cpp for the implementation of this class
 //
@@ -561,6 +562,16 @@ public:
    float GetMBPanScale(){return m_mb_pan_scale;}
    void SetMBPanScale(float value){m_mb_pan_scale = value;}
 
+   float GetInertiaFriction(){return m_inertia_friction;}
+   void SetInertiaFriction(float value)
+   {
+      m_inertia_friction = value;
+      if(m_inertia_friction < 0.000000001f)
+         m_inertia_friction = 0.000000001f;
+      if(m_inertia_friction > 1.0f)
+         m_inertia_friction = 1.0f;
+   }
+
    bool IsSpelledCorrectly(const UCChar *wordtotest, size_t count);
 
    void GetSpellSuggestions(const UCChar *wordtotest, size_t count, std::vector<UCString> &suggestions);
@@ -930,6 +941,8 @@ protected:
    bool m_bShowSmallLOL;
 
    bool m_bFlaredBranches;
+
+   float m_inertia_friction;
 
    std::vector<UCString> m_cheatsheet;
 
