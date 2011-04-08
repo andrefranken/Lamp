@@ -481,11 +481,14 @@ CLampApp::CLampApp()
 
 CLampApp theApp;
 
+CRITICAL_SECTION g_ThreadAccess;
 
 // CLampApp initialization
 
 BOOL CLampApp::InitInstance()
 {
+   ::InitializeCriticalSection(&g_ThreadAccess);
+
    // Parse command line for standard shell commands, DDE, file open
 
    if(m_lpCmdLine != NULL)
@@ -725,6 +728,8 @@ int CLampApp::ExitInstance()
    
    WriteBookmarks();
    WriteSettingsFile();
+
+   ::DeleteCriticalSection(&g_ThreadAccess);
 
    return CWinApp::ExitInstance();
 }
@@ -2209,6 +2214,14 @@ void CLampApp::OpenShackLink(const UCString &shackpath)
       if(work != NULL)
       {
          bIsMine = true;
+      }
+      else
+      {
+         work = wcsstr(shackpath,L"/chatty/");
+         if(work != NULL)
+         {
+            bIsMine = true;
+         }
       }
    }
    else

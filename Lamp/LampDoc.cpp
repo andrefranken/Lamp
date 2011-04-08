@@ -1034,6 +1034,22 @@ BOOL CLampDoc::OnOpenDocument( LPCTSTR lpszPathName )
 
       bAllowPreLoadingOfThread = false;
    }
+   else if(end - start > 7 &&
+           _wcsnicmp(start,L"chatty\\",7) == 0)
+   {
+      const UCChar *work = start + 7;
+
+      while(work < end && 
+            iswdigit(*work))
+      {
+         rootid += *work;
+         work++;
+      }
+
+      m_initialpostid = rootid;
+
+      bAllowPreLoadingOfThread = false;
+   }
    else
    {
       const UCChar *pCmd = NULL;

@@ -76,12 +76,13 @@ typedef uint64_t    u64;
 #define BUFFSZ      8192
 #define MAXTIMEOUT  60          // one minute
 #define MAXARGS     16          // modify it if you need more args in mydown_scanhead
-#define MAXDNS      32
+#define MAXDNS      320
 #define VERPRINTF   if(verbose >= 0) fprintf(stderr,
 #define VERPRINTF2  if(verbose > 0)  fprintf(stderr,
 #define TEMPOZ(x)   TEMPOZ1;    \
                     x = TEMPOZ2
 
+extern CRITICAL_SECTION g_ThreadAccess;
 
 typedef struct {                // lame DNS caching implementation
     u8          *host;
@@ -1318,16 +1319,26 @@ in_addr_t mydown_resolv(char *host) {
     int         i;
     dns_db_t    *dns;
 
+    ::EnterCriticalSection(&g_ThreadAccess);
+
     host_ip = inet_addr(host);
     if(host_ip == htonl(INADDR_NONE)) {
 
         for(i = 0; i < dns_db_max; i++) {           // search
-            if(!_stricmp((const char *)host, (const char *)dns_db[i].host)) return(dns_db[i].ip);
+            if(!_stricmp((const char *)host, (const char *)dns_db[i].host)) 
+            {
+               ::LeaveCriticalSection(&g_ThreadAccess);
+
+               return(dns_db[i].ip);
+            }
         }
 
         hp = gethostbyname(host);
         if(!hp) {
             fprintf(stderr, "\nError: Unable to resolve hostname (%s)\n\n", host);
+
+            ::LeaveCriticalSection(&g_ThreadAccess);
+
             return(INADDR_NONE);
         }
         host_ip = *(in_addr_t *)(hp->h_addr);
@@ -1341,6 +1352,9 @@ in_addr_t mydown_resolv(char *host) {
         dns_db_add++;
         if(dns_db_max < MAXDNS) dns_db_max++;
     }
+
+    ::LeaveCriticalSection(&g_ThreadAccess);
+
     return(host_ip);
 }
 
