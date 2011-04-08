@@ -683,7 +683,7 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
          break;
       case DT_READMSG:
          {
-            // nothing to do
+            // do nothing
          }
          break;
       case DT_SENDMSG:
@@ -3938,6 +3938,46 @@ void CLampDoc::DrawBodyText(HDC hDC,
    y += 4;
 }
 
+void CLampDoc::DrawNewMessagesTab(HDC hDC, RECT &rect, const UCChar *pChar, int *widths, size_t numchars, bool bHover)
+{
+   HBRUSH oldbrush = NULL;
+
+   if(bHover)
+   {
+      oldbrush = (HBRUSH)::SelectObject(hDC,m_spoilerbrush);
+   }
+   else
+   {
+      oldbrush = (HBRUSH)::SelectObject(hDC,m_rootbackgroundbrush);
+   }
+
+   HPEN oldpen = (HPEN)::SelectObject(hDC,m_roottoppen);
+
+   POINT points[4];
+   points[0].x = rect.left;
+   points[0].y = rect.top;
+   points[1].x = rect.right;
+   points[1].y = rect.top;
+   points[2].x = rect.right - 5;
+   points[2].y = rect.bottom;
+   points[3].x = rect.left + 5;
+   points[3].y = rect.bottom;
+   ::Polygon(hDC, points, 4);
+   
+   ::SelectObject(hDC,oldbrush);
+   ::SelectObject(hDC,oldpen);
+
+   HFONT oldfont = (HFONT)::SelectObject(hDC,m_normalfont);
+   ::SetTextColor(hDC,theApp.GetPostTextColor());
+   ::SetBkMode(hDC,TRANSPARENT);
+   ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
+
+   ::ExtTextOutW(hDC, rect.left + 5, rect.bottom, 0, NULL, pChar, numchars, widths);
+   
+   ::SelectObject(hDC,m_boldfont);
+}
+
+
 void CLampDoc::DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF AuthorColor, bool bFade/*= false*/, bool m_bIsInbox/*=true*/)
 {
    HFONT oldfont = (HFONT)::SelectObject(hDC,m_miscfont);
@@ -4446,7 +4486,8 @@ void CLampDoc::ClearAllPinnedThreads()
 void CLampDoc::UpdateUnreadShackMessagesCount()
 {
    if(m_datatype == DDT_SHACKMSG &&
-      m_shackmsgtype == SMT_INBOX)
+      m_shackmsgtype == SMT_INBOX &&
+      m_page == 1)
    {
       int count = 0;
       std::list<ChattyPost*>::iterator it = m_rootposts.begin();
@@ -4461,17 +4502,7 @@ void CLampDoc::UpdateUnreadShackMessagesCount()
          it++;
       }
 
-      if(count > 0)
-      {
-         m_title = L"Inbox (";
-         m_title += count;
-         m_title += L")";
-      }
-      else
-      {
-         m_title = L"Inbox";
-      }
-      MySetTitle(m_title);
+      theApp.SetNewMessageCount((size_t)count);
    }
 }
 

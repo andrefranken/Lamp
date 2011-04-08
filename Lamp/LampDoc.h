@@ -132,6 +132,7 @@ public:
                      std::vector<const int> &linesizes,
                      std::vector<std::vector<shacktagpos>> &linetags,
                      std::vector<linetype> &linetypes);
+   void DrawNewMessagesTab(HDC hDC, RECT &rect, const UCChar *pChar, int *widths, size_t numchars, bool bHover);
    void DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF AuthorColor, bool bFade = false, bool m_bIsInbox=true);
    void DrawDate(HDC hDC, RECT &rect, UCString &date, COLORREF ago_color, bool bGetExtents=false);
    void DrawRepliesHint(HDC hDC, RECT &rect, int m_reportedchildcount);
@@ -231,6 +232,8 @@ public:
    unsigned int GetNextRoot();
    unsigned int GetPrevRoot();
 
+   bool ReadShackMessages(CXMLTree &xmldata);
+
 // Implementation
 public:
 	virtual ~CLampDoc();
@@ -243,7 +246,6 @@ protected:
    void SetDataType(DocDataType datatype){m_datatype = datatype;}
    bool ReadFromRoot(CXMLTree &xmldata, std::vector<unsigned int> &existing_threads);
    bool ReadSearchResultsFromRoot(CXMLTree &xmldata);
-   bool ReadShackMessages(CXMLTree &xmldata);
    void ReadLatestChatty();
    void ReadLatestChattyPart2();   
    void ReadLOL();

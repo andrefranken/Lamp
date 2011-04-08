@@ -90,7 +90,7 @@ public:
 
 protected:
    void DrawHotSpots(HDC hDC);
-   void DrawCurrentHotSpots(HDC hDC);
+   bool DrawCurrentHotSpots(HDC hDC);
    void DrawTextSelection(HDC hDC, const RECT &DeviceRectangle);
    void DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<CHotSpot> &hotspots);
    void DrawThumb(HDC hDC, const RECT &thumbrect, scrollbitype type);
@@ -297,6 +297,8 @@ public:
    afx_msg void OnUpdateGoogleSelectedWQuotes(CCmdUI *pCmdUI);
    afx_msg void OnWikipediaSelected();
    afx_msg void OnUpdateWikipediaSelected(CCmdUI *pCmdUI);
+   afx_msg void OnAutoCheckInbox();
+   afx_msg void OnUpdateAutoCheckInbox(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp

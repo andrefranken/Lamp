@@ -137,6 +137,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_GOOGLE_SELECTED_W_QUOTES, &CLampView::OnUpdateGoogleSelectedWQuotes)
    ON_COMMAND(ID_WIKIPEDIA_SELECTED, &CLampView::OnWikipediaSelected)
    ON_UPDATE_COMMAND_UI(ID_WIKIPEDIA_SELECTED, &CLampView::OnUpdateWikipediaSelected)
+   ON_COMMAND(ID_AUTOCHECKINBOX, &CLampView::OnAutoCheckInbox)
+   ON_UPDATE_COMMAND_UI(ID_AUTOCHECKINBOX, &CLampView::OnUpdateAutoCheckInbox)
 
 END_MESSAGE_MAP()
 
@@ -442,10 +444,12 @@ void CLampView::OnDraw(CDC* pDC)
       {
          MakePosLegal();
 
+         bool bDrewNewMessagesTab = false;
+
          if(m_bDrawHotsOnly)
          {
             m_bDrawHotsOnly = false;
-            DrawCurrentHotSpots(hDC);
+            bDrewNewMessagesTab = DrawCurrentHotSpots(hDC);
          }
          else
          {
@@ -577,7 +581,7 @@ void CLampView::OnDraw(CDC* pDC)
                DrawTextSelection(pSurface->GetDC(), DocRectangle);
             }
             ::ExtSelectClipRgn(pSurface->GetDC(),NULL,RGN_COPY);
-            
+
             pSurface->Blit(hDC, DeviceRectangle);
 
             m_lastdrawnpos = m_pos;
@@ -595,6 +599,26 @@ void CLampView::OnDraw(CDC* pDC)
 
             UpdateHotspotPosition();
          }
+
+         //
+         if(!bDrewNewMessagesTab && theApp.HaveNewMessages() && theApp.GetAutoCheckInbox())
+         {
+            const UCChar *pChar;
+            int *widths;
+            size_t numchars;
+            int textwidth;
+            int center_x = (DeviceRectangle.left + DeviceRectangle.right) / 2;
+            theApp.GetNewMessagesText(&pChar, &widths, numchars, textwidth);
+
+            RECT newmessagesrect;
+            newmessagesrect.top = DeviceRectangle.top;
+            newmessagesrect.bottom = newmessagesrect.top + theApp.GetTextHeight();
+            newmessagesrect.left = center_x - (textwidth / 2) - 5;
+            newmessagesrect.right = newmessagesrect.left + textwidth + 10;
+
+            pDoc->DrawNewMessagesTab(hDC, newmessagesrect, pChar, widths, numchars, false);
+         }
+         //
 
          // this is for repeating lbuttondown situations with the scrollbar
          if(m_bLButtonDownOnScrollArrow)
@@ -701,6 +725,31 @@ void CLampView::DrawEverythingToBuffer(CDCSurface *pSurface/* = NULL*/,
    }
 
    m_hotspots.clear();
+
+   if(theApp.HaveNewMessages() && theApp.GetAutoCheckInbox())
+   {
+      const UCChar *pChar;
+      int *widths;
+      size_t numchars;
+      int textwidth;
+      int center_x = (DeviceRectangle.left + DeviceRectangle.right) / 2;
+      theApp.GetNewMessagesText(&pChar, &widths, numchars, textwidth);
+
+      RECT newmessagesrect;
+      newmessagesrect.top = DeviceRectangle.top;
+      newmessagesrect.bottom = newmessagesrect.top + theApp.GetTextHeight();
+      newmessagesrect.left = center_x - (textwidth / 2) - 5;
+      newmessagesrect.right = newmessagesrect.left + textwidth + 10;
+
+      CHotSpot hotspot;
+      hotspot.m_bAnim = false;
+      hotspot.m_type = HST_NEW_MESSAGES_NOTE;
+      hotspot.m_spot = newmessagesrect;
+      hotspot.m_id = 0;
+      m_hotspots.push_back(hotspot);
+   }
+
+
    m_hotspot = NULL;
    m_lasthotspot = NULL;
 
@@ -1055,8 +1104,9 @@ void CLampView::DrawHotSpots(HDC hDC)
    }
 }
 
-void CLampView::DrawCurrentHotSpots(HDC hDC)
+bool CLampView::DrawCurrentHotSpots(HDC hDC)
 {
+   bool bDrewNewMessagesTab = false;
    if(m_lasthotspot != NULL)
    {
       // un-hover the last one
@@ -1143,6 +1193,27 @@ void CLampView::DrawCurrentHotSpots(HDC hDC)
             case HST_EXPAND:
                {
                   m_backbuffer->Blit(hDC, m_hotspots[i].m_spot, false);
+               }
+               break;
+            case HST_NEW_MESSAGES_NOTE:
+               {
+                  RECT DeviceRectangle;
+                  GetClientRect(&DeviceRectangle);
+                  const UCChar *pChar;
+                  int *widths;
+                  size_t numchars;
+                  int textwidth;
+                  int center_x = (DeviceRectangle.left + DeviceRectangle.right) / 2;
+                  theApp.GetNewMessagesText(&pChar, &widths, numchars, textwidth);
+
+                  RECT newmessagesrect;
+                  newmessagesrect.top = DeviceRectangle.top;
+                  newmessagesrect.bottom = newmessagesrect.top + theApp.GetTextHeight();
+                  newmessagesrect.left = center_x - (textwidth / 2) - 5;
+                  newmessagesrect.right = newmessagesrect.left + textwidth + 10;
+
+                  GetDocument()->DrawNewMessagesTab(hDC, newmessagesrect, pChar, widths, numchars, false);
+                  bDrewNewMessagesTab = true;
                }
                break;
             case HST_CREATEREPLY:
@@ -1406,6 +1477,27 @@ void CLampView::DrawCurrentHotSpots(HDC hDC)
                   theApp.GetRefreshStoryImage(true)->Blit(hDC,m_hotspots[i].m_spot);
                }
                break;
+            case HST_NEW_MESSAGES_NOTE:
+               {
+                  RECT DeviceRectangle;
+                  GetClientRect(&DeviceRectangle);
+                  const UCChar *pChar;
+                  int *widths;
+                  size_t numchars;
+                  int textwidth;
+                  int center_x = (DeviceRectangle.left + DeviceRectangle.right) / 2;
+                  theApp.GetNewMessagesText(&pChar, &widths, numchars, textwidth);
+
+                  RECT newmessagesrect;
+                  newmessagesrect.top = DeviceRectangle.top;
+                  newmessagesrect.bottom = newmessagesrect.top + theApp.GetTextHeight();
+                  newmessagesrect.left = center_x - (textwidth / 2) - 5;
+                  newmessagesrect.right = newmessagesrect.left + textwidth + 10;
+
+                  GetDocument()->DrawNewMessagesTab(hDC, newmessagesrect, pChar, widths, numchars, true);
+                  bDrewNewMessagesTab = true;
+               }
+               break;
             case HST_REPLYPREVIEW:
             case HST_AUTHORPREVIEW:
                {
@@ -1583,6 +1675,8 @@ void CLampView::DrawCurrentHotSpots(HDC hDC)
          }
       }
    }
+
+   return bDrewNewMessagesTab;
 }
 
 void CLampView::MakePosLegal()
@@ -1822,6 +1916,11 @@ void CLampView::UpdateHotspotPosition()
          case HST_REPLYPREVIEW:
             {
                theApp.SetStatusBarText(L"Show Reply",this);
+            }
+            break;
+         case HST_NEW_MESSAGES_NOTE:
+            {
+               theApp.SetStatusBarText(L"Go to Inbox",this);
             }
             break;
          case HST_AUTHOR:
@@ -2240,6 +2339,12 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               }
                               InvalidateEverything();
                            }
+                        }
+                        break;
+                     case HST_NEW_MESSAGES_NOTE:
+                        {
+                           ReleaseCapture();
+                           theApp.ShowNewMessages();
                         }
                         break;
                      case HST_AUTHOR:
@@ -3230,6 +3335,7 @@ BOOL CLampView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
             case HST_INFTAG:
             case HST_UNFTAG:
             case HST_TAGTAG:
+            case HST_NEW_MESSAGES_NOTE:
             case HST_WTFTAG:
                {
                   SetCursor(::LoadCursor(NULL, IDC_HAND));
@@ -4700,5 +4806,25 @@ void CLampView::OnUpdateWikipediaSelected(CCmdUI *pCmdUI)
    else
    {
       pCmdUI->Enable(FALSE);
+   }
+}
+
+void CLampView::OnAutoCheckInbox()
+{
+   theApp.SetAutoCheckInbox(!theApp.GetAutoCheckInbox());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateAutoCheckInbox(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.GetAutoCheckInbox())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
    }
 }

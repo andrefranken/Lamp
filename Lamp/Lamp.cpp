@@ -310,6 +310,60 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                   }
                }
             }
+            else if(pDD->m_dt == DT_SHACKMSG)
+            {
+               if(pDD->m_data != NULL)
+               {
+                  CXMLTree xmldata;
+                  if(GetXMLDataFromString(xmldata, (const char *)pDD->m_data, pDD->m_datasize))
+                  {
+                     // look for unread messages on page 1
+                     m_unreadmessagecount = 0;
+
+                     if(xmldata.GetTag() == L"messages")
+                     {
+                        int count = xmldata.CountChildren();
+                        for(int i = 0; i < count; i++)
+                        {
+                           CXMLElement *pChild = xmldata.GetChildElement(i);
+                           if(pChild != NULL &&
+                              pChild->GetTag() == L"message")
+                           {
+                              UCString temp = pChild->GetAttributeValue(L"status");
+                              if(temp == L"unread")
+                              {
+                                 m_unreadmessagecount++;
+                              }
+                           }
+                        }
+                     }
+
+                     UpdateNewMessages();
+               
+                     // if the inbox is open, and it is on page 1, update it
+                     std::list<CLampView*>::iterator it = m_views.begin();
+                     std::list<CLampView*>::iterator end = m_views.end();
+
+                     while(it != end)
+                     {
+                        if((*it)->GetDocument()->GetDataType() == DDT_SHACKMSG &&
+                           (*it)->GetDocument()->GetShackMessageType() == SMT_INBOX &&
+                           (*it)->GetDocument()->GetPage() == 1 &&
+                           !(*it)->GetDLGUp())
+                        {
+                           (*it)->GetDocument()->ReadShackMessages(xmldata);
+                        }
+                        it++;
+                     }
+
+                     CLampView *pView = ((CMainFrame*)GetMainWnd())->GetActiveLampView();
+                     if(pView != NULL)
+                     {
+                        pView->InvalidateEverything();
+                     }
+                  }
+               }
+            }
 
             if(pDD->m_data != NULL)
             {
@@ -414,6 +468,11 @@ CLampApp::CLampApp()
 
    m_enable_spell_checker = true;
    m_highlight_OP = true;
+
+   m_unreadmessagecount = 0;
+
+   wcscpy_s(m_new_messages_text,17,L"000 new messages");
+
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
 }
@@ -555,6 +614,8 @@ BOOL CLampApp::InitInstance()
    int widths[4];
    GetCharWidths(L"wag", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
    m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
+
+   UpdateNewMessages();
    
 	InitContextMenuManager();
 
@@ -1018,6 +1079,10 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"FlaredBranches");
    if(setting!=NULL) m_bFlaredBranches = setting->GetValue();
    else m_bFlaredBranches = true;
+
+   setting = hostxml.FindChildElement(L"auto_check_inbox");
+   if(setting!=NULL) m_auto_check_inbox = setting->GetValue();
+   else m_auto_check_inbox = true;
    
    setting = hostxml.FindChildElement(L"AlwaysOnTopWhenNotDocked");
    if(setting!=NULL) m_bAlwaysOnTopWhenNotDocked = setting->GetValue();
@@ -1321,6 +1386,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"ShowLOLButtons",UCString(m_bShowLOLButtons));
    settingsxml.AddChildElement(L"SmallLOLButtons",UCString(m_bShowSmallLOL));
    settingsxml.AddChildElement(L"FlaredBranches",UCString(m_bFlaredBranches));
+   settingsxml.AddChildElement(L"auto_check_inbox",UCString(m_auto_check_inbox));
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
    settingsxml.AddChildElement(L"num_minutes_check_inbox",UCString(m_num_minutes_check_inbox));
    settingsxml.AddChildElement(L"enable_spell_checker",UCString(m_enable_spell_checker));
@@ -2255,19 +2321,23 @@ void CLampApp::RefreshLOLs()
 
 void CLampApp::UpdateInbox()
 {
-   std::list<CLampView*>::iterator it = m_views.begin();
-   std::list<CLampView*>::iterator end = m_views.end();
-
-   while(it != end)
+   if(m_auto_check_inbox)
    {
-      if((*it)->GetDocument()->GetDataType() == DDT_SHACKMSG &&
-         (*it)->GetDocument()->GetShackMessageType() == SMT_INBOX &&
-         !(*it)->GetDLGUp())
-      {
-         (*it)->GetDocument()->GetShackMessages();
-         (*it)->InvalidateEverything();
-      }
-      it++;
+      CDownloadData *pDD = new CDownloadData();
+
+      UCString path = L"/Messages/?box=inbox&page=1";
+
+      pDD->m_host = GetHostName();
+      pDD->m_path = path;
+      pDD->m_WhoWants = this;
+      pDD->m_dt = DT_SHACKMSG;
+      pDD->m_id = 0;
+      pDD->m_refreshid = 0;
+      pDD->reply_to_id = 0;
+      pDD->m_username = GetUsername();
+      pDD->m_password = GetPassword();
+
+      AfxBeginThread(DownloadThreadProc, pDD);
    }
 }
 
@@ -2301,6 +2371,8 @@ void CLampApp::InvalidateSkinAllViews()
    GetCharWidths(L"wag", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
    m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
 
+   UpdateNewMessages();
+
    std::list<CLampView*>::iterator it = m_views.begin();
    std::list<CLampView*>::iterator end = m_views.end();
 
@@ -2310,6 +2382,90 @@ void CLampApp::InvalidateSkinAllViews()
       it++;
    }
 }
+
+void CLampApp::ShowNewMessages()
+{
+   bool bInboxTookIt = false;
+   // if the inbox is open, and it is on page 1, update it
+   std::list<CLampView*>::iterator it = m_views.begin();
+   std::list<CLampView*>::iterator end = m_views.end();
+
+   while(it != end)
+   {
+      if((*it)->GetDocument()->GetDataType() == DDT_SHACKMSG &&
+         (*it)->GetDocument()->GetShackMessageType() == SMT_INBOX)
+      {
+         (*it)->GetDocument()->SetPage(1);
+         (*it)->GetDocument()->Refresh();
+         
+         CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+         if(pMainFrame)
+         {
+            CHackedTabCtrl *tabctrl = (CHackedTabCtrl*)pMainFrame->GetCA()->FindActiveTabWnd();
+            if(tabctrl != NULL)
+            {
+               int numtabs = tabctrl->GetTabsNum();
+               for(int i=0; i < numtabs; i++)
+               {
+                  CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
+                  if(pFrame != NULL)
+                  {
+                     CLampView *pView = pFrame->GetView();
+                     if(pView != NULL &&
+                        pView == (*it))
+                     {
+                        tabctrl->SetActiveTab(i);
+                        break;
+                     }
+                  }
+               }
+            }
+         }
+
+         bInboxTookIt = true;
+      }
+      it++;
+   }
+
+   if(!bInboxTookIt)
+   {
+      OpenDocumentFile(L"SHACKMSG_INBOX");
+   }
+}
+
+void CLampApp::UpdateNewMessages()
+{
+   UCString num = m_unreadmessagecount;
+
+   if(num.Length() < 4)
+   {
+      m_pNewMessages = m_new_messages_text + (3 - num.Length());
+
+      UCChar *pWrite = (UCChar *)m_pNewMessages;
+      const UCChar *pRead = num.Str();
+      const UCChar *pEnd = pRead + num.Length();
+
+      while(pRead < pEnd)
+      {
+         *pWrite = *pRead;
+         pRead++;
+         pWrite++;
+      }
+
+      m_new_messages_charcount = 16 - (3 - num.Length());
+      if(m_unreadmessagecount == 1)
+         m_new_messages_charcount--;
+
+      GetCharWidths(m_pNewMessages, m_new_messages_widths, m_new_messages_charcount, false, false, false, GetNormalFontName());
+
+      m_new_messages_textwidth = 0;
+      for(size_t i = 0; i < m_new_messages_charcount; i++)
+      {
+         m_new_messages_textwidth += m_new_messages_widths[i];
+      }
+   }
+}
+
 // CLampApp message handlers
 
 

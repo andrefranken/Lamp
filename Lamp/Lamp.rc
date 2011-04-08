@@ -228,6 +228,7 @@ BEGIN
         MENUITEM "Check Spelling",              ID_CHECK_SPELLING
         MENUITEM "Highlight OP's Replies",      ID_HIGHLIGHT_OP
         MENUITEM "Show recent branches Flared", ID_FLAREDBRANCHES
+        MENUITEM "Auto-Check Inbox",            ID_AUTOCHECKINBOX
         MENUITEM SEPARATOR
         POPUP "Fonts"
         BEGIN

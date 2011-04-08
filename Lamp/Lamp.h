@@ -682,12 +682,32 @@ public:
    bool FlaredBranches(){return m_bFlaredBranches;}
    void SetFlaredBranches(bool value){m_bFlaredBranches = value;}
 
+   bool GetAutoCheckInbox(){return m_auto_check_inbox;}
+   void SetAutoCheckInbox(bool value){m_auto_check_inbox = value;}
+   
    void ClearSession(){m_session.clear();}
 
    void AddToSession(UCString &launch){m_session.push_back(launch);}
 
    std::vector<UCString> GetCheatSheet(){return m_cheatsheet;}
    size_t GetCheatSheetSize(){return m_cheatsheet.size();}
+
+
+   bool HaveNewMessages(){return (m_unreadmessagecount > 0)?true:false;}
+
+   void GetNewMessagesText(const UCChar **pChar, int **widths, size_t &numchars, int &textwidth)
+   {
+      *pChar = m_pNewMessages;
+      *widths = m_new_messages_widths;
+      numchars = m_new_messages_charcount;
+      textwidth = m_new_messages_textwidth;
+   }
+
+   void SetNewMessageCount(size_t value){m_unreadmessagecount = value; UpdateNewMessages();}
+
+   void UpdateNewMessages();
+
+   void ShowNewMessages();
       
 // Overrides
 public:
@@ -947,6 +967,16 @@ protected:
    std::vector<UCString> m_cheatsheet;
 
    std::vector<UCString> m_session;
+
+   size_t m_unreadmessagecount;
+
+   UCChar m_new_messages_text[17];
+   int m_new_messages_widths[16];
+   const UCChar *m_pNewMessages;
+   size_t m_new_messages_charcount;
+   int m_new_messages_textwidth;
+
+   bool m_auto_check_inbox;
 
 public:
    afx_msg void OnFileSetuplogininfo();
