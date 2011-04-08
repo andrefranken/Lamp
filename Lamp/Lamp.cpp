@@ -1026,7 +1026,7 @@ void CLampApp::ReadSettingsFile()
 
    setting = hostxml.FindChildElement(L"inertia_friction");
    if(setting!=NULL) m_inertia_friction = setting->GetValue();
-   else m_inertia_friction = 0.01f;
+   else m_inertia_friction = 0.025f;
    if(m_inertia_friction < 0.000000001f)
       m_inertia_friction = 0.000000001f;
    if(m_inertia_friction > 1.0f)
