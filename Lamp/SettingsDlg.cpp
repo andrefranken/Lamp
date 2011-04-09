@@ -39,12 +39,14 @@ void CSettingsDlg::OnBnClickedOk()
    CEdit *pNumShowTrunc = (CEdit*)GetDlgItem(IDC_NUM_SHOW_TRUNC_EDIT);
    CEdit *pNumMinsInbox = (CEdit*)GetDlgItem(IDC_NUM_MIN_INBOX_EDIT);
    CEdit *pInertia = (CEdit*)GetDlgItem(IDC_INERTIA_EDIT);
+   CEdit *pHoursExpire = (CEdit*)GetDlgItem(IDC_NUM_HOURS_EXPIRE_EDIT);
 
    if(pMouseWheelSpeed != NULL &&
       pMBPanSpeed != NULL &&
       pNumShowTrunc != NULL &&
       pNumMinsInbox != NULL &&
-      pInertia != NULL)
+      pInertia != NULL &&
+      pHoursExpire != NULL)
    {
       CString temp;
       UCString temp2;
@@ -67,6 +69,10 @@ void CSettingsDlg::OnBnClickedOk()
       pInertia->GetWindowTextW(temp);
       temp2 = temp;
       theApp.SetInertiaFriction(temp2);
+
+      pHoursExpire->GetWindowTextW(temp);
+      temp2 = temp;
+      theApp.SetHoursExpire(temp2);
    }
 
    OnOK();
@@ -79,18 +85,21 @@ BOOL CSettingsDlg::OnInitDialog()
    CEdit *pNumShowTrunc = (CEdit*)GetDlgItem(IDC_NUM_SHOW_TRUNC_EDIT);
    CEdit *pNumMinsInbox = (CEdit*)GetDlgItem(IDC_NUM_MIN_INBOX_EDIT);
    CEdit *pInertia = (CEdit*)GetDlgItem(IDC_INERTIA_EDIT);
+   CEdit *pHoursExpire = (CEdit*)GetDlgItem(IDC_NUM_HOURS_EXPIRE_EDIT);
 
    if(pMouseWheelSpeed != NULL &&
       pMBPanSpeed != NULL &&
       pNumShowTrunc != NULL &&
       pNumMinsInbox != NULL &&
-      pInertia != NULL)
+      pInertia != NULL &&
+      pHoursExpire != NULL)
    {
       pMouseWheelSpeed->SetWindowTextW(UCString(theApp.GetMouseWheelScale()));
       pMBPanSpeed->SetWindowTextW(UCString(theApp.GetMBPanScale()));
       pNumShowTrunc->SetWindowTextW(UCString(theApp.GetNumToShowWhenTruncated()));
       pNumMinsInbox->SetWindowTextW(UCString(theApp.GetNumMinutesCheckInbox()));
       pInertia->SetWindowTextW(UCString(theApp.GetInertiaFriction()));
+      pHoursExpire->SetWindowTextW(UCString(theApp.GetHoursExpire()));
    }
 
    CDialog::OnInitDialog();

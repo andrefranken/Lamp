@@ -1008,6 +1008,10 @@ void CLampApp::ReadSettingsFile()
    if(m_smoothscrollscale == 0.0f)
       m_smoothscrollscale = 0.1f;
 
+   setting = hostxml.FindChildElement(L"hours_expire");
+   if(setting!=NULL) m_hours_expire = setting->GetValue();
+   else m_hours_expire = 18;
+
    setting = hostxml.FindChildElement(L"skin_folder");
    if(setting!=NULL) m_skinname = setting->GetValue();
    else m_skinname = L"roundshack";
@@ -1376,6 +1380,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"tab_title_word_limit",UCString(m_tab_title_word_limit));
    settingsxml.AddChildElement(L"tab_title_char_limit",UCString(m_tab_title_char_limit));
    settingsxml.AddChildElement(L"smooth_scroll_scale",UCString(m_smoothscrollscale));
+   settingsxml.AddChildElement(L"hours_expire",UCString(m_hours_expire));
    settingsxml.AddChildElement(L"skin_folder",m_skinname);
    settingsxml.AddChildElement(L"mouse_wheel_scale",UCString(m_mouse_wheel_scale));
    settingsxml.AddChildElement(L"mb_pan_scale",UCString(m_mb_pan_scale));

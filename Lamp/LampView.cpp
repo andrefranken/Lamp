@@ -2330,6 +2330,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               DrawEverythingToBuffer();
                               int top = post->GetPos();
                               int bottom = top + post->GetHeight();
+
                               if(m_mousepoint.y < top ||
                                  m_mousepoint.y > bottom)
                               {
@@ -2337,6 +2338,13 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                                  MakePosLegal();
                                  m_pos = m_gotopos;// don't animate to the pos
                               }
+                              else if(top < 0)
+                              {
+                                 m_gotopos += top;
+                                 MakePosLegal();
+                                 m_pos = m_gotopos;// don't animate to the pos
+                              }
+                              
                               InvalidateEverything();
                            }
                         }
@@ -3063,8 +3071,12 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
    if(!GetDocument()->IsBusy())
    {
-      if(m_pReplyDlg != NULL &&
-         m_pReplyDlg->GetHasFocus())
+      if(nChar == VK_ESCAPE)
+      {
+         CloseReplyDialog();
+      }
+      else if(m_pReplyDlg != NULL &&
+              m_pReplyDlg->GetHasFocus())
       {
          m_pReplyDlg->OnKeyDown(nChar, nRepCnt, nFlags);
          InvalidateEverything();
@@ -3265,6 +3277,42 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                   m_bInertialPanning = false;
                   m_mousehistory.clear();
                }
+            }
+         }
+         else if((nChar == 'r' ||
+                  nChar == 'R') &&
+                 m_current_id != 0 &&
+                 m_pReplyDlg == NULL &&
+                 theApp.HaveLogin())
+         {
+            ChattyPost *post = GetDocument()->FindPost(m_current_id);
+            if(post != NULL)
+            {
+               m_textselectionpost = 0;
+               m_pReplyDlg = new CReplyDlg(this);
+               m_pReplyDlg->SetDoc(GetDocument());
+               m_pReplyDlg->SetReplyId(m_current_id);
+               post->SetReplyDlg(m_pReplyDlg);
+               
+               RECT DeviceRectangle;
+               GetClientRect(&DeviceRectangle);
+
+               int top = post->GetPos() + post->GetHeight();
+               int bottom = top + m_pReplyDlg->GetHeight();
+               
+               if(bottom > DeviceRectangle.bottom)
+               {
+                  m_gotopos = m_pos + (bottom - DeviceRectangle.bottom) + 20;
+                  DrawEverythingToBuffer();
+                  MakePosLegal();
+               }
+               else if(top < DeviceRectangle.top)
+               {
+                  m_gotopos = m_pos - (DeviceRectangle.top - top) - 20;
+                  DrawEverythingToBuffer();
+                  MakePosLegal();
+               }
+               InvalidateEverything();
             }
          }
       }

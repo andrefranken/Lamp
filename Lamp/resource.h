@@ -54,6 +54,7 @@
 #define IDC_MB_PAN_SPEED_EDIT           1013
 #define IDC_NUM_SHOW_TRUNC_EDIT         1014
 #define IDC_NUM_MIN_INBOX_EDIT          1015
+#define IDC_NUM_HOURS_EXPIRE_EDIT       1016
 #define ID_FILE_OPENTHREAD              32771
 #define ID_EDIT_REFRESH                 32773
 #define ID_FILE_SETUPLOGININFO          32774
@@ -134,7 +135,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        328
 #define _APS_NEXT_COMMAND_VALUE         32847
-#define _APS_NEXT_CONTROL_VALUE         1016
+#define _APS_NEXT_CONTROL_VALUE         1017
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

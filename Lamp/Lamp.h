@@ -708,6 +708,9 @@ public:
    void UpdateNewMessages();
 
    void ShowNewMessages();
+
+   int GetHoursExpire(){return m_hours_expire;}
+   void SetHoursExpire(int value){m_hours_expire = value;}
       
 // Overrides
 public:
@@ -977,6 +980,8 @@ protected:
    int m_new_messages_textwidth;
 
    bool m_auto_check_inbox;
+
+   int m_hours_expire;
 
 public:
    afx_msg void OnFileSetuplogininfo();

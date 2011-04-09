@@ -3247,11 +3247,11 @@ void ChattyPost::UpdateDate()
          m_datetext += L"just now";
       }
 
-      if(ago_minutes > (24.1 * 60.0 * 60.0))
+      if(ago_minutes > ((double)theApp.GetHoursExpire() * 60.0 * 60.0))
       {
          m_ago_color = theApp.GetExpiredTextColor();
       }
-      else if(ago_minutes > (23.0 * 60.0 * 60.0))
+      else if(ago_minutes > ((double)(theApp.GetHoursExpire() - 1) * 60.0 * 60.0))
       {
          m_ago_color = theApp.GetExpiringTextColor();
       }
