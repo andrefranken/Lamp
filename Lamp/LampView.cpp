@@ -2408,7 +2408,23 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         break;
                      case HST_CREATEREPLY:
                         {
-                           if(theApp.HaveLogin())
+                           if(m_pReplyDlg != NULL)
+                           {
+                              ChattyPost *post = GetDocument()->FindPost(m_pReplyDlg->GetReplyId());
+                              if(post != NULL)
+                              {
+                                 post->SetReplyDlg(NULL);
+                              }
+
+                              post = GetDocument()->FindPost(m_hotspots[i].m_id);
+                              if(post != NULL)
+                              {
+                                 m_pReplyDlg->SetReplyId(m_hotspots[i].m_id);
+                                 post->SetReplyDlg(m_pReplyDlg);
+                              }                                 
+                              InvalidateEverything();
+                           }
+                           else if(theApp.HaveLogin())
                            {
                               ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
                               if(post != NULL)
@@ -3282,37 +3298,55 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
          else if((nChar == 'r' ||
                   nChar == 'R') &&
                  m_current_id != 0 &&
-                 m_pReplyDlg == NULL &&
                  theApp.HaveLogin())
          {
-            ChattyPost *post = GetDocument()->FindPost(m_current_id);
-            if(post != NULL)
+            if(m_pReplyDlg != NULL)
             {
-               m_textselectionpost = 0;
-               m_pReplyDlg = new CReplyDlg(this);
-               m_pReplyDlg->SetDoc(GetDocument());
-               m_pReplyDlg->SetReplyId(m_current_id);
-               post->SetReplyDlg(m_pReplyDlg);
-               
-               RECT DeviceRectangle;
-               GetClientRect(&DeviceRectangle);
+               ChattyPost *post = GetDocument()->FindPost(m_pReplyDlg->GetReplyId());
+               if(post != NULL)
+               {
+                  post->SetReplyDlg(NULL);
+               }
 
-               int top = post->GetPos() + post->GetHeight();
-               int bottom = top + m_pReplyDlg->GetHeight();
-               
-               if(bottom > DeviceRectangle.bottom)
+               post = GetDocument()->FindPost(m_current_id);
+               if(post != NULL)
                {
-                  m_gotopos = m_pos + (bottom - DeviceRectangle.bottom) + 20;
-                  DrawEverythingToBuffer();
-                  MakePosLegal();
-               }
-               else if(top < DeviceRectangle.top)
-               {
-                  m_gotopos = m_pos - (DeviceRectangle.top - top) - 20;
-                  DrawEverythingToBuffer();
-                  MakePosLegal();
-               }
+                  m_pReplyDlg->SetReplyId(m_current_id);
+                  post->SetReplyDlg(m_pReplyDlg);
+               }                                 
                InvalidateEverything();
+            }
+            else 
+            {
+               ChattyPost *post = GetDocument()->FindPost(m_current_id);
+               if(post != NULL)
+               {
+                  m_textselectionpost = 0;
+                  m_pReplyDlg = new CReplyDlg(this);
+                  m_pReplyDlg->SetDoc(GetDocument());
+                  m_pReplyDlg->SetReplyId(m_current_id);
+                  post->SetReplyDlg(m_pReplyDlg);
+                  
+                  RECT DeviceRectangle;
+                  GetClientRect(&DeviceRectangle);
+
+                  int top = post->GetPos() + post->GetHeight();
+                  int bottom = top + m_pReplyDlg->GetHeight();
+                  
+                  if(bottom > DeviceRectangle.bottom)
+                  {
+                     m_gotopos = m_pos + (bottom - DeviceRectangle.bottom) + 20;
+                     DrawEverythingToBuffer();
+                     MakePosLegal();
+                  }
+                  else if(top < DeviceRectangle.top)
+                  {
+                     m_gotopos = m_pos - (DeviceRectangle.top - top) - 20;
+                     DrawEverythingToBuffer();
+                     MakePosLegal();
+                  }
+                  InvalidateEverything();
+               }
             }
          }
       }

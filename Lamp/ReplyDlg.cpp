@@ -92,15 +92,25 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
    {
       switch(hotspots[i].m_type)
       {
-      case HST_SCROLLBAR:
-      case HST_SCROLLBAR_UP:
-      case HST_SCROLLBAR_DOWN:
-      case HST_SCROLLBAR_THUMB:
-      case HST_REPLYPREVIEW:
-      case HST_SPOILER:
-      case HST_TEXT:
-      case HST_LINK:
-      case HST_IMAGELINK:
+      case HST_CREATEREPLY:
+         if(hotspots[i].m_id == m_replytoid)
+         {
+            // don't keep it
+         }
+         else
+         {
+            newhotspots.push_back(hotspots[i]);
+         }
+         break;
+      case HST_NEWTHREAD:
+      case HST_PREV_PAGE:
+      case HST_NEXT_PAGE:
+      case HST_PAGE:
+      case HST_COLLAPSEPOST:
+      case HST_REFRESHSTORY:
+         // dissallow these
+         break;
+      default:
          newhotspots.push_back(hotspots[i]);
          break;
       }

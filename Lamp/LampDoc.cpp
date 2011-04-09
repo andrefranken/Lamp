@@ -987,11 +987,68 @@ BOOL CLampDoc::OnOpenDocument( LPCTSTR lpszPathName )
       }
    }
 
-   if(end - start > 14 &&
-      _wcsnicmp(start,L"search.x?type=",14) == 0)
+   if(end - start > 7 &&
+      _wcsnicmp(start,L"search?",7) == 0)
    {
-      // todo
-      // comments&terms=ffxii&cs_user=Modica+Sol+Solis&cs_parentauthor=&s_type=all
+      m_search_author = L"";
+      m_search_parent_author = L"";
+      m_search_terms = L"";
+
+      const UCChar *work = wcsstr(start, L"chatty_term=");
+      if(work != NULL)
+      {
+         work += 12;
+         while(work < end && *work != L'&'){m_search_terms += *work;work++;}
+         m_search_terms.ReplaceAll(L'+',L' ');
+      }
+
+      work = wcsstr(start, L"chatty_user=");
+      if(work != NULL)
+      {
+         work += 12;
+         while(work < end && *work != L'&'){m_search_author += *work;work++;}
+         m_search_author.ReplaceAll(L'+',L' ');
+      }
+
+      work = wcsstr(start, L"chatty_author=");
+      if(work != NULL)
+      {
+         work += 14;
+         while(work < end && *work != L'&'){m_search_parent_author += *work;work++;}
+         m_search_parent_author.ReplaceAll(L'+',L' ');
+      }
+
+      if(!m_search_author.IsEmpty() &&
+         m_search_parent_author.IsEmpty() &&
+         m_search_terms.IsEmpty())
+      {
+         m_title = m_search_author;
+         m_title += L"'s Comments";
+      }
+      else if(m_search_author.IsEmpty() &&
+              !m_search_parent_author.IsEmpty() &&
+              m_search_terms.IsEmpty())
+      {
+         m_title = L"Replies to ";
+         m_title += m_search_parent_author;            
+      }
+      else if(m_search_author.IsEmpty() &&
+              m_search_parent_author.IsEmpty() &&
+              !m_search_terms.IsEmpty())
+      {
+         m_title = m_search_terms;
+      }
+      else
+      {
+         m_title = L"Custom Search";
+      }
+               
+      MySetTitle(m_title);
+
+      m_bScramblePath = true;
+
+      issearch = true;
+      
    }
    else if(end - start > 14 &&
       _wcsnicmp(start,L"story?id=",10) == 0)

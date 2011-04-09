@@ -2227,6 +2227,14 @@ void CLampApp::OpenShackLink(const UCString &shackpath)
          {
             bIsMine = true;
          }
+         else
+         {
+            work = wcsstr(shackpath,L"/search?");
+            if(work != NULL)
+            {
+               bIsMine = true;
+            }
+         }
       }
    }
    else
