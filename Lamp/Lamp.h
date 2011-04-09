@@ -44,6 +44,12 @@ public:
    byte m_mylols;
 };
 
+class CSuggestion
+{
+public:
+   UCString display;
+   UCString value;
+};
 
 class CShackBookmark
 {
@@ -574,7 +580,7 @@ public:
 
    bool IsSpelledCorrectly(const UCChar *wordtotest, size_t count);
 
-   void GetSpellSuggestions(const UCChar *wordtotest, size_t count, std::vector<UCString> &suggestions);
+   void GetSpellSuggestions(const UCChar *wordtotest, size_t count, std::vector<CSuggestion> &suggestions);
 
    void AddMyLol(unsigned int post_id, loltagtype);
    byte GetMyLol(unsigned int post_id);
@@ -689,7 +695,7 @@ public:
 
    void AddToSession(UCString &launch){m_session.push_back(launch);}
 
-   std::vector<UCString> GetCheatSheet(){return m_cheatsheet;}
+   std::vector<CSuggestion> GetCheatSheet(){return m_cheatsheet;}
    size_t GetCheatSheetSize(){return m_cheatsheet.size();}
 
 
@@ -967,7 +973,7 @@ protected:
 
    float m_inertia_friction;
 
-   std::vector<UCString> m_cheatsheet;
+   std::vector<CSuggestion> m_cheatsheet;
 
    std::vector<UCString> m_session;
 

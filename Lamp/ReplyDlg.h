@@ -11,7 +11,6 @@ public:
    int end;
 };
 
-
 // CReplyDlg dialog
 
 class CReplyDlg
@@ -227,7 +226,7 @@ protected:
    UINT m_timer;
 
    bool m_bSuggestionsUp;
-   std::vector<UCString> m_suggestions;
+   std::vector<CSuggestion> m_suggestions;
    CCharRange m_suggestion_who;
    int m_widest_suggestion;
    RECT m_suggestionsrect;

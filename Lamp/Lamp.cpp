@@ -1283,7 +1283,16 @@ void CLampApp::ReadSettingsFile()
          CXMLElement *cheat = setting->GetChildElement(i);
          if(cheat != NULL && cheat->GetTag() == L"cheat")
          {
-            m_cheatsheet.push_back(cheat->GetValue());
+            CSuggestion temp;
+            temp.value = cheat->GetValue();
+            temp.display = cheat->GetValue();
+            temp.display.ReplaceAll(L'\n',L' ');
+            if(temp.display.Length() > 20)
+            {
+               temp.display.TrimEnd(temp.display.Length() - 20);
+               temp.display += L"...";
+            }
+            m_cheatsheet.push_back(temp);
          }
       }
    }
@@ -1438,7 +1447,7 @@ void CLampApp::WriteSettingsFile()
 
       for(size_t i = 0; i < m_cheatsheet.size(); i++)
       {
-         cheatsheet->AddChildElement(L"cheat",m_cheatsheet[i]);
+         cheatsheet->AddChildElement(L"cheat",m_cheatsheet[i].value);
       }
    }
 
@@ -2576,7 +2585,7 @@ bool CLampApp::IsSpelledCorrectly(const UCChar *wordtotest,
 
 void CLampApp::GetSpellSuggestions(const UCChar *wordtotest, 
                                    size_t count, 
-                                   std::vector<UCString> &suggestions)
+                                   std::vector<CSuggestion> &suggestions)
 {
    suggestions.clear();
 
@@ -2594,7 +2603,9 @@ void CLampApp::GetSpellSuggestions(const UCChar *wordtotest,
 
       for(int i = 0; i < numsuggestions; i++)
       {
-         UCString temp = wlsti[i];
+         CSuggestion temp;
+         temp.display = wlsti[i];
+         temp.value = wlsti[i];
          suggestions.push_back(temp);
       }
 

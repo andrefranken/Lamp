@@ -558,7 +558,7 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
 
          for(size_t i = 0; i < m_suggestions.size(); i++)
          {
-            ::ExtTextOutW(hDC, x, y, 0, NULL, m_suggestions[i].Str(), m_suggestions[i].Length(), NULL);
+            ::ExtTextOutW(hDC, x, y, 0, NULL, m_suggestions[i].display.Str(), m_suggestions[i].display.Length(), NULL);
             
             hotspot.m_type = HST_SPELL_SUGGESTION;
             hotspot.m_spot = thisrect;
@@ -970,7 +970,7 @@ bool CReplyDlg::OnLButtonDown(UINT nFlags, CPoint point, bool &bCloseReplyDlg)
                m_caretanchor = m_suggestion_who.begin;
                m_caretpos = m_suggestion_who.end;
 
-               InsertString(m_suggestions[i]);
+               InsertString(m_suggestions[i].value);
                m_bHaveFocus = true;
                break;
             }
@@ -1775,9 +1775,9 @@ void CReplyDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
                for(size_t j = 0; j < m_suggestions.size(); j++)
                {
-                  int numchars = m_suggestions[j].Length();
+                  int numchars = m_suggestions[j].display.Length();
                   int *pCharWidths = (int*)malloc(sizeof(int) * numchars);
-                  GetCharWidths(m_suggestions[j], pCharWidths, m_suggestions[j].Length(), false, false, false, theApp.GetNormalFontName());
+                  GetCharWidths(m_suggestions[j].display, pCharWidths, m_suggestions[j].display.Length(), false, false, false, theApp.GetNormalFontName());
                   int thiswidth = 0;
                   for(int k = 0; k < numchars; k++)
                   {
@@ -2287,9 +2287,9 @@ bool CReplyDlg::OnRButtonDown(UINT nFlags, CPoint point)
 
                for(size_t j = 0; j < m_suggestions.size(); j++)
                {
-                  int numchars = m_suggestions[j].Length();
+                  int numchars = m_suggestions[j].display.Length();
                   int *pCharWidths = (int*)malloc(sizeof(int) * numchars);
-                  GetCharWidths(m_suggestions[j], pCharWidths, m_suggestions[j].Length(), false, false, false, theApp.GetNormalFontName());
+                  GetCharWidths(m_suggestions[j].display, pCharWidths, m_suggestions[j].display.Length(), false, false, false, theApp.GetNormalFontName());
                   int thiswidth = 0;
                   for(int k = 0; k < numchars; k++)
                   {
