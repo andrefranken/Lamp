@@ -76,6 +76,7 @@ protected:
 	afx_msg void OnUpdateApplicationLook(CCmdUI* pCmdUI);
    afx_msg void OnKillFocus(CWnd* pNewWnd);
    afx_msg LRESULT OnExpandTabs(WPARAM,LPARAM);
+   afx_msg LRESULT OnWakeUp(WPARAM,LPARAM);
    afx_msg void OnBookmarkMenu();
    afx_msg void OnUpdateBookmarkMenu(CCmdUI *pCmdUI);
    afx_msg void OnBookmark(UINT id);

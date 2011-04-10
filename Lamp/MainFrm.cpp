@@ -30,6 +30,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
 	ON_COMMAND_RANGE(ID_VIEW_APPLOOK_WIN_2000, ID_VIEW_APPLOOK_OFF_2007_AQUA, &CMainFrame::OnApplicationLook)
 	ON_UPDATE_COMMAND_UI_RANGE(ID_VIEW_APPLOOK_WIN_2000, ID_VIEW_APPLOOK_OFF_2007_AQUA, &CMainFrame::OnUpdateApplicationLook)
    ON_MESSAGE(WM_EXPAND_TABS, &CMainFrame::OnExpandTabs)
+   ON_MESSAGE(WM_WAKEUP, &CMainFrame::OnWakeUp)
    ON_COMMAND(ID_BOOKMARK_MENU, OnBookmarkMenu)
    ON_UPDATE_COMMAND_UI(ID_BOOKMARK_MENU, OnUpdateBookmarkMenu)
    ON_COMMAND_RANGE(ID_BOOKMARK_MENUITEM, ID_BOOKMARK_MENUITEM + 100, &CMainFrame::OnBookmark)
@@ -150,6 +151,9 @@ void CMainFrame::UpdateInboxTimer()
 
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
+   static wchar_t classname[] =  L"Lamp - Shack Client";
+   cs.lpszClass = classname;
+
 	if( !CMDIFrameWndEx::PreCreateWindow(cs) )
 		return FALSE;
 	// TODO: Modify the Window class or styles here by modifying
@@ -327,6 +331,24 @@ CLampView *CMainFrame::GetActiveLampView(void)
 LRESULT CMainFrame::OnExpandTabs(WPARAM,LPARAM)
 {
    theApp.UpdateTabSizes();
+   return 0;
+}
+
+LRESULT CMainFrame::OnWakeUp(WPARAM,LPARAM)
+{
+   if(theApp.m_bDockedMode &&
+      theApp.m_bCollapsed)
+   {
+      DockTab *pDT = theApp.GetDockTab();
+      if(pDT != NULL)
+      {
+         pDT->Trip();
+      }
+   }
+   else
+   {
+      SetFocus();
+   }
    return 0;
 }
 

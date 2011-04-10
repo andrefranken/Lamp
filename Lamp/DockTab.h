@@ -13,6 +13,8 @@ public:
 
    CMainFrame *m_pFrameWnd;
 
+   void Trip();
+
 // Dialog Data
 	enum { IDD = IDD_DOCKTAB };
 

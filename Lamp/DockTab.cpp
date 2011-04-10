@@ -31,10 +31,7 @@ BEGIN_MESSAGE_MAP(DockTab, CDialog)
    ON_WM_PAINT()
 END_MESSAGE_MAP()
 
-
-// DockTab message handlers
-
-void DockTab::OnMouseMove(UINT nFlags, CPoint point) 
+void DockTab::Trip()
 {
    if(theApp.m_bDockedMode &&
       theApp.m_bCollapsed)
@@ -57,7 +54,14 @@ void DockTab::OnMouseMove(UINT nFlags, CPoint point)
       
       AttachThreadInput(GetWindowThreadProcessId(::GetForegroundWindow(),NULL),GetCurrentThreadId(),FALSE);
    }
+}
 
+
+// DockTab message handlers
+
+void DockTab::OnMouseMove(UINT nFlags, CPoint point) 
+{
+   Trip();
    CDialog::OnMouseMove(nFlags, point);
 }
 

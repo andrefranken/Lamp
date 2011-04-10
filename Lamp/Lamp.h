@@ -19,6 +19,7 @@
 //
 
 #define WM_EXPAND_TABS (WM_USER + 101)
+#define WM_WAKEUP (WM_USER + 102)
 
 #define LAMP_VERSION_MAJOR 1
 #define LAMP_VERSION_MINOR 7
@@ -717,6 +718,7 @@ public:
 
    int GetHoursExpire(){return m_hours_expire;}
    void SetHoursExpire(int value){m_hours_expire = value;}
+   DockTab *GetDockTab(){return m_pDockTab;}
       
 // Overrides
 public:
@@ -754,6 +756,10 @@ protected:
 
    void ReadBookmarks();
    void WriteBookmarks();
+
+   bool PreventMultipleInstances();
+
+   HANDLE m_hMutex;
    
    CDCSurface m_refresh_buffer;
    CDCSurface m_refresh_hover_buffer;

@@ -485,8 +485,47 @@ CRITICAL_SECTION g_ThreadAccess;
 
 // CLampApp initialization
 
+bool CLampApp::PreventMultipleInstances()
+{
+#ifndef _DEBUG
+
+	// Create mutex, because there cannot be 2 instances of the same application
+	m_hMutex = CreateMutex(NULL, FALSE, L"Lamp - Shack Client"); 
+
+	// Check if mutex is created succesfully
+	switch (GetLastError())
+	{
+	case ERROR_SUCCESS:
+		// Mutex created successfully. There is no instance running
+		break;
+		
+	case ERROR_ALREADY_EXISTS:
+		// Mutex already exists so there is a running instance of our app.
+		return false;
+		
+	default:
+		// Failed to create mutex by unknown reason
+		return false;
+	}
+#endif
+
+	// Succeeded
+	return true;
+}
+
+
 BOOL CLampApp::InitInstance()
 {
+   if(PreventMultipleInstances() == false)
+   {
+      HWND hLamp = ::FindWindow(L"Lamp - Shack Client",NULL);
+      if(hLamp != NULL)
+      {
+         ::PostMessage(hLamp,WM_WAKEUP,0,0);
+      }
+      return FALSE;
+   }
+
    ::InitializeCriticalSection(&g_ThreadAccess);
 
    // Parse command line for standard shell commands, DDE, file open
@@ -619,6 +658,32 @@ BOOL CLampApp::InitInstance()
    m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
 
    UpdateNewMessages();
+
+   ///
+   WNDCLASSW wndcls;
+
+   memset(&wndcls, 0, sizeof(WNDCLASSW));   // start with NULL
+                                            // defaults
+
+   wndcls.style = CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
+
+   //you can specify your own window procedure
+   wndcls.lpfnWndProc = ::DefWindowProc; 
+   wndcls.hInstance = AfxGetInstanceHandle();
+   wndcls.hIcon = LoadIcon(IDR_MAINFRAME); // or load a different icon
+   wndcls.hCursor = LoadCursor( IDC_ARROW );
+   wndcls.hbrBackground = 0;
+   wndcls.lpszMenuName = NULL;
+   // Specify your own class name for using FindWindow later
+   wndcls.lpszClassName = _T("Lamp - Shack Client");
+
+   // Register the new class and exit if it fails
+   if(!AfxRegisterClass(&wndcls))
+   {
+      TRACE("Class Registration Failed\n");
+      return FALSE;
+   }
+   ///
    
 	InitContextMenuManager();
 
