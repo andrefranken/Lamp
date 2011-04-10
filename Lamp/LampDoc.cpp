@@ -3336,6 +3336,10 @@ void CLampDoc::DrawPreviewText(HDC hDC,
    HFONT hCreatedFont = NULL;
    HFONT hPreviousFont = NULL;
 
+   int rise = theApp.GetDescent();
+
+   ::SetTextAlign(hDC,TA_LEFT|TA_BASELINE);
+
    // setup initial font stuff
    ::SetTextColor(hDC,normalcolor);
    hPreviousFont = (HFONT)::SelectObject(hDC, m_normalfont);
@@ -3384,7 +3388,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
       }
       else
       {
-         MyTextOut(hDC, rect.left, rect.bottom, text, numchars, charwidths, NULL);
+         MyTextOut(hDC, rect.left, rect.bottom - rise, text, numchars, charwidths, NULL);
          //::ExtTextOutW(hDC, rect.left, rect.bottom, 0, NULL, text, numchars, charwidths);
       }
    }
@@ -3419,7 +3423,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
          }
          else
          {
-            MyTextOut(hDC, x, rect.bottom, text, charsthisrun, charwidths, NULL);
+            MyTextOut(hDC, x, rect.bottom - rise, text, charsthisrun, charwidths, NULL);
             //::ExtTextOutW(hDC, x, rect.bottom, 0, NULL, text, charsthisrun, charwidths);
          }
          
@@ -3589,7 +3593,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
          }
          else
          {
-            MyTextOut(hDC, x, rect.bottom, text.Str() + start, finish - start, charwidths + start, NULL);
+            MyTextOut(hDC, x, rect.bottom - rise, text.Str() + start, finish - start, charwidths + start, NULL);
             //::ExtTextOutW(hDC, x, rect.bottom, 0, NULL, text.Str() + start, finish - start, charwidths + start);
          }
                   
@@ -3615,6 +3619,8 @@ void CLampDoc::DrawPreviewText(HDC hDC,
    {
       ::DeleteObject(hCreatedFont);
    }
+
+   ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
 }
 
 void CLampDoc::DrawBodyText(HDC hDC, 
@@ -3630,6 +3636,10 @@ void CLampDoc::DrawBodyText(HDC hDC,
                             const RECT *pClipRect/*=NULL*/)
 {
    int y = rect.top + 4 + theApp.GetTextHeight();
+
+   int rise = theApp.GetDescent();
+
+   ::SetTextAlign(hDC,TA_LEFT|TA_BASELINE);
 
    std::vector<COLORREF> colorstack;
    bool quote = false;
@@ -3714,7 +3724,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                   }
                   links.push_back(linkrect);
                }
-               MyTextOut(hDC, x, y, pLineText, numchars, pLineWidths,pClipRect);
+               MyTextOut(hDC, x, y - rise, pLineText, numchars, pLineWidths,pClipRect);
                //::ExtTextOutW(hDC, x, y, 0, NULL, pLineText, numchars, pLineWidths);
             }
          }
@@ -3764,7 +3774,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                      }
                      links.push_back(linkrect);
                   }
-                  MyTextOut(hDC, x, y, pLineText, (*it).m_pos, pLineWidths,pClipRect);
+                  MyTextOut(hDC, x, y - rise, pLineText, (*it).m_pos, pLineWidths,pClipRect);
                   //::ExtTextOutW(hDC, x, y, 0, NULL, pLineText, (*it).m_pos, pLineWidths);
                }
                
@@ -3961,7 +3971,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                      }
                      links.push_back(linkrect);
                   }
-                  MyTextOut(hDC, x, y, pLineText + start, finish - start, pLineWidths + start,pClipRect);
+                  MyTextOut(hDC, x, y - rise, pLineText + start, finish - start, pLineWidths + start,pClipRect);
                   //::ExtTextOutW(hDC, x, y, 0, NULL, pLineText + start, finish - start, pLineWidths + start);
                }
                
@@ -4009,6 +4019,8 @@ void CLampDoc::DrawBodyText(HDC hDC,
    }
 
    y += 4;
+
+   ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
 }
 
 void CLampDoc::DrawNewMessagesTab(HDC hDC, RECT &rect, const UCChar *pChar, int *widths, size_t numchars, bool bHover)

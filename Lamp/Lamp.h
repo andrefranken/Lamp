@@ -564,6 +564,7 @@ public:
       m_textscaler = value;
       m_textscaler = __min(5.0f,m_textscaler);
       m_textscaler = __max(0.5f,m_textscaler);
+      InvalidateSkinAllViews();
    }
 
    float GetMBPanScale(){return m_mb_pan_scale;}
@@ -719,6 +720,8 @@ public:
    int GetHoursExpire(){return m_hours_expire;}
    void SetHoursExpire(int value){m_hours_expire = value;}
    DockTab *GetDockTab(){return m_pDockTab;}
+
+   int GetDescent(){return m_descent;}
       
 // Overrides
 public:
@@ -758,6 +761,8 @@ protected:
    void WriteBookmarks();
 
    bool PreventMultipleInstances();
+
+   void CalcDescent();
 
    HANDLE m_hMutex;
    
@@ -913,6 +918,7 @@ protected:
    int m_samplefontheight;
    int m_textheight;
    int m_cellheight;
+   int m_descent;
 
    float m_textscaler;
 

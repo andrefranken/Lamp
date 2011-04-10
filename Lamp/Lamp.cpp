@@ -436,6 +436,7 @@ CLampApp::CLampApp()
    m_samplefontheight = -9;
    m_textheight = 16;
    m_cellheight = 20;
+   m_descent = m_textheight / 4;
 
    m_textscaler = 1.0f;
 
@@ -652,6 +653,7 @@ BOOL CLampApp::InitInstance()
    m_samplefontheight = (int)(-9.0f * m_textscaler);
    m_textheight = (int)(16.0f * m_textscaler);
    m_cellheight = (int)(20.0f * m_textscaler);
+   CalcDescent();
 
    int widths[4];
    GetCharWidths(L"wag", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
@@ -2466,6 +2468,7 @@ void CLampApp::InvalidateSkinAllViews()
    m_samplefontheight = (int)(-9.0f * m_textscaler);
    m_textheight = (int)(16.0f * m_textscaler);
    m_cellheight = (int)(20.0f * m_textscaler);
+   CalcDescent();
 
    int widths[4];
    GetCharWidths(L"wag", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
@@ -3765,3 +3768,26 @@ void CLampApp::AddLOL_WTF(unsigned int post_id, unsigned int count)
    m_cachedLOLposts[post_id] = flags;
 }
 
+void CLampApp::CalcDescent()
+{
+   HFONT hCreatedFont = ::CreateFontW(GetFontHeight(),0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,GetNormalFontName());
+
+   HDC hTempDC = ::CreateCompatibleDC(NULL);
+   HFONT oldfont = (HFONT)::SelectObject(hTempDC,hCreatedFont);
+
+   TEXTMETRIC tm;
+   GetTextMetrics(hTempDC,&tm);
+   m_descent = tm.tmDescent;
+
+   ::SelectObject(hTempDC,oldfont);
+
+   if(hTempDC != NULL)
+   {
+      ::DeleteDC(hTempDC);
+   }
+
+   if(hCreatedFont != NULL)
+   {
+      ::DeleteObject(hCreatedFont);
+   }
+}

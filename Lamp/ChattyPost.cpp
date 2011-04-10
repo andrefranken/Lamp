@@ -1135,7 +1135,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_LOL, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, true);
                                                                                 
-                  lolrect.left += theApp.GetLOLFieldWidth();
+                  lolrect.left += theApp.GetLOLFieldWidth() + 5;
                   lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
 
                   hotspot.m_type = HST_INFTAG;
@@ -1146,7 +1146,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_INF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, true);
                                                                                 
-                  lolrect.left += theApp.GetLOLFieldWidth();
+                  lolrect.left += theApp.GetLOLFieldWidth() + 5;
                   lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
 
                   hotspot.m_type = HST_UNFTAG;
@@ -1157,7 +1157,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_UNF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, true);
                                                                                 
-                  lolrect.left += theApp.GetLOLFieldWidth();
+                  lolrect.left += theApp.GetLOLFieldWidth() + 5;
                   lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
 
                   hotspot.m_type = HST_TAGTAG;
@@ -1168,7 +1168,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_TAG, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, true);
                                                                                 
-                  lolrect.left += theApp.GetLOLFieldWidth();
+                  lolrect.left += theApp.GetLOLFieldWidth() + 5;
                   lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
 
                   hotspot.m_type = HST_WTFTAG;
@@ -1484,7 +1484,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_LOL, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false);
                                                                                 
-                  lolrect.left += theApp.GetLOLFieldWidth();
+                  lolrect.left += theApp.GetLOLFieldWidth() + 5;
                   lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
 
                   hotspot.m_type = HST_INFTAG;
@@ -1495,7 +1495,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_INF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false);
                                                                                 
-                  lolrect.left += theApp.GetLOLFieldWidth();
+                  lolrect.left += theApp.GetLOLFieldWidth() + 5;
                   lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
 
                   hotspot.m_type = HST_UNFTAG;
@@ -1506,7 +1506,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_UNF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false);
                                                                                 
-                  lolrect.left += theApp.GetLOLFieldWidth();
+                  lolrect.left += theApp.GetLOLFieldWidth() + 5;
                   lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
 
                   hotspot.m_type = HST_TAGTAG;
@@ -1517,7 +1517,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_TAG, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false);
                                                                                 
-                  lolrect.left += theApp.GetLOLFieldWidth();
+                  lolrect.left += theApp.GetLOLFieldWidth() + 5;
                   lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
 
                   hotspot.m_type = HST_WTFTAG;
@@ -4110,6 +4110,8 @@ void ChattyPost::UpdateLOLs()
          m_lol_preview_shacktags.push_back(shacktagpos(ST_SAMPLE,0));
       }
 
+      m_lol_preview_shacktags.push_back(shacktagpos(ST_BOLD,0));
+
       if(!m_lol_text.IsEmpty())
       {
          m_lol_preview_text += m_lol_text; 
@@ -4170,6 +4172,8 @@ void ChattyPost::UpdateLOLs()
          pos += m_wtf_text.Length();
       }
 
+      m_lol_preview_shacktags.push_back(shacktagpos(ST_BOLD_END,pos));
+
       if(theApp.ShowSmallLOL())
       {
          m_lol_preview_shacktags.push_back(shacktagpos(ST_SAMPLE_END,pos));
@@ -4177,7 +4181,7 @@ void ChattyPost::UpdateLOLs()
 
       m_plol_preview_charwidths = (int*)malloc(sizeof(int) * m_lol_preview_text.Length());
 
-      GetCharWidths(m_lol_preview_text, m_plol_preview_charwidths, m_lol_preview_text.Length(), false, false, theApp.ShowSmallLOL(), theApp.GetNormalFontName());
+      GetCharWidths(m_lol_preview_text, m_plol_preview_charwidths, m_lol_preview_text.Length(), false, true, theApp.ShowSmallLOL(), theApp.GetNormalFontName());
       m_lol_preview_size = 0;
       for(size_t i = 0; i < (size_t)m_lol_preview_text.Length(); i++)
       {

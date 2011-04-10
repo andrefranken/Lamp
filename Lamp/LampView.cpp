@@ -3853,7 +3853,6 @@ void CLampView::OnUpdateLaunchLink(CCmdUI *pCmdUI)
 void CLampView::OnViewIncreasefontsize()
 {
    theApp.SetTextScaler(theApp.GetTextScaler() * 1.1f);
-   theApp.InvalidateSkinAllViews();
 }
 
 void CLampView::OnUpdateViewIncreasefontsize(CCmdUI *pCmdUI)
@@ -3864,7 +3863,6 @@ void CLampView::OnUpdateViewIncreasefontsize(CCmdUI *pCmdUI)
 void CLampView::OnViewDecreasefontsize()
 {
    theApp.SetTextScaler(theApp.GetTextScaler() * 0.909090909090f);
-   theApp.InvalidateSkinAllViews();
 }
 
 void CLampView::OnUpdateViewDecreasefontsize(CCmdUI *pCmdUI)
@@ -3875,7 +3873,6 @@ void CLampView::OnUpdateViewDecreasefontsize(CCmdUI *pCmdUI)
 void CLampView::OnViewResetfontsize()
 {
    theApp.SetTextScaler(1.0f);
-   theApp.InvalidateSkinAllViews();
 }
 
 void CLampView::OnUpdateViewResetfontsize(CCmdUI *pCmdUI)
