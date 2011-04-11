@@ -229,8 +229,8 @@ public:
 
    void GetLaunchString(UCString &launch, unsigned int current_id);
 
-   unsigned int GetNextRoot();
-   unsigned int GetPrevRoot();
+   unsigned int GetNextRoot(ChattyPost *pRootPost);
+   unsigned int GetPrevRoot(ChattyPost *pRootPost);
 
    bool ReadShackMessages(CXMLTree &xmldata);
 

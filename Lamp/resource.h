@@ -126,6 +126,7 @@
 #define ID_WIKIPEDIA_SELECTED           32844
 #define IDC_INERTIA_EDIT                32845
 #define ID_AUTOCHECKINBOX               32846
+#define ID_SHOW_ROOT_SELECTED           32847
 
 #define ID_BOOKMARK_MENUITEM            32852
 
@@ -134,7 +135,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        328
-#define _APS_NEXT_COMMAND_VALUE         32847
+#define _APS_NEXT_COMMAND_VALUE         32848
 #define _APS_NEXT_CONTROL_VALUE         1017
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

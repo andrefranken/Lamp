@@ -1159,6 +1159,10 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"auto_check_inbox");
    if(setting!=NULL) m_auto_check_inbox = setting->GetValue();
    else m_auto_check_inbox = true;
+
+   setting = hostxml.FindChildElement(L"show_root_selected");
+   if(setting!=NULL) m_show_root_selected = setting->GetValue();
+   else m_show_root_selected = true;
    
    setting = hostxml.FindChildElement(L"AlwaysOnTopWhenNotDocked");
    if(setting!=NULL) m_bAlwaysOnTopWhenNotDocked = setting->GetValue();
@@ -1473,6 +1477,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"SmallLOLButtons",UCString(m_bShowSmallLOL));
    settingsxml.AddChildElement(L"FlaredBranches",UCString(m_bFlaredBranches));
    settingsxml.AddChildElement(L"auto_check_inbox",UCString(m_auto_check_inbox));
+   settingsxml.AddChildElement(L"show_root_selected",UCString(m_show_root_selected));
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
    settingsxml.AddChildElement(L"num_minutes_check_inbox",UCString(m_num_minutes_check_inbox));
    settingsxml.AddChildElement(L"enable_spell_checker",UCString(m_enable_spell_checker));

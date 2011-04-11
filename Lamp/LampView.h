@@ -103,6 +103,7 @@ protected:
    void BeginInertiaPanning();
    void CancelInertiaPanning();
    void TrackMouse(CPoint &point);
+   void UpdateCurrentIdAsRoot(unsigned int id);
    
    void MakePosLegal();
    void GetDocHeight();
@@ -299,6 +300,8 @@ public:
    afx_msg void OnUpdateWikipediaSelected(CCmdUI *pCmdUI);
    afx_msg void OnAutoCheckInbox();
    afx_msg void OnUpdateAutoCheckInbox(CCmdUI *pCmdUI);
+   afx_msg void OnShowRootSelected();
+   afx_msg void OnUpdateShowRootSelected(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp

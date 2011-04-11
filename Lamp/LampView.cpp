@@ -139,6 +139,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_WIKIPEDIA_SELECTED, &CLampView::OnUpdateWikipediaSelected)
    ON_COMMAND(ID_AUTOCHECKINBOX, &CLampView::OnAutoCheckInbox)
    ON_UPDATE_COMMAND_UI(ID_AUTOCHECKINBOX, &CLampView::OnUpdateAutoCheckInbox)
+   ON_COMMAND(ID_SHOW_ROOT_SELECTED, &CLampView::OnShowRootSelected)
+   ON_UPDATE_COMMAND_UI(ID_SHOW_ROOT_SELECTED, &CLampView::OnUpdateShowRootSelected)
 
 END_MESSAGE_MAP()
 
@@ -2215,6 +2217,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            ChattyPost *pPost = GetDocument()->GetRootPost(m_hotspots[i].m_id);
                            if(pPost != NULL)
                            {
+                              UpdateCurrentIdAsRoot(m_hotspots[i].m_id);
                               pPost->UnShowAsTruncated();
                               InvalidateEverything();
                            }
@@ -2222,12 +2225,17 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         break;
                      case HST_REFRESH: 
                         {
-                           GetDocument()->RefreshThread(GetDocument()->GetRootId(m_hotspots[i].m_id), m_hotspots[i].m_id);
+                           unsigned int id = m_hotspots[i].m_id;
+                           UpdateCurrentIdAsRoot(id);
+                           GetDocument()->RefreshThread(GetDocument()->GetRootId(id), id);
                         }
                         break;
                      case HST_CLOSEREPLY: 
                         {
                            m_current_id = 0;
+                           m_textselectionpost = 0;
+                           m_selectionstart = 0;
+                           m_selectionend = 0;
                            InvalidateEverything();
                         }
                         break;
@@ -2246,6 +2254,13 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
                            if(post != NULL)
                            {
+                              if(m_current_id == m_hotspots[i].m_id)
+                              {
+                                 m_current_id = 0;
+                                 m_textselectionpost = 0;
+                                 m_selectionstart = 0;
+                                 m_selectionend = 0;
+                              }
                               post->Collapse();
                               theApp.AddMyCollapse(m_hotspots[i].m_id);
                               InvalidateEverything();
@@ -2274,6 +2289,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                            unsigned int id = GetDocument()->GetID(m_hotspots[i].m_id);
                            unsigned int rootid = GetDocument()->GetRootId(id);
+                           UpdateCurrentIdAsRoot(m_hotspots[i].m_id);
                            UCString path;
                            if(rootid != 0)
                            {
@@ -2294,6 +2310,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
                            if(post != NULL)
                            {
+                              UpdateCurrentIdAsRoot(m_hotspots[i].m_id);
                               post->SetPinned(!post->IsPinned());
                               InvalidateEverything();
                            }
@@ -2301,6 +2318,10 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         break;
                      case HST_NEWTHREAD:
                         {
+                           m_current_id = 0;
+                           m_textselectionpost = 0;
+                           m_selectionstart = 0;
+                           m_selectionend = 0;
                            OnEditNewthread();
                         }
                         break;
@@ -2326,6 +2347,9 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               pParent->UnShowAsTruncated();
 
                               m_current_id = m_hotspots[i].m_id;
+                              m_textselectionpost = 0;
+                              m_selectionstart = 0;
+                              m_selectionend = 0;
                               // force a draw so that positions are updated
                               DrawEverythingToBuffer();
                               int top = post->GetPos();
@@ -2387,6 +2411,10 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            GetDocument()->SetPage(GetDocument()->GetPage() - 1);
                            GetDocument()->Refresh();
                            m_gotopos = 0;
+                           m_current_id = 0;
+                           m_textselectionpost = 0;
+                           m_selectionstart = 0;
+                           m_selectionend = 0;
                            InvalidateEverything();
                         }
                         break;
@@ -2395,6 +2423,10 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            GetDocument()->SetPage(GetDocument()->GetPage() + 1);
                            GetDocument()->Refresh();
                            m_gotopos = 0;
+                           m_current_id = 0;
+                           m_textselectionpost = 0;
+                           m_selectionstart = 0;
+                           m_selectionend = 0;
                            InvalidateEverything();
                         }
                         break;
@@ -2403,6 +2435,10 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            GetDocument()->SetPage((int)m_hotspots[i].m_id);
                            GetDocument()->Refresh();
                            m_gotopos = 0;
+                           m_current_id = 0;
+                           m_textselectionpost = 0;
+                           m_selectionstart = 0;
+                           m_selectionend = 0;
                            InvalidateEverything();
                         }
                         break;
@@ -2416,6 +2452,10 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                                  post->SetReplyDlg(NULL);
                               }
 
+                              m_current_id = m_hotspots[i].m_id;
+                              m_textselectionpost = 0;
+                              m_selectionstart = 0;
+                              m_selectionend = 0;
                               post = GetDocument()->FindPost(m_hotspots[i].m_id);
                               if(post != NULL)
                               {
@@ -2429,7 +2469,10 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
                               if(post != NULL)
                               {
+                                 m_current_id = m_hotspots[i].m_id;
                                  m_textselectionpost = 0;
+                                 m_selectionstart = 0;
+                                 m_selectionend = 0;
                                  m_pReplyDlg = new CReplyDlg(this);
                                  m_pReplyDlg->SetDoc(GetDocument());
                                  m_pReplyDlg->SetReplyId(m_hotspots[i].m_id);
@@ -2517,6 +2560,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
                            if(pPost != NULL)
                            {
+                              UpdateCurrentIdAsRoot(m_hotspots[i].m_id);
                               pPost->ClearSpoilerTags(m_mousepoint.x, m_mousepoint.y);
                               InvalidateEverything();
                            }
@@ -2527,8 +2571,10 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
                            if(pPost != NULL)
                            {
+                              unsigned int id = m_hotspots[i].m_id;
+                              UpdateCurrentIdAsRoot(id);
                               m_selectionstart = pPost->GetCharPos(m_mousepoint.x, m_mousepoint.y);
-                              m_textselectionpost = m_hotspots[i].m_id;
+                              m_textselectionpost = id;
                               m_bDraggingTextSelection = true;
                               m_lastcharpos = m_selectionend_actual = m_selectionstart_actual = m_selectionend = m_selectionstart;
                               InvalidateEverything();
@@ -2540,6 +2586,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
                            if(pPost != NULL)
                            {
+                              UpdateCurrentIdAsRoot(m_hotspots[i].m_id);
                               UCString link;
                               pPost->GetLink(m_mousepoint.x, m_mousepoint.y, link);
 
@@ -2579,6 +2626,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
                            if(pPost != NULL)
                            {
+                              UpdateCurrentIdAsRoot(m_hotspots[i].m_id);
                               pPost->MakeImageIntoLink(m_mousepoint.x, m_mousepoint.y);
                               InvalidateEverything();
                            }
@@ -2668,6 +2716,37 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
       InvalidateEverything();
    }
    CView::OnLButtonDown(nFlags, point);
+}
+
+void CLampView::UpdateCurrentIdAsRoot(unsigned int id)
+{
+   if(m_current_id != 0)
+   {
+      ChattyPost *post = GetDocument()->FindPost(m_current_id);
+      if(post != NULL &&
+         post->GetParent() != NULL)
+      {
+         ChattyPost *newpost = GetDocument()->FindPost(id);
+         if(newpost != NULL &&
+            newpost->GetParent() == NULL)
+         {
+            int pos = newpost->GetPos();
+            m_current_id = id;
+            DrawEverythingToBuffer();
+            int newpos = newpost->GetPos();
+            if(pos != newpos)
+            {
+               m_pos += (newpos - pos);
+               m_gotopos += (newpos - pos);
+               DrawEverythingToBuffer();
+            }
+         }
+      }
+   }
+   m_current_id = id;
+   m_textselectionpost = 0;
+   m_selectionstart = 0;
+   m_selectionend = 0;
 }
 
 void CLampView::OnLButtonUp(UINT nFlags, CPoint point) 
@@ -3205,12 +3284,18 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                   {
                      // select prev reply
                      m_current_id = pPost->GetPrevReply();
+                     m_textselectionpost = 0;
+                     m_selectionstart = 0;
+                     m_selectionend = 0;
                   }
                   else if(nChar == 'z' ||
                           nChar == 'Z')
                   {
                      // select next reply
                      m_current_id = pPost->GetNextReply();
+                     m_textselectionpost = 0;
+                     m_selectionstart = 0;
+                     m_selectionend = 0;
                   }
                   // force a draw so that positions are updated
                   ChattyPost *pPost = GetDocument()->FindPost(m_current_id);
@@ -3248,31 +3333,57 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
          }
 
          if(m_pos == m_gotopos &&
-            GetDocument()->GetDataType() == DDT_STORY &&
+           GetDocument()->GetDataType() != DDT_SHACKMSG &&
            (nChar == 'j' ||
             nChar == 'J'||
             nChar == 'k' ||
-            nChar == 'K'))
+            nChar == 'K' ||
+            nChar == 's' ||
+            nChar == 'S' ||
+            nChar == 'x' ||
+            nChar == 'X'))
          {
-            unsigned int id = 0;
-
             if(nChar == 'j' ||
-               nChar == 'J')
+               nChar == 'J' ||
+               nChar == 'x' ||
+               nChar == 'X')
             {
+               ChattyPost *pParent = NULL;
+               ChattyPost *pPost = GetDocument()->FindPost(m_current_id);
+               if(pPost != NULL)
+               {            
+                  pParent = pPost;
+                  while(pParent->GetParent() != NULL) pParent = pParent->GetParent();
+               }
                // select prev reply
-               id = GetDocument()->GetNextRoot();
+               m_current_id = GetDocument()->GetNextRoot(pParent);
+               m_textselectionpost = 0;
+               m_selectionstart = 0;
+               m_selectionend = 0;
             }
             else if(nChar == 'k' ||
-                    nChar == 'K')
+                    nChar == 'K' ||
+                    nChar == 's' ||
+                    nChar == 'S')
             {
+               ChattyPost *pParent = NULL;
+               ChattyPost *pPost = GetDocument()->FindPost(m_current_id);
+               if(pPost != NULL)
+               {            
+                  pParent = pPost;
+                  while(pParent->GetParent() != NULL) pParent = pParent->GetParent();
+               }
                // select next reply
-               id = GetDocument()->GetPrevRoot();
+               m_current_id = GetDocument()->GetPrevRoot(pParent);
+               m_textselectionpost = 0;
+               m_selectionstart = 0;
+               m_selectionend = 0;
             }
 
-            if(id != 0)
+            if(m_current_id != 0)
             {
                // force a draw so that positions are updated
-               ChattyPost *pPost = GetDocument()->FindPost(id);
+               ChattyPost *pPost = GetDocument()->FindPost(m_current_id);
                if(pPost != NULL)
                {            
                   DrawEverythingToBuffer();
@@ -3674,6 +3785,9 @@ void CLampView::OnEditRefresh()
          {
             m_current_id = 0;
             m_gotopos = 0;
+            m_textselectionpost = 0;
+            m_selectionstart = 0;
+            m_selectionend = 0;
          }
       }
       InvalidateEverything();
@@ -4899,6 +5013,26 @@ void CLampView::OnUpdateAutoCheckInbox(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(theApp.GetAutoCheckInbox())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnShowRootSelected()
+{
+   theApp.SetShowRootSelected(!theApp.ShowRootSelected());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateShowRootSelected(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.ShowRootSelected())
    {
       pCmdUI->SetCheck(TRUE);
    }

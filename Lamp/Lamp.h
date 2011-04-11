@@ -692,6 +692,9 @@ public:
 
    bool GetAutoCheckInbox(){return m_auto_check_inbox;}
    void SetAutoCheckInbox(bool value){m_auto_check_inbox = value;}
+
+   bool ShowRootSelected(){return m_show_root_selected;}
+   void SetShowRootSelected(bool value){m_show_root_selected = value;}
    
    void ClearSession(){m_session.clear();}
 
@@ -1000,6 +1003,8 @@ protected:
    bool m_auto_check_inbox;
 
    int m_hours_expire;
+
+   bool m_show_root_selected;
 
 public:
    afx_msg void OnFileSetuplogininfo();

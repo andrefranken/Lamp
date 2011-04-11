@@ -4706,52 +4706,115 @@ void CLampDoc::GetLaunchString(UCString &launch, unsigned int current_id)
 
 
 
-unsigned int CLampDoc::GetNextRoot()
+unsigned int CLampDoc::GetNextRoot(ChattyPost *pRootPost)
 {
    unsigned int id = 0;
 
-   if(m_datatype == DDT_STORY)
+   if(m_datatype != DDT_SHACKMSG)
    {
       std::list<ChattyPost*>::iterator it = m_rootposts.begin();
       std::list<ChattyPost*>::iterator end = m_rootposts.end();
-      
-      while(it != end)
-      {
-         if((*it) != NULL && (*it)->GetPos() > 20)
-         {         
-            id = (*it)->GetId();
-            break;         
-         }
 
-         it++;
+      if(it != end)
+      {
+         if(pRootPost == NULL)
+         {
+            while(it != end)
+            {
+               if(!(*it)->IsCollapsed())
+               {
+                  id = (*it)->GetId();
+                  break;
+               }
+               it++;
+            }
+         }
+         else
+         {      
+            while(it != end)
+            {
+               if((*it) == pRootPost)
+               {         
+                  id = (*it)->GetId();
+                  it++;
+                  while(it != end)
+                  {
+                     if(!(*it)->IsCollapsed())
+                     {
+                        id = (*it)->GetId();
+                        break;
+                     }
+                     it++;
+                  }
+                  break;         
+               }
+
+               it++;
+            }
+         }
       }
    }
 
    return id;
 }
 
-unsigned int CLampDoc::GetPrevRoot()
+unsigned int CLampDoc::GetPrevRoot(ChattyPost *pRootPost)
 {
    unsigned int id = 0;
 
-   if(m_datatype == DDT_STORY)
-   {
-      std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+   if(m_datatype != DDT_SHACKMSG)
+   {  
+      std::list<ChattyPost*>::iterator first = m_rootposts.begin();
+      std::list<ChattyPost*>::iterator it = first;
       std::list<ChattyPost*>::iterator end = m_rootposts.end();
-      
-      while(it != end)
+
+      if(it != end)
       {
-         if((*it) != NULL && (*it)->GetPos() < 20)
-         {         
-            id = (*it)->GetId();
+         if(pRootPost == NULL)
+         {
+            bool done = false;
+            it = end;
+            it--;
+            while(!done)
+            {
+               if(!(*it)->IsCollapsed())
+               {
+                  id = (*it)->GetId();
+                  done = true;
+               }
+               if(it == first)
+               {
+                  done = true;
+               }
+               else
+               {
+                  it--;
+               }
+            }
          }
+         else
+         {      
+            while(it != end)
+            {
+               if((*it) == pRootPost)
+               {         
+                  id = (*it)->GetId();
+                  while(it != first)
+                  {
+                     it--;
+                     if(!(*it)->IsCollapsed())
+                     {
+                        id = (*it)->GetId();
+                        break;
+                     }
+                  }
 
-         if((*it) != NULL && (*it)->GetPos() > 20)
-         {         
-            break;         
+                  break;
+               }
+
+               it++;
+            }
          }
-
-         it++;
       }
    }
 

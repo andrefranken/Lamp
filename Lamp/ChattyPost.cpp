@@ -931,6 +931,14 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          else
          {
             m_bDrewTextBody = true;
+
+            bool bAsRoot = true;
+            if(current_id == m_id &&
+               theApp.ShowRootSelected())
+            {
+               bAsRoot = false;
+            }
+
             //m_pDoc->FillBackground(hDC,myrect);
             RECT backrect = myrect;
             backrect.right = backrect.left + 20;
@@ -947,7 +955,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             myrect.left += 20;
             myrect.right -= 20;
             //myrect.top += 20;
-            m_pDoc->FillExpandedBackground(hDC,myrect,true,m_category,!theApp.StrokeRootEdges());
+            m_pDoc->FillExpandedBackground(hDC,myrect,bAsRoot,m_category,!theApp.StrokeRootEdges());            
 
             std::vector<RECT> spoilers;
             std::vector<RECT> links;
@@ -1131,9 +1139,9 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   hotspot.m_spot = lolrect;
                   hotspot.m_loltext = m_lol_text;
                   hotspot.m_lolvoted = (m_mylols & LTT_LOL)?true:false;
-                  hotspot.m_lolroot = true;
+                  hotspot.m_lolroot = bAsRoot;
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
-                  m_pDoc->DrawLOLField(hDC, LTT_LOL, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, true);
+                  m_pDoc->DrawLOLField(hDC, LTT_LOL, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot);
                                                                                 
                   lolrect.left += theApp.GetLOLFieldWidth() + 5;
                   lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
@@ -1142,9 +1150,9 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   hotspot.m_spot = lolrect;
                   hotspot.m_loltext = m_inf_text;
                   hotspot.m_lolvoted = (m_mylols & LTT_INF)?true:false;
-                  hotspot.m_lolroot = true;
+                  hotspot.m_lolroot = bAsRoot;
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
-                  m_pDoc->DrawLOLField(hDC, LTT_INF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, true);
+                  m_pDoc->DrawLOLField(hDC, LTT_INF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot);
                                                                                 
                   lolrect.left += theApp.GetLOLFieldWidth() + 5;
                   lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
@@ -1153,9 +1161,9 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   hotspot.m_spot = lolrect;
                   hotspot.m_loltext = m_unf_text;
                   hotspot.m_lolvoted = (m_mylols & LTT_UNF)?true:false;
-                  hotspot.m_lolroot = true;
+                  hotspot.m_lolroot = bAsRoot;
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
-                  m_pDoc->DrawLOLField(hDC, LTT_UNF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, true);
+                  m_pDoc->DrawLOLField(hDC, LTT_UNF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot);
                                                                                 
                   lolrect.left += theApp.GetLOLFieldWidth() + 5;
                   lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
@@ -1164,9 +1172,9 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   hotspot.m_spot = lolrect;
                   hotspot.m_loltext = m_tag_text;
                   hotspot.m_lolvoted = (m_mylols & LTT_TAG)?true:false;
-                  hotspot.m_lolroot = true;
+                  hotspot.m_lolroot = bAsRoot;
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
-                  m_pDoc->DrawLOLField(hDC, LTT_TAG, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, true);
+                  m_pDoc->DrawLOLField(hDC, LTT_TAG, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot);
                                                                                 
                   lolrect.left += theApp.GetLOLFieldWidth() + 5;
                   lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
@@ -1175,9 +1183,9 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   hotspot.m_spot = lolrect;
                   hotspot.m_loltext = m_wtf_text;
                   hotspot.m_lolvoted = (m_mylols & LTT_WTF)?true:false;
-                  hotspot.m_lolroot = true;
+                  hotspot.m_lolroot = bAsRoot;
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
-                  m_pDoc->DrawLOLField(hDC, LTT_WTF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, true);
+                  m_pDoc->DrawLOLField(hDC, LTT_WTF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot);
 
                   hotspot.m_loltext = L"";
                }
@@ -4040,6 +4048,15 @@ unsigned int ChattyPost::GetPrevReply(bool bSkipSelf /*= false*/)
          break;
       }
    }
+
+   if(result == m_id &&
+      m_pParent != NULL)
+   {
+      // then the prev is my parent
+      m_pParent->UnShowAsTruncated();
+      result = m_pParent->GetId();
+   }
+
    return result;
 }
 
@@ -4047,20 +4064,31 @@ unsigned int ChattyPost::GetNextReply(bool bSkipSelf /*= false*/)
 {
    unsigned int result = GetId();
 
-   ChattyPost *pParent = this;
-   while(pParent->m_pParent != NULL)pParent = pParent->m_pParent;
-
-   pParent->UnShowAsTruncated();
-   
-   for(int i = 0; i < (int)pParent->m_root_reply_list.size(); i++)
+   if(m_pParent == NULL)
    {
-      if(pParent->m_root_reply_list[i] == result)
+      UnShowAsTruncated();
+      if(m_root_reply_list.size() > 0)
       {
-         if(i+1 < (int)pParent->m_root_reply_list.size())
+         result = m_root_reply_list[0];
+      }
+   }
+   else
+   {
+      ChattyPost *pParent = this;
+      while(pParent->m_pParent != NULL)pParent = pParent->m_pParent;
+
+      pParent->UnShowAsTruncated();
+      
+      for(int i = 0; i < (int)pParent->m_root_reply_list.size(); i++)
+      {
+         if(pParent->m_root_reply_list[i] == result)
          {
-            result = pParent->m_root_reply_list[i+1];
+            if(i+1 < (int)pParent->m_root_reply_list.size())
+            {
+               result = pParent->m_root_reply_list[i+1];
+            }
+            break;
          }
-         break;
       }
    }
    return result;
