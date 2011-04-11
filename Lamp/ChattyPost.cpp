@@ -966,7 +966,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
 
             if(m_category == PCT_INF)
             {
-               CDCSurface *pINFIMage = theApp.GetINFImage(true);
+               CDCSurface *pINFIMage = theApp.GetINFImage(bAsRoot);
                if(pINFIMage != NULL)
                {
                   RECT infrect;
@@ -979,7 +979,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             }
             else if(m_category == PCT_NWS)
             {
-               CDCSurface *pNWSIMage = theApp.GetNWSImage(true);
+               CDCSurface *pNWSIMage = theApp.GetNWSImage(bAsRoot);
                if(pNWSIMage != NULL)
                {
                   RECT nwsrect;
@@ -992,7 +992,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             }
             else if(m_category == PCT_OFFTOPIC)
             {
-               CDCSurface *pOTIMage = theApp.GetOffTopicImage(true);
+               CDCSurface *pOTIMage = theApp.GetOffTopicImage(bAsRoot);
                if(pOTIMage != NULL)
                {
                   RECT otrect;
@@ -1005,7 +1005,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             }
             else if(m_category == PCT_POLITCIAL)
             {
-               CDCSurface *pPIMage = theApp.GetPoliticalImage(true);
+               CDCSurface *pPIMage = theApp.GetPoliticalImage(bAsRoot);
                if(pPIMage != NULL)
                {
                   RECT prect;
@@ -1018,7 +1018,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             }
             else if(m_category == PCT_STUPID)
             {
-               CDCSurface *pSIMage = theApp.GetStupidImage(true);
+               CDCSurface *pSIMage = theApp.GetStupidImage(bAsRoot);
                if(pSIMage != NULL)
                {
                   RECT srect;

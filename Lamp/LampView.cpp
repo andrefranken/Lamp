@@ -2226,7 +2226,6 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                      case HST_REFRESH: 
                         {
                            unsigned int id = m_hotspots[i].m_id;
-                           UpdateCurrentIdAsRoot(id);
                            GetDocument()->RefreshThread(GetDocument()->GetRootId(id), id);
                         }
                         break;
@@ -2289,7 +2288,6 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                            unsigned int id = GetDocument()->GetID(m_hotspots[i].m_id);
                            unsigned int rootid = GetDocument()->GetRootId(id);
-                           UpdateCurrentIdAsRoot(m_hotspots[i].m_id);
                            UCString path;
                            if(rootid != 0)
                            {
@@ -2310,7 +2308,6 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
                            if(post != NULL)
                            {
-                              UpdateCurrentIdAsRoot(m_hotspots[i].m_id);
                               post->SetPinned(!post->IsPinned());
                               InvalidateEverything();
                            }
@@ -3332,16 +3329,15 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
             }
          }
 
-         if(m_pos == m_gotopos &&
-           GetDocument()->GetDataType() != DDT_SHACKMSG &&
-           (nChar == 'j' ||
-            nChar == 'J'||
-            nChar == 'k' ||
-            nChar == 'K' ||
-            nChar == 's' ||
-            nChar == 'S' ||
-            nChar == 'x' ||
-            nChar == 'X'))
+         if(GetDocument()->GetDataType() != DDT_SHACKMSG &&
+            (nChar == 'j' ||
+             nChar == 'J' ||
+             nChar == 'k' ||
+             nChar == 'K' ||
+             nChar == 's' ||
+             nChar == 'S' ||
+             nChar == 'x' ||
+             nChar == 'X'))
          {
             if(nChar == 'j' ||
                nChar == 'J' ||
