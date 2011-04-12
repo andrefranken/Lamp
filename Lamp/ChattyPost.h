@@ -331,6 +331,7 @@ public:
 
    postcategorytype GetCategory(){return m_category;}
 
+   void Despoil();
    void ClearSpoilerTags(int x, int y);
    void GetLink(int x, int y, UCString &link);
    void GetImageLink(int x, int y, UCString &link);

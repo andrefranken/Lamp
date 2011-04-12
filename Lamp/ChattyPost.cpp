@@ -3894,6 +3894,53 @@ void ChattyPost::ClearSpoilerTags(int x, int y)
    m_lasttextrectwidth = 0;
 }
 
+void ChattyPost::Despoil()
+{
+   bool despoiled = false;
+   for(size_t i=0; i < m_shacktags.size(); i++)
+   {
+      if(m_shacktags[i].m_tag == ST_UNSPOILER)
+      {
+         despoiled = true;
+         break;
+      }
+   }
+
+   if(despoiled)
+   {
+      for(size_t i=0; i < m_shacktags.size(); i++)
+      {
+         if(m_shacktags[i].m_tag == ST_UNSPOILER)
+         {
+            m_shacktags[i].m_tag = ST_SPOILER;
+         }
+
+         if(m_shacktags[i].m_tag == ST_UNSPOILER_END)
+         {
+            m_shacktags[i].m_tag = ST_SPOILER_END;
+         }
+      }
+   }
+   else
+   {
+      for(size_t i=0; i < m_shacktags.size(); i++)
+      {
+         if(m_shacktags[i].m_tag == ST_SPOILER)
+         {
+            m_shacktags[i].m_tag = ST_UNSPOILER;
+         }
+
+         if(m_shacktags[i].m_tag == ST_SPOILER_END)
+         {
+            m_shacktags[i].m_tag = ST_UNSPOILER_END;
+         }
+      }
+   }
+
+   // this is to trigger a recalc of the line tags
+   m_lasttextrectwidth = 0;
+}
+
 
 
 void ChattyPost::GetLink(int x, int y, UCString &link)
@@ -4224,11 +4271,11 @@ void ChattyPost::UpdateLOLs()
       m_tag_text = L"tag";
       m_wtf_text = L"wtf";
 
-      if(m_lolflags.m_LOLd > 0) {m_lol_text += L" x ";m_lol_text += m_lolflags.m_LOLd; m_bHaveLOLPreview = true;}
-      if(m_lolflags.m_INFd > 0) {m_inf_text += L" x ";m_inf_text += m_lolflags.m_INFd; m_bHaveLOLPreview = true;}
-      if(m_lolflags.m_UNFd > 0) {m_unf_text += L" x ";m_unf_text += m_lolflags.m_UNFd; m_bHaveLOLPreview = true;}
-      if(m_lolflags.m_TAGd > 0) {m_tag_text += L" x ";m_tag_text += m_lolflags.m_TAGd; m_bHaveLOLPreview = true;}
-      if(m_lolflags.m_WTFd > 0) {m_wtf_text += L" x ";m_wtf_text += m_lolflags.m_WTFd; m_bHaveLOLPreview = true;}
+      if(m_lolflags.m_LOLd > 0) {m_lol_text += L" × ";m_lol_text += m_lolflags.m_LOLd; m_bHaveLOLPreview = true;}
+      if(m_lolflags.m_INFd > 0) {m_inf_text += L" × ";m_inf_text += m_lolflags.m_INFd; m_bHaveLOLPreview = true;}
+      if(m_lolflags.m_UNFd > 0) {m_unf_text += L" × ";m_unf_text += m_lolflags.m_UNFd; m_bHaveLOLPreview = true;}
+      if(m_lolflags.m_TAGd > 0) {m_tag_text += L" × ";m_tag_text += m_lolflags.m_TAGd; m_bHaveLOLPreview = true;}
+      if(m_lolflags.m_WTFd > 0) {m_wtf_text += L" × ";m_wtf_text += m_lolflags.m_WTFd; m_bHaveLOLPreview = true;}
 
       m_lol_width = GetLOLWidth(m_lol_text);
       m_inf_width = GetLOLWidth(m_inf_text);
@@ -4271,7 +4318,7 @@ void ChattyPost::UpdateLOLs()
             m_lol_preview_shacktags.push_back(shacktagpos(ST_INVERT,m_lol_preview_text.Length()));
             m_lol_preview_text += L" ";
          }
-         if(theApp.VerboseLOLPreviews())m_lol_preview_text += L"lol * "; 
+         if(theApp.VerboseLOLPreviews())m_lol_preview_text += L"lol × "; 
          m_lol_preview_text += m_lolflags.m_LOLd;
          if(theApp.InvertedLOLPreviews())
          {
@@ -4293,7 +4340,7 @@ void ChattyPost::UpdateLOLs()
             m_lol_preview_shacktags.push_back(shacktagpos(ST_INVERT,m_lol_preview_text.Length()));
             m_lol_preview_text += L" ";
          }         
-         if(theApp.VerboseLOLPreviews())m_lol_preview_text += L"inf * "; 
+         if(theApp.VerboseLOLPreviews())m_lol_preview_text += L"inf × "; 
          m_lol_preview_text += m_lolflags.m_INFd;
          if(theApp.InvertedLOLPreviews())
          {
@@ -4315,7 +4362,7 @@ void ChattyPost::UpdateLOLs()
             m_lol_preview_shacktags.push_back(shacktagpos(ST_INVERT,m_lol_preview_text.Length()));
             m_lol_preview_text += L" ";
          }
-         if(theApp.VerboseLOLPreviews())m_lol_preview_text += L"unf * "; 
+         if(theApp.VerboseLOLPreviews())m_lol_preview_text += L"unf × "; 
          m_lol_preview_text += m_lolflags.m_UNFd;
          if(theApp.InvertedLOLPreviews())
          {
@@ -4337,7 +4384,7 @@ void ChattyPost::UpdateLOLs()
             m_lol_preview_shacktags.push_back(shacktagpos(ST_INVERT,m_lol_preview_text.Length()));
             m_lol_preview_text += L" ";
          }
-         if(theApp.VerboseLOLPreviews())m_lol_preview_text += L"tag * "; 
+         if(theApp.VerboseLOLPreviews())m_lol_preview_text += L"tag × "; 
          m_lol_preview_text += m_lolflags.m_TAGd;
          if(theApp.InvertedLOLPreviews())
          {
@@ -4359,7 +4406,7 @@ void ChattyPost::UpdateLOLs()
             m_lol_preview_shacktags.push_back(shacktagpos(ST_INVERT,m_lol_preview_text.Length()));
             m_lol_preview_text += L" ";
          }
-         if(theApp.VerboseLOLPreviews())m_lol_preview_text += L"wtf * "; 
+         if(theApp.VerboseLOLPreviews())m_lol_preview_text += L"wtf × "; 
          m_lol_preview_text += m_lolflags.m_WTFd;
          if(theApp.InvertedLOLPreviews())
          {

@@ -312,10 +312,10 @@ void CLampView::TrackMouse(CPoint &point)
    if(m_bStartedTrackingMouse)
    {
       m_mousehistory.push_back(point.y - m_mousepoint.y);
-      while(m_mousehistory.size() > 10) m_mousehistory.pop_front();
+      while(m_mousehistory.size() > 5) m_mousehistory.pop_front();
       DWORD thistime = ::GetTickCount();
       m_mousetimehistory.push_back(thistime - m_lastmousetime);
-      while(m_mousetimehistory.size() > 10) m_mousetimehistory.pop_front();
+      while(m_mousetimehistory.size() > 5) m_mousetimehistory.pop_front();
       m_lastmousetime = thistime;
    }
    m_bStartedTrackingMouse = true;
@@ -341,8 +341,28 @@ void CLampView::BeginInertiaPanning()
    int numused = 0;
    if(m_mousehistory.size() == m_mousetimehistory.size())
    {
+      int biggestdiff = 0;
       for(size_t i = 0; i < m_mousehistory.size(); i++)
       {
+         int diff = m_mousehistory[i];
+         int time = m_mousetimehistory[i];
+         if(time < 25)
+         {
+            if(abs(diff) > abs(biggestdiff))
+            {
+               biggestdiff = diff;
+            }
+         }
+         else
+         {
+            if(diff == 0)
+            {
+               biggestdiff = 0;
+               break;
+            }
+         }
+
+         /*
          int diff = m_mousehistory[i];
          int time = m_mousetimehistory[i];
          if(time < 25) time = 1;
@@ -351,17 +371,20 @@ void CLampView::BeginInertiaPanning()
             m_inertia += (float)(diff * time);
          }
          numused += time;
+         */
+      }
+      
+      if(biggestdiff != 0)
+      {
+         m_inertia = (float)biggestdiff;
+      }
+      else
+      {
+         m_bInertialPanning = false;
+         m_inertia = 0.0f;
       }
    }
-   if(numused > 0)
-   {
-      m_inertia = m_inertia / (float)numused;
-   }
-   else
-   {
-      m_bInertialPanning = false;
-      m_inertia = 0.0f;
-   }
+   
    m_mousehistory.clear();
    m_mousetimehistory.clear();
 
@@ -683,8 +706,8 @@ void CLampView::OnDraw(CDC* pDC)
                 m_inertia >= -1.0f))
             {
                m_pos = m_gotopos;
-               m_inertia = 0.0f;
-               m_bInertialPanning = false;
+               CancelInertiaPanning();
+               m_brakes = false;
                InvalidateEverything();
             }
             else
@@ -3211,12 +3234,16 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
          }
          else if(nChar == VK_DOWN)
          {
+            CancelInertiaPanning();
+            m_brakes = false;
             m_gotopos += 20;
             MakePosLegal();
             InvalidateEverythingPan();
          }
          else if(nChar == VK_UP)
          {
+            CancelInertiaPanning();
+            m_brakes = false;
             m_gotopos -= 20;
             MakePosLegal();
             InvalidateEverythingPan();
@@ -3225,6 +3252,8 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                 (nChar == VK_SPACE &&
                  !bShiftPressed))
          {
+            CancelInertiaPanning();
+            m_brakes = false;
             RECT DeviceRectangle;
             GetClientRect(&DeviceRectangle);
             m_gotopos += ((DeviceRectangle.bottom - DeviceRectangle.top) - 20);
@@ -3235,6 +3264,8 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                 (nChar == VK_SPACE &&
                  bShiftPressed))
          {
+            CancelInertiaPanning();
+            m_brakes = false;
             RECT DeviceRectangle;
             GetClientRect(&DeviceRectangle);
             m_gotopos -= ((DeviceRectangle.bottom - DeviceRectangle.top) - 20);
@@ -3243,11 +3274,15 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
          }
          else if(nChar == VK_HOME)
          {
+            CancelInertiaPanning();
+            m_brakes = false;
             m_gotopos = 0;
             InvalidateEverythingPan();
          }
          else if(nChar == VK_END)
          {
+            CancelInertiaPanning();
+            m_brakes = false;
             RECT DeviceRectangle;
             GetClientRect(&DeviceRectangle);
             m_gotopos = GetDocument()->GetHeight() - (DeviceRectangle.bottom - DeviceRectangle.top);
@@ -3322,13 +3357,10 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                         m_gotopos = m_pos + (bottom - DeviceRectangle.bottom);
                      }
                      
+                     CancelInertiaPanning();
+                     m_brakes = false;
                      MakePosLegal();
                      m_pos = m_gotopos;// don't animate to the pos
-
-                     m_inertia = 0.0f;
-                     m_bInertialPanning = false;
-                     m_mousehistory.clear();
-                     m_mousetimehistory.clear();
                   }
                   InvalidateEverything();
                }
@@ -3388,6 +3420,8 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                ChattyPost *pPost = GetDocument()->FindPost(m_current_id);
                if(pPost != NULL)
                {            
+                  CancelInertiaPanning();
+                  m_brakes = false;
                   DrawEverythingToBuffer();
                   int top = pPost->GetPos();
                   int bottom = top + pPost->GetHeight();
@@ -3401,10 +3435,6 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                   
                   MakePosLegal();
                   InvalidateEverything();
-
-                  m_inertia = 0.0f;
-                  m_bInertialPanning = false;
-                  m_mousehistory.clear();
                }
             }
          }
@@ -3460,6 +3490,27 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                   }
                   InvalidateEverything();
                }
+            }
+         }
+         else if((nChar == 'q' ||
+                  nChar == 'Q') &&
+                 m_current_id != 0)
+         {
+            ChattyPost *post = GetDocument()->FindPost(m_current_id);
+            if(post != NULL)
+            {
+               post->Despoil();
+               InvalidateEverything();
+            }
+         }
+         else if((nChar == 'f' ||
+                  nChar == 'F') &&
+                 m_current_id != 0)
+         {
+            ChattyPost *post = GetDocument()->FindPost(m_current_id);
+            if(post != NULL)
+            {
+               GetDocument()->RefreshThread(GetDocument()->GetRootId(m_current_id), m_current_id);
             }
          }
       }
