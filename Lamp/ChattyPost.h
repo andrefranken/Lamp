@@ -92,6 +92,7 @@ public:
    UCString       m_loltext;
    bool           m_lolvoted;
    bool           m_lolroot;
+   bool           m_haslols;
 };
 
 class CLOLFlags
@@ -136,6 +137,7 @@ typedef enum
    ST_CODE,
    ST_LINK,
    ST_UNSPOILER,
+   ST_INVERT,
 
    ST_RED_END,
    ST_GREEN_END,
@@ -156,6 +158,7 @@ typedef enum
    ST_CODE_END,
    ST_LINK_END,
    ST_UNSPOILER_END,
+   ST_INVERT_END,
 
    ST_IMAGE,
    ST_IMAGE_END,
@@ -413,6 +416,8 @@ protected:
    void AddToFamilySize(size_t &familysize);
    void UpdateDate();
 
+   unsigned int GetLOLWidth(const UCChar *text);
+
    bool                    m_bCollapsed;
    newness                 m_Newness;
    int                     m_pos;
@@ -477,6 +482,12 @@ protected:
    UCString                m_unf_text;
    UCString                m_tag_text;
    UCString                m_wtf_text;
+
+   unsigned int            m_lol_width;
+   unsigned int            m_inf_width;
+   unsigned int            m_unf_width;
+   unsigned int            m_tag_width;
+   unsigned int            m_wtf_width;
 
    UCString                m_lol_preview_text;
    int                    *m_plol_preview_charwidths;

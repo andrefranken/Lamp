@@ -139,7 +139,7 @@ public:
    void DrawCollapseNote(HDC hDC, RECT &rect);
    void DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipped, int shade, COLORREF AuthorColor, const UCString &rootauthor);
    void DrawBranch(HDC hDC, RECT &rect, indenttype type, int shade, newness Newness);
-   void DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols, bool bHover, bool bVoted, bool bRoot);
+   void DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols, bool bHover, bool bVoted, bool bRoot, bool bHasLols);
    int GetHeight(){return m_height;}
    bool FindNext(const UCChar *search, unsigned int &textselectionpost, int &selectionstart, int &selectionend);
    void RefreshAllRoots();
@@ -293,6 +293,8 @@ protected:
    HFONT  m_miscfont;
    HFONT  m_pagefont;
    HFONT  m_miscboldfont;
+   HFONT  m_normalunderlinefont;
+   HFONT  m_miscunderlinefont;
 
    UCString m_title;
    UCString m_actualtitle;

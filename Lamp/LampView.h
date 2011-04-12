@@ -302,6 +302,12 @@ public:
    afx_msg void OnUpdateAutoCheckInbox(CCmdUI *pCmdUI);
    afx_msg void OnShowRootSelected();
    afx_msg void OnUpdateShowRootSelected(CCmdUI *pCmdUI);
+   afx_msg void OnShowThomWLOLS();
+   afx_msg void OnUpdateShowThomWLOLS(CCmdUI *pCmdUI);
+   afx_msg void OnVerboseLOLPreviews();
+   afx_msg void OnUpdateVerboseLOLPreviews(CCmdUI *pCmdUI);
+   afx_msg void OnInvertedLOLPreviews();
+   afx_msg void OnUpdateInvertedLOLPreviews(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp

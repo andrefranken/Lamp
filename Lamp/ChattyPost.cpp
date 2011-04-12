@@ -1128,6 +1128,10 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   RECT lolrect;
                   lolrect.left = authorrect.right + 10;
                   lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  if(theApp.ShowThomWLOLS())
+                  {
+                     lolrect.right = lolrect.left + m_lol_width + 4;
+                  }
                   lolrect.bottom = authorrect.bottom;
                   if(theApp.ShowSmallLOL())
                   {
@@ -1140,52 +1144,89 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   hotspot.m_loltext = m_lol_text;
                   hotspot.m_lolvoted = (m_mylols & LTT_LOL)?true:false;
                   hotspot.m_lolroot = bAsRoot;
+                  hotspot.m_haslols = m_lolflags.m_LOLd > 0?true:false;
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
-                  m_pDoc->DrawLOLField(hDC, LTT_LOL, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot);
-                                                                                
-                  lolrect.left += theApp.GetLOLFieldWidth() + 5;
-                  lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  m_pDoc->DrawLOLField(hDC, LTT_LOL, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot, hotspot.m_haslols);
+                  
+                  if(theApp.ShowThomWLOLS())
+                  {
+                     lolrect.left = lolrect.right;
+                     lolrect.right = lolrect.left + m_inf_width + 4;
+                  }
+                  else
+                  {
+                     lolrect.left += theApp.GetLOLFieldWidth() + 5;
+                     lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  }
 
                   hotspot.m_type = HST_INFTAG;
                   hotspot.m_spot = lolrect;
                   hotspot.m_loltext = m_inf_text;
                   hotspot.m_lolvoted = (m_mylols & LTT_INF)?true:false;
                   hotspot.m_lolroot = bAsRoot;
+                  hotspot.m_haslols = m_lolflags.m_INFd > 0?true:false;
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
-                  m_pDoc->DrawLOLField(hDC, LTT_INF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot);
+                  m_pDoc->DrawLOLField(hDC, LTT_INF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot, hotspot.m_haslols);
                                                                                 
-                  lolrect.left += theApp.GetLOLFieldWidth() + 5;
-                  lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  if(theApp.ShowThomWLOLS())
+                  {
+                     lolrect.left = lolrect.right;
+                     lolrect.right = lolrect.left + m_unf_width + 4;
+                  }
+                  else
+                  {
+                     lolrect.left += theApp.GetLOLFieldWidth() + 5;
+                     lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  }
 
                   hotspot.m_type = HST_UNFTAG;
                   hotspot.m_spot = lolrect;
                   hotspot.m_loltext = m_unf_text;
                   hotspot.m_lolvoted = (m_mylols & LTT_UNF)?true:false;
                   hotspot.m_lolroot = bAsRoot;
+                  hotspot.m_haslols = m_lolflags.m_UNFd > 0?true:false;
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
-                  m_pDoc->DrawLOLField(hDC, LTT_UNF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot);
+                  m_pDoc->DrawLOLField(hDC, LTT_UNF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot, hotspot.m_haslols);
                                                                                 
-                  lolrect.left += theApp.GetLOLFieldWidth() + 5;
-                  lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  if(theApp.ShowThomWLOLS())
+                  {
+                     lolrect.left = lolrect.right;
+                     lolrect.right = lolrect.left + m_tag_width + 4;
+                  }
+                  else
+                  {
+                     lolrect.left += theApp.GetLOLFieldWidth() + 5;
+                     lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  }
 
                   hotspot.m_type = HST_TAGTAG;
                   hotspot.m_spot = lolrect;
                   hotspot.m_loltext = m_tag_text;
                   hotspot.m_lolvoted = (m_mylols & LTT_TAG)?true:false;
                   hotspot.m_lolroot = bAsRoot;
+                  hotspot.m_haslols = m_lolflags.m_TAGd > 0?true:false;
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
-                  m_pDoc->DrawLOLField(hDC, LTT_TAG, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot);
+                  m_pDoc->DrawLOLField(hDC, LTT_TAG, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot, hotspot.m_haslols);
                                                                                 
-                  lolrect.left += theApp.GetLOLFieldWidth() + 5;
-                  lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  if(theApp.ShowThomWLOLS())
+                  {
+                     lolrect.left = lolrect.right;
+                     lolrect.right = lolrect.left + m_wtf_width + 4;
+                  }
+                  else
+                  {
+                     lolrect.left += theApp.GetLOLFieldWidth() + 5;
+                     lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  }
 
                   hotspot.m_type = HST_WTFTAG;
                   hotspot.m_spot = lolrect;
                   hotspot.m_loltext = m_wtf_text;
                   hotspot.m_lolvoted = (m_mylols & LTT_WTF)?true:false;
                   hotspot.m_lolroot = bAsRoot;
+                  hotspot.m_haslols = m_lolflags.m_WTFd > 0?true:false;
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
-                  m_pDoc->DrawLOLField(hDC, LTT_WTF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot);
+                  m_pDoc->DrawLOLField(hDC, LTT_WTF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot, hotspot.m_haslols);
 
                   hotspot.m_loltext = L"";
                }
@@ -1477,6 +1518,10 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   RECT lolrect;
                   lolrect.left = authorrect.right + 10;
                   lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  if(theApp.ShowThomWLOLS())
+                  {
+                     lolrect.right = lolrect.left + m_lol_width + 4;
+                  }
                   lolrect.bottom = authorrect.bottom;
                   if(theApp.ShowSmallLOL())
                   {
@@ -1489,52 +1534,89 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   hotspot.m_loltext = m_lol_text;
                   hotspot.m_lolvoted = (m_mylols & LTT_LOL)?true:false;
                   hotspot.m_lolroot = false;
+                  hotspot.m_haslols = m_lolflags.m_LOLd > 0?true:false;
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
-                  m_pDoc->DrawLOLField(hDC, LTT_LOL, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false);
+                  m_pDoc->DrawLOLField(hDC, LTT_LOL, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false, hotspot.m_haslols);
                                                                                 
-                  lolrect.left += theApp.GetLOLFieldWidth() + 5;
-                  lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  if(theApp.ShowThomWLOLS())
+                  {
+                     lolrect.left = lolrect.right;
+                     lolrect.right = lolrect.left + m_inf_width + 4;
+                  }
+                  else
+                  {
+                     lolrect.left += theApp.GetLOLFieldWidth() + 5;
+                     lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  }
 
                   hotspot.m_type = HST_INFTAG;
                   hotspot.m_spot = lolrect;
                   hotspot.m_loltext = m_inf_text;
                   hotspot.m_lolvoted = (m_mylols & LTT_INF)?true:false;
                   hotspot.m_lolroot = false;
+                  hotspot.m_haslols = m_lolflags.m_INFd > 0?true:false;
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
-                  m_pDoc->DrawLOLField(hDC, LTT_INF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false);
+                  m_pDoc->DrawLOLField(hDC, LTT_INF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false, hotspot.m_haslols);
                                                                                 
-                  lolrect.left += theApp.GetLOLFieldWidth() + 5;
-                  lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  if(theApp.ShowThomWLOLS())
+                  {
+                     lolrect.left = lolrect.right;
+                     lolrect.right = lolrect.left + m_unf_width + 4;
+                  }
+                  else
+                  {
+                     lolrect.left += theApp.GetLOLFieldWidth() + 5;
+                     lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  }
 
                   hotspot.m_type = HST_UNFTAG;
                   hotspot.m_spot = lolrect;
                   hotspot.m_loltext = m_unf_text;
                   hotspot.m_lolvoted = (m_mylols & LTT_UNF)?true:false;
                   hotspot.m_lolroot = false;
+                  hotspot.m_haslols = m_lolflags.m_UNFd > 0?true:false;
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
-                  m_pDoc->DrawLOLField(hDC, LTT_UNF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false);
+                  m_pDoc->DrawLOLField(hDC, LTT_UNF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false, hotspot.m_haslols);
                                                                                 
-                  lolrect.left += theApp.GetLOLFieldWidth() + 5;
-                  lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  if(theApp.ShowThomWLOLS())
+                  {
+                     lolrect.left = lolrect.right;
+                     lolrect.right = lolrect.left + m_tag_width + 4;
+                  }
+                  else
+                  {
+                     lolrect.left += theApp.GetLOLFieldWidth() + 5;
+                     lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  }
 
                   hotspot.m_type = HST_TAGTAG;
                   hotspot.m_spot = lolrect;
                   hotspot.m_loltext = m_tag_text;
                   hotspot.m_lolvoted = (m_mylols & LTT_TAG)?true:false;
                   hotspot.m_lolroot = false;
+                  hotspot.m_haslols = m_lolflags.m_TAGd > 0?true:false;
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
-                  m_pDoc->DrawLOLField(hDC, LTT_TAG, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false);
+                  m_pDoc->DrawLOLField(hDC, LTT_TAG, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false, hotspot.m_haslols);
                                                                                 
-                  lolrect.left += theApp.GetLOLFieldWidth() + 5;
-                  lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  if(theApp.ShowThomWLOLS())
+                  {
+                     lolrect.left = lolrect.right;
+                     lolrect.right = lolrect.left + m_wtf_width + 4;
+                  }
+                  else
+                  {
+                     lolrect.left += theApp.GetLOLFieldWidth() + 5;
+                     lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  }
 
                   hotspot.m_type = HST_WTFTAG;
                   hotspot.m_spot = lolrect;
                   hotspot.m_loltext = m_wtf_text;
                   hotspot.m_lolvoted = (m_mylols & LTT_WTF)?true:false;
                   hotspot.m_lolroot = false;
+                  hotspot.m_haslols = m_lolflags.m_WTFd > 0?true:false;
                   if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
-                  m_pDoc->DrawLOLField(hDC, LTT_WTF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false);
+                  m_pDoc->DrawLOLField(hDC, LTT_WTF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false, hotspot.m_haslols);
 
                   hotspot.m_loltext = L"";
                }
@@ -4110,16 +4192,58 @@ void ChattyPost::UpdateLOLsRecurse()
    }
 }
 
+unsigned int ChattyPost::GetLOLWidth(const UCChar *text)
+{
+   UCString fulltext = L"[ ";
+   fulltext += text;
+   fulltext += L" ]";
+
+   int *widths = (int*)malloc(sizeof(int) * fulltext.Length());
+
+   GetCharWidths(fulltext, widths, fulltext.Length(), false, false, theApp.ShowSmallLOL(), theApp.GetNormalFontName());
+
+   unsigned int width = 0;
+
+   for(int i = 0; i < fulltext.Length(); i++) width += widths[i];
+
+   free(widths);
+
+   return width;
+}
+
 void ChattyPost::UpdateLOLs()
 {
    m_bHaveLOLPreview = false;
    m_lolflags = theApp.GetKnownLOLFlags(m_id);
 
-   if(m_lolflags.m_LOLd > 0) {m_lol_text = m_lolflags.m_LOLd; m_bHaveLOLPreview = true;} else m_lol_text = L"";
-   if(m_lolflags.m_INFd > 0) {m_inf_text = m_lolflags.m_INFd; m_bHaveLOLPreview = true;} else m_inf_text = L"";
-   if(m_lolflags.m_UNFd > 0) {m_unf_text = m_lolflags.m_UNFd; m_bHaveLOLPreview = true;} else m_unf_text = L"";
-   if(m_lolflags.m_TAGd > 0) {m_tag_text = m_lolflags.m_TAGd; m_bHaveLOLPreview = true;} else m_tag_text = L"";
-   if(m_lolflags.m_WTFd > 0) {m_wtf_text = m_lolflags.m_WTFd; m_bHaveLOLPreview = true;} else m_wtf_text = L"";
+   if(theApp.ShowThomWLOLS())
+   {
+      m_lol_text = L"lol";
+      m_inf_text = L"inf";
+      m_unf_text = L"unf";
+      m_tag_text = L"tag";
+      m_wtf_text = L"wtf";
+
+      if(m_lolflags.m_LOLd > 0) {m_lol_text += L" x ";m_lol_text += m_lolflags.m_LOLd; m_bHaveLOLPreview = true;}
+      if(m_lolflags.m_INFd > 0) {m_inf_text += L" x ";m_inf_text += m_lolflags.m_INFd; m_bHaveLOLPreview = true;}
+      if(m_lolflags.m_UNFd > 0) {m_unf_text += L" x ";m_unf_text += m_lolflags.m_UNFd; m_bHaveLOLPreview = true;}
+      if(m_lolflags.m_TAGd > 0) {m_tag_text += L" x ";m_tag_text += m_lolflags.m_TAGd; m_bHaveLOLPreview = true;}
+      if(m_lolflags.m_WTFd > 0) {m_wtf_text += L" x ";m_wtf_text += m_lolflags.m_WTFd; m_bHaveLOLPreview = true;}
+
+      m_lol_width = GetLOLWidth(m_lol_text);
+      m_inf_width = GetLOLWidth(m_inf_text);
+      m_unf_width = GetLOLWidth(m_unf_text);
+      m_tag_width = GetLOLWidth(m_tag_text);
+      m_wtf_width = GetLOLWidth(m_wtf_text);
+   }
+   else
+   {
+      if(m_lolflags.m_LOLd > 0) {m_lol_text = m_lolflags.m_LOLd; m_bHaveLOLPreview = true;} else m_lol_text = L"";
+      if(m_lolflags.m_INFd > 0) {m_inf_text = m_lolflags.m_INFd; m_bHaveLOLPreview = true;} else m_inf_text = L"";
+      if(m_lolflags.m_UNFd > 0) {m_unf_text = m_lolflags.m_UNFd; m_bHaveLOLPreview = true;} else m_unf_text = L"";
+      if(m_lolflags.m_TAGd > 0) {m_tag_text = m_lolflags.m_TAGd; m_bHaveLOLPreview = true;} else m_tag_text = L"";
+      if(m_lolflags.m_WTFd > 0) {m_wtf_text = m_lolflags.m_WTFd; m_bHaveLOLPreview = true;} else m_wtf_text = L"";
+   }
 
    if(m_bHaveLOLPreview)
    {
@@ -4131,7 +4255,6 @@ void ChattyPost::UpdateLOLs()
 
       m_lol_preview_text = L": ";
       m_lol_preview_shacktags.clear();
-      int pos = 2;
 
       if(theApp.ShowSmallLOL())
       {
@@ -4140,71 +4263,117 @@ void ChattyPost::UpdateLOLs()
 
       m_lol_preview_shacktags.push_back(shacktagpos(ST_BOLD,0));
 
-      if(!m_lol_text.IsEmpty())
+      if(m_lolflags.m_LOLd > 0)
       {
-         m_lol_preview_text += m_lol_text; 
-         m_lol_preview_shacktags.push_back(shacktagpos(ST_ORANGE,pos));
-         m_lol_preview_shacktags.push_back(shacktagpos(ST_ORANGE_END,pos + m_lol_text.Length()));
-         pos += m_lol_text.Length();
+         m_lol_preview_shacktags.push_back(shacktagpos(ST_ORANGE,m_lol_preview_text.Length()));
+         if(theApp.InvertedLOLPreviews())
+         {
+            m_lol_preview_shacktags.push_back(shacktagpos(ST_INVERT,m_lol_preview_text.Length()));
+            m_lol_preview_text += L" ";
+         }
+         if(theApp.VerboseLOLPreviews())m_lol_preview_text += L"lol * "; 
+         m_lol_preview_text += m_lolflags.m_LOLd;
+         if(theApp.InvertedLOLPreviews())
+         {
+            m_lol_preview_text += L" ";
+            m_lol_preview_shacktags.push_back(shacktagpos(ST_INVERT_END,m_lol_preview_text.Length()));
+         }
+         m_lol_preview_shacktags.push_back(shacktagpos(ST_ORANGE_END,m_lol_preview_text.Length()));
       }
 
-      if(!m_inf_text.IsEmpty())
+      if(m_lolflags.m_INFd > 0)
       {
          if(!m_lol_preview_text.IsEmpty())
          {
             m_lol_preview_text += L' '; 
-            pos++;
          }
-         m_lol_preview_text += m_inf_text; 
-         m_lol_preview_shacktags.push_back(shacktagpos(ST_BLUE,pos));
-         m_lol_preview_shacktags.push_back(shacktagpos(ST_BLUE_END,pos + m_inf_text.Length()));
-         pos += m_inf_text.Length();
+         m_lol_preview_shacktags.push_back(shacktagpos(ST_BLUE,m_lol_preview_text.Length()));
+         if(theApp.InvertedLOLPreviews())
+         {
+            m_lol_preview_shacktags.push_back(shacktagpos(ST_INVERT,m_lol_preview_text.Length()));
+            m_lol_preview_text += L" ";
+         }         
+         if(theApp.VerboseLOLPreviews())m_lol_preview_text += L"inf * "; 
+         m_lol_preview_text += m_lolflags.m_INFd;
+         if(theApp.InvertedLOLPreviews())
+         {
+            m_lol_preview_text += L" ";
+            m_lol_preview_shacktags.push_back(shacktagpos(ST_INVERT_END,m_lol_preview_text.Length()));
+         }
+         m_lol_preview_shacktags.push_back(shacktagpos(ST_BLUE_END,m_lol_preview_text.Length()));
       }
 
-      if(!m_unf_text.IsEmpty())
+      if(m_lolflags.m_UNFd > 0)
       {
          if(!m_lol_preview_text.IsEmpty())
          {
             m_lol_preview_text += L' '; 
-            pos++;
          }
-         m_lol_preview_text += m_unf_text; 
-         m_lol_preview_shacktags.push_back(shacktagpos(ST_RED,pos));
-         m_lol_preview_shacktags.push_back(shacktagpos(ST_RED_END,pos + m_unf_text.Length()));
-         pos += m_unf_text.Length();
+         m_lol_preview_shacktags.push_back(shacktagpos(ST_RED,m_lol_preview_text.Length()));
+         if(theApp.InvertedLOLPreviews())
+         {
+            m_lol_preview_shacktags.push_back(shacktagpos(ST_INVERT,m_lol_preview_text.Length()));
+            m_lol_preview_text += L" ";
+         }
+         if(theApp.VerboseLOLPreviews())m_lol_preview_text += L"unf * "; 
+         m_lol_preview_text += m_lolflags.m_UNFd;
+         if(theApp.InvertedLOLPreviews())
+         {
+            m_lol_preview_text += L" ";
+            m_lol_preview_shacktags.push_back(shacktagpos(ST_INVERT_END,m_lol_preview_text.Length()));
+         }
+         m_lol_preview_shacktags.push_back(shacktagpos(ST_RED_END,m_lol_preview_text.Length()));
       }
 
-      if(!m_tag_text.IsEmpty())
+      if(m_lolflags.m_TAGd > 0)
       {
          if(!m_lol_preview_text.IsEmpty())
          {
             m_lol_preview_text += L' '; 
-            pos++;
          }
-         m_lol_preview_text += m_tag_text; 
-         m_lol_preview_shacktags.push_back(shacktagpos(ST_GREEN,pos));
-         m_lol_preview_shacktags.push_back(shacktagpos(ST_GREEN_END,pos + m_tag_text.Length()));
-         pos += m_tag_text.Length();
+         m_lol_preview_shacktags.push_back(shacktagpos(ST_GREEN,m_lol_preview_text.Length()));
+         if(theApp.InvertedLOLPreviews())
+         {
+            m_lol_preview_shacktags.push_back(shacktagpos(ST_INVERT,m_lol_preview_text.Length()));
+            m_lol_preview_text += L" ";
+         }
+         if(theApp.VerboseLOLPreviews())m_lol_preview_text += L"tag * "; 
+         m_lol_preview_text += m_lolflags.m_TAGd;
+         if(theApp.InvertedLOLPreviews())
+         {
+            m_lol_preview_text += L" ";
+            m_lol_preview_shacktags.push_back(shacktagpos(ST_INVERT_END,m_lol_preview_text.Length()));
+         }
+         m_lol_preview_shacktags.push_back(shacktagpos(ST_GREEN_END,m_lol_preview_text.Length()));
       }
 
-      if(!m_wtf_text.IsEmpty())
+      if(m_lolflags.m_WTFd > 0)
       {
          if(!m_lol_preview_text.IsEmpty())
          {
             m_lol_preview_text += L' '; 
-            pos++;
          }
-         m_lol_preview_text += m_wtf_text; 
-         m_lol_preview_shacktags.push_back(shacktagpos(ST_PURPLE,pos));
-         m_lol_preview_shacktags.push_back(shacktagpos(ST_PURPLE_END,pos + m_wtf_text.Length()));
-         pos += m_wtf_text.Length();
+         m_lol_preview_shacktags.push_back(shacktagpos(ST_PURPLE,m_lol_preview_text.Length()));
+         if(theApp.InvertedLOLPreviews())
+         {
+            m_lol_preview_shacktags.push_back(shacktagpos(ST_INVERT,m_lol_preview_text.Length()));
+            m_lol_preview_text += L" ";
+         }
+         if(theApp.VerboseLOLPreviews())m_lol_preview_text += L"wtf * "; 
+         m_lol_preview_text += m_lolflags.m_WTFd;
+         if(theApp.InvertedLOLPreviews())
+         {
+            m_lol_preview_text += L" ";
+            m_lol_preview_shacktags.push_back(shacktagpos(ST_INVERT_END,m_lol_preview_text.Length()));
+         }
+         m_lol_preview_shacktags.push_back(shacktagpos(ST_PURPLE_END,m_lol_preview_text.Length()));
       }
 
-      m_lol_preview_shacktags.push_back(shacktagpos(ST_BOLD_END,pos));
+      m_lol_preview_shacktags.push_back(shacktagpos(ST_BOLD_END,m_lol_preview_text.Length()));
 
       if(theApp.ShowSmallLOL())
       {
-         m_lol_preview_shacktags.push_back(shacktagpos(ST_SAMPLE_END,pos));
+         m_lol_preview_shacktags.push_back(shacktagpos(ST_SAMPLE_END,m_lol_preview_text.Length()));
       }
 
       m_plol_preview_charwidths = (int*)malloc(sizeof(int) * m_lol_preview_text.Length());

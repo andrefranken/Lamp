@@ -695,6 +695,15 @@ public:
 
    bool ShowRootSelected(){return m_show_root_selected;}
    void SetShowRootSelected(bool value){m_show_root_selected = value;}
+
+   bool ShowThomWLOLS(){return m_show_thomw_lols;}
+   void SetShowThomWLOLS(bool value);
+
+   bool VerboseLOLPreviews(){return m_verbose_lol_previews;}
+   void SetVerboseLOLPreviews(bool value);
+
+   bool InvertedLOLPreviews(){return m_inverted_lol_previews;}
+   void SetInvertedLOLPreviews(bool value);
    
    void ClearSession(){m_session.clear();}
 
@@ -1005,6 +1014,12 @@ protected:
    int m_hours_expire;
 
    bool m_show_root_selected;
+
+   bool m_show_thomw_lols;
+
+   bool m_verbose_lol_previews;
+
+   bool m_inverted_lol_previews;
 
 public:
    afx_msg void OnFileSetuplogininfo();

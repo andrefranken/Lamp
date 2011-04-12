@@ -803,6 +803,9 @@ CLampDoc::CLampDoc()
    m_boldfont = ::CreateFontW(theApp.GetFontHeight(),0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
    m_pagefont = ::CreateFontW(-13,0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
    m_miscboldfont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
+
+   m_miscunderlinefont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_NORMAL,0,1,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
+   m_normalunderlinefont = ::CreateFontW(theApp.GetFontHeight(),0,0,0,FW_NORMAL,0,1,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
 }
 
 CLampDoc::~CLampDoc()
@@ -897,6 +900,16 @@ CLampDoc::~CLampDoc()
    if(m_miscfont != NULL)
    {
       ::DeleteObject(m_miscfont);
+   }
+
+   if(m_miscunderlinefont != NULL)
+   {
+      ::DeleteObject(m_miscunderlinefont);
+   }
+
+   if(m_normalunderlinefont != NULL)
+   {
+      ::DeleteObject(m_normalunderlinefont);
    }
 
    if(m_miscboldfont != NULL)
@@ -3086,23 +3099,41 @@ void CLampDoc::FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcat
    ::SelectObject(hDC,oldbrush);
 }
 
-void CLampDoc::DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols, bool bHover, bool bVoted, bool bRoot)
+void CLampDoc::DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols, bool bHover, bool bVoted, bool bRoot, bool bHasLols)
 {
-   HFONT oldfont = NULL;
-
-   if(lols.Length() > 0 || bHover)
+   if(theApp.ShowThomWLOLS())
    {
-      if(theApp.ShowSmallLOL())
+      HFONT oldfont = NULL;
+
+      COLORREF edgecolor = theApp.GetPostTextColor();
+      COLORREF backcolor = 0;
+
+      if(bRoot)
       {
-         oldfont = (HFONT)::SelectObject(hDC,m_miscboldfont);
+         backcolor = theApp.GetRootPostBackgroundColor();
       }
       else
       {
-         oldfont = (HFONT)::SelectObject(hDC,m_boldfont);
+         backcolor = theApp.GetPostBackgroundColor();
       }
-   }
-   else
-   {
+
+      if(bRoot)
+      {
+         ::FillRect(hDC,&rect,m_rootbackgroundbrush);
+      }
+      else
+      {
+         ::FillRect(hDC,&rect,m_replyexpandedbackgroundbrush);
+      }   
+
+      COLORREF bracketcolor = RGB((GetRValue(edgecolor) + (GetRValue(backcolor) * 2)) / 3,
+                                  (GetGValue(edgecolor) + (GetGValue(backcolor) * 2)) / 3,
+                                  (GetBValue(edgecolor) + (GetBValue(backcolor) * 2)) / 3);
+
+      int x = rect.left + 2;
+      int y = rect.bottom;
+      
+      // draw leading bracket
       if(theApp.ShowSmallLOL())
       {
          oldfont = (HFONT)::SelectObject(hDC,m_miscfont);
@@ -3111,26 +3142,148 @@ void CLampDoc::DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols
       {
          oldfont = (HFONT)::SelectObject(hDC,m_normalfont);
       }
+
+      ::SetTextColor(hDC,bracketcolor);
+      ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM|TA_UPDATECP);
+      ::SetBkMode(hDC,TRANSPARENT);
+
+      ::MoveToEx(hDC, x, y, NULL); 
+      ::ExtTextOutW(hDC, 0, y, ETO_CLIPPED, &rect, L"[ ", 2, NULL);
+
+      // draw main body
+      if(bHover || bVoted)
+      {
+         // underline variations
+         if(theApp.ShowSmallLOL())
+         {
+            ::SelectObject(hDC,m_miscunderlinefont);
+         }
+         else
+         {
+            ::SelectObject(hDC,m_normalunderlinefont);
+         }
+      }
+      else
+      {
+         if(theApp.ShowSmallLOL())
+         {
+            ::SelectObject(hDC,m_miscfont);
+         }
+         else
+         {
+            ::SelectObject(hDC,m_normalfont);
+         }
+      }
+
+      COLORREF color = 0;
+
+      switch(type)
+      {
+         case LTT_LOL: color = theApp.GetOrange(); break;
+         case LTT_INF: color = theApp.GetBlue(); break;
+         case LTT_UNF: color = theApp.GetRed(); break;
+         case LTT_TAG: color = theApp.GetGreen(); break;
+         case LTT_WTF: color = theApp.GetPurple(); break;
+      }
+
+      if(!bHasLols && !bHover)
+      {
+         color = RGB((GetRValue(color) + GetRValue(backcolor)) / 2,
+                     (GetGValue(color) + GetGValue(backcolor)) / 2,
+                     (GetBValue(color) + GetBValue(backcolor)) / 2);
+      }
+      
+      ::SetTextColor(hDC,color);
+
+      ::ExtTextOutW(hDC, 0, y, ETO_CLIPPED, &rect, lols.Str(), lols.Length(), NULL);
+
+      // draw trailing bracket
+
+      ::SetTextColor(hDC,bracketcolor);
+      ::ExtTextOutW(hDC, 0, y, ETO_CLIPPED, &rect, L" ]", 2, NULL);
+
+
+      ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
+      
+      ::SelectObject(hDC,oldfont);
    }
-
-   COLORREF color = 0;
-
-   UCString *text = &lols;
-
-   switch(type)
+   else
    {
-      case LTT_LOL: color = theApp.GetOrange(); break;
-      case LTT_INF: color = theApp.GetBlue(); break;
-      case LTT_UNF: color = theApp.GetRed(); break;
-      case LTT_TAG: color = theApp.GetGreen(); break;
-      case LTT_WTF: color = theApp.GetPurple(); break;
-   }
+      HFONT oldfont = NULL;
 
-   COLORREF thiscolor = color;
+      if(lols.Length() > 0 || bHover)
+      {
+         if(theApp.ShowSmallLOL())
+         {
+            oldfont = (HFONT)::SelectObject(hDC,m_miscboldfont);
+         }
+         else
+         {
+            oldfont = (HFONT)::SelectObject(hDC,m_boldfont);
+         }
+      }
+      else
+      {
+         if(theApp.ShowSmallLOL())
+         {
+            oldfont = (HFONT)::SelectObject(hDC,m_miscfont);
+         }
+         else
+         {
+            oldfont = (HFONT)::SelectObject(hDC,m_normalfont);
+         }
+      }
 
-   if(text->Length() == 0 && !bHover)
-   {
-      if(text->Length() == 0)
+      COLORREF color = 0;
+
+      UCString *text = &lols;
+
+      switch(type)
+      {
+         case LTT_LOL: color = theApp.GetOrange(); break;
+         case LTT_INF: color = theApp.GetBlue(); break;
+         case LTT_UNF: color = theApp.GetRed(); break;
+         case LTT_TAG: color = theApp.GetGreen(); break;
+         case LTT_WTF: color = theApp.GetPurple(); break;
+      }
+
+      COLORREF thiscolor = color;
+
+      if(text->Length() == 0 && !bHover)
+      {
+         if(text->Length() == 0)
+         {
+            COLORREF backcolor = 0;
+
+            if(bRoot)
+            {
+               backcolor = theApp.GetRootPostBackgroundColor();
+            }
+            else
+            {
+               backcolor = theApp.GetPostBackgroundColor();
+            }
+
+            color = RGB((GetRValue(color) + GetRValue(backcolor)) / 2,
+                        (GetGValue(color) + GetGValue(backcolor)) / 2,
+                        (GetBValue(color) + GetBValue(backcolor)) / 2);
+         }
+      }
+
+      if(text->Length() == 0 || bHover)
+      {
+         switch(type)
+         {
+            case LTT_LOL: text = &m_lol_text; break;
+            case LTT_INF: text = &m_inf_text; break;
+            case LTT_UNF: text = &m_unf_text; break;
+            case LTT_TAG: text = &m_tag_text; break;
+            case LTT_WTF: text = &m_wtf_text; break;
+         }
+      }
+
+
+      if(bVoted)
       {
          COLORREF backcolor = 0;
 
@@ -3143,78 +3296,47 @@ void CLampDoc::DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols
             backcolor = theApp.GetPostBackgroundColor();
          }
 
-         color = RGB((GetRValue(color) + GetRValue(backcolor)) / 2,
-                     (GetGValue(color) + GetGValue(backcolor)) / 2,
-                     (GetBValue(color) + GetBValue(backcolor)) / 2);
+         thiscolor = RGB((GetRValue(thiscolor) + GetRValue(backcolor)) / 2,
+                         (GetGValue(thiscolor) + GetGValue(backcolor)) / 2,
+                         (GetBValue(thiscolor) + GetBValue(backcolor)) / 2);
+      
+         HBRUSH newbrush = ::CreateSolidBrush(thiscolor);
+         HBRUSH oldbrush = (HBRUSH)::SelectObject(hDC,newbrush);
+         HPEN oldpen = (HPEN)::SelectObject(hDC,m_nullpen);
+
+         if(theApp.RoundedPosts())
+         {
+            ::RoundRect(hDC,rect.left,rect.top,rect.right,rect.bottom, (rect.bottom - rect.top) / 2, (rect.bottom - rect.top) / 2);
+         }
+         else
+         {
+            ::Rectangle(hDC,rect.left,rect.top,rect.right,rect.bottom);
+         }
+         ::SelectObject(hDC,oldpen);
+         ::SelectObject(hDC,oldbrush);
+         ::DeleteObject(newbrush);
       }
-   }
-
-   if(text->Length() == 0 || bHover)
-   {
-      switch(type)
+      else if(bRoot)
       {
-         case LTT_LOL: text = &m_lol_text; break;
-         case LTT_INF: text = &m_inf_text; break;
-         case LTT_UNF: text = &m_unf_text; break;
-         case LTT_TAG: text = &m_tag_text; break;
-         case LTT_WTF: text = &m_wtf_text; break;
-      }
-   }
-
-
-   if(bVoted)
-   {
-      COLORREF backcolor = 0;
-
-      if(bRoot)
-      {
-         backcolor = theApp.GetRootPostBackgroundColor();
+         ::FillRect(hDC,&rect,m_rootbackgroundbrush);
       }
       else
       {
-         backcolor = theApp.GetPostBackgroundColor();
-      }
+         ::FillRect(hDC,&rect,m_replyexpandedbackgroundbrush);
+      }   
+      
+      ::SetTextColor(hDC,color);
 
-      thiscolor = RGB((GetRValue(thiscolor) + GetRValue(backcolor)) / 2,
-                      (GetGValue(thiscolor) + GetGValue(backcolor)) / 2,
-                      (GetBValue(thiscolor) + GetBValue(backcolor)) / 2);
-   
-      HBRUSH newbrush = ::CreateSolidBrush(thiscolor);
-      HBRUSH oldbrush = (HBRUSH)::SelectObject(hDC,newbrush);
-      HPEN oldpen = (HPEN)::SelectObject(hDC,m_nullpen);
+      ::SetTextAlign(hDC,TA_CENTER|TA_BOTTOM);
 
-      if(theApp.RoundedPosts())
-      {
-         ::RoundRect(hDC,rect.left,rect.top,rect.right,rect.bottom, (rect.bottom - rect.top) / 2, (rect.bottom - rect.top) / 2);
-      }
-      else
-      {
-         ::Rectangle(hDC,rect.left,rect.top,rect.right,rect.bottom);
-      }
-      ::SelectObject(hDC,oldpen);
-      ::SelectObject(hDC,oldbrush);
-      ::DeleteObject(newbrush);
+      ::SetBkMode(hDC,TRANSPARENT);
+
+      ::ExtTextOutW(hDC, (rect.right + rect.left) / 2, rect.bottom, ETO_CLIPPED, &rect, text->Str(), text->Length(), NULL);
+
+      ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
+      
+      ::SelectObject(hDC,oldfont);
    }
-   else if(bRoot)
-   {
-      ::FillRect(hDC,&rect,m_rootbackgroundbrush);
-   }
-   else
-   {
-      ::FillRect(hDC,&rect,m_replyexpandedbackgroundbrush);
-   }   
-   
-   ::SetTextColor(hDC,color);
-
-   ::SetTextAlign(hDC,TA_CENTER|TA_BOTTOM);
-
-   ::SetBkMode(hDC,TRANSPARENT);
-
-   ::ExtTextOutW(hDC, (rect.right + rect.left) / 2, rect.bottom, ETO_CLIPPED, &rect, text->Str(), text->Length(), NULL);
-
-   ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
-   
-   ::SelectObject(hDC,oldfont);
 }
 
 void CLampDoc::DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipped, int shade, COLORREF AuthorColor, const UCString &rootauthor)
@@ -3328,8 +3450,10 @@ void CLampDoc::DrawPreviewText(HDC hDC,
    bool spoiler = false;
    bool code = false;
    bool link = false;
-   COLORREF color;
+   bool invert = false;
+   
    COLORREF normalcolor = theApp.GetPostTextColorShade(shade);
+   COLORREF color = normalcolor;
 
    bool colorchange = false;
    bool stylechange = false;
@@ -3442,6 +3566,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
       // loop for every shack tag range
       while(it != end)
       {
+         // todo
          switch((*it).m_tag)
          {
          case ST_RED: color = theApp.GetRed(); colorstack.push_back(color); colorchange = true; break;
@@ -3484,6 +3609,9 @@ void CLampDoc::DrawPreviewText(HDC hDC,
             break;
          }
 
+         case ST_INVERT: invert = true; break;
+         case ST_INVERT_END: invert = false; colorchange = true; break;
+                  
          case ST_QUOTE: quote = true;stylechange = true;break;
          case ST_SAMPLE: sample = true;stylechange = true;break;
          case ST_STRIKE: strike = true;stylechange = true;break;
@@ -3574,27 +3702,65 @@ void CLampDoc::DrawPreviewText(HDC hDC,
             finish = __min((*it).m_pos,numchars);
          }
 
-         if(spoiler)
+         if(finish > start)
          {
-            RECT spoilrect;
-            spoilrect.left = x;
-            spoilrect.bottom = rect.bottom;
-            spoilrect.top = rect.top;
-
-            spoilrect.right = x;
-            const int *work = charwidths + start;
-            const int *end = work + (finish - start);
-            while(work < end)
+            if(spoiler)
             {
-               spoilrect.right += *work;
-               work++;
+               RECT spoilrect;
+               spoilrect.left = x;
+               spoilrect.bottom = rect.bottom;
+               spoilrect.top = rect.top;
+
+               spoilrect.right = x;
+               const int *work = charwidths + start;
+               const int *end = work + (finish - start);
+               while(work < end)
+               {
+                  spoilrect.right += *work;
+                  work++;
+               }
+               ::FillRect(hDC,&spoilrect,m_spoilerbrush);
             }
-            ::FillRect(hDC,&spoilrect,m_spoilerbrush);
-         }
-         else
-         {
-            MyTextOut(hDC, x, rect.bottom - rise, text.Str() + start, finish - start, charwidths + start, NULL);
-            //::ExtTextOutW(hDC, x, rect.bottom, 0, NULL, text.Str() + start, finish - start, charwidths + start);
+            else
+            {
+               if(invert)
+               {
+                  RECT invertrect;
+                  invertrect.left = x;
+                  invertrect.bottom = rect.bottom + 1;
+                  if(sample)
+                  {
+                     invertrect.top = rect.top + abs(theApp.GetFontHeight() - theApp.GetSampleFontHeight());
+                  }
+                  else
+                  {
+                     invertrect.top = rect.top;
+                  }
+
+                  invertrect.right = x + 1;
+                  const int *work = charwidths + start;
+                  const int *end = work + (finish - start);
+                  while(work < end)
+                  {
+                     invertrect.right += *work;
+                     work++;
+                  }
+
+                  HBRUSH newbrush = ::CreateSolidBrush(color);
+                  HBRUSH oldbrush = (HBRUSH)::SelectObject(hDC,newbrush);
+                  HPEN oldpen = (HPEN)::SelectObject(hDC,m_nullpen);
+                  
+                  int roundamount = (invertrect.bottom - invertrect.top) / 3;
+                  ::RoundRect(hDC,invertrect.left, invertrect.top, invertrect.right, invertrect.bottom, roundamount, roundamount);
+
+                  ::SelectObject(hDC,oldpen);
+                  ::SelectObject(hDC,oldbrush);
+                  ::DeleteObject(newbrush);
+                  ::SetTextColor(hDC,theApp.GetBackgroundColor());
+               }
+               MyTextOut(hDC, x, rect.bottom - rise, text.Str() + start, finish - start, charwidths + start, NULL);
+               //::ExtTextOutW(hDC, x, rect.bottom, 0, NULL, text.Str() + start, finish - start, charwidths + start);
+            }
          }
                   
          charsdone += (finish - start);
@@ -4457,6 +4623,16 @@ void CLampDoc::InvalidateSkin()
       ::DeleteObject(m_miscfont);
    }
 
+   if(m_miscunderlinefont != NULL)
+   {
+      ::DeleteObject(m_miscunderlinefont);
+   }
+
+   if(m_normalunderlinefont != NULL)
+   {
+      ::DeleteObject(m_normalunderlinefont);
+   }
+
    if(m_miscboldfont != NULL)
    {
       ::DeleteObject(m_miscboldfont);
@@ -4509,6 +4685,9 @@ void CLampDoc::InvalidateSkin()
    m_boldfont = ::CreateFontW(theApp.GetFontHeight(),0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
    m_pagefont = ::CreateFontW(-13,0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
    m_miscboldfont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
+
+   m_miscunderlinefont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_NORMAL,0,1,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
+   m_normalunderlinefont = ::CreateFontW(theApp.GetFontHeight(),0,0,0,FW_NORMAL,0,1,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
 
 
    std::list<ChattyPost*>::iterator it = m_rootposts.begin();

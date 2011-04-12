@@ -1163,6 +1163,18 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"show_root_selected");
    if(setting!=NULL) m_show_root_selected = setting->GetValue();
    else m_show_root_selected = true;
+
+   setting = hostxml.FindChildElement(L"show_thomw_lols");
+   if(setting!=NULL) m_show_thomw_lols = setting->GetValue();
+   else m_show_thomw_lols = false;
+
+   setting = hostxml.FindChildElement(L"verbose_lol_previews");
+   if(setting!=NULL) m_verbose_lol_previews = setting->GetValue();
+   else m_verbose_lol_previews = false;
+
+   setting = hostxml.FindChildElement(L"inverted_lol_previews");
+   if(setting!=NULL) m_inverted_lol_previews = setting->GetValue();
+   else m_inverted_lol_previews = true;
    
    setting = hostxml.FindChildElement(L"AlwaysOnTopWhenNotDocked");
    if(setting!=NULL) m_bAlwaysOnTopWhenNotDocked = setting->GetValue();
@@ -1478,6 +1490,9 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"FlaredBranches",UCString(m_bFlaredBranches));
    settingsxml.AddChildElement(L"auto_check_inbox",UCString(m_auto_check_inbox));
    settingsxml.AddChildElement(L"show_root_selected",UCString(m_show_root_selected));
+   settingsxml.AddChildElement(L"show_thomw_lols",UCString(m_show_thomw_lols));
+   settingsxml.AddChildElement(L"verbose_lol_previews",UCString(m_verbose_lol_previews));
+   settingsxml.AddChildElement(L"inverted_lol_previews",UCString(m_inverted_lol_previews));
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
    settingsxml.AddChildElement(L"num_minutes_check_inbox",UCString(m_num_minutes_check_inbox));
    settingsxml.AddChildElement(L"enable_spell_checker",UCString(m_enable_spell_checker));
@@ -2456,6 +2471,51 @@ void CLampApp::SetShowSmallLOL(bool value)
    m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
 
    // have all the tabs update their lol count info
+   std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
+   std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
+
+   while(it != end)
+   {
+      (*it)->UpdateLOLsRecurse();
+      it++;
+   }
+}
+
+void CLampApp::SetShowThomWLOLS(bool value)
+{
+   m_show_thomw_lols = value;
+
+   // have all the tabs update their lol diplay info
+   std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
+   std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
+
+   while(it != end)
+   {
+      (*it)->UpdateLOLsRecurse();
+      it++;
+   }
+}
+
+void CLampApp::SetVerboseLOLPreviews(bool value)
+{
+   m_verbose_lol_previews = value;
+
+   // have all the tabs update their lol diplay info
+   std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
+   std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
+
+   while(it != end)
+   {
+      (*it)->UpdateLOLsRecurse();
+      it++;
+   }
+}
+
+void CLampApp::SetInvertedLOLPreviews(bool value)
+{
+   m_inverted_lol_previews = value;
+
+   // have all the tabs update their lol diplay info
    std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
    std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
 

@@ -141,6 +141,12 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_AUTOCHECKINBOX, &CLampView::OnUpdateAutoCheckInbox)
    ON_COMMAND(ID_SHOW_ROOT_SELECTED, &CLampView::OnShowRootSelected)
    ON_UPDATE_COMMAND_UI(ID_SHOW_ROOT_SELECTED, &CLampView::OnUpdateShowRootSelected)
+   ON_COMMAND(ID_SHOW_THOMW_LOLS, &CLampView::OnShowThomWLOLS)
+   ON_UPDATE_COMMAND_UI(ID_SHOW_THOMW_LOLS, &CLampView::OnUpdateShowThomWLOLS)
+   ON_COMMAND(ID_VERBOSE_LOL_PREVIEWS, &CLampView::OnVerboseLOLPreviews)
+   ON_UPDATE_COMMAND_UI(ID_VERBOSE_LOL_PREVIEWS, &CLampView::OnUpdateVerboseLOLPreviews)
+   ON_COMMAND(ID_INVERTED_LOL_PREVIEWS, &CLampView::OnInvertedLOLPreviews)
+   ON_UPDATE_COMMAND_UI(ID_INVERTED_LOL_PREVIEWS, &CLampView::OnUpdateInvertedLOLPreviews)
 
 END_MESSAGE_MAP()
 
@@ -1331,27 +1337,27 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                break;
             case HST_LOLTAG:
                {
-                  GetDocument()->DrawLOLField(hDC, LTT_LOL, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
+                  GetDocument()->DrawLOLField(hDC, LTT_LOL, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
                }
                break;
             case HST_INFTAG:
                {
-                  GetDocument()->DrawLOLField(hDC, LTT_INF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
+                  GetDocument()->DrawLOLField(hDC, LTT_INF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
                }
                break;
             case HST_UNFTAG:
                {
-                  GetDocument()->DrawLOLField(hDC, LTT_UNF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
+                  GetDocument()->DrawLOLField(hDC, LTT_UNF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
                }
                break;
             case HST_TAGTAG:
                {
-                  GetDocument()->DrawLOLField(hDC, LTT_TAG, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
+                  GetDocument()->DrawLOLField(hDC, LTT_TAG, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
                }
                break;
             case HST_WTFTAG:
                {
-                  GetDocument()->DrawLOLField(hDC, LTT_WTF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
+                  GetDocument()->DrawLOLField(hDC, LTT_WTF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
                }
                break;
             }
@@ -1635,27 +1641,27 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                break;
             case HST_LOLTAG:
                {
-                  GetDocument()->DrawLOLField(hDC, LTT_LOL, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
+                  GetDocument()->DrawLOLField(hDC, LTT_LOL, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
                }
                break;
             case HST_INFTAG:
                {
-                  GetDocument()->DrawLOLField(hDC, LTT_INF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
+                  GetDocument()->DrawLOLField(hDC, LTT_INF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
                }
                break;
             case HST_UNFTAG:
                {
-                  GetDocument()->DrawLOLField(hDC, LTT_UNF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
+                  GetDocument()->DrawLOLField(hDC, LTT_UNF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
                }
                break;
             case HST_TAGTAG:
                {
-                  GetDocument()->DrawLOLField(hDC, LTT_TAG, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
+                  GetDocument()->DrawLOLField(hDC, LTT_TAG, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
                }
                break;
             case HST_WTFTAG:
                {
-                  GetDocument()->DrawLOLField(hDC, LTT_WTF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot);
+                  GetDocument()->DrawLOLField(hDC, LTT_WTF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
                }
                break;
             }
@@ -5037,3 +5043,65 @@ void CLampView::OnUpdateShowRootSelected(CCmdUI *pCmdUI)
       pCmdUI->SetCheck(FALSE);
    }
 }
+
+void CLampView::OnShowThomWLOLS()
+{
+   theApp.SetShowThomWLOLS(!theApp.ShowThomWLOLS());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateShowThomWLOLS(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.ShowThomWLOLS())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnVerboseLOLPreviews()
+{
+   theApp.SetVerboseLOLPreviews(!theApp.VerboseLOLPreviews());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateVerboseLOLPreviews(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.VerboseLOLPreviews())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+
+void CLampView::OnInvertedLOLPreviews()
+{
+   theApp.SetInvertedLOLPreviews(!theApp.InvertedLOLPreviews());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateInvertedLOLPreviews(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.InvertedLOLPreviews())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
