@@ -78,6 +78,7 @@ public:
    void SetHasFocus(bool value){m_bHaveFocus = value;}
 
    int GetCharPos(int x, int y);
+   void GetCharPosesForWord(int x, int y, int &selectionstart, int &selectionend);
    void GetCharPoint(int pos, int &x, int &y);
 
    void GetTextSelectionRects(int selectionstart, int selectionend, std::vector<RECT> &selectionrects);
@@ -218,6 +219,10 @@ protected:
    int m_undocaretanchor;
 
    int m_height;
+
+   bool m_bDoubleClickDragging;
+   int m_doubleclickselectionstart;
+   int m_doubleclickselectionend;
 
    std::vector<CCharRange> m_badwords;
 

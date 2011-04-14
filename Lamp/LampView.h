@@ -131,11 +131,15 @@ protected:
    int m_selectionstart;
    int m_selectionend;
 
+   int m_doubleclickselectionstart;
+   int m_doubleclickselectionend;
+
    int m_selectionstart_actual;
    int m_selectionend_actual;
    int m_lastcharpos;
 
    DWORD m_doubleclicktime;
+   bool m_bDoubleClickDragging;
 
    bool m_bdrawthumb;
    RECT m_thumbrect;

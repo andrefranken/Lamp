@@ -40,6 +40,7 @@ CReplyDlg::CReplyDlg(CLampView *pView)
    m_bSuggestionsUp = false;
    m_widest_suggestion = 0;
    m_bPreviewMode = false;
+   m_bDoubleClickDragging = false;
 
    if(theApp.GetPostBackground()->GetBitmap() != NULL)
    {
@@ -914,6 +915,91 @@ int CReplyDlg::GetCharPos(int x, int y)
    return charpos;
 }
 
+void CReplyDlg::GetCharPosesForWord(int x, int y, int &selectionstart, int &selectionend)
+{
+   int charpos = GetCharPos(x, y);
+   charpos = __max(0,__min(m_replytext.Length(),charpos));
+
+   const UCChar *begin = m_replytext;
+   const UCChar *here = begin + charpos;
+   const UCChar *end = begin + m_replytext.Length();
+   const UCChar *work = here;
+
+   if(charpos == m_replytext.Length())
+   {
+      // off the end
+      selectionstart = selectionend = charpos;
+      work--;
+      if(work > begin)
+      {      
+         if(iswalnum(*work) == 0 &&
+            iswspace(*work) == 0)
+         {
+            // punc
+            selectionstart--;
+            return;
+         }
+         else
+         {
+            while(work >= begin && 
+                  iswspace(*work))
+            {
+               selectionstart = work - begin;
+               work--;
+            }
+            while(work >= begin && 
+                  iswalnum(*work))
+            {
+               selectionstart = work - begin;
+               work--;
+            }
+         }
+      }
+   }
+   else
+   {
+      if(iswspace(*work) == 0 &&
+         iswalnum(*work) == 0)
+      {
+         // must be punctuation;
+         // Select this char and only this char.
+         selectionstart = work - begin;
+         selectionend = selectionstart + 1;
+         return;
+      }
+
+      // look left
+      while(work >= begin && 
+            iswspace(*work))
+      {
+         selectionstart = work - begin;
+         work--;
+      }
+      while(work >= begin && 
+            iswalnum(*work))
+      {
+         selectionstart = work - begin;
+         work--;
+      }
+
+      work = here;
+
+      // look right
+      while(work < end && 
+            iswalnum(*work))
+      {
+         selectionend = work - begin + 1;
+         work++;
+      }
+
+      if(work < end && 
+         *work == L' ')
+      {
+         selectionend = work - begin + 1;
+      }
+   }
+}
+
 
 void CReplyDlg::GetCharPoint(int pos, int &x, int &y)
 {
@@ -946,6 +1032,8 @@ void CReplyDlg::GetCharPoint(int pos, int &x, int &y)
 
 bool CReplyDlg::OnLButtonDown(UINT nFlags, CPoint point, bool &bCloseReplyDlg)
 {
+   m_bDoubleClickDragging = false;
+
    bool bITookIt = false;
 
    m_bHaveFocus = false;
@@ -1324,13 +1412,27 @@ bool CReplyDlg::OnLButtonUp(UINT nFlags, CPoint point)
       bITookIt = true;
       m_bSelectingText = false;
       ReleaseCapture();
-      m_caretpos = GetCharPos(point.x, point.y + m_pos);
+
+      if(m_bDoubleClickDragging)
+      {
+         int selstart, selend;
+         GetCharPosesForWord(point.x, point.y + m_pos, selstart, selend);
+         m_caretpos = __min(m_doubleclickselectionstart, selstart);
+         m_caretanchor = __max(m_doubleclickselectionend, selend);
+      }
+      else
+      {
+         m_caretpos = GetCharPos(point.x, point.y + m_pos);
+      }
+
       MakeCaretVisible();
       CannotCollectUndo();
       m_pView->InvalidateEverything();
    } 
 
    m_bLButtonDown = false;
+
+   m_bDoubleClickDragging = false;
 
    return bITookIt;
 }
@@ -1348,7 +1450,17 @@ bool CReplyDlg::OnMouseMove(UINT nFlags, CPoint point)
    else if(m_bSelectingText)
    {
       bITookIt = true;
-      m_caretpos = GetCharPos(point.x, point.y + m_pos);
+      if(m_bDoubleClickDragging)
+      {
+         int selstart, selend;
+         GetCharPosesForWord(point.x, point.y + m_pos, selstart, selend);
+         m_caretpos = __min(m_doubleclickselectionstart, selstart);
+         m_caretanchor = __max(m_doubleclickselectionend, selend);
+      }
+      else
+      {
+         m_caretpos = GetCharPos(point.x, point.y + m_pos);
+      }
       MakeCaretVisible();
       m_pView->InvalidateEverything();
    }
@@ -1367,43 +1479,12 @@ bool CReplyDlg::OnLButtonDblClk(UINT nFlags, CPoint point)
 
       m_doubleclicktime = 0;
 
-      int charpos = GetCharPos(point.x, point.y + m_pos);
-      charpos = __max(0,__min(m_replytext.Length(),charpos));
+      GetCharPosesForWord(point.x, point.y + m_pos, m_caretpos, m_caretanchor);
 
-      const UCChar *begin = m_replytext;
-      const UCChar *here = begin + charpos;
-      const UCChar *end = begin + m_replytext.Length();
-      const UCChar *work = here;
-
-      // look left
-      while(work >= begin && 
-            iswspace(*work))
-      {
-         m_caretpos = work - begin;
-         work--;
-      }
-      while(work >= begin && 
-            iswalnum(*work))
-      {
-         m_caretpos = work - begin;
-         work--;
-      }
-      
-      work = here;
-
-      // look right
-      while(work < end && 
-            iswalnum(*work))
-      {
-         m_caretanchor = work - begin + 1;
-         work++;
-      }
-
-      if(work < end && 
-         *work == L' ')
-      {
-         m_caretanchor = work - begin + 1;
-      }
+      m_bDoubleClickDragging = true;
+      m_bSelectingText = true;
+      m_doubleclickselectionstart = m_caretpos;
+      m_doubleclickselectionend = m_caretanchor;
 
       m_pView->InvalidateEverything();
 

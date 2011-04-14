@@ -338,7 +338,7 @@ public:
    void MakeLinkIntoImage(int x, int y, unsigned int &index);
    void MakeImageIntoLink(int x, int y);
 
-   int GetCharPos(int x, int y);
+   int GetCharPos(int x, int y, bool &off_end);
    void GetCharPosesForWord(int x, int y, int &selectionstart, int &selectionend);
    void GetCharPosesForPara(int x, int y, int &selectionstart, int &selectionend);
 

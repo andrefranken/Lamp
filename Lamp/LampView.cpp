@@ -184,6 +184,7 @@ CLampView::CLampView()
    m_inertia = 0.0f;
    m_bStartedTrackingMouse = false;
    m_brakes = false;
+   m_bDoubleClickDragging = false;
 
    m_pFindDlg = NULL;
 
@@ -2096,6 +2097,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
    m_lastmousetime = ::GetTickCount();
    m_mousepoint = point;
    m_bDrawMButtonDownIcon = false;
+   m_bDoubleClickDragging = false;
 
    if(!m_brakes)
    {
@@ -2599,7 +2601,8 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            {
                               unsigned int id = m_hotspots[i].m_id;
                               UpdateCurrentIdAsRoot(id);
-                              m_selectionstart = pPost->GetCharPos(m_mousepoint.x, m_mousepoint.y);
+                              bool off_end;
+                              m_selectionstart = pPost->GetCharPos(m_mousepoint.x, m_mousepoint.y, off_end);
                               m_textselectionpost = id;
                               m_bDraggingTextSelection = true;
                               m_lastcharpos = m_selectionend_actual = m_selectionstart_actual = m_selectionend = m_selectionstart;
@@ -2804,10 +2807,21 @@ void CLampView::OnLButtonUp(UINT nFlags, CPoint point)
                ChattyPost *pPost = GetDocument()->FindPost(m_textselectionpost);
                if(pPost != NULL)
                {
-                  m_selectionend = pPost->GetCharPos(m_mousepoint.x, m_mousepoint.y);
-                  if(m_selectionstart == m_selectionend)
+                  if(m_bDoubleClickDragging)
                   {
-                     m_textselectionpost = 0;
+                     int selstart, selend;
+                     pPost->GetCharPosesForWord(m_mousepoint.x, m_mousepoint.y, selstart, selend);
+                     m_selectionstart = __min(m_doubleclickselectionstart, selstart);
+                     m_selectionend = __max(m_doubleclickselectionend, selend);
+                  }
+                  else
+                  {
+                     bool off_end;
+                     m_selectionend = pPost->GetCharPos(m_mousepoint.x, m_mousepoint.y, off_end);
+                     if(m_selectionstart == m_selectionend)
+                     {
+                        m_textselectionpost = 0;
+                     }
                   }
                }
                InvalidateEverything();
@@ -2834,6 +2848,7 @@ void CLampView::OnLButtonUp(UINT nFlags, CPoint point)
       BeginInertiaPanning();
    }
    m_brakes = false;
+   m_bDoubleClickDragging = false;
    
    CView::OnLButtonUp(nFlags, point);
 }
@@ -2867,133 +2882,144 @@ void CLampView::OnMouseMove(UINT nFlags, CPoint point)
                ChattyPost *pPost = GetDocument()->FindPost(m_textselectionpost);
                if(pPost != NULL)
                {
-                  m_selectionend_actual = pPost->GetCharPos(m_mousepoint.x, m_mousepoint.y);
-
-                  //m_selectionend = m_selectionend_actual;
-                  //= m_selectionstart_actual = 
-
-                  //////////////////////////////
-                  // at this point, the enhanced text selection logic happens
-                  // try to move the carets away from eachother towards word boundries
-
-                  if((size_t)m_selectionend_actual != m_lastcharpos)
+                  if(m_bDoubleClickDragging)
                   {
-                     bool bMovingAway = false;
-
-                     if((m_selectionend_actual > m_selectionstart_actual &&
-                         m_selectionend_actual > m_lastcharpos) ||
-                        (m_selectionend_actual < m_selectionstart_actual &&
-                         m_selectionend_actual < m_lastcharpos))
-                     {
-                        bMovingAway = true;
-                     }
-
-                     m_lastcharpos = m_selectionend_actual;
-                     m_selectionstart = m_selectionstart_actual;
-                     m_selectionend = m_selectionend_actual;
+                     int selstart, selend;
+                     pPost->GetCharPosesForWord(m_mousepoint.x, m_mousepoint.y, selstart, selend);
+                     m_selectionstart = __min(m_doubleclickselectionstart, selstart);
+                     m_selectionend = __max(m_doubleclickselectionend, selend);
                   }
-                     /*
-                     IDLDocument *pDoc = pView->GetIDoc();
-                     if(pDoc != NULL &&
-                        m_ETSS != ETSS_RETURN_INSIDE_ORIGIN)
+                  else
+                  {
+                     bool off_end;
+                     m_selectionend_actual = pPost->GetCharPos(m_mousepoint.x, m_mousepoint.y, off_end);
+
+                     //m_selectionend = m_selectionend_actual;
+                     //= m_selectionstart_actual = 
+
+                     //////////////////////////////
+                     // at this point, the enhanced text selection logic happens
+                     // try to move the carets away from eachother towards word boundries
+
+                     if((size_t)m_selectionend_actual != m_lastcharpos)
                      {
-                        CDLTextSearchDocument *pTextSearchDocument = pDoc->GetTextSearchDocument();
-                        if(pTextSearchDocument != NULL)
+                        bool bMovingAway = false;
+
+                        if((m_selectionend_actual > m_selectionstart_actual &&
+                            m_selectionend_actual > m_lastcharpos) ||
+                           (m_selectionend_actual < m_selectionstart_actual &&
+                            m_selectionend_actual < m_lastcharpos))
                         {
-                           CDLTextIndex *pTextIndex = pTextSearchDocument->GetTextIndex();
-                           if(pTextIndex != NULL)
+                           bMovingAway = true;
+                        }
+
+                        m_lastcharpos = m_selectionend_actual;
+                        m_selectionstart = m_selectionstart_actual;
+                        m_selectionend = m_selectionend_actual;
+                     }
+                        /*
+                        IDLDocument *pDoc = pView->GetIDoc();
+                        if(pDoc != NULL &&
+                           m_ETSS != ETSS_RETURN_INSIDE_ORIGIN)
+                        {
+                           CDLTextSearchDocument *pTextSearchDocument = pDoc->GetTextSearchDocument();
+                           if(pTextSearchDocument != NULL)
                            {
-                              bool bForward = true;
-                              if(m_anchorCharPosition_used > m_currentCharPosition_used)
+                              CDLTextIndex *pTextIndex = pTextSearchDocument->GetTextIndex();
+                              if(pTextIndex != NULL)
                               {
-                                 bForward = false;
-                              }
-
-                              if(bMovingAway)
-                              {
-                                 if(charpos >= (int)m_originword_min &&
-                                    charpos <= (int)m_originword_max)
+                                 bool bForward = true;
+                                 if(m_anchorCharPosition_used > m_currentCharPosition_used)
                                  {
-                                    // use raw values
-                                    // make the precise word harmless
-                                    m_preciseword_min = m_originword_min;
-                                    m_preciseword_max = m_originword_max;
-
-                                    if(m_ETSS == ETSS_OUTSIDE_ORIGIN)
-                                    {
-                                       m_ETSS = ETSS_RETURN_INSIDE_ORIGIN;
-                                    }
+                                    bForward = false;
                                  }
-                                 else 
+
+                                 if(bMovingAway)
                                  {
-                                    if(charpos >= (int)m_preciseword_min &&
-                                       charpos <= (int)m_preciseword_max)
+                                    if(charpos >= (int)m_originword_min &&
+                                       charpos <= (int)m_originword_max)
                                     {
-                                       // use raw value for current
-                                       // but snap anchor
-                                       m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
+                                       // use raw values
+                                       // make the precise word harmless
+                                       m_preciseword_min = m_originword_min;
+                                       m_preciseword_max = m_originword_max;
+
+                                       if(m_ETSS == ETSS_OUTSIDE_ORIGIN)
+                                       {
+                                          m_ETSS = ETSS_RETURN_INSIDE_ORIGIN;
+                                       }
+                                    }
+                                    else 
+                                    {
+                                       if(charpos >= (int)m_preciseword_min &&
+                                          charpos <= (int)m_preciseword_max)
+                                       {
+                                          // use raw value for current
+                                          // but snap anchor
+                                          m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
+
+                                          if(m_ETSS == ETSS_START_INSIDE_ORIGIN)
+                                          {
+                                             m_ETSS = ETSS_OUTSIDE_ORIGIN;
+                                          }
+                                       }
+                                       else
+                                       {
+                                          // do both
+                                          m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
+                                          m_currentCharPosition_used = pTextIndex->FindWordEdge((int)m_currentCharPosition_used, page, bForward);
+
+                                          // make the precise word harmless
+                                          m_preciseword_min = m_originword_min;
+                                          m_preciseword_max = m_originword_max;
+                                       }
 
                                        if(m_ETSS == ETSS_START_INSIDE_ORIGIN)
                                        {
                                           m_ETSS = ETSS_OUTSIDE_ORIGIN;
                                        }
                                     }
-                                    else
-                                    {
-                                       // do both
-                                       m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
-                                       m_currentCharPosition_used = pTextIndex->FindWordEdge((int)m_currentCharPosition_used, page, bForward);
-
-                                       // make the precise word harmless
-                                       m_preciseword_min = m_originword_min;
-                                       m_preciseword_max = m_originword_max;
-                                    }
-
-                                    if(m_ETSS == ETSS_START_INSIDE_ORIGIN)
-                                    {
-                                       m_ETSS = ETSS_OUTSIDE_ORIGIN;
-                                    }
-                                 }
-                              }
-                              else
-                              {
-                                 if(charpos >= (int)m_originword_min &&
-                                    charpos <= (int)m_originword_max)
-                                 {
-                                    // use raw values
-                                    // make the precise word harmless
-                                    m_preciseword_min = m_originword_min;
-                                    m_preciseword_max = m_originword_max;
-
-                                    if(m_ETSS == ETSS_OUTSIDE_ORIGIN)
-                                    {
-                                       m_ETSS = ETSS_RETURN_INSIDE_ORIGIN;
-                                    }
                                  }
                                  else
                                  {
-                                    // use raw value for current
-                                    // but snap anchor
-                                    m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
-
-                                    // record the word we are in so that we can move forward in it precisly later.
-                                    int begin, end;
-                                    pTextIndex->FindWord(charpos, page, begin, end);
-                                    m_preciseword_min = (size_t)begin;
-                                    m_preciseword_max = (size_t)end;
-
-                                    if(m_ETSS == ETSS_START_INSIDE_ORIGIN)
+                                    if(charpos >= (int)m_originword_min &&
+                                       charpos <= (int)m_originword_max)
                                     {
-                                       m_ETSS = ETSS_OUTSIDE_ORIGIN;
+                                       // use raw values
+                                       // make the precise word harmless
+                                       m_preciseword_min = m_originword_min;
+                                       m_preciseword_max = m_originword_max;
+
+                                       if(m_ETSS == ETSS_OUTSIDE_ORIGIN)
+                                       {
+                                          m_ETSS = ETSS_RETURN_INSIDE_ORIGIN;
+                                       }
+                                    }
+                                    else
+                                    {
+                                       // use raw value for current
+                                       // but snap anchor
+                                       m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
+
+                                       // record the word we are in so that we can move forward in it precisly later.
+                                       int begin, end;
+                                       pTextIndex->FindWord(charpos, page, begin, end);
+                                       m_preciseword_min = (size_t)begin;
+                                       m_preciseword_max = (size_t)end;
+
+                                       if(m_ETSS == ETSS_START_INSIDE_ORIGIN)
+                                       {
+                                          m_ETSS = ETSS_OUTSIDE_ORIGIN;
+                                       }
                                     }
                                  }
                               }
                            }
                         }
                      }
+                     */
+                     //////////////////////////////
                   }
-                  */
-                  //////////////////////////////
 
                   InvalidateEverything();
                }
@@ -3052,8 +3078,12 @@ void CLampView::OnLButtonDblClk(UINT nFlags, CPoint point)
                   if(pPost != NULL)
                   {
                      pPost->GetCharPosesForWord(m_mousepoint.x, m_mousepoint.y, m_selectionstart, m_selectionend);
+                     m_doubleclickselectionstart = m_selectionstart;
+                     m_doubleclickselectionend = m_selectionend;
                      m_textselectionpost = m_hotspots[i].m_id;
                      m_doubleclicktime = ::GetTickCount();
+                     m_bDoubleClickDragging = true;
+                     m_bDraggingTextSelection = true;
                      InvalidateEverything();
                   }
                }
@@ -3441,6 +3471,8 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
          else if((nChar == 'r' ||
                   nChar == 'R') &&
                  m_current_id != 0 &&
+                 (GetDocument()->GetDataType() == DDT_STORY ||
+                 GetDocument()->GetDataType() == DDT_THREAD) &&
                  theApp.HaveLogin())
          {
             if(m_pReplyDlg != NULL)
@@ -3505,6 +3537,8 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
          }
          else if((nChar == 'f' ||
                   nChar == 'F') &&
+                  (GetDocument()->GetDataType() == DDT_STORY ||
+                 GetDocument()->GetDataType() == DDT_THREAD) &&
                  m_current_id != 0)
          {
             ChattyPost *post = GetDocument()->FindPost(m_current_id);
@@ -4961,11 +4995,19 @@ void CLampView::OnGoogleSelectedWQuotes()
 
    if(!selectedtext.IsEmpty())
    {
+      /*
       UCString link = L"http://www.google.com/search?q=\\\"";
       char *enc = url_encode(selectedtext.str8());
       link += enc;
       link += L"\\\"";
       free(enc);
+      */
+      UCString link = L"http://www.google.com/search?q=%22";
+      char *enc = url_encode(selectedtext.str8());
+      link += enc;
+      link += L"%22";
+      free(enc);
+
       theApp.OpenShackLink(link);
    }
 }

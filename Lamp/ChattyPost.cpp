@@ -418,6 +418,11 @@ void ChattyPost::ReadSearchResult(CXMLElement *pElement, CLampDoc *pDoc)
       UpdateLOLs();
 
       UCString body = pElement->GetAttributeValue(L"preview");
+      body.Replace(L"&quot;",L"\"");
+      body.Replace(L"&amp;",L"&");
+      body.Replace(L"&apos;",L"\'");
+      body.Replace(L"&lt;",L"<");
+      body.Replace(L"&gt;",L">");
       /*
       temp = pElement->GetAttributeValue(L"story_name");// "Evening Reading"
 
@@ -427,8 +432,11 @@ void ChattyPost::ReadSearchResult(CXMLElement *pElement, CLampDoc *pDoc)
       body += L"</span></i>";
       */
       m_bodytext = L"";
-      m_shacktags.clear();
-      DecodeString(body,m_bodytext,m_shacktags);
+
+      DecodeShackTagsString(body);
+
+      //m_shacktags.clear();
+      //DecodeString(body,m_bodytext,m_shacktags);
       m_bodytext.ReplaceAll(0x02C2,L'<');
       m_bodytext.ReplaceAll(0x02C3,L'>');
       //m_bodytext.MakeNormal();
@@ -3446,7 +3454,7 @@ void ChattyPost::UpdateDate()
 }
 
 
-int ChattyPost::GetCharPos(int x, int y)
+int ChattyPost::GetCharPos(int x, int y, bool &off_end)
 {
    int charpos = 0;
 
@@ -3469,6 +3477,8 @@ int ChattyPost::GetCharPos(int x, int y)
       line++;
    }
 
+   int charposinthisline = 0;
+
    if(line < m_charsizes.size())
    {
       const int* charsizes = m_charsizes[line];
@@ -3482,6 +3492,7 @@ int ChattyPost::GetCharPos(int x, int y)
             if(((length + charsizes[i]) - x) < (x - length))
             {
                charpos++;
+               charposinthisline++;
             }
             break;
          }   
@@ -3489,8 +3500,14 @@ int ChattyPost::GetCharPos(int x, int y)
          {
             length += charsizes[i];
             charpos++;
+            charposinthisline++;
          }
       }
+   }
+
+   if(line == m_charsizes.size() || charposinthisline == m_linesizes[line])
+   {
+      off_end = true;
    }
 
    return charpos;
@@ -3498,13 +3515,32 @@ int ChattyPost::GetCharPos(int x, int y)
 
 void ChattyPost::GetCharPosesForWord(int x, int y, int &selectionstart, int &selectionend)
 {
-   int charpos = GetCharPos(x, y);
+   bool off_end;
+   int charpos = GetCharPos(x, y, off_end);
    charpos = __max(0,__min(m_bodytext.Length(),charpos));
 
    const UCChar *begin = m_bodytext;
    const UCChar *here = begin + charpos;
    const UCChar *end = begin + m_bodytext.Length();
    const UCChar *work = here;
+
+   if(off_end &&
+      work > begin)
+   {
+      // dont wrap to the next line.
+      work--;
+      here = work;
+   }
+
+   if(iswspace(*work) == 0 &&
+      iswalnum(*work) == 0)
+   {
+      // must be punctuation;
+      // Select this char and only this char.
+      selectionstart = work - begin;
+      selectionend = selectionstart + 1;
+      return;
+   }
 
    // look left
    while(work >= begin && 
@@ -3531,7 +3567,8 @@ void ChattyPost::GetCharPosesForWord(int x, int y, int &selectionstart, int &sel
    }
 
    if(work < end && 
-      *work == L' ')
+      //*work == L' ')
+      iswspace(*work))
    {
       selectionend = work - begin + 1;
    }
@@ -3539,7 +3576,8 @@ void ChattyPost::GetCharPosesForWord(int x, int y, int &selectionstart, int &sel
 
 void ChattyPost::GetCharPosesForPara(int x, int y, int &selectionstart, int &selectionend)
 {
-   int charpos = GetCharPos(x, y);
+   bool off_end;
+   int charpos = GetCharPos(x, y, off_end);
    charpos = __max(0,__min(m_bodytext.Length(),charpos));
 
    const UCChar *begin = m_bodytext;
@@ -3859,7 +3897,8 @@ bool ChattyPost::FindNext(const UCChar *search, unsigned int &textselectionpost,
 
 void ChattyPost::ClearSpoilerTags(int x, int y)
 {
-   int charpos = GetCharPos(x, y);
+   bool off_end;
+   int charpos = GetCharPos(x, y, off_end);
 
    // find the last spoiler tag to come before the charpos
    shacktagpos *pSpoil = NULL;
@@ -3945,7 +3984,8 @@ void ChattyPost::Despoil()
 
 void ChattyPost::GetLink(int x, int y, UCString &link)
 {
-   int charpos = GetCharPos(x, y);
+   bool off_end;
+   int charpos = GetCharPos(x, y, off_end);
 
    // find the last spoiler tag to come before the charpos
    size_t index = 0;
@@ -4000,7 +4040,8 @@ void ChattyPost::GetImageLink(int x, int y, UCString &link)
 
 void ChattyPost::MakeLinkIntoImage(int x, int y, unsigned int &index)
 {
-   int charpos = GetCharPos(x, y);
+   bool off_end;
+   int charpos = GetCharPos(x, y, off_end);
 
    // find the last spoiler tag to come before the charpos
    const UCChar *pLink = m_bodytext.Str();
