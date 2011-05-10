@@ -1,0 +1,2 @@
+C:\Data\boost_1_39_0>bjam regex variant=release link=static define=_BIND_TO_CURRENT_VCLIBS_VERSION=1
+C:\Data\boost_1_39_0>bjam regex variant=debug link=static define=_BIND_TO_CURRENT_VCLIBS_VERSION=1
