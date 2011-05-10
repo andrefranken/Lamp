@@ -55,6 +55,7 @@
 #define IDC_NUM_SHOW_TRUNC_EDIT         1014
 #define IDC_NUM_MIN_INBOX_EDIT          1015
 #define IDC_NUM_HOURS_EXPIRE_EDIT       1016
+#define IDC_CHECK1                      1017
 #define ID_FILE_OPENTHREAD              32771
 #define ID_EDIT_REFRESH                 32773
 #define ID_FILE_SETUPLOGININFO          32774
@@ -130,6 +131,7 @@
 #define ID_SHOW_THOMW_LOLS              32848
 #define ID_VERBOSE_LOL_PREVIEWS         32849
 #define ID_INVERTED_LOL_PREVIEWS        32850
+#define ID_USE_STONEDONKEY              32851
 
 #define ID_BOOKMARK_MENUITEM            32880
 
@@ -138,8 +140,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        328
-#define _APS_NEXT_COMMAND_VALUE         32851
-#define _APS_NEXT_CONTROL_VALUE         1017
+#define _APS_NEXT_COMMAND_VALUE         32852
+#define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

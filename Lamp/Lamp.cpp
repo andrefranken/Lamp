@@ -17,6 +17,8 @@
 #include "hunspell.hxx"
 #include "CustomSearchDlg.h"
 #include "SendMsgDlg.h"
+#include "comm.h"
+
 
 #define NDEBUG
 
@@ -364,6 +366,89 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                   }
                }
             }
+            else if(pDD->m_dt == DT_SHACK_SHACKMSG)
+            {
+               htmlcxx::HTML::ParserDom parser;
+               tree<htmlcxx::HTML::Node> dom = parser.parseTree(pDD->m_stdstring);
+
+               m_unreadmessagecount = 0;
+
+               tree<htmlcxx::HTML::Node>::sibling_iterator it;
+               if(HTML_FindChild(dom,it, "body"))
+               {
+                  if(HTML_FindChild_HasAttribute(it,it, "div", "id", "container"))
+                  {
+                     if(HTML_FindChild_HasAttribute(it,it, "div", "id", "content"))
+                     {
+                        if(HTML_FindChild_HasAttribute(it,it, "div", "id", "messages_wrap"))
+                        {
+                           tree<htmlcxx::HTML::Node>::sibling_iterator messages_it;
+                           if(HTML_FindChild_HasAttribute(it,messages_it, "div", "id", "message_center"))
+                           {
+                              if(HTML_FindChild(messages_it,messages_it, "form"))
+                              {
+                                 if(HTML_FindChild_HasAttribute(messages_it,messages_it, "ul", "id", "messages"))
+                                 {
+                                    tree<htmlcxx::HTML::Node>::sibling_iterator sit = messages_it.begin();
+                                    tree<htmlcxx::HTML::Node>::sibling_iterator send = messages_it.end();
+                                    
+                                    while(sit != send)
+                                    {
+                                       if(sit->tagName() == "li")
+                                       {
+                                          std::string value;
+                                          if(HTML_StartsWithAttribute(sit, "class", "message",&value))
+                                          {
+                                             if(value != " read")
+                                             {
+                                                m_unreadmessagecount++;
+                                             }
+                                          }
+                                       }
+                                       sit++;
+                                    }
+                                 }
+                              }
+                           }
+                        }
+                     }
+
+                     if(m_userid == 0)
+                     {
+                        const char *work = strstr((const char*)pDD->m_stdstring.data(),"<input type=\"hidden\" name=\"uid\" value=\"");
+                        if(work != NULL)
+                        {
+                           work += 39;
+                           m_userid = strtoul(work,NULL, 10);
+                        }
+                     }
+                  
+                     UpdateNewMessages();
+               
+                     // if the inbox is open, and it is on page 1, update it
+                     std::list<CLampView*>::iterator vit = m_views.begin();
+                     std::list<CLampView*>::iterator vend = m_views.end();
+
+                     while(vit != vend)
+                     {
+                        if((*vit)->GetDocument()->GetDataType() == DDT_SHACKMSG &&
+                           (*vit)->GetDocument()->GetShackMessageType() == SMT_INBOX &&
+                           (*vit)->GetDocument()->GetPage() == 1 &&
+                           !(*vit)->GetDLGUp())
+                        {
+                           (*vit)->GetDocument()->ReadShackMessagesHTML(pDD->m_stdstring);
+                        }
+                        vit++;
+                     }
+
+                     CLampView *pView = ((CMainFrame*)GetMainWnd())->GetActiveLampView();
+                     if(pView != NULL)
+                     {
+                        pView->InvalidateEverything();
+                     }
+                  }
+               }
+            }
 
             if(pDD->m_data != NULL)
             {
@@ -474,6 +559,10 @@ CLampApp::CLampApp()
 
    wcscpy_s(m_new_messages_text,17,L"000 new messages");
 
+   m_use_shack = true;
+
+   m_userid = 0;
+
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
 }
@@ -517,6 +606,7 @@ bool CLampApp::PreventMultipleInstances()
 
 BOOL CLampApp::InitInstance()
 {
+
    if(PreventMultipleInstances() == false)
    {
       HWND hLamp = ::FindWindow(L"Lamp - Shack Client",NULL);
@@ -772,6 +862,15 @@ int CLampApp::ExitInstance()
       }
    }
 
+   std::map<unsigned int,ChattyPost *>::iterator pit = m_KnownPosts.begin();
+   std::map<unsigned int,ChattyPost *>::iterator pend = m_KnownPosts.end();
+   while(pit != pend)
+   {
+      delete pit->second;
+      pit++;
+   }
+   m_KnownPosts.clear();
+
    std::map<unsigned int,CXMLElement *>::iterator it = m_cachedthreadreplies.begin();
    std::map<unsigned int,CXMLElement *>::iterator end = m_cachedthreadreplies.end();
    while(it != end)
@@ -1017,9 +1116,9 @@ void CLampApp::ReadSettingsFile()
 
    CXMLElement *setting;
 
-   setting = hostxml.FindChildElement(L"host");
-   if(setting!=NULL) m_hostname = setting->GetValue();
-   else m_hostname = L"shackapi.stonedonkey.com";
+   setting = hostxml.FindChildElement(L"use_shack");
+   if(setting!=NULL) m_use_shack = setting->GetValue();
+   else m_use_shack = true;
 
    setting = hostxml.FindChildElement(L"userhost");
    if(setting!=NULL) m_userhostname = setting->GetValue();
@@ -1430,11 +1529,11 @@ void CLampApp::WriteSettingsFile()
 
    settingsxml.AddChildComment(L"settings");
 
+   settingsxml.AddChildComment(L"Should we use the Shack, as opposed to stonedonkey");
+   settingsxml.AddChildElement(L"use_shack",UCString(m_use_shack));
+
    settingsxml.AddChildComment(L"host for getting user info");
    settingsxml.AddChildElement(L"userhost",m_userhostname);
-
-   settingsxml.AddChildComment(L"host for getting chatty stuff");
-   settingsxml.AddChildElement(L"host",m_hostname);
 
    settingsxml.AddChildComment(L"host for sending lol votes");
    settingsxml.AddChildElement(L"lolhost",m_lolhostname);
@@ -2443,21 +2542,36 @@ void CLampApp::RefreshLOLs()
 
 void CLampApp::UpdateInbox()
 {
-   if(m_auto_check_inbox)
+   if(m_auto_check_inbox &&
+     !m_username.IsEmpty() &&
+     !m_password.IsEmpty())
    {
       CDownloadData *pDD = new CDownloadData();
 
-      UCString path = L"/Messages/?box=inbox&page=1";
-
-      pDD->m_host = GetHostName();
-      pDD->m_path = path;
-      pDD->m_WhoWants = this;
-      pDD->m_dt = DT_SHACKMSG;
-      pDD->m_id = 0;
-      pDD->m_refreshid = 0;
-      pDD->reply_to_id = 0;
-      pDD->m_username = GetUsername();
-      pDD->m_password = GetPassword();
+      if(UseShack())
+      {
+         pDD->m_host = L"www.shacknews.com";
+         pDD->m_path = L"/messages/inbox&page=1";
+         pDD->m_WhoWants = this;
+         pDD->m_dt = DT_SHACK_SHACKMSG;
+         pDD->m_id = 0;
+         pDD->m_refreshid = 0;
+         pDD->reply_to_id = 0;
+         pDD->m_username = GetUsername();
+         pDD->m_password = GetPassword();
+      }
+      else
+      {
+         pDD->m_host = L"shackapi.stonedonkey.com";
+         pDD->m_path = L"/Messages/?box=inbox&page=1";
+         pDD->m_WhoWants = this;
+         pDD->m_dt = DT_SHACKMSG;
+         pDD->m_id = 0;
+         pDD->m_refreshid = 0;
+         pDD->reply_to_id = 0;
+         pDD->m_username = GetUsername();
+         pDD->m_password = GetPassword();
+      }
 
       AfxBeginThread(DownloadThreadProc, pDD);
    }
@@ -3351,7 +3465,12 @@ CDCSurface *CImageCacheItem::GetImage()
 
          char *data = NULL;
          int size = 0;
+
+         ::EnterCriticalSection(&g_ThreadAccess);
+      
          chattyerror err = download(temphost.str8(), temppath.str8(), &data, &size);
+
+         ::LeaveCriticalSection(&g_ThreadAccess);
 
          if(err == ERR_OK && data != NULL)
          {
@@ -3855,4 +3974,88 @@ void CLampApp::CalcDescent()
    {
       ::DeleteObject(hCreatedFont);
    }
+}
+
+bool CLampApp::IsPostKnown(unsigned int id)
+{
+   std::map<unsigned int,ChattyPost*>::iterator it = m_KnownPosts.find(id);
+   if(it != m_KnownPosts.end())
+   {
+      return true;
+   }
+   return false;
+}
+
+void CLampApp::KnowPost(unsigned int id, ChattyPost *post)
+{
+   std::map<unsigned int,ChattyPost *>::iterator it = m_KnownPosts.find(id);
+   if(it != m_KnownPosts.end())
+   {
+      ChattyPost *pIt = it->second;
+      delete pIt;   
+   }
+
+   m_KnownPosts[id] = post;
+}
+
+ChattyPost *CLampApp::GetKnownPost(unsigned int id)
+{
+   std::map<unsigned int,ChattyPost*>::iterator it = m_KnownPosts.find(id);
+   if(it != m_KnownPosts.end())
+   {
+      return it->second;
+   }
+   return NULL;
+}
+
+
+unsigned int CLampApp::GetUserID()
+{
+   unsigned int result = m_userid;
+
+   if(result == 0)
+   {
+      char UserShackLoginCookie[1024];
+
+      UCString loginstr = L"username=";
+      loginstr += m_username;
+      loginstr += L"&password=" ;
+      loginstr += m_password;
+      loginstr += L"&type=login";
+
+      std::string stdstring;
+
+      comm_download("www.shacknews.com","/login_laryn.x", &stdstring,loginstr.str8(false,CET_UTF8),"");
+
+      // Set-Cookie: login=209981%2Clatestchatty%2Cf6356e3a49aedb4ba8a5442102b9810b; expires=Tue, 03-May-2011 18:27:44 GMT
+      if(stdstring.length() > 0 && strncmp(stdstring.data()," OK",3) == 0)
+      {
+         const char *cook = strstr(stdstring.data(), "Set-Cookie: login=");
+         if(cook != NULL)
+         {
+            cook += 12;
+            const char *end = strstr(cook, "; expires=");
+            if(end != NULL)
+            {
+               strncpy_s(UserShackLoginCookie,1024,cook,end-cook);
+            }
+         }
+      }
+
+      stdstring = "";
+
+      comm_download("www.shacknews.com","/messages", &stdstring,UserShackLoginCookie,false);
+
+      if(stdstring.length() > 0)
+      {
+         const char *work = strstr(stdstring.data(),"<input type=\"hidden\" name=\"uid\" value=\"");
+         if(work != NULL)
+         {
+            work += 39;
+            m_userid = result = strtoul(work,NULL, 10);
+         }
+      }
+   }
+
+   return result;
 }

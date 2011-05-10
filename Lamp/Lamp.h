@@ -22,7 +22,7 @@
 #define WM_WAKEUP (WM_USER + 102)
 
 #define LAMP_VERSION_MAJOR 1
-#define LAMP_VERSION_MINOR 8
+#define LAMP_VERSION_MINOR 91
 
 chattyerror download(const char* host, const char* path, char** out_response, int *psize=NULL);
 
@@ -451,7 +451,6 @@ public:
    int GetTextHeight(){return m_textheight;}
    int GetCellHeight(){return m_cellheight;}
 
-   UCString &GetHostName(){return m_hostname;}
    UCString &GetUserHostName(){return m_userhostname;}
    UCString &GetLolHostName(){return m_lolhostname;}
    
@@ -734,6 +733,22 @@ public:
    DockTab *GetDockTab(){return m_pDockTab;}
 
    int GetDescent(){return m_descent;}
+
+   bool UseShack(){return m_use_shack;}
+
+   void SetUseShack(bool value){m_use_shack = value;}
+
+   bool IsPostKnown(unsigned int id);
+
+   void KnowPost(unsigned int id, ChattyPost *post);
+
+   ChattyPost *GetKnownPost(unsigned int id);
+
+   unsigned int GetUserID();
+
+   unsigned int PeekUserID(){return m_userid;}
+
+   void SetUserID(unsigned int value){m_userid = value;}
       
 // Overrides
 public:
@@ -852,7 +867,6 @@ protected:
 
    CDCSurface m_refresh_anim[8];
 
-   UCString m_hostname;
    UCString m_userhostname;
    UCString m_lolhostname;
 
@@ -966,6 +980,8 @@ protected:
 
    std::map<unsigned int,CLOLFlags> m_cachedLOLposts;
 
+   std::map<unsigned int,ChattyPost*> m_KnownPosts;
+
    UCString m_userpath;
    UCString m_appdatapath;
 
@@ -1020,6 +1036,10 @@ protected:
    bool m_verbose_lol_previews;
 
    bool m_inverted_lol_previews;
+
+   bool m_use_shack;
+
+   unsigned int m_userid;
 
 public:
    afx_msg void OnFileSetuplogininfo();

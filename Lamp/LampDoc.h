@@ -6,6 +6,7 @@
 #include <list>
 #include <map>
 #include "ChattyPost.h"
+#include "html/ParserDom.h"
 
 #define WM_THREAD_DOWNLOAD               (WM_USER + 50)
 
@@ -39,7 +40,16 @@ typedef enum
    DT_READMSG      = 9,
    DT_SENDMSG      = 10,
    DT_CHECK_UPDATE = 11,
-   DT_REFRESH_LOLS = 12
+   DT_REFRESH_LOLS = 12,
+
+   DT_SHACK_CHATTY = 13,
+   DT_SHACK_THREAD = 14,
+   DT_SHACK_THREAD_CONTENTS = 15,
+   DT_SHACK_POST   = 16,
+   DT_SHACK_SEARCH = 17,
+   DT_SHACK_SHACKMSG = 18,
+   DT_SHACK_READMSG = 19,
+   DT_SHACK_SENDMSG = 20
 } DownloadType;
 
 typedef enum 
@@ -68,6 +78,10 @@ public:
 
    void download(int numtries);
    void post(int numtries);
+   void getchatty(int numtries);
+
+   void setupshacklogin();
+   void setupusershacklogin();
 
    UCString m_host;
    UCString m_path;
@@ -77,6 +91,7 @@ public:
    UCString m_password;
    void *m_data;
    int m_datasize;
+   std::string m_stdstring;
    void *m_WhoWants;
    DownloadType m_dt;
    unsigned int m_id;
@@ -234,6 +249,10 @@ public:
 
    bool ReadShackMessages(CXMLTree &xmldata);
 
+   void ReadShackMessagesHTML(std::string &stdstring);
+
+   void MakePostAvailable(unsigned int id);
+
 // Implementation
 public:
 	virtual ~CLampDoc();
@@ -246,6 +265,7 @@ protected:
    void SetDataType(DocDataType datatype){m_datatype = datatype;}
    bool ReadFromRoot(CXMLTree &xmldata, std::vector<unsigned int> &existing_threads);
    bool ReadSearchResultsFromRoot(CXMLTree &xmldata);
+   void ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsigned int> &existing_threads, bool bCheckForPages);
    void ReadLatestChatty();
    void ReadLatestChattyPart2();   
    void ReadLOL();

@@ -51,7 +51,7 @@ public:
    std::vector<CHotSpot> &GetHotspots(){return m_hotspots;}
 
    unsigned int GetCurrentId(){return m_current_id;}
-   void SetCurrentId(unsigned int id){m_current_id = id;}
+   void SetCurrentId(unsigned int id);
 
    void InvalidateSkin();
 

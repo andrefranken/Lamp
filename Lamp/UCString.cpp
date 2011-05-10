@@ -1012,7 +1012,7 @@ const UCChar *UCString::BEEncodedString()
 /********* the only way to get an 8bit multibyte string out *********/
 
 const char *UCString::str8(bool bStrIsPath /*= false*/, 
-                           CharEncodingType cet/* = CET_ANSI*/, 
+                           CharEncodingType cet/* = CET_UTF8*/, 
                            bool bAddBOM /*= false*/) const
 {
    if(cet == CET_UTF16 ||
@@ -1852,7 +1852,7 @@ void UCString::AppendUnknownString(const void *otherstring)
 
 void UCString::AppendEncodedString(const void *otherstring, 
                                    int count, 
-                                   CharEncodingType cet/* = CET_ANSI*/)
+                                   CharEncodingType cet/* = CET_UTF8*/)
 {
    if(count > 0)
    {

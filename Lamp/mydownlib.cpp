@@ -34,42 +34,12 @@ web:    aluigi.org
 #include <ctype.h>
 #include "zlib/zlib.h"
 #include "mydownlib.h"
+#include "winsock.h"
 
-#ifdef WIN32
-    #include "winsock.h"
-
-    #define close       closesocket
-    #define in_addr_t   u32
-    #define TEMPOZ1
-    #define TEMPOZ2     GetTickCount()
-    #define ONESEC      1000
-#else
-    #include <unistd.h>
-    #include <sys/socket.h>
-    #include <sys/types.h>
-    #include <arpa/inet.h>
-    #include <netinet/in.h>
-    #include <netdb.h>
-    #include <sys/times.h>
-    #include <sys/timeb.h>
-
-    #define stristr     strcasestr
-    #define stricmp     strcasecmp
-    #define strnicmp    strncasecmp
-    #define TEMPOZ1     ftime(&timex)
-    #define TEMPOZ2     ((timex.time * 1000) + timex.millitm)
-    #define ONESEC      1
-#endif
 
 #ifndef stristr
 #define stristr strstr
 #endif
-
-typedef uint8_t     u8;
-typedef uint16_t    u16;
-typedef uint32_t    u32;
-typedef uint64_t    u64;
-
 
 
 #define VISDELAY    500
@@ -82,7 +52,6 @@ typedef uint64_t    u64;
 #define TEMPOZ(x)   TEMPOZ1;    \
                     x = TEMPOZ2
 
-extern CRITICAL_SECTION g_ThreadAccess;
 
 typedef struct {                // lame DNS caching implementation
     u8          *host;
@@ -112,7 +81,6 @@ int mydown_recv(int sd, u8 *data, int len, int timeout);
 u8 *mydown_showhttp80(u16 port);
 void mydown_showstatus(u32 fsize, u32 ret, u32 oldret, int timediff);
 u8 *mydown_base64_encode(u8 *data, int *length);
-in_addr_t mydown_resolv(char *host);
 
 
 
@@ -652,7 +620,7 @@ u32 mydown_http2file(int *sock, int timeout, u8 *host, u16 port, u8 *user, u8 *p
                 }
                 VERPRINTF2"\n- redirect: %s\n", location);
                 mydown_get_host(location, &host, &port, &getstr, &user, &pass, verbose);
-                if(sd && !sock) { close(sd); sd = 0; }
+                if(sd && !sock) { closes(sd); sd = 0; }
                 mydown_free_sock(sock);
                 ret = mydown_http2file(sock, timeout, host, port, user, pass, referer, useragent, cookie, more_http, verbose, getstr, fd, filename, showhead, onlyifdiff, resume, from, tot, filesize, filedata, ret_code, onflyunzip, content, contentsize, get);
                 goto quit;
@@ -795,7 +763,7 @@ u32 mydown_http2file(int *sock, int timeout, u8 *host, u16 port, u8 *user, u8 *p
                     fopen_s(&fd,(const char *)filename, "ab");
                     from = xstat.st_size;
                     VERPRINTF2"  resume %u\n", from);
-                    if(sd && !sock) { close(sd); sd = 0; }
+                    if(sd && !sock) { closes(sd); sd = 0; }
                     mydown_free_sock(sock);
                     ret = mydown_http2file(sock, timeout, host, port, user, pass, referer, useragent, cookie, more_http, verbose, getstr, fd, filename, showhead, onlyifdiff, resume, from, tot, filesize, filedata, ret_code, onflyunzip, content, contentsize, get);
                     goto quit;
@@ -1079,7 +1047,7 @@ quit:
         *ret_code = code;
         if(resume == 3) *ret_code = ret;
     }
-    if(sd && !sock) { close(sd); sd = 0; }
+    if(sd && !sock) { closes(sd); sd = 0; }
     VERPRINTF"\n");
     if(ret == MYDOWN_ERROR) mydown_free_sock(sock);
     if(filename && ((resume == 2) || (resume == 3))) {
@@ -1113,7 +1081,7 @@ u8 *mydown_tmpnam(void) {
 
 void mydown_free_sock(int *sock) {
     if(sock && *sock) {
-        close(*sock);
+        closes(*sock);
         *sock = 0;
     }
 }
@@ -1319,16 +1287,12 @@ in_addr_t mydown_resolv(char *host) {
     int         i;
     dns_db_t    *dns;
 
-    ::EnterCriticalSection(&g_ThreadAccess);
-
     host_ip = inet_addr(host);
     if(host_ip == htonl(INADDR_NONE)) {
 
         for(i = 0; i < dns_db_max; i++) {           // search
             if(!_stricmp((const char *)host, (const char *)dns_db[i].host)) 
             {
-               ::LeaveCriticalSection(&g_ThreadAccess);
-
                return(dns_db[i].ip);
             }
         }
@@ -1336,9 +1300,6 @@ in_addr_t mydown_resolv(char *host) {
         hp = gethostbyname(host);
         if(!hp) {
             fprintf(stderr, "\nError: Unable to resolve hostname (%s)\n\n", host);
-
-            ::LeaveCriticalSection(&g_ThreadAccess);
-
             return(INADDR_NONE);
         }
         host_ip = *(in_addr_t *)(hp->h_addr);
@@ -1352,8 +1313,6 @@ in_addr_t mydown_resolv(char *host) {
         dns_db_add++;
         if(dns_db_max < MAXDNS) dns_db_max++;
     }
-
-    ::LeaveCriticalSection(&g_ThreadAccess);
 
     return(host_ip);
 }

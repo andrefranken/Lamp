@@ -7,6 +7,7 @@
 #include "thread.h"
 #include "Lamp.h"
 #include <list>
+#include "html/ParserDom.h"
 
 typedef enum 
 {
@@ -242,6 +243,53 @@ typedef enum
    LTT_WTF = 16
 }loltagtype;
 
+size_t HTML_GetIDAttribute(tree<htmlcxx::HTML::Node>::sibling_iterator &it, const char *attr_name = NULL);
+
+bool HTML_HasAttribute(tree<htmlcxx::HTML::Node>::sibling_iterator &it, 
+                       const char *attribute_name, 
+                       const char *attribute_value);
+
+bool HTML_StartsWithAttribute(tree<htmlcxx::HTML::Node>::sibling_iterator &it, 
+                              const char *attribute_name, 
+                              const char *attribute_value, 
+                              std::string *attribute_value_remainder = 0);
+
+void HTML_GetValue(tree<htmlcxx::HTML::Node>::sibling_iterator &from_it, std::string &value);
+
+bool HTML_FindChild(tree<htmlcxx::HTML::Node>::sibling_iterator &from_it, 
+                    tree<htmlcxx::HTML::Node>::sibling_iterator &result_it, 
+                    const char *tag_name);
+
+bool HTML_FindChild_HasAttribute(tree<htmlcxx::HTML::Node>::sibling_iterator &from_it,
+                                 tree<htmlcxx::HTML::Node>::sibling_iterator &result_it, 
+                                 const char *tag_name, 
+                                 const char *attribute_name, 
+                                 const char *attribute_value);
+
+bool HTML_FindChild_StartsWithAttribute(tree<htmlcxx::HTML::Node>::sibling_iterator &from_it,
+                                        tree<htmlcxx::HTML::Node>::sibling_iterator &result_it, 
+                                        const char *tag_name, 
+                                        const char *attribute_name, 
+                                        const char *attribute_value, 
+                                        std::string *attribute_value_remainder = 0);
+
+bool HTML_FindChild(tree<htmlcxx::HTML::Node> &from_dom, 
+                    tree<htmlcxx::HTML::Node>::sibling_iterator &result_it, 
+                    const char *tag_name);
+
+bool HTML_FindChild_HasAttribute(tree<htmlcxx::HTML::Node> &from_dom,
+                                 tree<htmlcxx::HTML::Node>::sibling_iterator &result_it, 
+                                 const char *tag_name, 
+                                 const char *attribute_name, 
+                                 const char *attribute_value);
+
+bool HTML_FindChild_StartsWithAttribute(tree<htmlcxx::HTML::Node> &from_dom,
+                                        tree<htmlcxx::HTML::Node>::sibling_iterator &result_it, 
+                                        const char *tag_name, 
+                                        const char *attribute_name, 
+                                        const char *attribute_value, 
+                                        std::string *attribute_value_remainder = 0);
+
 class ChattyPost
 {
 public:
@@ -269,6 +317,7 @@ public:
       m_pReplyDlg = NULL;
       m_mylols = LTT_NONE;
       m_bCollapsed = false;
+      //m_Newness = N_OLD;
       m_Newness = N_NEW;
       m_bShowTruncated = false;
       m_familysize = 0;
@@ -281,11 +330,17 @@ public:
       m_lol_preview_size = 0;
       m_bHaveLOLPreview = false;
       m_bIsMe = false;
+      m_bIsPreview = false;
+      memset(&m_tm_posttime,0,sizeof(tm));
    }
    virtual ~ChattyPost();
 
+   void ClearChildren();
+
    unsigned int GetId(){return m_id;}
    void SetId(unsigned int newid){m_id = newid;}
+
+   bool IsPreview(){return m_bIsPreview;}
 
    void SetNewness(newness value){m_Newness = value;}
    void BumpNewnessDown(){if(m_Newness == N_NEW)m_Newness = N_LAST;else if(m_Newness == N_LAST)m_Newness = N_OLD;}
@@ -308,9 +363,23 @@ public:
    void SetPrevSibling(ChattyPost *pPrevSibling){m_pPrevSibling = pPrevSibling;}
    ChattyPost *GetPrevSibling(void){return m_pPrevSibling;}
 
+   void ReadRootChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &root_it, 
+                               CLampDoc *pDoc,
+                               unsigned int id);
+
+   void ReadPostPreviewChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &post_it, 
+                                      CLampDoc *pDoc,
+                                      unsigned int id);
+
+   void ReadKnownPostChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &root_it, unsigned int id);
+
+   void ReadSearchResultFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &result_it, CLampDoc *pDoc);
+
    void Read(CXMLElement *pElement, CLampDoc *pDoc, bool bDoingNewFlags);
    void ReadSearchResult(CXMLElement *pElement, CLampDoc *pDoc);
    void ReadShackMessage(CXMLElement *pElement, CLampDoc *pDoc, bool bIsInbox);
+
+   void ReadMessageFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &it, CLampDoc *pDoc, bool bIsInbox, size_t id, std::string &author, bool bHaveRead);
 
    void ReadPost(ChattyPost *pOther, CLampDoc *pDoc);
 
@@ -327,9 +396,14 @@ public:
 
    ChattyPost *FindChild(unsigned int id);
 
+   void UpdatePreviewsToKnown();
+
+   void ReadFromKnown(CLampDoc *pDoc);
+
    void GetTitle(UCString &title);
 
    postcategorytype GetCategory(){return m_category;}
+   void SetCategory(postcategorytype category){m_category = category;}
 
    void Despoil();
    void ClearSpoilerTags(int x, int y);
@@ -370,7 +444,7 @@ public:
 
    bool HasMissingChildren()
    {
-      if(m_reportedchildcount > 0 &&
+      if(m_familysize > 0 &&
          m_children.size() == 0)
       {
          return true;
@@ -405,6 +479,11 @@ public:
    const UCString &GetDateText(){return m_datetext;}
 
    void SetBodyText(const UCString &text){m_bodytext = text;}
+
+   ChattyPost *GetRoot();
+
+   void RecordNewness(std::map<unsigned int,newness> &post_newness);
+   void EstablishNewness(std::map<unsigned int,newness> &post_newness);
 
 protected:
    void SetupCharWidths();
@@ -495,4 +574,8 @@ protected:
    std::vector<shacktagpos> m_lol_preview_shacktags;
    int                     m_lol_preview_size;
    bool                    m_bHaveLOLPreview;
+
+   bool                    m_bIsPreview;
+
+   tm                      m_tm_posttime;
 };

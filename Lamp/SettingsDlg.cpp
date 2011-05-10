@@ -40,13 +40,15 @@ void CSettingsDlg::OnBnClickedOk()
    CEdit *pNumMinsInbox = (CEdit*)GetDlgItem(IDC_NUM_MIN_INBOX_EDIT);
    CEdit *pInertia = (CEdit*)GetDlgItem(IDC_INERTIA_EDIT);
    CEdit *pHoursExpire = (CEdit*)GetDlgItem(IDC_NUM_HOURS_EXPIRE_EDIT);
+   CButton *pUseStoneDonkey = (CButton*)GetDlgItem(ID_USE_STONEDONKEY);
 
    if(pMouseWheelSpeed != NULL &&
       pMBPanSpeed != NULL &&
       pNumShowTrunc != NULL &&
       pNumMinsInbox != NULL &&
       pInertia != NULL &&
-      pHoursExpire != NULL)
+      pHoursExpire != NULL &&
+      pUseStoneDonkey != NULL)
    {
       CString temp;
       UCString temp2;
@@ -73,6 +75,15 @@ void CSettingsDlg::OnBnClickedOk()
       pHoursExpire->GetWindowTextW(temp);
       temp2 = temp;
       theApp.SetHoursExpire(temp2);
+
+      if(pUseStoneDonkey->GetCheck() == BST_CHECKED)
+      {
+         theApp.SetUseShack(false);
+      }
+      else
+      {
+         theApp.SetUseShack(true);
+      }
    }
 
    OnOK();
@@ -86,13 +97,15 @@ BOOL CSettingsDlg::OnInitDialog()
    CEdit *pNumMinsInbox = (CEdit*)GetDlgItem(IDC_NUM_MIN_INBOX_EDIT);
    CEdit *pInertia = (CEdit*)GetDlgItem(IDC_INERTIA_EDIT);
    CEdit *pHoursExpire = (CEdit*)GetDlgItem(IDC_NUM_HOURS_EXPIRE_EDIT);
+   CButton *pUseStoneDonkey = (CButton*)GetDlgItem(ID_USE_STONEDONKEY);
 
    if(pMouseWheelSpeed != NULL &&
       pMBPanSpeed != NULL &&
       pNumShowTrunc != NULL &&
       pNumMinsInbox != NULL &&
       pInertia != NULL &&
-      pHoursExpire != NULL)
+      pHoursExpire != NULL &&
+      pUseStoneDonkey != NULL)
    {
       pMouseWheelSpeed->SetWindowTextW(UCString(theApp.GetMouseWheelScale()));
       pMBPanSpeed->SetWindowTextW(UCString(theApp.GetMBPanScale()));
@@ -100,6 +113,15 @@ BOOL CSettingsDlg::OnInitDialog()
       pNumMinsInbox->SetWindowTextW(UCString(theApp.GetNumMinutesCheckInbox()));
       pInertia->SetWindowTextW(UCString(theApp.GetInertiaFriction()));
       pHoursExpire->SetWindowTextW(UCString(theApp.GetHoursExpire()));
+
+      if(theApp.UseShack())
+      {
+         pUseStoneDonkey->SetCheck(BST_UNCHECKED);
+      }
+      else
+      {
+         pUseStoneDonkey->SetCheck(BST_CHECKED);
+      }
    }
 
    CDialog::OnInitDialog();

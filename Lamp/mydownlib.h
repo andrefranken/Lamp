@@ -36,13 +36,23 @@ typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned long long uint64_t;
+
+typedef uint8_t     u8;
+typedef uint16_t    u16;
+typedef uint32_t    u32;
+typedef uint64_t    u64;
 #endif
 
+#define closes       closesocket
+#define in_addr_t   u32
+#define TEMPOZ1
+#define TEMPOZ2     GetTickCount()
+#define ONESEC      1000
 
 #define MYDOWN_VER      "0.2.5"
 #define MYDOWN_ERROR    (-1)
 
-
+in_addr_t mydown_resolv(char *host);
 
 typedef struct {
     uint32_t    from;           // download from byte, use -1 for the latest tot bytes

@@ -11,6 +11,231 @@
 
 UCString blank_string;
 
+size_t HTML_GetIDAttribute(tree<htmlcxx::HTML::Node>::sibling_iterator &it, const char *attr_name/* = NULL*/)
+{
+   size_t result = 0;
+
+   if(it->attributes().size() == 0)
+   {
+      it->parseAttributes();
+   }
+
+   std::string str;
+   if(attr_name != NULL)
+   {
+      str = attr_name;
+   }
+   else
+   {
+      str = "id";
+   }
+
+   std::pair<bool,std::string> class_attr = it->attribute(str);
+   if(class_attr.second.length() > 0)
+   {
+      const char *pStr = (const char *)class_attr.second.data();
+      const char *pEnd = pStr + class_attr.second.length();
+
+      while(pStr < pEnd && isdigit(*pStr) == 0)pStr++;
+
+      if(pStr < pEnd)
+      {
+         result = strtoul(pStr,NULL, 10);
+      }
+   }
+
+   return result;
+}
+
+bool HTML_HasAttribute(tree<htmlcxx::HTML::Node>::sibling_iterator &it, 
+                       const char *attribute_name, 
+                       const char *attribute_value)
+{
+   if(it->attributes().size() == 0)
+   {
+      it->parseAttributes();
+   }
+   std::pair<bool,std::string> class_attr = it->attribute(std::string(attribute_name));
+   if(class_attr.second.length() > 0 &&
+      class_attr.second == attribute_value)
+   {
+      return true;
+   }
+   return false;
+}
+
+bool HTML_StartsWithAttribute(tree<htmlcxx::HTML::Node>::sibling_iterator &it, 
+                              const char *attribute_name, 
+                              const char *attribute_value, 
+                              std::string *attribute_value_remainder/* = 0*/)
+{
+   if(it->attributes().size() == 0)
+   {
+      it->parseAttributes();
+   }
+   std::pair<bool,std::string> class_attr = it->attribute(std::string(attribute_name));
+   if(class_attr.second.length() > 0)
+   {
+      const char *pClassStr = (const char *)class_attr.second.data();
+      size_t str_len = strlen(attribute_value);
+      if(class_attr.second.length() >= str_len &&
+         strncmp(pClassStr, attribute_value, str_len) == 0)
+      {
+         if(attribute_value_remainder != NULL)
+         {
+            *attribute_value_remainder = pClassStr + str_len;
+         }
+         return true;
+      }
+   }
+   return false;
+}
+
+void HTML_GetValue(tree<htmlcxx::HTML::Node>::sibling_iterator &from_it, std::string &value)
+{
+   tree<htmlcxx::HTML::Node>::sibling_iterator it = from_it.begin();
+   tree<htmlcxx::HTML::Node>::sibling_iterator end = from_it.end();
+
+   while(it != end)
+   {
+      value += it->text();
+      HTML_GetValue(it, value);
+      value += it->closingText();
+      it++;
+   }
+}
+
+bool HTML_FindChild(tree<htmlcxx::HTML::Node>::sibling_iterator &from_it, 
+                    tree<htmlcxx::HTML::Node>::sibling_iterator &result_it, 
+                    const char *tag_name)
+{
+   tree<htmlcxx::HTML::Node>::sibling_iterator it = from_it.begin();
+   tree<htmlcxx::HTML::Node>::sibling_iterator end = from_it.end();
+
+   while(it != end)
+   {
+      if(it->tagName() == tag_name)
+      {
+         result_it = it;
+         return true;
+      }
+      it++;
+   }
+   return false;
+}
+
+bool HTML_FindChild_HasAttribute(tree<htmlcxx::HTML::Node>::sibling_iterator &from_it, 
+                                 tree<htmlcxx::HTML::Node>::sibling_iterator &result_it, 
+                                 const char *tag_name, 
+                                 const char *attribute_name, 
+                                 const char *attribute_value)
+{
+   tree<htmlcxx::HTML::Node>::sibling_iterator it = from_it.begin();
+   tree<htmlcxx::HTML::Node>::sibling_iterator end = from_it.end();
+
+   while(it != end)
+   {
+      if(it->tagName() == tag_name &&
+         HTML_HasAttribute(it, attribute_name, attribute_value))
+      {
+         result_it = it;
+         return true;
+      }
+      it++;
+   }
+   return false;
+}
+
+bool HTML_FindChild_StartsWithAttribute(tree<htmlcxx::HTML::Node>::sibling_iterator &from_it, 
+                                        tree<htmlcxx::HTML::Node>::sibling_iterator &result_it, 
+                                        const char *tag_name, 
+                                        const char *attribute_name, 
+                                        const char *attribute_value, 
+                                        std::string *attribute_value_remainder/* = 0*/)
+{
+   tree<htmlcxx::HTML::Node>::sibling_iterator it = from_it.begin();
+   tree<htmlcxx::HTML::Node>::sibling_iterator end = from_it.end();
+
+   while(it != end)
+   {
+      if(it->tagName() == tag_name &&
+         HTML_StartsWithAttribute(it, attribute_name, attribute_value, attribute_value_remainder))
+      {
+         result_it = it;
+         return true;
+      }
+      it++;
+   }
+   return false;
+}
+
+////////////////////////
+
+bool HTML_FindChild(tree<htmlcxx::HTML::Node> &from_dom,
+                    tree<htmlcxx::HTML::Node>::sibling_iterator &result_it, 
+                    const char *tag_name)
+{
+   tree<htmlcxx::HTML::Node>::iterator root = from_dom.begin();
+   tree<htmlcxx::HTML::Node>::iterator end = from_dom.end();
+
+   while(root != end)
+   {
+      if(root->tagName() == "html")
+      {
+         tree<htmlcxx::HTML::Node>::sibling_iterator here = root;
+         return HTML_FindChild(here, result_it, tag_name);
+      }
+      root++;
+   }
+
+   return false;
+}
+
+bool HTML_FindChild_HasAttribute(tree<htmlcxx::HTML::Node> &from_dom,
+                                 tree<htmlcxx::HTML::Node>::sibling_iterator &result_it, 
+                                 const char *tag_name, 
+                                 const char *attribute_name, 
+                                 const char *attribute_value)
+{
+   tree<htmlcxx::HTML::Node>::iterator root = from_dom.begin();
+   tree<htmlcxx::HTML::Node>::iterator end = from_dom.end();
+
+   while(root != end)
+   {
+      if(root->tagName() == "html")
+      {
+         tree<htmlcxx::HTML::Node>::sibling_iterator here = root;
+         return HTML_FindChild_HasAttribute(here, result_it, tag_name, attribute_name, attribute_value);
+      }
+      root++;
+   }
+
+   return false;
+}
+
+bool HTML_FindChild_StartsWithAttribute(tree<htmlcxx::HTML::Node> &from_dom,
+                                        tree<htmlcxx::HTML::Node>::sibling_iterator &result_it, 
+                                        const char *tag_name, 
+                                        const char *attribute_name, 
+                                        const char *attribute_value, 
+                                        std::string *attribute_value_remainder/* = 0*/)
+{
+   tree<htmlcxx::HTML::Node>::iterator root = from_dom.begin();
+   tree<htmlcxx::HTML::Node>::iterator end = from_dom.end();
+
+   while(root != end)
+   {
+      if(root->tagName() == "html")
+      {
+         tree<htmlcxx::HTML::Node>::sibling_iterator here = root;
+         return HTML_FindChild_StartsWithAttribute(here, result_it, tag_name, attribute_name, attribute_value, attribute_value_remainder);
+      }
+      root++;
+   }
+
+   return false;
+}
+
 void ChattyPost::UpdateAuthorColor()
 {
    if(m_author == theApp.GetUsername())
@@ -22,6 +247,553 @@ void ChattyPost::UpdateAuthorColor()
    {
       m_AuthorColor = theApp.GetUserColor(m_author);
    }
+}
+
+void ChattyPost::ReadRootChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &root_it, 
+                                        CLampDoc *pDoc,
+                                        unsigned int id)
+{
+   SetDoc(pDoc);
+   
+   m_id = id;
+
+   if(pDoc->GetDataType() == DDT_STORY)
+   {
+      m_bCollapsed = theApp.GetMyCollapse(m_id);
+   }
+
+   m_mylols = theApp.GetMyLol(m_id);
+
+   UpdateLOLs();
+
+   UCString body_temp;
+
+   // read self
+
+   tree<htmlcxx::HTML::Node>::sibling_iterator it;
+
+   if(HTML_FindChild(root_it, it, "ul"))
+   {
+      if(HTML_FindChild(it, it, "li"))
+      {
+         tree<htmlcxx::HTML::Node>::sibling_iterator info_it;
+
+         std::string value;
+         if(HTML_FindChild_StartsWithAttribute(it, info_it, "div", "class", "fullpost", &value))
+         {
+            const char *pClassStr = (const char *)value.data();
+            pClassStr = strstr(pClassStr,"mod_");
+            if(pClassStr != NULL)
+            {
+               pClassStr += 4;
+               // if(strncmp(pClassStr, "ontopic", 7) do nothing.  That is the default            
+               if(strncmp(pClassStr, "informative",11) == 0)   {m_category = PCT_INF;}
+               else if(strncmp(pClassStr, "nws",3) == 0)       {m_category = PCT_NWS;}
+               else if(strncmp(pClassStr, "offtopic",8) == 0)  {m_category = PCT_OFFTOPIC;}
+               else if(strncmp(pClassStr, "political",9) == 0) {m_category = PCT_POLITCIAL;}
+               else if(strncmp(pClassStr, "stupid",6) == 0)    {m_category = PCT_STUPID;}
+            }
+
+            tree<htmlcxx::HTML::Node>::sibling_iterator author_it;
+            if(HTML_FindChild_HasAttribute(info_it, author_it, "div", "class", "postmeta"))
+            {
+               if(HTML_FindChild_HasAttribute(author_it, author_it, "span", "class", "author"))
+               {
+                  if(HTML_FindChild_HasAttribute(author_it, author_it, "span", "class", "user"))
+                  {
+                     if(HTML_FindChild_StartsWithAttribute(author_it, author_it, "a", "href", "/user/"))
+                     {
+                        std::string author;
+                        HTML_GetValue(author_it, author);
+                        m_author = (const char*)author.data();
+                        m_author.TrimWhitespace();
+                        UpdateAuthorColor();
+                     }
+                  }            
+               }
+            }
+
+            tree<htmlcxx::HTML::Node>::sibling_iterator date_it;
+            if(HTML_FindChild_HasAttribute(info_it, date_it, "div", "class", "postdate"))
+            {
+               std::string date;
+               HTML_GetValue(date_it, date);
+               m_datetext = (const char*)date.data();
+               m_datetext.TrimWhitespace();
+               m_datetext.MakeNormal();
+               UpdateDate();
+            }
+
+            tree<htmlcxx::HTML::Node>::sibling_iterator body_it;
+            if(HTML_FindChild_HasAttribute(info_it, body_it, "div", "class", "postbody"))
+            {
+               std::string body;
+               HTML_GetValue(body_it, body);
+               if(body.length() > 0)
+               {
+                  body_temp.AppendEncodedString((const char *)body.data(),body.length(),CET_UTF8);
+                  body_temp.ReplaceAll(0x02C2,L'<');
+                  body_temp.ReplaceAll(0x02C3,L'>');
+               }
+            }
+         }
+
+         tree<htmlcxx::HTML::Node>::sibling_iterator replies_it;
+
+         if(HTML_FindChild_HasAttribute(it, replies_it, "div", "class", "capcontainer"))
+         {
+            if(HTML_FindChild(replies_it, replies_it, "ul"))
+            {
+               tree<htmlcxx::HTML::Node>::sibling_iterator child_it = replies_it.begin();
+               tree<htmlcxx::HTML::Node>::sibling_iterator child_end = replies_it.end();
+
+               ChattyPost *lastpost = NULL;
+
+               while(child_it != child_end)
+               {
+                  if(child_it->tagName() == "li")
+                  {
+                     unsigned int child_id = HTML_GetIDAttribute(child_it);
+
+                     if(child_id != 0)
+                     {
+                        ChattyPost *post = new ChattyPost();
+                        post->SetNewness(N_OLD);
+                        m_children.push_back(post);
+
+                        post->ReadPostPreviewChattyFromHTML(child_it, pDoc, child_id);
+
+                        post->SetParent(this);
+                        post->SetPrevSibling(lastpost);
+                        post->SetNextSibling(NULL);
+                        if(lastpost != NULL)
+                        {
+                           lastpost->SetNextSibling(post);
+                        }
+
+                        if(post->IsFiltered())
+                        {
+                           m_children.pop_back();
+                           if(lastpost != NULL)
+                           {
+                              lastpost->SetNextSibling(NULL);
+                           }
+                           delete post;
+                        }
+                        else
+                        {
+                           lastpost = post;
+                        }
+                     }
+                  }
+
+                  child_it++;
+               }
+            }
+         }
+      }
+   }
+
+   m_bodytext = L"";
+   m_shacktags.clear();
+   DecodeString(body_temp,m_bodytext,m_shacktags);
+   //m_bodytext.MakeNormal();
+   SetupCharWidths();
+   m_lines_of_text.clear();
+   m_charsizes.clear();
+   m_linesizes.clear();
+   m_linetags.clear();
+   m_linetypes.clear();
+   m_lasttextrectwidth = 0;
+   m_textrectheight = 0;
+   InitImageLinks();
+}
+
+void ChattyPost::ReadPostPreviewChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &post_it, 
+                                               CLampDoc *pDoc,
+                                               unsigned int id)
+{
+   SetDoc(pDoc);
+   m_id = id;
+   m_bIsPreview = true;
+   bool bKnown = false;
+
+   if(theApp.IsPostKnown(id))
+   {
+      ReadFromKnown(pDoc); // no longer a preview
+   }
+   else
+   {
+      m_datetext = L"Preview.  Just a moment...";
+      m_ago_color = theApp.GetMiscPostTextColor();
+   }
+   
+   if(!m_bIsPreview) 
+      bKnown = true;
+
+   m_mylols = theApp.GetMyLol(m_id);
+
+   UpdateLOLs();
+
+   UCString body_temp;
+
+   // read self
+   tree<htmlcxx::HTML::Node>::sibling_iterator it;
+   std::string value;
+   if(HTML_FindChild_StartsWithAttribute(post_it, it, "div", "class", "oneline",&value))
+   {
+      const char *pClassStr = (const char *)value.data();
+      pClassStr = strstr(pClassStr,"mod_");
+      if(pClassStr != NULL)
+      {
+         pClassStr += 4;
+         // if(strncmp(pClassStr, "ontopic", 7) do nothing.  That is the default            
+         if(strncmp(pClassStr, "informative",11) == 0)   {m_category = PCT_INF;}
+         else if(strncmp(pClassStr, "nws",3) == 0)       {m_category = PCT_NWS;}
+         else if(strncmp(pClassStr, "offtopic",8) == 0)  {m_category = PCT_OFFTOPIC;}
+         else if(strncmp(pClassStr, "political",9) == 0) {m_category = PCT_POLITCIAL;}
+         else if(strncmp(pClassStr, "stupid",6) == 0)    {m_category = PCT_STUPID;}
+      }
+
+      if(!bKnown)
+      {
+         tree<htmlcxx::HTML::Node>::sibling_iterator preview_it;
+         if(HTML_FindChild_HasAttribute(it, preview_it, "a", "class", "shackmsg"))
+         {
+            if(HTML_FindChild_HasAttribute(preview_it, preview_it, "span", "class", "oneline_body"))
+            {
+               std::string body_preview;
+               HTML_GetValue(preview_it, body_preview);
+               if(body_preview.length() > 0)
+               {
+                  body_temp.AppendEncodedString((const char *)body_preview.data(),body_preview.length(),CET_UTF8);
+                  body_temp.ReplaceAll(0x02C2,L'<');
+                  body_temp.ReplaceAll(0x02C3,L'>');
+               }
+            }
+         }
+
+         tree<htmlcxx::HTML::Node>::sibling_iterator author_it;
+         if(HTML_FindChild_HasAttribute(it, author_it, "span", "class", "oneline_user"))
+         {
+            std::string author;
+            HTML_GetValue(author_it, author);
+            if(author.length() > 0)
+            {
+               m_author = (const char*)author.data();
+               m_author.TrimWhitespace();
+               UpdateAuthorColor();
+            }
+         }
+      }
+   }
+
+   tree<htmlcxx::HTML::Node>::sibling_iterator replies_it;
+   if(HTML_FindChild(post_it, replies_it, "ul"))
+   {
+      tree<htmlcxx::HTML::Node>::sibling_iterator child_it = replies_it.begin();
+      tree<htmlcxx::HTML::Node>::sibling_iterator child_end = replies_it.end();
+
+      ChattyPost *lastpost = NULL;
+
+      while(child_it != child_end)
+      {
+         if(child_it->tagName() == "li")
+         {
+            unsigned int child_id = HTML_GetIDAttribute(child_it);
+
+            if(child_id != 0)
+            {
+               ChattyPost *post = new ChattyPost();
+               post->SetNewness(N_OLD);
+               m_children.push_back(post);
+
+               post->ReadPostPreviewChattyFromHTML(child_it, pDoc, child_id);
+
+               post->SetParent(this);
+               post->SetPrevSibling(lastpost);
+               post->SetNextSibling(NULL);
+               if(lastpost != NULL)
+               {
+                  lastpost->SetNextSibling(post);
+               }
+
+               if(post->IsFiltered())
+               {
+                  m_children.pop_back();
+                  if(lastpost != NULL)
+                  {
+                     lastpost->SetNextSibling(NULL);
+                  }
+                  delete post;
+               }
+               else
+               {
+                  lastpost = post;
+               }
+            }
+         }
+
+         child_it++;
+      }
+   }
+   
+   if(!bKnown)
+   {
+      m_bodytext = L"";
+      m_shacktags.clear();
+      DecodeString(body_temp,m_bodytext,m_shacktags);
+      //m_bodytext.MakeNormal();
+      SetupCharWidths();
+      m_lines_of_text.clear();
+      m_charsizes.clear();
+      m_linesizes.clear();
+      m_linetags.clear();
+      m_linetypes.clear();
+      m_lasttextrectwidth = 0;
+      m_textrectheight = 0;
+      InitImageLinks();
+   }
+}
+
+void ChattyPost::ReadKnownPostChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &root_it, unsigned int id)
+{
+   SetDoc(NULL);
+   
+   m_id = id;
+
+   m_bIsPreview = false;
+
+   UCString body_temp;
+
+   // read self
+   tree<htmlcxx::HTML::Node>::sibling_iterator info_it;
+   std::string value;
+   if(HTML_FindChild_StartsWithAttribute(root_it, info_it, "div", "class", "fullpost", &value))
+   {
+      const char *pClassStr = (const char *)value.data();
+      pClassStr = strstr(pClassStr,"mod_");
+      if(pClassStr != NULL)
+      {
+         pClassStr += 4;
+         // if(strncmp(pClassStr, "ontopic", 7) do nothing.  That is the default            
+         if(strncmp(pClassStr, "informative",11) == 0)   {m_category = PCT_INF;}
+         else if(strncmp(pClassStr, "nws",3) == 0)       {m_category = PCT_NWS;}
+         else if(strncmp(pClassStr, "offtopic",8) == 0)  {m_category = PCT_OFFTOPIC;}
+         else if(strncmp(pClassStr, "political",9) == 0) {m_category = PCT_POLITCIAL;}
+         else if(strncmp(pClassStr, "stupid",6) == 0)    {m_category = PCT_STUPID;}
+      }
+
+      tree<htmlcxx::HTML::Node>::sibling_iterator author_it;
+      if(HTML_FindChild_HasAttribute(info_it, author_it, "div", "class", "postmeta"))
+      {
+         if(HTML_FindChild_HasAttribute(author_it, author_it, "span", "class", "author"))
+         {
+            if(HTML_FindChild_HasAttribute(author_it, author_it, "span", "class", "user"))
+            {
+               if(HTML_FindChild_StartsWithAttribute(author_it, author_it, "a", "href", "/user/"))
+               {
+                  std::string author;
+                  HTML_GetValue(author_it, author);
+                  m_author = (const char*)author.data();
+                  m_author.TrimWhitespace();
+                  UpdateAuthorColor();
+               }
+            }            
+         }
+      }
+
+      tree<htmlcxx::HTML::Node>::sibling_iterator date_it;
+      if(HTML_FindChild_HasAttribute(info_it, date_it, "div", "class", "postdate"))
+      {
+         std::string date;
+         HTML_GetValue(date_it, date);
+         m_datetext = (const char*)date.data();
+         m_datetext.TrimWhitespace();
+         m_datetext.MakeNormal();
+         UpdateDate();
+      }
+
+      tree<htmlcxx::HTML::Node>::sibling_iterator body_it;
+      if(HTML_FindChild_HasAttribute(info_it, body_it, "div", "class", "postbody"))
+      {
+         std::string body;
+         HTML_GetValue(body_it, body);
+         if(body.length() > 0)
+         {
+            body_temp.AppendEncodedString((const char *)body.data(),body.length(),CET_UTF8);
+            body_temp.ReplaceAll(0x02C2,L'<');
+            body_temp.ReplaceAll(0x02C3,L'>');
+         }
+      }
+   }
+
+   m_bodytext = L"";
+   m_shacktags.clear();
+   DecodeString(body_temp,m_bodytext,m_shacktags);
+}
+
+void ChattyPost::ReadSearchResultFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &result_it, CLampDoc *pDoc)
+{
+   SetDoc(pDoc);
+
+   UCString body;
+
+   tree<htmlcxx::HTML::Node>::sibling_iterator it;
+   if(HTML_FindChild(result_it,it,"p"))
+   {
+      tree<htmlcxx::HTML::Node>::sibling_iterator author_it;
+      if(HTML_FindChild_HasAttribute(it,author_it,"span","class","chatty-author"))
+      {
+         std::string value;
+         HTML_GetValue(author_it, value);
+         if(value.length() > 0)
+         {
+            m_author = (const char*)value.data();
+            m_author.TrimWhitespace();
+            if(m_author[m_author.Length()-1] == L':')
+               m_author.TrimEnd(1);
+            UpdateAuthorColor();
+         }
+      }
+
+      tree<htmlcxx::HTML::Node>::sibling_iterator body_it;
+      if(HTML_FindChild(it,body_it,"a"))
+      {
+         m_id = HTML_GetIDAttribute(body_it,"href");
+
+         if(m_id != 0)
+         {
+            std::string value;
+            HTML_GetValue(body_it, value);
+            if(value.length() > 0)
+            {
+               body = (const char*)value.data();
+               body.TrimWhitespace();
+
+               body.Replace(L"&quot;",L"\"");
+               body.Replace(L"&amp;",L"&");
+               body.Replace(L"&apos;",L"\'");
+               body.Replace(L"&lt;",L"<");
+               body.Replace(L"&gt;",L">");
+
+               body.ReplaceAll(0x02C2,L'<');
+               body.ReplaceAll(0x02C3,L'>');
+            }
+         }
+      }
+
+      tree<htmlcxx::HTML::Node>::sibling_iterator date_it;
+      if(HTML_FindChild_HasAttribute(it,date_it,"span","class","chatty-posted"))
+      {
+         std::string value;
+         HTML_GetValue(date_it, value);
+         if(value.length() > 7)
+         {
+            char *date_str = (char*)value.data();
+            if(strncmp(date_str,"Posted ",7) == 0)
+            {
+               date_str += 7;
+            }
+            m_datetext = date_str;
+            m_datetext.TrimWhitespace();
+            m_datetext.MakeNormal();
+            UpdateDate();
+         }
+      }
+   }
+   
+   m_bodytext = L"";
+
+   DecodeShackTagsString(body);
+
+   SetupCharWidths();
+   m_lines_of_text.clear();
+   m_charsizes.clear();
+   m_linesizes.clear();
+   m_linetags.clear();
+   m_linetypes.clear();
+   m_lasttextrectwidth = 0;
+   m_textrectheight = 0;
+   InitImageLinks();
+}
+
+void ChattyPost::ReadMessageFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &it, 
+                                     CLampDoc *pDoc, 
+                                     bool bIsInbox, 
+                                     size_t id, 
+                                     std::string &author, 
+                                     bool bHaveRead)
+{
+   m_bIsInbox = bIsInbox;
+   SetDoc(pDoc);
+   m_id = id;
+   m_bHaveRead = bHaveRead;
+   m_author = (char*)author.data();
+   RemoveSomeTags(m_author);
+   m_author.MakeNormal();
+   UpdateAuthorColor();
+
+   tree<htmlcxx::HTML::Node>::sibling_iterator subject_it;
+   if(HTML_FindChild_HasAttribute(it,subject_it, "div", "class", "subject-column toggle-message"))
+   {
+      if(HTML_FindChild(subject_it,subject_it, "a"))
+      {
+         std::string title;
+         HTML_GetValue(subject_it, title);
+         m_subject = (char*)title.data();
+         m_subject.ReplaceAll(0x02C2,L'<');
+         m_subject.ReplaceAll(0x02C3,L'>');
+      }
+   }
+
+   tree<htmlcxx::HTML::Node>::sibling_iterator date_it;
+   if(HTML_FindChild_HasAttribute(it,date_it, "div", "class", "date-column toggle-message"))
+   {
+      if(HTML_FindChild(date_it,date_it, "a"))
+      {
+         std::string date;
+         HTML_GetValue(date_it, date);
+         m_datetext = (char*)date.data();
+         m_datetext.MakeNormal();
+         m_ago_color = theApp.GetMiscPostTextColor();
+      }
+   }
+
+   UCString body;
+
+   tree<htmlcxx::HTML::Node>::sibling_iterator body_it;
+   if(HTML_FindChild_HasAttribute(it,body_it, "div", "class", "message-box"))
+   {
+      if(HTML_FindChild_HasAttribute(body_it,body_it, "div", "class", "top-content"))
+      {
+         if(HTML_FindChild_HasAttribute(body_it,body_it, "div", "class", "message-body"))
+         {
+            std::string body_str;
+            HTML_GetValue(body_it, body_str);
+            body = (char*)body_str.data();
+            body.Replace(L"<br>",L"<br/>");
+            body.Replace(L"<p>",L"");
+            body.Replace(L"</p>",L"");
+            body.ReplaceAll(0x02C2,L'<');
+            body.ReplaceAll(0x02C3,L'>');
+         }
+      }
+   }
+
+   m_bodytext = L"";
+   m_shacktags.clear();
+   DecodeString(body,m_bodytext,m_shacktags);
+   //m_bodytext.MakeNormal();
+   SetupCharWidths();
+   m_lines_of_text.clear();
+   m_charsizes.clear();
+   m_linesizes.clear();
+   m_linetags.clear();
+   m_linetypes.clear();
+   m_lasttextrectwidth = 0;
+   m_textrectheight = 0;
+   InitImageLinks();
 }
 
 void ChattyPost::ReadLOL(CLampDoc *pDoc,
@@ -59,6 +831,8 @@ void ChattyPost::ReadPost(ChattyPost *pOther, CLampDoc *pDoc)
    {
       SetDoc(pDoc);
       m_datetext = pOther->m_datetext;
+      m_tm_posttime = pOther->m_tm_posttime;
+      UpdateDate();
       m_category = pOther->m_category;
       m_author = pOther->m_author;
       UpdateAuthorColor();
@@ -80,8 +854,6 @@ void ChattyPost::ReadPost(ChattyPost *pOther, CLampDoc *pDoc)
       m_unf_text = pOther->m_unf_text;
       m_tag_text = pOther->m_tag_text;
       m_wtf_text = pOther->m_wtf_text;
-
-      m_reportedchildcount = pOther->m_reportedchildcount;
       
       m_lasttextrectwidth = 0;
       m_textrectheight = 0;
@@ -169,9 +941,6 @@ void ChattyPost::Read(CXMLElement *pElement, CLampDoc *pDoc, bool bDoingNewFlags
 
       UpdateLOLs();
 
-      temp = pElement->GetAttributeValue(L"reply_count");
-      m_reportedchildcount = temp;
-      
       CXMLElement *pBody = pElement->FindChildElement(L"body");
       if(pBody != NULL)
       {
@@ -1093,7 +1862,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             {
                RECT hintrect = daterect;
                //hintrect.right = hintrect.left + theApp.GetTextHeight() * 9;
-               m_pDoc->DrawRepliesHint(hDC,hintrect,m_reportedchildcount);
+               m_pDoc->DrawRepliesHint(hDC,hintrect,(int)m_familysize);
 
                hotspot.m_type = HST_REPLIESTOROOTPOSTHINT;
                hotspot.m_spot = hintrect;
@@ -1986,6 +2755,22 @@ ChattyPost::~ChattyPost()
       m_plol_preview_charwidths = NULL;
    }
    
+   std::list<ChattyPost*>::iterator it = m_children.begin();
+   std::list<ChattyPost*>::iterator end = m_children.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         delete (*it);
+         (*it) = NULL;
+      }
+      it++;
+   }
+   m_children.clear();
+}
+
+void ChattyPost::ClearChildren()
+{
    std::list<ChattyPost*>::iterator it = m_children.begin();
    std::list<ChattyPost*>::iterator end = m_children.end();
    while(it != end)
@@ -2926,7 +3711,7 @@ void ChattyPost::DecodeString(UCString &from, UCString &to, std::vector<shacktag
          }
          read+=4;
       }
-      else if(_wcsnicmp(read,L"<span class=\"jt_spoiler\" onclick=\"this.className = \'\';\">",56) == 0)
+      else if(_wcsnicmp(read,L"<span class=\"jt_spoiler\"",24) == 0)
       {
          spoiler++;
          tagstack.push_back(ST_SPOILER);
@@ -2934,7 +3719,9 @@ void ChattyPost::DecodeString(UCString &from, UCString &to, std::vector<shacktag
          {
             shacktags.push_back(shacktagpos(ST_SPOILER,to.Length()));
          }
-         read+=56;
+         read+=24;
+         while(*read != L'>')read++;
+         read++;
       }
       else if(_wcsnicmp(read,L"<pre class=\"jt_code\">",21) == 0)
       {
@@ -3183,6 +3970,59 @@ void ChattyPost::GatherIds(std::list<unsigned int> &ids)
    }
 }
 
+void ChattyPost::ReadFromKnown(CLampDoc *pDoc)
+{
+   m_pDoc = pDoc;
+
+   if(IsPreview())
+   {
+      ChattyPost *knownpost = theApp.GetKnownPost(m_id);
+      if(knownpost != NULL)
+      {
+         m_id = knownpost->m_id;
+         m_category = knownpost->m_category;
+         m_tm_posttime = knownpost->m_tm_posttime;
+         m_author = knownpost->m_author;
+         m_bodytext = knownpost->m_bodytext;
+         m_shacktags = knownpost->m_shacktags;
+
+         if(pDoc->GetDataType() == DDT_STORY)
+         {
+            m_bCollapsed = theApp.GetMyCollapse(m_id);
+         }
+
+         m_mylols = theApp.GetMyLol(m_id);
+         UpdateLOLs();
+         UpdateDate();
+         UpdateAuthorColor();
+
+         SetupCharWidths();
+         m_lines_of_text.clear();
+         m_charsizes.clear();
+         m_linesizes.clear();
+         m_linetags.clear();
+         m_linetypes.clear();
+         m_lasttextrectwidth = 0;
+         m_textrectheight = 0;
+         InitImageLinks();
+
+         m_bIsPreview = false;
+      }
+   }
+}
+
+void ChattyPost::UpdatePreviewsToKnown()
+{
+   ReadFromKnown(m_pDoc);
+   
+   std::list<ChattyPost*>::iterator it = m_children.begin();
+   std::list<ChattyPost*>::iterator end = m_children.end();
+   while(it != end)
+   {
+      (*it)->UpdatePreviewsToKnown();
+      it++;
+   }   
+}
 
 ChattyPost *ChattyPost::FindChild(unsigned int id)
 {
@@ -3241,46 +4081,74 @@ void ChattyPost::GetTitle(UCString &title)
 
 void ChattyPost::UpdateDate()
 {
-   if(m_datetext.Length() > 0)
+   if(m_datetext.Length() > 0 ||
+      m_tm_posttime.tm_year != 0 ||
+      m_tm_posttime.tm_mon  != 0 ||
+      m_tm_posttime.tm_mday != 0 ||
+      m_tm_posttime.tm_yday != 0 ||
+      m_tm_posttime.tm_wday != 0 ||
+      m_tm_posttime.tm_hour != 0 ||
+      m_tm_posttime.tm_min  != 0 ||
+      m_tm_posttime.tm_sec  != 0)
    {
-      COleDateTime foo;
-
-      bool bTrimmed = false;
-      UCChar *datetext = (UCChar*)m_datetext.Str();
-      UCChar *end = datetext + m_datetext.Length() - 4;
-      if(end > datetext &&
-         end[0] == L' ' &&
-         iswalpha(end[1]) &&
-         iswalpha(end[2]) &&
-         iswalpha(end[3]))
+      if(m_tm_posttime.tm_year == 0 &&
+         m_tm_posttime.tm_mon  == 0 &&
+         m_tm_posttime.tm_mday == 0 &&
+         m_tm_posttime.tm_yday == 0 &&
+         m_tm_posttime.tm_wday == 0 &&
+         m_tm_posttime.tm_hour == 0 &&
+         m_tm_posttime.tm_min  == 0 &&
+         m_tm_posttime.tm_sec  == 0)
       {
-         *end = 0;
-         bTrimmed = false;
+         COleDateTime foo;
+
+         bool bTrimmed = false;
+         UCChar *datetext = (UCChar*)m_datetext.Str();
+         UCChar *end = datetext + m_datetext.Length() - 4;
+         if(end > datetext &&
+            end[0] == L' ' &&
+            iswalpha(end[1]) &&
+            iswalpha(end[2]) &&
+            iswalpha(end[3]))
+         {
+            *end = 0;
+            bTrimmed = false;
+         }
+
+         foo.ParseDateTime(datetext,0,MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT));
+
+         if(bTrimmed) *end = L' ';
+         
+         m_tm_posttime.tm_year = foo.GetYear() - 1900;
+         m_tm_posttime.tm_mon  = foo.GetMonth() - 1;
+         m_tm_posttime.tm_mday = foo.GetDay();
+         m_tm_posttime.tm_yday = foo.GetDayOfYear() - 1;
+         m_tm_posttime.tm_wday = foo.GetDayOfWeek() - 1;
+         m_tm_posttime.tm_hour = foo.GetHour();
+         m_tm_posttime.tm_min  = foo.GetMinute();
+         m_tm_posttime.tm_sec  = foo.GetSecond();
       }
-
-      foo.ParseDateTime(datetext);
-
-      if(bTrimmed) *end = L' ';
-      
-      tm tm_posttime;
-
-      tm_posttime.tm_year = foo.GetYear() - 1900;
-      tm_posttime.tm_mon  = foo.GetMonth() - 1;
-      tm_posttime.tm_mday = foo.GetDay();
-      tm_posttime.tm_yday = foo.GetDayOfYear() - 1;
-      tm_posttime.tm_wday = foo.GetDayOfWeek() - 1;
-      tm_posttime.tm_hour = foo.GetHour();
-      tm_posttime.tm_min  = foo.GetMinute();
-      tm_posttime.tm_sec  = foo.GetSecond();
 
       time_t bar;
       time(&bar);
 
       tm tm_now;
-
       localtime_s(&tm_now,&bar);
-      double ago_minutes;
-      double diff = ago_minutes = difftime( mktime(&tm_now), mktime(&tm_posttime) );
+
+      int now_seconds = tm_now.tm_sec;
+      now_seconds += (tm_now.tm_min * 60);
+      now_seconds += (tm_now.tm_hour * 60 * 60);
+      now_seconds += (tm_now.tm_yday * 60 * 60 * 24);
+      now_seconds += (tm_now.tm_year * 60 * 60 * 24 * 365);
+
+      int post_seconds = m_tm_posttime.tm_sec;
+      post_seconds += (m_tm_posttime.tm_min * 60);
+      post_seconds += (m_tm_posttime.tm_hour * 60 * 60);
+      post_seconds += (m_tm_posttime.tm_yday * 60 * 60 * 24);
+      post_seconds += (m_tm_posttime.tm_year * 60 * 60 * 24 * 365);
+
+      int ago_seconds = now_seconds - post_seconds;
+      double diff = (double)ago_seconds;
 
       m_datetext = L"";
       bool bAddedsomething = false;
@@ -3345,11 +4213,11 @@ void ChattyPost::UpdateDate()
          m_datetext += L"just now";
       }
 
-      if(ago_minutes > ((double)theApp.GetHoursExpire() * 60.0 * 60.0))
+      if(ago_seconds > (theApp.GetHoursExpire() * 60 * 60))
       {
          m_ago_color = theApp.GetExpiredTextColor();
       }
-      else if(ago_minutes > ((double)(theApp.GetHoursExpire() - 1) * 60.0 * 60.0))
+      else if(ago_seconds > ((theApp.GetHoursExpire() - 1) * 60 * 60))
       {
          m_ago_color = theApp.GetExpiringTextColor();
       }
@@ -3357,94 +4225,6 @@ void ChattyPost::UpdateDate()
       {
          m_ago_color = theApp.GetMiscPostTextColor();
       }
-
-      ///////
-      /*
-      
-      int year_diff = tm_now.tm_year - tm_posttime.tm_year;
-      int day_diff = tm_now.tm_yday - tm_posttime.tm_yday;
-      int hour_diff = tm_now.tm_hour - tm_posttime.tm_hour;
-      int minute_diff = tm_now.tm_min - tm_posttime.tm_min;
-
-      // 5:50   6:10
-
-      if(minute_diff < 0)
-      {
-         minute_diff = (tm_now.tm_min + 60) - tm_posttime.tm_min;
-         tm_now.tm_hour--; 
-         hour_diff = tm_now.tm_hour - tm_posttime.tm_hour;
-      }
-
-      if(hour_diff < 0)
-      {
-         hour_diff = (tm_now.tm_hour + 24) - tm_posttime.tm_hour;
-         tm_now.tm_yday--; 
-         day_diff = tm_now.tm_yday - tm_posttime.tm_yday;
-      }
-
-      if(day_diff < 0)
-      {
-         day_diff = (tm_now.tm_yday + 365) - tm_posttime.tm_yday;
-         tm_now.tm_year--; 
-         year_diff = tm_now.tm_year - tm_posttime.tm_year;
-      }
-
-      m_datetext = L"";
-      bool bAddedsomething = false;
-
-      if(year_diff > 0)
-      {
-         m_datetext += year_diff;
-         if(year_diff == 1) m_datetext += L" year";
-         else m_datetext += L" years";
-         bAddedsomething = true;
-      }
-
-      if(day_diff > 0)
-      {
-         if(bAddedsomething)
-         {
-            m_datetext += L", ";
-         }
-         m_datetext += day_diff;
-         if(day_diff == 1) m_datetext += L" day";
-         else m_datetext += L" days";
-         bAddedsomething = true;
-      }
-
-      if(hour_diff > 0)
-      {
-         if(bAddedsomething)
-         {
-            m_datetext += L", ";
-         }
-         m_datetext += hour_diff;
-         if(hour_diff == 1) m_datetext += L" hour";
-         else m_datetext += L" hours";
-         bAddedsomething = true;
-      }
-
-      if(minute_diff > 0)
-      {
-         if(bAddedsomething)
-         {
-            m_datetext += L" and ";
-         }
-         m_datetext += minute_diff;
-         if(minute_diff == 1) m_datetext += L" minute";
-         else m_datetext += L" minutes";
-         bAddedsomething = true;
-      }
-      
-      if(bAddedsomething)
-      {
-         m_datetext += L" ago";
-      }
-      else
-      {
-         m_datetext += L"just now";
-      }
-      */
    }
    else
    {
@@ -4474,3 +5254,61 @@ void ChattyPost::UpdateLOLs()
       }
    }
 }
+
+ChattyPost *ChattyPost::GetRoot()
+{
+   ChattyPost *result = this;
+
+   while(result->GetParent() != NULL)result = result->GetParent();
+
+   return result;
+}
+
+void ChattyPost::RecordNewness(std::map<unsigned int,newness> &post_newness)
+{
+   post_newness[m_id] = m_Newness;
+
+   std::list<ChattyPost*>::iterator it = m_children.begin();
+   std::list<ChattyPost*>::iterator end = m_children.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         (*it)->RecordNewness(post_newness);
+      }
+      it++;
+   }
+}
+
+void ChattyPost::EstablishNewness(std::map<unsigned int,newness> &post_newness)
+{
+   std::map<unsigned int,newness>::iterator me = post_newness.find(m_id);
+   if(me != post_newness.end())
+   {
+      m_Newness = me->second;
+      BumpNewnessDown();
+   }   
+   else
+   {
+      if(post_newness.size() == 0)
+      {
+         m_Newness = N_OLD;
+      }
+      else
+      {
+         m_Newness = N_NEW;
+      }
+   }
+
+   std::list<ChattyPost*>::iterator it = m_children.begin();
+   std::list<ChattyPost*>::iterator end = m_children.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         (*it)->EstablishNewness(post_newness);
+      }
+      it++;
+   }
+}
+

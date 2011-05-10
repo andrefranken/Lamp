@@ -90,7 +90,7 @@ public:
 
    /********* the only way to get an 8bit string out *********/
 
-   const char *str8(bool bStrIsPath = false, CharEncodingType cet = CET_ANSI, bool bAddBOM = false) const;
+   const char *str8(bool bStrIsPath = false, CharEncodingType cet = CET_UTF8,bool bAddBOM = false) const;
 
    /******************** return a string *********************/
 
@@ -157,7 +157,7 @@ public:
    void PushToClipboard(const UCChar *format = NULL);
 
    void AppendUnicodeString(const UCChar *otherstring, int count);
-   void AppendEncodedString(const void *otherstring, int count, CharEncodingType cet = CET_ANSI);
+   void AppendEncodedString(const void *otherstring, int count, CharEncodingType cet = CET_UTF8);
    void AppendUnknownString(const void *otherstring);
 
    /*****************  token operations **********************/

@@ -225,11 +225,11 @@ BEGIN
         MENUITEM "Double Size Pages in Chatty", ID_DOUBLE_PAGE_STORY_MENUITEM
         POPUP "LOL settings"
         BEGIN
-           MENUITEM "Show LOL Stuff",              ID_SHOW_LOL_BUTTONS
-           MENUITEM "Show LOL as Web-style",       ID_SHOW_THOMW_LOLS
-           MENUITEM "Small LOL Stuff",             ID_SMALL_LOL
-           MENUITEM "Detailed LOL Previews",       ID_VERBOSE_LOL_PREVIEWS
-           MENUITEM "Inverted LOL Previews",       ID_INVERTED_LOL_PREVIEWS
+            MENUITEM "Show LOL Stuff",              ID_SHOW_LOL_BUTTONS
+            MENUITEM "Show LOL as Web-style",       ID_SHOW_THOMW_LOLS
+            MENUITEM "Small LOL Stuff",             ID_SMALL_LOL
+            MENUITEM "Detailed LOL Previews",       ID_VERBOSE_LOL_PREVIEWS
+            MENUITEM "Inverted LOL Previews",       ID_INVERTED_LOL_PREVIEWS
         END
         MENUITEM "Check Spelling",              ID_CHECK_SPELLING
         MENUITEM "Highlight OP's Replies",      ID_HIGHLIGHT_OP
@@ -379,7 +379,7 @@ CAPTION "About Lamp"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
-    LTEXT           "Lamp, Version 1.8",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Lamp, Version 1.91",IDC_STATIC,42,14,114,8,SS_NOPREFIX
     LTEXT           "Copyright (C) 2011",IDC_STATIC,42,26,114,8
     DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
 END
@@ -471,13 +471,13 @@ BEGIN
     LTEXT           "Subject:",IDC_STATIC,7,33,28,8
 END
 
-IDD_SETTINGS_DIALOG DIALOGEX 0, 0, 245, 179
+IDD_SETTINGS_DIALOG DIALOGEX 0, 0, 245, 200
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "More Settings"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,124,158,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,188,158,50,14
+    DEFPUSHBUTTON   "OK",IDOK,124,180,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,188,180,50,14
     EDITTEXT        IDC_MOUSE_WHEEL_SPEED_EDIT,184,15,40,14,ES_AUTOHSCROLL
     EDITTEXT        IDC_MB_PAN_SPEED_EDIT,184,39,40,14,ES_AUTOHSCROLL
     EDITTEXT        IDC_NUM_SHOW_TRUNC_EDIT,184,63,40,14,ES_AUTOHSCROLL | ES_NUMBER
@@ -490,6 +490,8 @@ BEGIN
     RTEXT           "Number of minutes to wait to periodically check Inbox",IDC_STATIC,7,89,172,8
     RTEXT           "Inertia Friction",IDC_STATIC,7,112,172,8
     RTEXT           "Number of hours in which threads expire",IDC_STATIC,7,135,172,8
+    CONTROL         "Use stonedonkey, to get around the shack being blocked.",ID_USE_STONEDONKEY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,157,201,10
 END
 
 
@@ -499,8 +501,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,8,0,0
- PRODUCTVERSION 1,8,0,0
+ FILEVERSION 1,9,1,0
+ PRODUCTVERSION 1,9,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -518,12 +520,12 @@ BEGIN
             VALUE "Comments", "Why are you reading this?"
             VALUE "CompanyName", "FooBar INC."
             VALUE "FileDescription", "Lamp"
-            VALUE "FileVersion", "1.8"
+            VALUE "FileVersion", "1.91"
             VALUE "InternalName", "Lamp.exe"
             VALUE "LegalCopyright", "Whatever"
             VALUE "OriginalFilename", "Lamp.exe"
             VALUE "ProductName", "Lamp"
-            VALUE "ProductVersion", "1.8"
+            VALUE "ProductVersion", "1.91"
         END
     END
     BLOCK "VarFileInfo"
@@ -602,7 +604,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 238
         TOPMARGIN, 7
-        BOTTOMMARGIN, 149
+        BOTTOMMARGIN, 194
     END
 END
 #endif    // APSTUDIO_INVOKED

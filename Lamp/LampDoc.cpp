@@ -13,11 +13,23 @@
 #include "chatty.h"
 #include "stack.h"
 #include "thread.h"
+
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
+extern CRITICAL_SECTION g_ThreadAccess;
+
 DWORD g_LastPostTime = 0;
+
+DWORD g_LastShackLoginTime = 0;
+
+char g_ShackLoginCookie[1024];
+
+DWORD g_LastUserShackLoginTime = 0;
+
+char g_UserShackLoginCookie[1024];
 
 UINT DownloadThreadProc( LPVOID pParam )
 {
@@ -26,9 +38,22 @@ UINT DownloadThreadProc( LPVOID pParam )
    if(pDD != NULL &&
       pDD->m_WhoWants != NULL)
    {
-      if((pDD->m_dt == DT_POST ||
-          pDD->m_dt == DT_SENDMSG) &&
-         !pDD->m_post_data.IsEmpty())
+      ::EnterCriticalSection(&g_ThreadAccess);
+
+      if(pDD->m_dt == DT_SHACK_CHATTY ||
+         pDD->m_dt == DT_SHACK_THREAD_CONTENTS || 
+         pDD->m_dt == DT_SHACK_THREAD ||
+         pDD->m_dt == DT_SHACK_POST ||
+         pDD->m_dt == DT_SHACK_SEARCH ||
+         pDD->m_dt == DT_SHACK_SHACKMSG ||
+         pDD->m_dt == DT_SHACK_READMSG ||
+         pDD->m_dt == DT_SHACK_SENDMSG)
+      {
+         pDD->getchatty(3);
+      }
+      else if((pDD->m_dt == DT_POST ||
+               pDD->m_dt == DT_SENDMSG) &&
+              !pDD->m_post_data.IsEmpty())
       {
          pDD->post(1);
       }
@@ -38,6 +63,8 @@ UINT DownloadThreadProc( LPVOID pParam )
       }
 
       theApp.PostThreadMessageW(WM_THREAD_DOWNLOAD,0,(LPARAM)pDD);
+
+      ::LeaveCriticalSection(&g_ThreadAccess);
 
       return 0;
    }
@@ -109,6 +136,132 @@ void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic
    if(hCreatedFont != NULL)
    {
       ::DeleteObject(hCreatedFont);
+   }
+}
+
+void CDownloadData::setupshacklogin()
+{
+   std::string stdstring;
+
+   error_t result = comm_download("www.shacknews.com","/login_laryn.x", &stdstring, "username=latestchatty&password=8675309&type=login","");
+
+   // Set-Cookie: login=209981%2Clatestchatty%2Cf6356e3a49aedb4ba8a5442102b9810b; expires=Tue, 03-May-2011 18:27:44 GMT
+   if(stdstring.length() > 0 && strncmp(stdstring.data()," OK",3) == 0)
+   {
+      const char *cook = strstr(stdstring.data(), "Set-Cookie: login=");
+      if(cook != NULL)
+      {
+         cook += 12;
+         const char *end = strstr(cook, "; expires=");
+         if(end != NULL)
+         {
+            strncpy_s(g_ShackLoginCookie,1024,cook,end-cook);
+            g_LastShackLoginTime = ::GetTickCount();
+         }
+      }
+   }
+}
+
+void CDownloadData::setupusershacklogin()
+{
+   std::string stdstring;
+   UCString loginstr = L"username=";
+   loginstr += m_username;
+   loginstr += L"&password=" ;
+   loginstr += m_password;
+   loginstr += L"&type=login";
+
+   error_t result = comm_download("www.shacknews.com","/login_laryn.x", &stdstring, loginstr.str8(false,CET_UTF8),"");
+
+   // Set-Cookie: login=209981%2Clatestchatty%2Cf6356e3a49aedb4ba8a5442102b9810b; expires=Tue, 03-May-2011 18:27:44 GMT
+   if(stdstring.length() > 0 && strncmp(stdstring.data()," OK",3) == 0)
+   {
+      const char *cook = strstr(stdstring.data(), "Set-Cookie: login=");
+      if(cook != NULL)
+      {
+         cook += 12;
+         const char *end = strstr(cook, "; expires=");
+         if(end != NULL)
+         {
+            strncpy_s(g_UserShackLoginCookie,1024,cook,end-cook);
+            g_LastUserShackLoginTime = ::GetTickCount();
+         }
+      }
+   }
+}
+
+void CDownloadData::getchatty(int numtries)
+{
+   const char *usercookie;
+   if(!m_username.IsEmpty())
+   {
+      if(g_LastUserShackLoginTime == 0 ||
+         ::GetTickCount() - g_LastUserShackLoginTime > 86400000)
+      {
+         setupusershacklogin();
+      }
+      usercookie = g_UserShackLoginCookie;
+   }
+   else
+   {
+      if(g_LastShackLoginTime == 0 ||
+         ::GetTickCount() - g_LastShackLoginTime > 86400000)
+      {
+         setupshacklogin();
+      }
+      usercookie = g_ShackLoginCookie;
+   }
+
+   const char *enc_host = m_host.str8(false,CET_UTF8);
+
+   const char *path = m_path.str8(false,CET_UTF8);
+
+   while(numtries > 0)
+   {
+      DWORD starttime = ::GetTickCount();
+      const char *postdata = NULL;
+      if(!m_post_data.IsEmpty())
+         postdata = m_post_data.str8(false,CET_UTF8);
+
+      error_t result = comm_download(enc_host,path,&m_stdstring,postdata,usercookie);
+      DWORD endtime = ::GetTickCount();
+
+      if(m_stdstring.length() > 0)
+      {
+         // todo : need clear way to know that the generic user login has expired, for other cases
+         if(this->m_dt == DT_SHACK_CHATTY)
+         {
+            const char *proof = strstr(m_stdstring.data(),"<li class=\"user light\">latestchatty</li>");
+            if(proof == NULL)
+            {
+               // try logging in again
+               if(!m_username.IsEmpty())
+               {
+                  setupusershacklogin();
+                  usercookie = g_UserShackLoginCookie;
+               }
+               else
+               {
+                  setupshacklogin();
+                  usercookie = g_ShackLoginCookie;
+               }
+            }
+         }
+      }
+
+      if(m_stdstring.length() == 0 &&
+         m_dt != DT_SHACK_SENDMSG &&
+         (endtime - starttime) <= 2000)
+      {
+         // keep trying
+         ::Sleep(1000);
+         numtries--;
+      }
+      else
+      {
+         // found it
+         numtries = 0;
+      }      
    }
 }
 
@@ -217,9 +370,14 @@ void CLampDoc::StartDownload(const UCChar *host,
 {
    if(dt != DT_THREAD_START &&
       dt != DT_THREAD &&
+      dt != DT_SHACK_THREAD &&
+      dt != DT_SHACK_THREAD_CONTENTS &&
       dt != DT_READMSG &&
-      (dt != DT_SHACKMSG ||
-       dt == DT_SHACKMSG &&
+      dt != DT_SHACK_READMSG &&
+      ((dt != DT_SHACKMSG &&
+        dt != DT_SHACK_SHACKMSG) ||
+       (dt == DT_SHACKMSG ||
+        dt == DT_SHACK_SHACKMSG) &&
        ((CMainFrame*)theApp.GetMainWnd())->GetActiveLampView() == m_pView))
    {
       m_bBusy = true;
@@ -238,7 +396,8 @@ void CLampDoc::StartDownload(const UCChar *host,
    pDD->m_password = password;
    pDD->m_post_data = post_data;
 
-   if(dt == DT_POST)
+   if(dt == DT_POST ||
+      dt == DT_SHACK_POST)
    {
       pDD->m_postrootid = GetRootId(id);
    }
@@ -388,6 +547,230 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             }
          }
          break;
+      case DT_SHACK_THREAD:
+         {
+            std::vector<unsigned int> existing_threads;
+
+            ChattyPost *post = FindRootPost(pDD->m_id);
+            if(post != NULL)
+            {
+               existing_threads.push_back(pDD->m_id);
+            }
+
+            // scrape HTML
+            ReadChattyPageFromHTML(pDD->m_stdstring, existing_threads, false);
+
+            if(m_datatype == DDT_THREAD &&
+               m_title == L"loading")
+            {
+               m_title = L"";
+               if(m_rootposts.size() == 1)
+               {
+                  (*m_rootposts.begin())->GetTitle(m_title);
+               }
+               else
+               {
+                  m_title = L"FAIL'D";
+               }
+
+               MySetTitle(m_title);
+            }
+            
+            if(m_pView != NULL)
+            {
+               if(m_datatype == DDT_THREAD &&
+                  m_pView->GetCurrentId() == 0 &&
+                  m_initialpostid != 0)
+               {
+                  m_pView->SetCurrentId(m_initialpostid);
+                  m_pView->MakeCurrentPosVisible();
+                  m_initialpostid = 0;
+               }
+            }
+
+            if(pDD->reply_to_id != 0)
+            {
+               bool bGotIt = false;
+               // check to see if there is a new post by me on there.
+               ChattyPost *pReplyToPost = FindPost(pDD->reply_to_id);
+               if(pReplyToPost != NULL)
+               {
+                  std::list<ChattyPost*> *pChildren = pReplyToPost->GetChildren();
+                  if(pChildren != NULL)
+                  {
+                     std::list<ChattyPost*>::iterator begin = pChildren->begin();
+                     std::list<ChattyPost*>::iterator it = pChildren->end();
+                     if(begin != it)
+                     {
+                        it--;
+                        unsigned int new_id = 0;
+                        bool bDone = false;
+                        while(!bDone)
+                        {
+                           if(begin == it)
+                           {
+                              bDone = true;
+                           }
+                           
+                           if((*it)->IsNew()  &&
+                              (*it)->GetAuthor() == theApp.GetUsername())
+                           {
+                              new_id = (*it)->GetId();
+                              bDone = true;
+                              break;
+                           }
+
+                           if(!bDone)
+                           {
+                              it--;
+                           }
+                        }
+
+                        if(new_id != 0 &&
+                           m_pView != NULL)
+                        {
+                           m_pView->SetCurrentId(new_id);
+                           bGotIt = true;
+                        }
+                     }
+                  }
+               }
+
+               if(bGotIt == false)
+               {
+                  //assert(0);
+               }
+            }
+
+            post = FindPost(pDD->m_refreshid);
+            if(post != NULL)
+            {
+               post->SetRefreshing(false);
+               if(m_pView)
+                  m_pView->InvalidateEverything();
+            }
+         }
+         break;
+      case DT_SHACK_CHATTY:
+         {
+            std::vector<unsigned int> existing_threads;
+            std::list<ChattyPost*> newroots;
+            std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+            std::list<ChattyPost*>::iterator end = m_rootposts.end();
+
+            while(it != end)
+            {
+               if((*it) != NULL)
+               {
+                  if((*it)->IsPinned())
+                  {
+                     RefreshThread((*it)->GetId(),(*it)->GetId(),true);
+                  }
+               }
+               it++;
+            }
+
+            it = m_rootposts.begin();
+
+            while(it != end)
+            {
+               if((*it) != NULL)
+               {
+                  if((*it)->IsPinned())
+                  {
+                     existing_threads.push_back((*it)->GetId());
+                     newroots.push_back((*it));
+                  }
+                  else
+                  {
+                     delete (*it);
+                  }
+                  (*it) = NULL;
+               }
+               it++;
+            }
+            m_rootposts.clear();
+            m_rootposts = newroots;
+
+            
+            // scrape HTML
+            ReadChattyPageFromHTML(pDD->m_stdstring, existing_threads, true);
+
+            it = m_rootposts.begin();
+            end = m_rootposts.end();
+            while(it != end)
+            {
+               if((*it) != NULL)
+               {
+                  (*it)->ShowAsTruncated();
+               }
+               it++;
+            }
+
+            /*
+            if(theApp.IsDoublePageStory())
+            {
+               ReadLatestChattyPart2();
+            }
+            */
+         }
+         break;
+      case DT_SHACK_THREAD_CONTENTS:
+         {
+            htmlcxx::HTML::ParserDom parser;
+            tree<htmlcxx::HTML::Node> dom = parser.parseTree(pDD->m_stdstring);
+
+            tree<htmlcxx::HTML::Node>::iterator it = dom.begin();
+            tree<htmlcxx::HTML::Node>::iterator end = dom.end();
+            while(it != end)
+            {
+               if(it->tagName() == "body")break;
+               it++;
+            }
+
+            if(it != end)
+            {
+               tree<htmlcxx::HTML::Node>::sibling_iterator post_it = it.begin();
+               tree<htmlcxx::HTML::Node>::sibling_iterator post_end = it.end();
+               while(post_it != post_end)
+               {
+                  if(post_it->tagName() == "div")
+                  {
+                     unsigned int post_id = HTML_GetIDAttribute(post_it);
+
+                     if(post_id != 0)
+                     {
+                        if(!theApp.IsPostKnown(post_id))
+                        {
+                           ChattyPost *post = new ChattyPost();
+                           post->SetNewness(N_OLD);
+
+                           post->ReadKnownPostChattyFromHTML(post_it, post_id);
+
+                           theApp.KnowPost(post_id, post);
+                        }
+                     }
+                  }
+                  post_it++;
+               }
+
+               ChattyPost *root_post = FindRootPost(pDD->m_id);
+               if(root_post != NULL)
+               {
+                  root_post->UpdatePreviewsToKnown();
+               }
+
+               ChattyPost *post = FindPost(pDD->m_refreshid);
+               if(post != NULL)
+               {
+                  post->SetRefreshing(false);
+               }
+
+               if(m_pView)
+                  m_pView->InvalidateEverything();
+            }
+         }
+         break;
       case DT_STORY:
          {
             std::vector<unsigned int> existing_threads;
@@ -481,6 +864,72 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             }
 
             RefreshAllRoots();
+         }
+         break;
+      case DT_SHACK_SEARCH:
+         {
+            htmlcxx::HTML::ParserDom parser;
+            tree<htmlcxx::HTML::Node> dom = parser.parseTree(pDD->m_stdstring);
+
+            tree<htmlcxx::HTML::Node>::sibling_iterator it;
+            if(HTML_FindChild(dom,it, "body"))
+            {
+               if(HTML_FindChild_HasAttribute(it,it, "div", "id", "container"))
+               {
+                  if(HTML_FindChild_HasAttribute(it,it, "div", "id", "content"))
+                  {
+                     if(HTML_FindChild_HasAttribute(it,it, "div", "id", "main"))
+                     {
+                        tree<htmlcxx::HTML::Node>::sibling_iterator results_it;
+                        if(HTML_FindChild_HasAttribute(it,results_it, "ul", "class", "results"))
+                        {
+                           tree<htmlcxx::HTML::Node>::sibling_iterator sit = results_it.begin();
+                           tree<htmlcxx::HTML::Node>::sibling_iterator send = results_it.end();
+
+                           while(sit != send)
+                           {
+                              if(sit->tagName() == "li" &&
+                                 HTML_HasAttribute(sit, "class", "result chatty"))
+                              {
+                                 ChattyPost *post = new ChattyPost();
+                                 if(post != NULL)
+                                 {
+                                    m_rootposts.push_back(post);
+                                    post->ReadSearchResultFromHTML(sit,this);
+                                 }
+                              }
+                              sit++;
+                           }
+                        }
+
+                        tree<htmlcxx::HTML::Node>::sibling_iterator pagination_it;
+                        if(HTML_FindChild_HasAttribute(it,pagination_it, "div", "class", "pagination"))
+                        {
+                           tree<htmlcxx::HTML::Node>::sibling_iterator sit = pagination_it.begin();
+                           tree<htmlcxx::HTML::Node>::sibling_iterator send = pagination_it.end();
+
+                           m_lastpage = 1;
+                           
+                           while(sit != send)
+                           {
+                              if(sit->tagName() == "a" &&
+                                 HTML_StartsWithAttribute(sit, "href", "/search?"))
+                              {
+                                 std::string str;
+                                 HTML_GetValue(sit,str);
+                                 int num = atoi(str.data());
+                                 if(num > (int)m_lastpage)
+                                 {
+                                    m_lastpage = num;
+                                 }
+                              }
+                              sit++;
+                           }                              
+                        }
+                     }
+                  }
+               }
+            }
          }
          break;
       case DT_SEARCH:
@@ -597,7 +1046,7 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             }
          }
          break;
-      case DT_POST:
+      case DT_SHACK_POST:
          {
             if(!pDD->m_errmsg.IsEmpty())
             {
@@ -608,20 +1057,16 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             }
             else
             {
-               if(pDD->m_data != NULL)
+               if(pDD->m_stdstring.length() > 0)
                {
                   bool bCloseAndRefresh = true;
-                  const char *result = (const char *)pDD->m_data;
+                  const char *result = (const char *)pDD->m_stdstring.data();
                   if(result != NULL &&
                      *result != 0)
                   {
-                     if(_strnicmp(result,"error_login_failed",18) == 0)
-                     {
-                        m_pView->MessageBox(L"Invalid username or password");
-                        bCloseAndRefresh = false;
-                     }
-
-                     if(_strnicmp(result,"error_communication_authentication",34) == 0)
+                     if(_strnicmp(result,"error_login_failed",18) == 0 ||
+                        _strnicmp(result,"error_communication_authentication",34) == 0 ||
+                        strstr(result,"You must be logged in to post") != NULL)
                      {
                         m_pView->MessageBox(L"Invalid username or password");
                         bCloseAndRefresh = false;
@@ -632,7 +1077,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                         m_pView->MessageBox(L"You are naughty and banned");
                      }
 
-                     if(_strnicmp(result,"error_post_rate_limiter",23) == 0)
+                     if(_strnicmp(result,"error_post_rate_limiter",23) == 0 ||
+                        strstr(result,"Please wait a few minutes before trying to post again.") != NULL)
                      {
                         m_pView->MessageBox(L"PRL'd (slow down)");
                         bCloseAndRefresh = false;
@@ -668,6 +1114,91 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             }
          }
          break;
+      case DT_POST:
+         {
+            if(!pDD->m_errmsg.IsEmpty())
+            {
+               if(m_pView != NULL)
+               {
+                  m_pView->MessageBox(pDD->m_errmsg);
+               }
+            }
+            else
+            {
+               if(pDD->m_data != NULL)
+               {
+                  bool bCloseAndRefresh = true;
+                  const char *result = (const char *)pDD->m_data;
+                  if(result != NULL &&
+                     *result != 0)
+                  {
+                     if(_strnicmp(result,"error_login_failed",18) == 0 ||
+                        _strnicmp(result,"error_communication_authentication",34) == 0 ||
+                        strstr(result,"You must be logged in to post") != NULL)
+                     {
+                        m_pView->MessageBox(L"Invalid username or password");
+                        bCloseAndRefresh = false;
+                     }
+
+                     if(_strnicmp(result,"error_account_banned",20) == 0)
+                     {
+                        m_pView->MessageBox(L"You are naughty and banned");
+                     }
+
+                     if(_strnicmp(result,"error_post_rate_limiter",23) == 0 ||
+                        strstr(result,"Please wait a few minutes before trying to post again.") != NULL)
+                     {
+                        m_pView->MessageBox(L"PRL'd (slow down)");
+                        bCloseAndRefresh = false;
+                     }
+                  }
+
+                  if(bCloseAndRefresh)
+                  {
+                     if(m_pView != NULL)
+                     {
+                        m_pView->CloseReplyDialog();
+                     }
+
+                     if(pDD->m_id)
+                     {
+                        RefreshThread(GetRootId(pDD->m_id),pDD->m_id,false,pDD->m_id);
+                     }
+                     else
+                     {
+                        Refresh();
+                     }
+                  }
+               }
+               else
+               {
+                  // new thread
+                  if(m_pView != NULL)
+                  {
+                     m_pView->CloseReplyDialog();
+                  }
+                  Refresh();
+               }
+            }
+         }
+         break;
+      case DT_SHACK_SHACKMSG:
+         {
+            ReadShackMessagesHTML(pDD->m_stdstring);
+            UpdateUnreadShackMessagesCount();
+
+            if(theApp.PeekUserID() == 0)
+            {
+               const char *work = strstr((const char*)pDD->m_stdstring.data(),"<input type=\"hidden\" name=\"uid\" value=\"");
+               if(work != NULL)
+               {
+                  work += 39;
+                  unsigned int userid = strtoul(work,NULL, 10);
+                  theApp.SetUserID(userid);
+               }
+            }
+         }
+         break;
       case DT_SHACKMSG:
          {
             if(pDD->m_data != NULL)
@@ -681,6 +1212,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             }
          }
          break;
+      case DT_SHACK_SENDMSG:
+      case DT_SHACK_READMSG:
       case DT_READMSG:
          {
             // do nothing
@@ -742,7 +1275,7 @@ CLampDoc::CLampDoc()
    m_initialpostid = 0;
    m_storyid = 0;
    m_pReplyDlg = NULL;
-   m_page = 0;
+   m_page = 1;
    m_lastpage = 0;
    m_ThingsILOLD = false;
    m_ThingsIWrote = false;
@@ -1342,6 +1875,10 @@ BOOL CLampDoc::OnOpenDocument( LPCTSTR lpszPathName )
             ChattyPost *post = new ChattyPost();
             if(post != NULL)
             {
+               if(theApp.UseShack())
+               {
+                  post->SetNewness(N_OLD);
+               }
                m_rootposts.push_back(post);
                post->ReadPost(pExistingPost,this);
                post->Expand();
@@ -1351,6 +1888,8 @@ BOOL CLampDoc::OnOpenDocument( LPCTSTR lpszPathName )
                if(refresh_post != NULL)
                {
                   refresh_post->SetRefreshing(true);
+                  if(m_pView)
+                     m_pView->InvalidateEverything();
                }
             }
          }
@@ -1378,77 +1917,152 @@ void CLampDoc::PerformSearch()
    m_rootposts.clear();
 
    theApp.SetLastSearchParms(m_search_author, m_search_parent_author, m_search_terms);
-   
-   UCString path = L"/search.xml?author=";
-   path += m_search_author;
-   path += L"&parent_author=";
-   path += m_search_parent_author;
-   path += L"&terms=";
-   path += m_search_terms;
-   
-   // these don't work
-   //path += L"&SearchType=n";
-   //path += L"&SearchType=i";
 
-   StartDownload(theApp.GetHostName(),
-                 path,
-                 DT_SEARCH,
-                 0);
+   if(theApp.UseShack())
+   {
+      // http://www.shacknews.com/search?chatty=1&type=4&chatty_term=lamp&chatty_user=CRasterImage&chatty_author=electroly&chatty_filter=all
 
-   
+      UCString path = L"/search?chatty=1&type=4&chatty_term=";
+      UCString terms = m_search_terms;
+      terms.ReplaceAll(L' ',L'+');
+      path += terms;
+      path += L"&chatty_user=";
+      path += m_search_author;
+      path += L"&chatty_author=";
+      path += m_search_parent_author;
+      path += L"&chatty_filter=all&start=";
+      path += m_page;
+
+      StartDownload(L"www.shacknews.com",
+                    path,
+                    DT_SHACK_SEARCH,
+                    0);
+   }
+   else
+   {
+      UCString path = L"/search.xml?author=";
+      path += m_search_author;
+      path += L"&parent_author=";
+      path += m_search_parent_author;
+      path += L"&terms=";
+      path += m_search_terms;
+      
+      // these don't work
+      //path += L"&SearchType=n";
+      //path += L"&SearchType=i";
+
+      StartDownload(L"shackapi.stonedonkey.com",
+                    path,
+                    DT_SEARCH,
+                    0);
+   }
 }
 
 void CLampDoc::GetShackMessages()
 {
-   UCString path = L"/Messages/?box=";
-   
-   switch(m_shackmsgtype)
+   if(theApp.UseShack())
    {
-   case SMT_INBOX:   path += L"inbox"; break;
-   case SMT_OUTBOX:  path += L"outbox"; break;
-   case SMT_ARCHIVE: path += L"archive"; break;
-   }
-   path += L"&page=";
-   path += m_page;
-   
-/*   
-    * username - the users shack username.
-    * password - the users shack password.
-    * box - the mail box within Shack Messages [ Default: inbox ]
-          o inbox = users current shack messages
-          o outbox = users outgoing shack messages
-          o archive = users archived shack messages
-    * page - the page of results you wish to view [ Default: 1 ]
-*/
+      UCString path = L"/messages/";
 
-   StartDownload(theApp.GetHostName(),
-                 path,
-                 DT_SHACKMSG,
-                 0,
-                 0,
-                 0,
-                 NULL,
-                 theApp.GetUsername(),
-                 theApp.GetPassword(), 
-                 true);
+      switch(m_shackmsgtype)
+      {
+      case SMT_INBOX:   path += L"inbox"; break;
+      case SMT_OUTBOX:  path += L"sent"; break;
+      case SMT_ARCHIVE: path += L"sent"; break;
+      }
+      path += L"?page=";
+      path += m_page;
+
+      StartDownload(L"www.shacknews.com",
+                    path,
+                    DT_SHACK_SHACKMSG,
+                    0,
+                    0,
+                    0,
+                    NULL,
+                    theApp.GetUsername(),
+                    theApp.GetPassword(), 
+                    true);
+   }
+   else
+   {
+      UCString path = L"/Messages/?box=";
+      
+      switch(m_shackmsgtype)
+      {
+      case SMT_INBOX:   path += L"inbox"; break;
+      case SMT_OUTBOX:  path += L"outbox"; break;
+      case SMT_ARCHIVE: path += L"outbox"; break;
+      }
+      path += L"&page=";
+      path += m_page;
+      
+   /*   
+       * username - the users shack username.
+       * password - the users shack password.
+       * box - the mail box within Shack Messages [ Default: inbox ]
+             o inbox = users current shack messages
+             o outbox = users outgoing shack messages
+             o archive = users archived shack messages
+       * page - the page of results you wish to view [ Default: 1 ]
+   */
+
+      StartDownload(L"shackapi.stonedonkey.com",
+                    path,
+                    DT_SHACKMSG,
+                    0,
+                    0,
+                    0,
+                    NULL,
+                    theApp.GetUsername(),
+                    theApp.GetPassword(), 
+                    true);
+   }
 }
 
 void CLampDoc::MarkShackMessageRead(unsigned int id)
 {
-   // "http://shackapi.stonedonkey.com/messages/read/?username=" + _login +"&password=" + _password +"&messageid=" + 
-   UCString path = L"/Messages/read/?messageid=";
-   
-   path += id;
+   if(theApp.UseShack())
+   {
+      /*
+      $url = 'http://www.shacknews.com/messages/read';
+      $postArgs = 
+         'mid=' . urlencode($id);
 
-   StartDownload(theApp.GetHostName(),
-                 path,
-                 DT_READMSG,
-                 0,
-                 0,
-                 0,
-                 NULL,
-                 theApp.GetUsername(),
-                 theApp.GetPassword());
+      $this->userDownload($url, $username, $password, $postArgs);
+      */
+      UCString path = L"/messages/read";
+      
+      UCString postdata = L"mid=";
+      postdata += id;
+
+      StartDownload(L"www.shacknews.com",
+                    path,
+                    DT_SHACK_READMSG,
+                    0,
+                    0,
+                    0,
+                    postdata,
+                    theApp.GetUsername(),
+                    theApp.GetPassword());
+   }
+   else
+   {
+      // "http://shackapi.stonedonkey.com/messages/read/?username=" + _login +"&password=" + _password +"&messageid=" + 
+      UCString path = L"/Messages/read/?messageid=";
+      
+      path += id;
+
+      StartDownload(L"shackapi.stonedonkey.com",
+                    path,
+                    DT_READMSG,
+                    0,
+                    0,
+                    0,
+                    NULL,
+                    theApp.GetUsername(),
+                    theApp.GetPassword());
+   }
 }
 
 void CLampDoc::DeleteShackMessage(unsigned int id)
@@ -1458,7 +2072,7 @@ void CLampDoc::DeleteShackMessage(unsigned int id)
    
    path += id;
 
-   StartDownload(theApp.GetHostName(),
+   StartDownload(L"shackapi.stonedonkey.com",
                  path,
                  DT_READMSG,
                  0,
@@ -1471,60 +2085,101 @@ void CLampDoc::DeleteShackMessage(unsigned int id)
 
 void CLampDoc::SendMessage(const UCString &to, const UCString &subject, const UCString &shackmsg)
 {
-   // "http://shackapi.stonedonkey.com/messages/Send/"
+   if(theApp.UseShack())
+   {
+      UCString path = L"/messages/send";   
 
-   UCString path = L"/messages/send/";   
+      UCString post_data;
 
-   UCString post_data;
+      post_data += L"uid=";
+      post_data += theApp.GetUserID();
 
-   UCString userlower = theApp.GetUsername();
-   userlower.MakeLower();
-   
-   post_data += L"username=";
-   char *enc_username = url_encode((char*)userlower.str8(false,CET_UTF8));
-   post_data += enc_username;
+      post_data += L"&to=";
+      char *enc_to = url_encode((char*)to.str8(false,CET_UTF8));
+      post_data += enc_to;
+      free(enc_to);
 
-   post_data += L"&password=";
-   char *enc_password = url_encode((char*)theApp.GetPassword().str8(false,CET_UTF8));
-   post_data += enc_password;
+      post_data += L"&subject=";
+      UCString temp = subject;
+      temp.ReplaceAll(L'<',0x02C2);
+      temp.ReplaceAll(L'>',0x02C3);
+      char *enc_subject = url_encode((char*)temp.str8(false,CET_UTF8));
+      post_data += enc_subject;
+      free(enc_subject);
 
-   post_data += L"&subject=";
+      post_data += L"&message=";
+      temp = shackmsg;
+      temp.ReplaceAll(L'<',0x02C2);
+      temp.ReplaceAll(L'>',0x02C3);
+      char *enc_shackmsg = url_encode((char*)temp.str8(false,CET_UTF8));
+      post_data += enc_shackmsg;
+      free(enc_shackmsg);
+      
+      StartDownload(L"www.shacknews.com",
+                    path,
+                    DT_SHACK_SENDMSG,
+                    0,
+                    0,
+                    0,
+                    post_data,
+                    theApp.GetUsername(),
+                    theApp.GetPassword());
+   }
+   else
+   {
+      UCString path = L"/messages/send/";   
 
-   UCString temp = subject;
-   temp.ReplaceAll(L'<',0x02C2);
-   temp.ReplaceAll(L'>',0x02C3);
+      UCString post_data;
 
-   char *enc_subject = url_encode((char*)temp.str8(false,CET_UTF8));
-   post_data += enc_subject;
+      UCString userlower = theApp.GetUsername();
+      userlower.MakeLower();
+      
+      post_data += L"username=";
+      char *enc_username = url_encode((char*)userlower.str8(false,CET_UTF8));
+      post_data += enc_username;
 
-   post_data += L"&to=";
-   char *enc_to = url_encode((char*)to.str8(false,CET_UTF8));
-   post_data += enc_to;
-   
-   post_data += L"&body=";
+      post_data += L"&password=";
+      char *enc_password = url_encode((char*)theApp.GetPassword().str8(false,CET_UTF8));
+      post_data += enc_password;
 
-   temp = shackmsg;
-   temp.ReplaceAll(L'<',0x02C2);
-   temp.ReplaceAll(L'>',0x02C3);
+      post_data += L"&subject=";
 
-   char *enc_shackmsg = url_encode((char*)temp.str8(false,CET_UTF8));
-   post_data += enc_shackmsg;
-   
-   StartDownload(theApp.GetHostName(),
-                 path,
-                 DT_SENDMSG,
-                 0,
-                 0,
-                 0,
-                 post_data,
-                 userlower,
-                 theApp.GetPassword());
+      UCString temp = subject;
+      temp.ReplaceAll(L'<',0x02C2);
+      temp.ReplaceAll(L'>',0x02C3);
 
-   free(enc_username);
-   free(enc_password);
-   free(enc_to);
-   free(enc_subject);
-   free(enc_shackmsg);
+      char *enc_subject = url_encode((char*)temp.str8(false,CET_UTF8));
+      post_data += enc_subject;
+
+      post_data += L"&to=";
+      char *enc_to = url_encode((char*)to.str8(false,CET_UTF8));
+      post_data += enc_to;
+      
+      post_data += L"&body=";
+
+      temp = shackmsg;
+      temp.ReplaceAll(L'<',0x02C2);
+      temp.ReplaceAll(L'>',0x02C3);
+
+      char *enc_shackmsg = url_encode((char*)temp.str8(false,CET_UTF8));
+      post_data += enc_shackmsg;
+      
+      StartDownload(L"shackapi.stonedonkey.com",
+                    path,
+                    DT_SENDMSG,
+                    0,
+                    0,
+                    0,
+                    post_data,
+                    userlower,
+                    theApp.GetPassword());
+
+      free(enc_username);
+      free(enc_password);
+      free(enc_to);
+      free(enc_subject);
+      free(enc_shackmsg);
+   }
 }
 
 void CLampDoc::ReadLOL()
@@ -1655,11 +2310,15 @@ void CLampDoc::ProcessLOLData(char *data, int datasize)
 
                         if(endsection != NULL && endsection < end)
                         {
+                           /*
                            while(work < endsection)
                            {
                               body += *work;
                               work++;
                            }
+                           */
+                           body.AppendEncodedString(work,endsection - work);
+                           work = endsection;
 
                            work = strstr(work,"<div class=\"loldby\">");
 
@@ -1804,30 +2463,42 @@ void CLampDoc::ProcessLOLData(char *data, int datasize)
 
 void CLampDoc::ReadLatestChatty()
 {
-   UCString story = L"/";
-         
-   if(m_page > 1)
+   if(theApp.UseShack())
    {
-      size_t actualpage = m_page;
+      UCString story = L"/chatty?page=";
+      story += m_page;
 
-      if(theApp.IsDoublePageStory())
-      {
-         actualpage = ((m_page - 1) * 2) + 1;
-      }
-
-      story += L"17.";
-      story += actualpage;
-      story += L".xml";
+      StartDownload(L"www.shacknews.com",
+                    story,
+                    DT_SHACK_CHATTY,
+                    0);
    }
    else
    {
-      story += L"index.xml";
-   }
+      UCString story = L"/";
+         
+      if(m_page > 1)
+      {
+         size_t actualpage = m_page;
 
-   StartDownload(theApp.GetHostName(),
-                 story,
-                 DT_STORY,
-                 0);
+         if(theApp.IsDoublePageStory())
+         {
+            actualpage = ((m_page - 1) * 2) + 1;
+         }
+         story += L"17.";
+         story += actualpage;
+         story += L".xml";
+      }
+      else
+      {
+         story += L"index.xml";
+      }
+   
+      StartDownload(L"shackapi.stonedonkey.com",
+                    story,
+                    DT_STORY,
+                    0);
+   }
 }
 
 void CLampDoc::ReadLatestChattyPart2()
@@ -1840,7 +2511,7 @@ void CLampDoc::ReadLatestChattyPart2()
    story += actualpage;
    story += L".xml";
 
-   StartDownload(theApp.GetHostName(),
+   StartDownload(L"shackapi.stonedonkey.com",
                  story,
                  DT_STORY_2,
                  0);
@@ -1909,23 +2580,40 @@ bool CLampDoc::RefreshThread(unsigned int id, unsigned int refresh_id, bool bSta
          m_pView->InvalidateEverything();
    }
 
-   UCString path = L"/";
-   path += L"thread/";
-   path += id;
-   path += L".xml";
-
-   DownloadType dt = DT_THREAD;
-   if(bStarting)
+   if(theApp.UseShack())
    {
-      dt = DT_THREAD_START;
-   }
+      UCString story = L"/chatty?id=";
+      story += id;
+      story += L"#itemanchor_";
+      story += id;
 
-   StartDownload(theApp.GetHostName(),
-                 path,
-                 dt,
-                 id,
-                 refresh_id,
-                 reply_to_id);
+      StartDownload(L"www.shacknews.com",
+                    story,
+                    DT_SHACK_THREAD,
+                    id,
+                    refresh_id,
+                    reply_to_id);
+   }
+   else
+   {
+      UCString path = L"/";
+      path += L"thread/";
+      path += id;
+      path += L".xml";
+
+      DownloadType dt = DT_THREAD;
+      if(bStarting)
+      {
+         dt = DT_THREAD_START;
+      }
+
+      StartDownload(L"shackapi.stonedonkey.com",
+                    path,
+                    dt,
+                    id,
+                    refresh_id,
+                    reply_to_id);
+   }
 
    return true;
 }
@@ -1987,45 +2675,94 @@ unsigned int CLampDoc::GetRootId(unsigned int id)
 
 bool CLampDoc::PostReply(const UCString &replytext, unsigned int to_id)
 {
-   ChattyPost *parent = FindPost(to_id);
-   while(parent != NULL && parent->GetParent() != NULL){parent = parent->GetParent();}
-
-   theApp.SetLastPost(replytext);
-   UCString path = L"/post/";
-
-   UCString post_data = L"parent_id=";
-   post_data += to_id; // id of 0 means new post
-
-   if(parent != NULL &&
-      parent->GetAuthor() == L"Shacknews")
+   if(theApp.UseShack())
    {
-      // this is a weird hack stonedonkey uses to 
-      // get around problems posting replies to a 
-      // thread started by the Shacknews bot.
-      post_data += L"&content_type_id=2";
+      UCString story = L"/post_chatty.x";
+
+      UCString postdata = L"parent_id=";
+
+      UCString content_type_id = L"17";
+
+      if(to_id != 0)
+      {
+         postdata += to_id;
+         ChattyPost *parent = FindPost(to_id);
+         if(parent != NULL)
+         {
+            parent = parent->GetRoot();
+            if(parent->GetAuthor() == L"Shacknews")
+            {
+               // this is a weird hack stonedonkey uses to 
+               // get around problems posting replies to a 
+               // thread started by the Shacknews bot.
+               content_type_id = L"2";
+            }
+         }
+      }
+      
+      postdata += L"&content_type_id=";
+      postdata += content_type_id;
+      postdata += L"&content_id=17&page=&parent_url=/chatty&body=";
+
+      UCString temp = replytext;
+      temp.ReplaceAll(L'<',0x02C2);
+      temp.ReplaceAll(L'>',0x02C3);
+
+      char *enc_reply = url_encode((char*)temp.str8(false,CET_UTF8));
+      postdata += enc_reply;
+      free(enc_reply);
+      
+      StartDownload(L"www.shacknews.com",
+                    story,
+                    DT_SHACK_POST,
+                    to_id,
+                    0,
+                    0,
+                    postdata,
+                    theApp.GetUsername(),
+                    theApp.GetPassword());
+   }
+   else
+   {
+      ChattyPost *parent = FindPost(to_id);
+      parent = parent->GetRoot();
+
+      theApp.SetLastPost(replytext);
+      UCString path = L"/post/";
+
+      UCString post_data = L"parent_id=";
+      post_data += to_id; // id of 0 means new post
+
+      if(parent != NULL &&
+         parent->GetAuthor() == L"Shacknews")
+      {
+         // this is a weird hack stonedonkey uses to 
+         // get around problems posting replies to a 
+         // thread started by the Shacknews bot.
+         post_data += L"&content_type_id=2";
+      }
+
+      post_data += L"&body=";
+
+      UCString temp = replytext;
+      temp.ReplaceAll(L'<',0x02C2);
+      temp.ReplaceAll(L'>',0x02C3);
+
+      char *enc_reply = url_encode((char*)temp.str8(false,CET_UTF8));
+      post_data += enc_reply;
+      free(enc_reply);
+      
+      StartDownload(L"shackapi.stonedonkey.com",
+                    path,
+                    DT_POST,
+                    to_id,
+                    0,
+                    0,
+                    post_data,
+                    theApp.GetUsername(),
+                    theApp.GetPassword());
    }
 
-   post_data += L"&body=";
-
-   UCString temp = replytext;
-   temp.ReplaceAll(L'<',0x02C2);
-   temp.ReplaceAll(L'>',0x02C3);
-
-   char *enc_reply = url_encode((char*)temp.str8(false,CET_UTF8));
-   post_data += enc_reply;
-   
-   StartDownload(theApp.GetHostName(),
-                 path,
-                 DT_POST,
-                 to_id,
-                 0,
-                 0,
-                 post_data,
-                 theApp.GetUsername(),
-                 theApp.GetPassword());
-
-   free(enc_reply);
-      
    return true;
 }
 
@@ -2154,18 +2891,33 @@ void CLampDoc::Draw(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpo
       break;
    case DDT_SEARCH:
       {
-         RECT backrect = DeviceRectangle;
-         backrect.top = pos;
-         backrect.bottom = pos + 20;
-         FillBackground(hDC,backrect);
-         pos += 20;
+         if(m_lastpage > 1)
+         {
+            pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, false);
+         }
+         else
+         {
+            RECT backrect = DeviceRectangle;
+            backrect.top = pos;
+            backrect.bottom = pos + 20;
+            FillBackground(hDC,backrect);
+            pos += 20;
+         }
          
          pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, true);
-
-         backrect.top = pos;
-         backrect.bottom = pos + 20;
-         FillBackground(hDC,backrect);
-         pos += 20;
+         
+         if(m_lastpage > 1)
+         {
+            pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, false);
+         }
+         else
+         {
+            RECT backrect = DeviceRectangle;
+            backrect.top = pos;
+            backrect.bottom = pos + 20;
+            FillBackground(hDC,backrect);
+            pos += 20;
+         }
       }
       break;
    case DDT_SHACKMSG:
@@ -2498,6 +3250,117 @@ bool GetXMLDataFromString(CXMLTree &xmldata, const char *data, int datasize)
    return result;
 }
 
+
+void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsigned int> &existing_threads, bool bCheckForPages)
+{
+   if(bCheckForPages)
+   {
+      m_lastpage = 1;
+   }
+   htmlcxx::HTML::ParserDom parser;
+   tree<htmlcxx::HTML::Node> dom = parser.parseTree(stdstring);
+
+   tree<htmlcxx::HTML::Node>::sibling_iterator it;
+   if(HTML_FindChild(dom,it, "body"))
+   {
+      if(HTML_FindChild_HasAttribute(it,it, "div", "id", "container"))
+      {
+         if(HTML_FindChild_HasAttribute(it,it, "div", "id", "content"))
+         {
+            if(HTML_FindChild_HasAttribute(it,it, "div", "id", "chatty_comments_wrap"))
+            {
+               if(HTML_FindChild_HasAttribute(it,it, "div", "class", "commentsblock"))
+               {
+                  tree<htmlcxx::HTML::Node>::sibling_iterator threads_it;
+                  if(HTML_FindChild_HasAttribute(it,threads_it, "div", "class", "threads"))
+                  {
+                     tree<htmlcxx::HTML::Node>::sibling_iterator sit = threads_it.begin();
+                     tree<htmlcxx::HTML::Node>::sibling_iterator send = threads_it.end();
+
+                     while(sit != send)
+                     {
+                        if(sit->tagName() == "div" &&
+                           HTML_StartsWithAttribute(sit, "class", "root"))
+                        {
+                           unsigned int root_id = HTML_GetIDAttribute(sit);
+
+                           ChattyPost *post = NULL;
+                           
+                           bool bAlreadyHadIt = false;
+                           std::map<unsigned int,newness> post_newness;
+
+                           for(size_t j = 0; j < existing_threads.size(); j++)
+                           {
+                              if(existing_threads[j] == root_id)
+                              {
+                                 post = FindRootPost(root_id);
+                                 post->RecordNewness(post_newness);
+                                 post->ClearChildren();
+                                 bAlreadyHadIt = true;
+                                 break;
+                              }
+                           }
+
+                           if(post == NULL)
+                           {
+                              post = new ChattyPost();
+                              post->SetNewness(N_OLD);
+                              m_rootposts.push_back(post);
+                           }
+
+                           post->ReadRootChattyFromHTML(sit, this, root_id);
+                           post->EstablishNewness(post_newness);
+                           post->SetupPreviewShades(false);
+                           post->CountFamilySize();
+                           post->UpdateRootReplyList();
+                           post->SetParent(NULL);
+                           if(post->IsFiltered() && !bAlreadyHadIt)
+                           {
+                              m_rootposts.pop_back();
+                              delete post;
+                           }
+                        }
+
+                        sit++;
+                     }
+                  }
+
+                  if(bCheckForPages)
+                  {
+                     tree<htmlcxx::HTML::Node>::sibling_iterator pagination_it;
+                     if(HTML_FindChild_HasAttribute(it,pagination_it, "div", "class", "pagenavigation"))
+                     {
+                        tree<htmlcxx::HTML::Node>::sibling_iterator sit = pagination_it.begin();
+                        tree<htmlcxx::HTML::Node>::sibling_iterator send = pagination_it.end();
+                        
+                        while(sit != send)
+                        {
+                           if(sit->tagName() == "a" &&
+                              HTML_StartsWithAttribute(sit, "href", "/chatty?"))
+                           {
+                              std::string str;
+                              HTML_GetValue(sit,str);
+                              int num = atoi(str.data());
+                              if(num > (int)m_lastpage)
+                              {
+                                 m_lastpage = num;
+                              }
+                           }
+                           sit++;
+                        }                              
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+}
+
+
+
+
+
 bool CLampDoc::ReadFromRoot(CXMLTree &xmldata, std::vector<unsigned int> &existing_threads)
 {
    bool result = false;
@@ -2554,7 +3417,6 @@ bool CLampDoc::ReadFromRoot(CXMLTree &xmldata, std::vector<unsigned int> &existi
                ChattyPost *post = new ChattyPost();
                if(post != NULL)
                {
-                  existing_threads.push_back(root_id);
                   m_rootposts.push_back(post);
                   post->Read(pChild, this, false);
                   post->SetupPreviewShades(false);
@@ -2564,7 +3426,6 @@ bool CLampDoc::ReadFromRoot(CXMLTree &xmldata, std::vector<unsigned int> &existi
                   if(post->IsFiltered())
                   {
                      m_rootposts.pop_back();
-                     existing_threads.pop_back();
                      delete post;
                   }
                }
@@ -2574,6 +3435,149 @@ bool CLampDoc::ReadFromRoot(CXMLTree &xmldata, std::vector<unsigned int> &existi
    }
    
    return result;
+}
+
+
+void CLampDoc::ReadShackMessagesHTML(std::string &stdstring)
+{
+   htmlcxx::HTML::ParserDom parser;
+   tree<htmlcxx::HTML::Node> dom = parser.parseTree(stdstring);
+                  
+   tree<htmlcxx::HTML::Node>::sibling_iterator it;
+   if(HTML_FindChild(dom,it, "body"))
+   {
+      if(HTML_FindChild_HasAttribute(it,it, "div", "id", "container"))
+      {
+         if(HTML_FindChild_HasAttribute(it,it, "div", "id", "content"))
+         {
+            if(HTML_FindChild_HasAttribute(it,it, "div", "id", "messages_wrap"))
+            {
+               tree<htmlcxx::HTML::Node>::sibling_iterator pagination_it;
+               if(HTML_FindChild_HasAttribute(it,pagination_it, "div", "class", "message-nav-bar"))
+               {
+                  if(HTML_FindChild_HasAttribute(pagination_it,pagination_it, "div", "class", "navigate-column"))
+                  {
+                     tree<htmlcxx::HTML::Node>::sibling_iterator sit = pagination_it.begin();
+                     tree<htmlcxx::HTML::Node>::sibling_iterator send = pagination_it.end();
+
+                     m_lastpage = 1;
+
+                     while(sit != send)
+                     {
+                        if(sit->tagName() == "a" &&
+                           HTML_StartsWithAttribute(sit, "href", "/messages/"))
+                        {
+                           std::string str;
+                           HTML_GetValue(sit,str);
+                           int num = atoi(str.data());
+                           if(num > (int)m_lastpage)
+                           {
+                              m_lastpage = num;
+                           }
+                        }
+                        
+                        sit++;
+                     }
+                  }
+               }
+
+               bool bIsInbox = false;
+               if(m_shackmsgtype == SMT_INBOX)
+               {
+                  bIsInbox = true;
+               }
+
+               tree<htmlcxx::HTML::Node>::sibling_iterator messages_it;
+               if(HTML_FindChild_HasAttribute(it,messages_it, "div", "id", "message_center"))
+               {
+                  if(HTML_FindChild(messages_it,messages_it, "form"))
+                  {
+                     if(HTML_FindChild_HasAttribute(messages_it,messages_it, "ul", "id", "messages"))
+                     {
+                        tree<htmlcxx::HTML::Node>::sibling_iterator sbegin = messages_it.begin();
+                        tree<htmlcxx::HTML::Node>::sibling_iterator slast = sbegin;
+                        tree<htmlcxx::HTML::Node>::sibling_iterator send = messages_it.end();
+                        tree<htmlcxx::HTML::Node>::sibling_iterator sit = sbegin;
+                        while(sit != send){slast = sit; sit++;}
+
+                        sit = slast;
+                        
+                        bool bContinue = true;
+                        while(bContinue)
+                        {
+                           if(sit->tagName() == "li")
+                           {
+                              std::string value;
+                              if(HTML_StartsWithAttribute(sit, "class", "message",&value))
+                              {
+                                 std::string author;
+
+                                 size_t id = 0;
+
+                                 bool bHaveRead = false;
+                                 if(value == " read")
+                                    bHaveRead = true;
+
+                                 tree<htmlcxx::HTML::Node>::sibling_iterator info_it;
+                                 if(HTML_FindChild_HasAttribute(sit,info_it, "div", "class", "name-column"))
+                                 {
+                                    tree<htmlcxx::HTML::Node>::sibling_iterator id_it;
+                                    if(HTML_FindChild(info_it,id_it, "input"))
+                                    {
+                                       id = HTML_GetIDAttribute(id_it, "value");
+                                    }
+
+                                    tree<htmlcxx::HTML::Node>::sibling_iterator name_it;
+                                    if(HTML_FindChild_HasAttribute(info_it, name_it, "a", "class", "username"))
+                                    {
+                                       HTML_GetValue(name_it, author);
+                                    }
+                                 }
+
+                                 bool bFoundIt = false;
+                                 std::list<ChattyPost*>::iterator rit = m_rootposts.begin();
+                                 std::list<ChattyPost*>::iterator rend = m_rootposts.end();
+                                 while(rit != rend)
+                                 {
+                                    if((*rit) != NULL &&
+                                       (*rit)->GetId() == id)
+                                    {
+                                       bFoundIt = true;
+                                       (*rit)->SetHaveRead(bHaveRead);
+                                       break;
+                                    }
+                                    rit++;
+                                 }
+
+                                 if(!bFoundIt)
+                                 {
+                                    ChattyPost *post = new ChattyPost();
+                                    if(post != NULL)
+                                    {
+                                       m_rootposts.push_front(post);
+                                       post->ReadMessageFromHTML(sit,this, bIsInbox, id, author, bHaveRead);
+                                       post->Collapse();
+                                    }
+                                 }
+                              }
+                           }
+
+                           if(sit == sbegin)
+                           {
+                              bContinue = false;
+                           }
+                           else
+                           {
+                              sit--;
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
 }
 
 bool CLampDoc::ReadShackMessages(CXMLTree &xmldata)
@@ -4492,7 +5496,11 @@ bool CLampDoc::LolTagPost(unsigned int post_id, loltagtype tag)
 
       path += L"&version=-1";
 
+      ::EnterCriticalSection(&g_ThreadAccess);
+
       chattyerror err = webclient_download(theApp.GetLolHostName().str8(), path.str8(false,CET_UTF8), NULL, NULL, &data);
+
+      ::LeaveCriticalSection(&g_ThreadAccess);
 
       if(err == ERR_OK && data != NULL)
       {
@@ -4998,4 +6006,35 @@ unsigned int CLampDoc::GetPrevRoot(ChattyPost *pRootPost)
    }
 
    return id;
+}
+
+void CLampDoc::MakePostAvailable(unsigned int id)
+{
+   if(theApp.UseShack())
+   {
+      ChattyPost *post = FindPost(id);
+
+      if(post != NULL)
+      {
+         if(post->IsPreview())
+         {
+            post->SetRefreshing(true);
+            if(m_pView) 
+               m_pView->InvalidateEverything();
+            // http://www.shacknews.com/frame_chatty.x?root=25755052
+
+            UCString story = L"/frame_chatty.x?root=";
+
+            ChattyPost *rootpost = post->GetRoot();
+
+            story += rootpost->GetId();
+
+            StartDownload(L"www.shacknews.com",
+                          story,
+                          DT_SHACK_THREAD_CONTENTS,
+                          rootpost->GetId(),
+                          id);
+         }
+      }
+   }
 }
