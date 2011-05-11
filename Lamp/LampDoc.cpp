@@ -1935,13 +1935,17 @@ void CLampDoc::PerformSearch()
       // http://www.shacknews.com/search?chatty=1&type=4&chatty_term=lamp&chatty_user=CRasterImage&chatty_author=electroly&chatty_filter=all
 
       UCString path = L"/search?chatty=1&type=4&chatty_term=";
-      UCString terms = m_search_terms;
-      terms.ReplaceAll(L' ',L'+');
-      path += terms;
+      UCString temp = m_search_terms;
+      temp.ReplaceAll(L' ',L'+');
+      path += temp;
       path += L"&chatty_user=";
-      path += m_search_author;
+      temp = m_search_author;
+      temp.ReplaceAll(L' ',L'+');
+      path += temp;
       path += L"&chatty_author=";
-      path += m_search_parent_author;
+      temp = m_search_parent_author;
+      temp.ReplaceAll(L' ',L'+');
+      path += temp;
       path += L"&chatty_filter=all&start=";
       path += m_page;
 
