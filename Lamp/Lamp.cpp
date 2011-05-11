@@ -563,6 +563,8 @@ CLampApp::CLampApp()
 
    m_userid = 0;
 
+   m_pDocWho = NULL;
+
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
 }
@@ -902,7 +904,13 @@ int CLampApp::ExitInstance()
 
 CDocument* CLampApp::OpenDocumentFile(LPCTSTR lpszFileName)
 {
-   CDocument* pNewDoc = CWinAppEx::OpenDocumentFile(lpszFileName);
+   //CDocument* pNewDoc = CWinAppEx::OpenDocumentFile(lpszFileName);
+
+   m_open_doc = lpszFileName;
+   CWinApp::OnFileNew();
+   CDocument* pNewDoc = m_pDocWho;
+   m_open_doc = "";
+   m_pDocWho = NULL;
 
    UpdateTabSizes();
 

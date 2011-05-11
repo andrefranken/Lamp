@@ -1492,17 +1492,33 @@ BOOL CLampDoc::OnNewDocument()
    
    if(result)
    {
-      SetDataType(DDT_STORY);
-      m_title = L"latestchatty";
-      MySetTitle(m_title);
-      ReadLatestChatty();
-      result = TRUE;
+      const UCChar *opendoc = theApp.GetOpenDocString(this);
+      if(opendoc != NULL)
+      {
+         OnOpenDocumentImpl(opendoc);
+      }
+      else
+      {
+         /*
+         SetDataType(DDT_STORY);
+         m_title = L"latestchatty";
+         MySetTitle(m_title);
+         ReadLatestChatty();
+         */
+         OnOpenDocumentImpl(L"LATESTCHATTY");
+      }
    }
    
    return result;
 }
 
 BOOL CLampDoc::OnOpenDocument( LPCTSTR lpszPathName )
+{
+   assert(0);
+   return OnOpenDocumentImpl( lpszPathName );
+}
+
+BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
 {
    BOOL result = TRUE;
 
@@ -1615,7 +1631,7 @@ BOOL CLampDoc::OnOpenDocument( LPCTSTR lpszPathName )
       m_lastpage = 1;
       isstory = true;
    }
-   else if(wcsstr(start,L"LATESTCHATTY") != NULL)
+   else if(_wcsnicmp(start,L"LATESTCHATTY",12) == 0)
    {
       m_storyid = 0;
       m_page = 1;
@@ -1637,8 +1653,7 @@ BOOL CLampDoc::OnOpenDocument( LPCTSTR lpszPathName )
 
       bAllowPreLoadingOfThread = false;
    }
-   else if(end - start > 7 &&
-           _wcsnicmp(start,L"chatty\\",7) == 0)
+   else if(_wcsnicmp(start,L"chatty\\",7) == 0)
    {
       const UCChar *work = start + 7;
 
@@ -1653,187 +1668,184 @@ BOOL CLampDoc::OnOpenDocument( LPCTSTR lpszPathName )
 
       bAllowPreLoadingOfThread = false;
    }
-   else
+   else if(_wcsnicmp(start,L"LOL",3) == 0)
    {
-      const UCChar *pCmd = NULL;
-      if((pCmd = wcsstr(start,L"\\LOL")) != NULL)
+      const UCChar *pCmd = start;
+      m_page = m_lastpage = 1;
+      islol = true;
+      pCmd += 3;
+      if(end - pCmd > 3 &&
+        _wcsnicmp(pCmd,L"POP",3) == 0)
       {
-         m_page = m_lastpage = 1;
-         islol = true;
-         pCmd += 4;
-         if(end - pCmd > 3 &&
-           _wcsnicmp(pCmd,L"POP",3) == 0)
-         {
-            pCmd += 3;
-            m_loltag = pCmd;
-            m_loltag.MakeLower();
-         }
-         else if(end - pCmd >= 5 &&
-           _wcsnicmp(pCmd,L"ILOLD",5) == 0)
-         {
-            pCmd += 5;
-            m_loltag = L"";
-            m_ThingsILOLD = true;
-         }
-         else if(end - pCmd >= 6 &&
-           _wcsnicmp(pCmd,L"IWROTE",6) == 0)
-         {
-            pCmd += 6;
-            m_loltag = L"";
-            m_ThingsIWrote = true;
-         }   
+         pCmd += 3;
+         m_loltag = pCmd;
+         m_loltag.MakeLower();
       }
-      else if(wcsstr(start,L"MYCOMMENTS") != NULL)
+      else if(end - pCmd >= 5 &&
+        _wcsnicmp(pCmd,L"ILOLD",5) == 0)
       {
-         m_search_author = theApp.GetUsername();
-         m_search_parent_author = L"";
-         m_search_terms = L"";
-
-         m_title = L"My Comments";
-         MySetTitle(m_title);
-
-         issearch = true;
+         pCmd += 5;
+         m_loltag = L"";
+         m_ThingsILOLD = true;
       }
-      else if(wcsstr(start,L"REPLIESTOME") != NULL)
+      else if(end - pCmd >= 6 &&
+        _wcsnicmp(pCmd,L"IWROTE",6) == 0)
       {
-         m_search_author = L"";
-         m_search_parent_author = theApp.GetUsername();
-         m_search_terms = L"";
+         pCmd += 6;
+         m_loltag = L"";
+         m_ThingsIWrote = true;
+      }   
+   }
+   else if(_wcsnicmp(start,L"MYCOMMENTS",10) == 0)
+   {
+      m_search_author = theApp.GetUsername();
+      m_search_parent_author = L"";
+      m_search_terms = L"";
 
-         m_title = L"Replies To Me";
-         MySetTitle(m_title);
+      m_title = L"My Comments";
+      MySetTitle(m_title);
 
-         issearch = true;
+      issearch = true;
+   }
+   else if(_wcsnicmp(start,L"REPLIESTOME",11) == 0)
+   {
+      m_search_author = L"";
+      m_search_parent_author = theApp.GetUsername();
+      m_search_terms = L"";
+
+      m_title = L"Replies To Me";
+      MySetTitle(m_title);
+
+      issearch = true;
+   }
+   else if(_wcsnicmp(start,L"VANITYSEARCH",12) == 0)
+   {
+      m_search_author = L"";
+      m_search_parent_author = L"";
+      m_search_terms = theApp.GetUsername();
+
+      m_title = L"Vanity Search";
+      MySetTitle(m_title);
+
+      issearch = true;
+   }
+   else if(_wcsnicmp(start,L"CUSTOMSEARCH:",13) == 0)
+   {
+      const UCChar *work = start + 13;
+      m_search_author = L"";
+      m_search_parent_author = L"";
+      m_search_terms = L"";
+      while(work < end && *work != L':'){m_search_author += *work;work++;}
+      if(work < end && *work == L':')work++;
+      while(work < end && *work != L':'){m_search_parent_author += *work;work++;}
+      if(work < end && *work == L':')work++;
+      while(work < end && *work != L':'){m_search_terms += *work;work++;}
+
+      char *enc = url_decode(m_search_author.str8());
+      m_search_author = enc;
+      free(enc);
+
+      enc = url_decode(m_search_parent_author.str8());
+      m_search_parent_author = enc;
+      free(enc);
+
+      enc = url_decode(m_search_terms.str8());
+      m_search_terms = enc;
+      free(enc);
+
+      //theApp.GetLastSearchParms(m_search_author, m_search_parent_author, m_search_terms);
+      
+      if(!m_search_author.IsEmpty() &&
+         m_search_parent_author.IsEmpty() &&
+         m_search_terms.IsEmpty())
+      {
+         m_title = m_search_author;
+         m_title += L"'s Comments";
       }
-      else if(wcsstr(start,L"VANITYSEARCH") != NULL)
+      else if(m_search_author.IsEmpty() &&
+              !m_search_parent_author.IsEmpty() &&
+              m_search_terms.IsEmpty())
       {
-         m_search_author = L"";
-         m_search_parent_author = L"";
-         m_search_terms = theApp.GetUsername();
-
-         m_title = L"Vanity Search";
-         MySetTitle(m_title);
-
-         issearch = true;
+         m_title = L"Replies to ";
+         m_title += m_search_parent_author;            
       }
-      else if((newstart = wcsstr(start,L"CUSTOMSEARCH:")) != NULL)
+      else if(m_search_author.IsEmpty() &&
+              m_search_parent_author.IsEmpty() &&
+              !m_search_terms.IsEmpty())
       {
-         const UCChar *work = newstart + 13;
-         m_search_author = L"";
-         m_search_parent_author = L"";
-         m_search_terms = L"";
-         while(work < end && *work != L':'){m_search_author += *work;work++;}
-         if(work < end && *work == L':')work++;
-         while(work < end && *work != L':'){m_search_parent_author += *work;work++;}
-         if(work < end && *work == L':')work++;
-         while(work < end && *work != L':'){m_search_terms += *work;work++;}
-
-         char *enc = url_decode(m_search_author.str8());
-         m_search_author = enc;
-         free(enc);
-
-         enc = url_decode(m_search_parent_author.str8());
-         m_search_parent_author = enc;
-         free(enc);
-
-         enc = url_decode(m_search_terms.str8());
-         m_search_terms = enc;
-         free(enc);
-
-         //theApp.GetLastSearchParms(m_search_author, m_search_parent_author, m_search_terms);
-         
-         if(!m_search_author.IsEmpty() &&
-            m_search_parent_author.IsEmpty() &&
-            m_search_terms.IsEmpty())
-         {
-            m_title = m_search_author;
-            m_title += L"'s Comments";
-         }
-         else if(m_search_author.IsEmpty() &&
-                 !m_search_parent_author.IsEmpty() &&
-                 m_search_terms.IsEmpty())
-         {
-            m_title = L"Replies to ";
-            m_title += m_search_parent_author;            
-         }
-         else if(m_search_author.IsEmpty() &&
-                 m_search_parent_author.IsEmpty() &&
-                 !m_search_terms.IsEmpty())
-         {
-            m_title = m_search_terms;
-         }
-         else
-         {
-            m_title = L"Custom Search";
-         }
-                  
-         MySetTitle(m_title);
-
-         m_bScramblePath = true;
-
-         issearch = true;
-      }
-      else if((pCmd = wcsstr(start,L"SHACKMSG_")) != NULL)
-      {
-         const UCChar *work = pCmd + 9;
-         if(end - work >= 5 &&
-           _wcsnicmp(work,L"INBOX",5) == 0)
-         {
-            work += 5;
-            m_title = L"Inbox";
-            m_shackmsgtype = SMT_INBOX;
-         }
-         else if(end - work >= 6 &&
-           _wcsnicmp(work,L"OUTBOX",6) == 0)
-         {
-            work += 6;
-            m_title = L"Sent Msgs";
-            m_shackmsgtype = SMT_OUTBOX;
-         }
-         else if(end - work >= 7 &&
-           _wcsnicmp(work,L"ARCHIVE",7) == 0)
-         {
-            work += 7;
-            m_title = L"Archived Msgs";
-            m_shackmsgtype = SMT_ARCHIVE;
-         }
-         m_page = 1;
-         MySetTitle(m_title);
-         isshackmsg = true;
+         m_title = m_search_terms;
       }
       else
       {
-         const UCChar *thisid;
-         const UCChar *work = end - 1;
-         
+         m_title = L"Custom Search";
+      }
+               
+      MySetTitle(m_title);
+
+      m_bScramblePath = true;
+
+      issearch = true;
+   }
+   else if(_wcsnicmp(start,L"SHACKMSG_",9) == 0)
+   {
+      const UCChar *work = start + 9;
+      if(end - work >= 5 &&
+        _wcsnicmp(work,L"INBOX",5) == 0)
+      {
+         work += 5;
+         m_title = L"Inbox";
+         m_shackmsgtype = SMT_INBOX;
+      }
+      else if(end - work >= 6 &&
+        _wcsnicmp(work,L"OUTBOX",6) == 0)
+      {
+         work += 6;
+         m_title = L"Sent Msgs";
+         m_shackmsgtype = SMT_OUTBOX;
+      }
+      else if(end - work >= 7 &&
+        _wcsnicmp(work,L"ARCHIVE",7) == 0)
+      {
+         work += 7;
+         m_title = L"Archived Msgs";
+         m_shackmsgtype = SMT_ARCHIVE;
+      }
+      m_page = 1;
+      MySetTitle(m_title);
+      isshackmsg = true;
+   }
+   else
+   {
+      const UCChar *thisid;
+      const UCChar *work = end - 1;
+      
+      while(work >= start &&
+            iswdigit(*work))
+      {
+         thisid = work;
+         work--;
+      }
+      
+      rootid = thisid;
+
+      if(work >= start &&
+         *work == L'_')
+      {
+         m_initialpostid = rootid;
+         work--;
+         int numchars = 0;
+         // we have a view id
+         // now find the root id
          while(work >= start &&
                iswdigit(*work))
          {
             thisid = work;
             work--;
+            numchars++;
          }
          
-         rootid = thisid;
-
-         if(work >= start &&
-            *work == L'_')
-         {
-            m_initialpostid = rootid;
-            work--;
-            int numchars = 0;
-            // we have a view id
-            // now find the root id
-            while(work >= start &&
-                  iswdigit(*work))
-            {
-               thisid = work;
-               work--;
-               numchars++;
-            }
-            
-            rootid = L"";
-            rootid.AppendUnicodeString(thisid, numchars);
-         }
+         rootid = L"";
+         rootid.AppendUnicodeString(thisid, numchars);
       }
    }
 
@@ -1850,7 +1862,7 @@ BOOL CLampDoc::OnOpenDocument( LPCTSTR lpszPathName )
    else if(isstory)
    {
       SetDataType(DDT_STORY);
-      m_title = L"latestchatty";
+      m_title = L"LatestChatty";
       MySetTitle(m_title);
       ReadLatestChatty();
    }

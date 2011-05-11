@@ -749,6 +749,16 @@ public:
    unsigned int PeekUserID(){return m_userid;}
 
    void SetUserID(unsigned int value){m_userid = value;}
+
+   const UCChar *GetOpenDocString(CDocument *pWho)
+   {
+      if(!m_open_doc.IsEmpty())
+      {
+         m_pDocWho = pWho; 
+         return m_open_doc.Str();
+      }
+      return NULL;
+   }
       
 // Overrides
 public:
@@ -1040,6 +1050,10 @@ protected:
    bool m_use_shack;
 
    unsigned int m_userid;
+
+   UCString m_open_doc;
+
+   CDocument *m_pDocWho;
 
 public:
    afx_msg void OnFileSetuplogininfo();

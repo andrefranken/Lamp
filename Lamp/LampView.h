@@ -125,6 +125,7 @@ protected:
    bool m_bForceDrawAll;
    bool m_bLButtonDownOnScrollArrow;
    unsigned int m_current_id;
+   unsigned int m_back_id;
 
    bool m_bDraggingTextSelection;
    unsigned int m_textselectionpost;
@@ -312,6 +313,8 @@ public:
    afx_msg void OnUpdateVerboseLOLPreviews(CCmdUI *pCmdUI);
    afx_msg void OnInvertedLOLPreviews();
    afx_msg void OnUpdateInvertedLOLPreviews(CCmdUI *pCmdUI);
+   afx_msg void OnBackId();
+   afx_msg void OnUpdateBackId(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp

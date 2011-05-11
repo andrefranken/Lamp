@@ -220,6 +220,7 @@ public:
 public:
 	virtual BOOL OnNewDocument();
    virtual BOOL OnOpenDocument( LPCTSTR lpszPathName );
+   BOOL OnOpenDocumentImpl( LPCTSTR lpszPathName );
    virtual void SetTitle(LPCTSTR lpszTitle);
 
    void MySetTitle(LPCTSTR lpszTitle);

@@ -148,7 +148,9 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_COMMAND(ID_INVERTED_LOL_PREVIEWS, &CLampView::OnInvertedLOLPreviews)
    ON_UPDATE_COMMAND_UI(ID_INVERTED_LOL_PREVIEWS, &CLampView::OnUpdateInvertedLOLPreviews)
 
-END_MESSAGE_MAP()
+   ON_COMMAND(ID_BACK_ID, &CLampView::OnBackId)
+   ON_UPDATE_COMMAND_UI(ID_BACK_ID, &CLampView::OnUpdateBackId)
+   END_MESSAGE_MAP()
 
 // CLampView construction/destruction
 
@@ -163,6 +165,7 @@ CLampView::CLampView()
    m_bPanOnly = false;
    m_bForceDrawAll = true;
    m_current_id = 0;
+   m_back_id = 0;
    m_bDraggingTextSelection = false;
    m_textselectionpost = 0;
    m_selectionstart = 0;
@@ -185,7 +188,7 @@ CLampView::CLampView()
    m_bStartedTrackingMouse = false;
    m_brakes = false;
    m_bDoubleClickDragging = false;
-
+   
    m_pFindDlg = NULL;
 
    theApp.AddView(this);
@@ -238,10 +241,14 @@ void CLampView::OnClose()
 
 void CLampView::SetCurrentId(unsigned int id)
 {
-   m_current_id = id;
-   if(m_current_id != 0)
+   if(id != m_current_id)
    {
-      GetDocument()->MakePostAvailable(id);
+      m_back_id = m_current_id;
+      m_current_id = id;
+      if(m_current_id != 0)
+      {
+         GetDocument()->MakePostAvailable(id);
+      }
    }
 }
 
@@ -2654,7 +2661,60 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
 
                               if(!bMadeImage)
                               {
-                                 theApp.OpenShackLink(link);
+                                 bool bIsLocal = false;
+                                 if(link.beginswith(L"http://www.shacknews.com/chatty?id="))// http://www.shacknews.com/chatty?id=25857324#itemanchor_25857324
+                                 {
+                                    const UCChar *work = link.Str() + 35;
+                                    if(work != NULL)
+                                    {
+                                       UCString temp;
+                                       while(*work != 0 && iswdigit(*work))
+                                       {
+                                          temp += *work;
+                                          work++;
+                                       }
+
+                                       unsigned int id = temp;
+
+                                       ChattyPost *post = GetDocument()->FindPost(id);
+                                       if(post != NULL)
+                                       {
+                                          SetCurrentId(id);
+                                          m_textselectionpost = 0;
+                                          m_selectionstart = 0;
+                                          m_selectionend = 0;
+                                          bIsLocal = true;
+
+                                          // force a draw so that positions are updated
+                                          DrawEverythingToBuffer();
+                                          int top = post->GetPos();
+                                          int bottom = top + post->GetHeight();
+
+                                          RECT DeviceRectangle;
+                                          GetClientRect(&DeviceRectangle);
+                     
+                                          if(bottom - top > DeviceRectangle.bottom - DeviceRectangle.top ||
+                                             top < DeviceRectangle.top)
+                                          {
+                                             m_gotopos = m_pos + (top - DeviceRectangle.top);
+                                          }
+                                          else if(bottom > DeviceRectangle.bottom)
+                                          {
+                                             m_gotopos = m_pos + (bottom - DeviceRectangle.bottom);
+                                          }
+                                          
+                                          CancelInertiaPanning();
+                                          m_brakes = false;
+                                          
+                                          InvalidateEverything();
+                                       }
+                                    }
+                                 }
+                                 
+                                 if(!bIsLocal)
+                                 {
+                                    theApp.OpenShackLink(link);
+                                 }
                               }
                            }
                         }
@@ -5214,3 +5274,55 @@ void CLampView::OnUpdateInvertedLOLPreviews(CCmdUI *pCmdUI)
    }
 }
 
+
+void CLampView::OnBackId()
+{
+   if(m_back_id != m_current_id &&
+      m_back_id != 0)
+   {
+      ChattyPost *post = GetDocument()->FindPost(m_back_id);
+      if(post != NULL)
+      {
+         SetCurrentId(m_back_id);
+         m_textselectionpost = 0;
+         m_selectionstart = 0;
+         m_selectionend = 0;
+         // force a draw so that positions are updated
+         DrawEverythingToBuffer();
+         int top = post->GetPos();
+         int bottom = top + post->GetHeight();
+
+         RECT DeviceRectangle;
+         GetClientRect(&DeviceRectangle);
+
+         
+         if(bottom - top > DeviceRectangle.bottom - DeviceRectangle.top ||
+            top < DeviceRectangle.top)
+         {
+            m_gotopos = m_pos + (top - DeviceRectangle.top);
+         }
+         else if(bottom > DeviceRectangle.bottom)
+         {
+            m_gotopos = m_pos + (bottom - DeviceRectangle.bottom);
+         }
+         
+         CancelInertiaPanning();
+         m_brakes = false;
+         
+         InvalidateEverything();
+      }
+   }
+}
+
+void CLampView::OnUpdateBackId(CCmdUI *pCmdUI)
+{
+   if(m_back_id != m_current_id &&
+      m_back_id != 0)
+   {
+      pCmdUI->Enable(TRUE);
+   }
+   else
+   {
+      pCmdUI->Enable(FALSE);
+   }
+}
