@@ -30,10 +30,11 @@
 #define new DEBUG_NEW
 #endif
 
-
 UCString g_PathToMe;
 
 bool g_bIsXP = false;
+
+bool g_bSingleThreadStyle = false;
 
 chattyerror download(const char* host, const char* path, char** out_response, int *psize/*=NULL*/)
 {
@@ -565,6 +566,8 @@ CLampApp::CLampApp()
 
    m_pDocWho = NULL;
 
+   g_bSingleThreadStyle = false;
+
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
 }
@@ -619,7 +622,10 @@ BOOL CLampApp::InitInstance()
       return FALSE;
    }
 
-   ::InitializeCriticalSection(&g_ThreadAccess);
+   if(!g_bSingleThreadStyle)
+   {
+      ::InitializeCriticalSection(&g_ThreadAccess);
+   }
 
    // Parse command line for standard shell commands, DDE, file open
 
@@ -897,7 +903,10 @@ int CLampApp::ExitInstance()
    WriteBookmarks();
    WriteSettingsFile();
 
-   ::DeleteCriticalSection(&g_ThreadAccess);
+   if(!g_bSingleThreadStyle)
+   {
+      ::DeleteCriticalSection(&g_ThreadAccess);
+   }
 
    return CWinApp::ExitInstance();
 }
@@ -1225,6 +1234,10 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"AutoShowLoadedImages");
    if(setting!=NULL) m_AutoShowLoadedImages = setting->GetValue();
    else m_AutoShowLoadedImages = false;
+
+   setting = hostxml.FindChildElement(L"single_thread_style");
+   if(setting!=NULL) g_bSingleThreadStyle = setting->GetValue();
+   else g_bSingleThreadStyle = false;
 
    setting = hostxml.FindChildElement(L"text_scale");
    if(setting!=NULL) m_textscaler = setting->GetValue();
@@ -1588,6 +1601,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"numshow_truncated",UCString(m_numshow_truncated));
    settingsxml.AddChildElement(L"smooth_scroll",UCString(m_smooth_scroll));
    settingsxml.AddChildElement(L"AutoShowLoadedImages",UCString(m_AutoShowLoadedImages));
+   settingsxml.AddChildElement(L"single_thread_style",UCString(g_bSingleThreadStyle));
    settingsxml.AddChildElement(L"text_scale",UCString(m_textscaler));
    settingsxml.AddChildElement(L"DockedMode",UCString(m_bWasInDockedMode));
    settingsxml.AddChildElement(L"PinningInStories",UCString(m_bPinningInStories));
@@ -3474,11 +3488,17 @@ CDCSurface *CImageCacheItem::GetImage()
          char *data = NULL;
          int size = 0;
 
-         ::EnterCriticalSection(&g_ThreadAccess);
+         if(!g_bSingleThreadStyle)
+         {
+            ::EnterCriticalSection(&g_ThreadAccess);
+         }
       
          chattyerror err = download(temphost.str8(), temppath.str8(), &data, &size);
 
-         ::LeaveCriticalSection(&g_ThreadAccess);
+         if(!g_bSingleThreadStyle)
+         {
+            ::LeaveCriticalSection(&g_ThreadAccess);
+         }
 
          if(err == ERR_OK && data != NULL)
          {
@@ -4066,4 +4086,14 @@ unsigned int CLampApp::GetUserID()
    }
 
    return result;
+}
+
+bool CLampApp::SingleThreadStyle()
+{
+   return g_bSingleThreadStyle;
+}
+
+void CLampApp::SetSingleThreadStyle(bool value)
+{
+   g_bSingleThreadStyle = value;
 }

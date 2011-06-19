@@ -1887,7 +1887,8 @@ void CReplyDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 void CReplyDlg::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
    if(!m_bPreviewMode &&
-      iswprint(nChar) &&
+      (nChar > 255 ||
+       (nChar <= 255 && iswprint(nChar))) &&
       nChar != 0x09)// don't insert TABs
    {
       InsertChar(nChar);

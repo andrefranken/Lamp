@@ -30,11 +30,25 @@
 #include "platform.h"
 #include "webclient.h"
 
+extern CRITICAL_SECTION g_ThreadAccess;
+
+extern bool g_bSingleThreadStyle;
+
 char g_useragent[256];
 
 void SetUserAgent(const char *str)
 {
+   if(!g_bSingleThreadStyle)
+   {
+      ::EnterCriticalSection(&g_ThreadAccess);
+   }
+
    strcpy_s(g_useragent, 256, str);
+
+   if(!g_bSingleThreadStyle)
+   {
+      ::LeaveCriticalSection(&g_ThreadAccess);
+   }
 }
 
 /** webclient_download *********************************************************

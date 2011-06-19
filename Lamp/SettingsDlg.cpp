@@ -41,6 +41,7 @@ void CSettingsDlg::OnBnClickedOk()
    CEdit *pInertia = (CEdit*)GetDlgItem(IDC_INERTIA_EDIT);
    CEdit *pHoursExpire = (CEdit*)GetDlgItem(IDC_NUM_HOURS_EXPIRE_EDIT);
    CButton *pUseStoneDonkey = (CButton*)GetDlgItem(ID_USE_STONEDONKEY);
+   CButton *pUseSingleThreadStyle = (CButton*)GetDlgItem(ID_SINGLE_THREAD_STYLE);
 
    if(pMouseWheelSpeed != NULL &&
       pMBPanSpeed != NULL &&
@@ -48,7 +49,8 @@ void CSettingsDlg::OnBnClickedOk()
       pNumMinsInbox != NULL &&
       pInertia != NULL &&
       pHoursExpire != NULL &&
-      pUseStoneDonkey != NULL)
+      pUseStoneDonkey != NULL &&
+      pUseSingleThreadStyle != NULL)
    {
       CString temp;
       UCString temp2;
@@ -84,6 +86,15 @@ void CSettingsDlg::OnBnClickedOk()
       {
          theApp.SetUseShack(true);
       }
+
+      if(pUseSingleThreadStyle->GetCheck() == BST_CHECKED)
+      {
+         theApp.SetSingleThreadStyle(true);
+      }
+      else
+      {
+         theApp.SetSingleThreadStyle(false);
+      }
    }
 
    OnOK();
@@ -98,6 +109,7 @@ BOOL CSettingsDlg::OnInitDialog()
    CEdit *pInertia = (CEdit*)GetDlgItem(IDC_INERTIA_EDIT);
    CEdit *pHoursExpire = (CEdit*)GetDlgItem(IDC_NUM_HOURS_EXPIRE_EDIT);
    CButton *pUseStoneDonkey = (CButton*)GetDlgItem(ID_USE_STONEDONKEY);
+   CButton *pUseSingleThreadStyle = (CButton*)GetDlgItem(ID_SINGLE_THREAD_STYLE);
 
    if(pMouseWheelSpeed != NULL &&
       pMBPanSpeed != NULL &&
@@ -105,7 +117,8 @@ BOOL CSettingsDlg::OnInitDialog()
       pNumMinsInbox != NULL &&
       pInertia != NULL &&
       pHoursExpire != NULL &&
-      pUseStoneDonkey != NULL)
+      pUseStoneDonkey != NULL &&
+      pUseSingleThreadStyle != NULL)
    {
       pMouseWheelSpeed->SetWindowTextW(UCString(theApp.GetMouseWheelScale()));
       pMBPanSpeed->SetWindowTextW(UCString(theApp.GetMBPanScale()));
@@ -121,6 +134,15 @@ BOOL CSettingsDlg::OnInitDialog()
       else
       {
          pUseStoneDonkey->SetCheck(BST_CHECKED);
+      }
+
+      if(theApp.SingleThreadStyle())
+      {
+         pUseSingleThreadStyle->SetCheck(BST_CHECKED);
+      }
+      else
+      {
+         pUseSingleThreadStyle->SetCheck(BST_UNCHECKED);
       }
    }
 

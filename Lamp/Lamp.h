@@ -535,6 +535,9 @@ public:
 
    bool StrokeRootEdges(){return m_stroke_root_edges;}
 
+   bool SingleThreadStyle();
+   void SetSingleThreadStyle(bool value);
+
    int GetTabTitleWordLimit(){return m_tab_title_word_limit;}
    int GetTabTitleCharLimit(){return m_tab_title_char_limit;}
 

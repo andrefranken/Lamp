@@ -31,6 +31,8 @@ DWORD g_LastUserShackLoginTime = 0;
 
 char g_UserShackLoginCookie[1024];
 
+extern bool g_bSingleThreadStyle;
+
 UINT DownloadThreadProc( LPVOID pParam )
 {
    CDownloadData* pDD = (CDownloadData*)pParam;
@@ -38,7 +40,10 @@ UINT DownloadThreadProc( LPVOID pParam )
    if(pDD != NULL &&
       pDD->m_WhoWants != NULL)
    {
-      ::EnterCriticalSection(&g_ThreadAccess);
+      if(g_bSingleThreadStyle)
+      {
+         ::EnterCriticalSection(&g_ThreadAccess);
+      }
 
       if(pDD->m_dt == DT_SHACK_CHATTY ||
          pDD->m_dt == DT_SHACK_THREAD_CONTENTS || 
@@ -64,7 +69,10 @@ UINT DownloadThreadProc( LPVOID pParam )
 
       theApp.PostThreadMessageW(WM_THREAD_DOWNLOAD,0,(LPARAM)pDD);
 
-      ::LeaveCriticalSection(&g_ThreadAccess);
+      if(g_bSingleThreadStyle)
+      {
+         ::LeaveCriticalSection(&g_ThreadAccess);
+      }
 
       return 0;
    }
@@ -155,8 +163,16 @@ void CDownloadData::setupshacklogin()
          const char *end = strstr(cook, "; expires=");
          if(end != NULL)
          {
+            if(!g_bSingleThreadStyle)
+            {
+               ::EnterCriticalSection(&g_ThreadAccess);
+            }
             strncpy_s(g_ShackLoginCookie,1024,cook,end-cook);
             g_LastShackLoginTime = ::GetTickCount();
+            if(!g_bSingleThreadStyle)
+            {
+               ::LeaveCriticalSection(&g_ThreadAccess);
+            }
          }
       }
    }
@@ -168,7 +184,17 @@ void CDownloadData::setupusershacklogin()
    UCString loginstr = L"username=";
    loginstr += m_username;
    loginstr += L"&password=" ;
-   loginstr += m_password;
+   //loginstr += m_password;
+
+   char *enc_password = NULL;
+
+   if(!m_password.IsEmpty())
+   {
+      enc_password = url_encode(m_password.str8(false,CET_UTF8));
+      loginstr += enc_password;
+      free(enc_password);
+   }
+
    loginstr += L"&type=login";
 
    error_t result = comm_download("www.shacknews.com","/login_laryn.x", &stdstring, loginstr.str8(false,CET_UTF8),"");
@@ -183,8 +209,16 @@ void CDownloadData::setupusershacklogin()
          const char *end = strstr(cook, "; expires=");
          if(end != NULL)
          {
+            if(!g_bSingleThreadStyle)
+            {
+               ::EnterCriticalSection(&g_ThreadAccess);
+            }
             strncpy_s(g_UserShackLoginCookie,1024,cook,end-cook);
             g_LastUserShackLoginTime = ::GetTickCount();
+            if(!g_bSingleThreadStyle)
+            {
+               ::LeaveCriticalSection(&g_ThreadAccess);
+            }
          }
       }
    }
@@ -192,7 +226,7 @@ void CDownloadData::setupusershacklogin()
 
 void CDownloadData::getchatty(int numtries)
 {
-   const char *usercookie;
+   std::string usercookie;
    if(!m_username.IsEmpty())
    {
       if(g_LastUserShackLoginTime == 0 ||
@@ -200,7 +234,15 @@ void CDownloadData::getchatty(int numtries)
       {
          setupusershacklogin();
       }
+      if(!g_bSingleThreadStyle)
+      {
+         ::EnterCriticalSection(&g_ThreadAccess);
+      }
       usercookie = g_UserShackLoginCookie;
+      if(!g_bSingleThreadStyle)
+      {
+         ::LeaveCriticalSection(&g_ThreadAccess);
+      }
    }
    else
    {
@@ -209,7 +251,15 @@ void CDownloadData::getchatty(int numtries)
       {
          setupshacklogin();
       }
+      if(!g_bSingleThreadStyle)
+      {
+         ::EnterCriticalSection(&g_ThreadAccess);
+      }
       usercookie = g_ShackLoginCookie;
+      if(!g_bSingleThreadStyle)
+      {
+         ::LeaveCriticalSection(&g_ThreadAccess);
+      }
    }
 
    const char *enc_host = m_host.str8(false,CET_UTF8);
@@ -223,7 +273,7 @@ void CDownloadData::getchatty(int numtries)
       if(!m_post_data.IsEmpty())
          postdata = m_post_data.str8(false,CET_UTF8);
 
-      error_t result = comm_download(enc_host,path,&m_stdstring,postdata,usercookie);
+      error_t result = comm_download(enc_host,path,&m_stdstring,postdata,usercookie.data());
       DWORD endtime = ::GetTickCount();
 
       if(m_stdstring.length() > 0)
@@ -238,12 +288,28 @@ void CDownloadData::getchatty(int numtries)
                if(!m_username.IsEmpty())
                {
                   setupusershacklogin();
+                  if(!g_bSingleThreadStyle)
+                  {
+                     ::EnterCriticalSection(&g_ThreadAccess);
+                  }
                   usercookie = g_UserShackLoginCookie;
+                  if(!g_bSingleThreadStyle)
+                  {
+                     ::LeaveCriticalSection(&g_ThreadAccess);
+                  }
                }
                else
                {
                   setupshacklogin();
+                  if(!g_bSingleThreadStyle)
+                  {
+                     ::EnterCriticalSection(&g_ThreadAccess);
+                  }
                   usercookie = g_ShackLoginCookie;
+                  if(!g_bSingleThreadStyle)
+                  {
+                     ::LeaveCriticalSection(&g_ThreadAccess);
+                  }
                }
             }
          }

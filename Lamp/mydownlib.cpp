@@ -41,6 +41,9 @@ web:    aluigi.org
 #define stristr strstr
 #endif
 
+extern CRITICAL_SECTION g_ThreadAccess;
+
+extern bool g_bSingleThreadStyle;
 
 #define VISDELAY    500
 #define BUFFSZ      8192
@@ -1287,12 +1290,21 @@ in_addr_t mydown_resolv(char *host) {
     int         i;
     dns_db_t    *dns;
 
+    if(!g_bSingleThreadStyle)
+    {
+      ::EnterCriticalSection(&g_ThreadAccess);
+    }
+
     host_ip = inet_addr(host);
     if(host_ip == htonl(INADDR_NONE)) {
 
         for(i = 0; i < dns_db_max; i++) {           // search
             if(!_stricmp((const char *)host, (const char *)dns_db[i].host)) 
             {
+               if(!g_bSingleThreadStyle)
+               {
+                  ::LeaveCriticalSection(&g_ThreadAccess);
+               }
                return(dns_db[i].ip);
             }
         }
@@ -1300,6 +1312,10 @@ in_addr_t mydown_resolv(char *host) {
         hp = gethostbyname(host);
         if(!hp) {
             fprintf(stderr, "\nError: Unable to resolve hostname (%s)\n\n", host);
+            if(!g_bSingleThreadStyle)
+            {
+               ::LeaveCriticalSection(&g_ThreadAccess);
+            }
             return(INADDR_NONE);
         }
         host_ip = *(in_addr_t *)(hp->h_addr);
@@ -1312,6 +1328,11 @@ in_addr_t mydown_resolv(char *host) {
         dns->ip   = host_ip;
         dns_db_add++;
         if(dns_db_max < MAXDNS) dns_db_max++;
+    }
+
+    if(!g_bSingleThreadStyle)
+    {
+      ::LeaveCriticalSection(&g_ThreadAccess);
     }
 
     return(host_ip);
