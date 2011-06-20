@@ -1614,52 +1614,55 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
       if(m_bCollapsed)
       {
          m_pos = pos;
-         m_drewtextpos = pos + 20 + theApp.GetCellHeight();
-         m_bDrewTextBody = false;
-         m_drewtextedge = DeviceRectangle.left + 20;
-
-         RECT myrect = DeviceRectangle;
-         myrect.left += 20;
-         myrect.right -= 20;
-         myrect.top = pos;
-         myrect.bottom = pos + theApp.GetCellHeight();
-
-         pos = myrect.bottom;
-
-         m_height = pos - m_pos;
-
-         if(myrect.bottom < DeviceRectangle.top ||
-            myrect.top > DeviceRectangle.bottom)
+         if(!theApp.HideCollapsedPosts())
          {
-            // do nothing, we are not on the screen
-         }
-         else
-         {
-            RECT backrect = myrect;
-            backrect.left = DeviceRectangle.left;
-            backrect.right = backrect.left + 20;
-            m_pDoc->FillBackground(hDC,backrect);
+            m_drewtextpos = pos + 20 + theApp.GetCellHeight();
+            m_bDrewTextBody = false;
+            m_drewtextedge = DeviceRectangle.left + 20;
 
-            backrect.left = DeviceRectangle.right - 20;
-            backrect.right = DeviceRectangle.right;
-            m_pDoc->FillBackground(hDC,backrect);
+            RECT myrect = DeviceRectangle;
+            myrect.left += 20;
+            myrect.right -= 20;
+            myrect.top = pos;
+            myrect.bottom = pos + theApp.GetCellHeight();
 
-            m_pDoc->FillExpandedBackground(hDC,myrect,false,m_category,!theApp.StrokeRootEdges());
-            
-            RECT authorrect = myrect;
-            authorrect.right += (theApp.GetCellHeight() + 5 + m_authorsize + 5);
-            m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor, true);
-                        
-            RECT collapsedrect = myrect;
-            collapsedrect.left += (theApp.GetCellHeight() + 5 + m_authorsize + 5);
-            m_pDoc->DrawCollapseNote(hDC,collapsedrect);
+            pos = myrect.bottom;
 
-            CHotSpot hotspot;
-            hotspot.m_bAnim = false;
-            hotspot.m_type = HST_EXPAND;
-            hotspot.m_spot = myrect;
-            hotspot.m_id = m_id;
-            hotspots.push_back(hotspot);
+            m_height = pos - m_pos;
+
+            if(myrect.bottom < DeviceRectangle.top ||
+               myrect.top > DeviceRectangle.bottom)
+            {
+               // do nothing, we are not on the screen
+            }
+            else
+            {
+               RECT backrect = myrect;
+               backrect.left = DeviceRectangle.left;
+               backrect.right = backrect.left + 20;
+               m_pDoc->FillBackground(hDC,backrect);
+
+               backrect.left = DeviceRectangle.right - 20;
+               backrect.right = DeviceRectangle.right;
+               m_pDoc->FillBackground(hDC,backrect);
+
+               m_pDoc->FillExpandedBackground(hDC,myrect,false,m_category,!theApp.StrokeRootEdges());
+               
+               RECT authorrect = myrect;
+               authorrect.right += (theApp.GetCellHeight() + 5 + m_authorsize + 5);
+               m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor, true);
+                           
+               RECT collapsedrect = myrect;
+               collapsedrect.left += (theApp.GetCellHeight() + 5 + m_authorsize + 5);
+               m_pDoc->DrawCollapseNote(hDC,collapsedrect);
+
+               CHotSpot hotspot;
+               hotspot.m_bAnim = false;
+               hotspot.m_type = HST_EXPAND;
+               hotspot.m_spot = myrect;
+               hotspot.m_id = m_id;
+               hotspots.push_back(hotspot);
+            }
          }
       }
       else
@@ -4013,15 +4016,23 @@ void ChattyPost::ReadFromKnown(CLampDoc *pDoc)
 
 void ChattyPost::UpdatePreviewsToKnown()
 {
-   ReadFromKnown(m_pDoc);
-   
-   std::list<ChattyPost*>::iterator it = m_children.begin();
-   std::list<ChattyPost*>::iterator end = m_children.end();
-   while(it != end)
-   {
-      (*it)->UpdatePreviewsToKnown();
-      it++;
-   }   
+  ReadFromKnown(m_pDoc);
+
+  std::list<ChattyPost*>::iterator it = m_children.begin();
+  std::list<ChattyPost*>::iterator end = m_children.end();
+  while(it != end)
+  {
+     ChattyPost *pPost = (*it);
+     pPost->UpdatePreviewsToKnown();
+     it++;
+
+     if(pPost->IsFiltered())
+     {
+        m_children.remove(pPost);
+
+        delete(pPost);
+     }
+  }
 }
 
 ChattyPost *ChattyPost::FindChild(unsigned int id)
@@ -4952,6 +4963,37 @@ bool ChattyPost::IsFiltered()
    case PCT_POLITCIAL:
       result = !theApp.EnablePolitical();
       break;
+   }
+
+   if(result == false)
+   {
+      std::set<UCString> &ful = theApp.GetFilteredUsernameList();
+      if(ful.size() > 0)
+      {
+         std::set<UCString>::iterator it = ful.find(m_author);
+         if(it != ful.end())
+         {
+            result = true;
+         }
+      }
+   }
+
+   if(result == false)
+   {
+      std::set<UCString> &fpl = theApp.GetFilteredPhraseList();
+      if(fpl.size() > 0)
+      {
+         std::set<UCString>::iterator it = fpl.begin();
+         std::set<UCString>::iterator end = fpl.end();
+         while(result == false && it != end)
+         {
+            if(m_bodytext.Find((*it).Str(),NULL,false,true) != NULL)
+            {
+               result = true;
+            }
+            it++;
+         }
+      }
    }
 
    return result;

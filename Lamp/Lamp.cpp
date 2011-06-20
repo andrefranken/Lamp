@@ -542,6 +542,7 @@ CLampApp::CLampApp()
    m_bDoublePageStory = false;
    m_bStartInDockedMode = true;
    m_bShowLOLButtons = true;
+   m_bHideCollapsedPosts = false;
    m_bAlwaysOnTopWhenNotDocked = false;
 
    m_normal_fontname = L"Arial";
@@ -1272,6 +1273,10 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_bShowSmallLOL = setting->GetValue();
    else m_bShowSmallLOL = true;   
 
+   setting = hostxml.FindChildElement(L"HideCollapsedPosts");
+   if(setting!=NULL) m_bHideCollapsedPosts = setting->GetValue();
+   else m_bHideCollapsedPosts = false;
+
    setting = hostxml.FindChildElement(L"FlaredBranches");
    if(setting!=NULL) m_bFlaredBranches = setting->GetValue();
    else m_bFlaredBranches = true;
@@ -1349,7 +1354,40 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"enable_political");
    if(setting!=NULL) m_enable_political = setting->GetValue();
    else m_enable_political = true;
+
+
+   setting = hostxml.FindChildElement(L"FilterUsernames");
+   if(setting != NULL)
+   {
+      int count = setting->CountChildren();
+      for(int i = 0; i < count; i++)
+      {
+         CXMLElement *name = setting->GetChildElement(i);
+         if(name != NULL && name->GetTag() == L"username")
+         {
+            UCString temp = name->GetValue();
+            temp.TrimWhitespace();
+            m_filterusernamelist.insert(temp);
+         }
+      }
+   }
    
+   setting = hostxml.FindChildElement(L"FilterPhrases");
+   if(setting != NULL)
+   {
+      int count = setting->CountChildren();
+      for(int i = 0; i < count; i++)
+      {
+         CXMLElement *name = setting->GetChildElement(i);
+         if(name != NULL && name->GetTag() == L"phrase")
+         {
+            UCString temp = name->GetValue();
+            temp.TrimWhitespace();
+            m_filterphraselist.insert(temp);
+         }
+      }
+   }
+
    setting = hostxml.FindChildElement(L"Mods");
    if(setting != NULL)
    {
@@ -1608,6 +1646,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"DoublePageStory",UCString(m_bDoublePageStory));
    settingsxml.AddChildElement(L"ShowLOLButtons",UCString(m_bShowLOLButtons));
    settingsxml.AddChildElement(L"SmallLOLButtons",UCString(m_bShowSmallLOL));
+   settingsxml.AddChildElement(L"HideCollapsedPosts",UCString(m_bHideCollapsedPosts));
    settingsxml.AddChildElement(L"FlaredBranches",UCString(m_bFlaredBranches));
    settingsxml.AddChildElement(L"auto_check_inbox",UCString(m_auto_check_inbox));
    settingsxml.AddChildElement(L"show_root_selected",UCString(m_show_root_selected));
@@ -1635,6 +1674,30 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"enable_offtopic",UCString(m_enable_offtopic));
    settingsxml.AddChildElement(L"enable_stupid",UCString(m_enable_stupid));
    settingsxml.AddChildElement(L"enable_political",UCString(m_enable_political));
+
+   settingsxml.AddChildComment(L"Filter out posts by the following users");
+   CXMLElement *fun = settingsxml.AddChildElement();
+   fun->SetTag(L"FilterUsernames");
+   std::set<UCString>::iterator it = m_filterusernamelist.begin();
+   std::set<UCString>::iterator end = m_filterusernamelist.end();
+
+   while(it != end)
+   {
+      fun->AddChildElement(L"username",(*it));      
+      it++;
+   }
+
+   settingsxml.AddChildComment(L"Filter out posts by the following phrases");
+   CXMLElement *fpn = settingsxml.AddChildElement();
+   fpn->SetTag(L"FilterPhrases");
+   it = m_filterphraselist.begin();
+   end = m_filterphraselist.end();
+
+   while(it != end)
+   {
+      fpn->AddChildElement(L"phrase",(*it));      
+      it++;
+   }
 
    settingsxml.AddChildComment(L"Color-Coded usernames");
    CXMLElement *mods = settingsxml.AddChildElement();

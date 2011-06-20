@@ -657,6 +657,9 @@ public:
 
    void SetShowLOLButtons(bool value){m_bShowLOLButtons = value;}
 
+   bool HideCollapsedPosts(){return m_bHideCollapsedPosts;}
+   void SetHideCollapsedPosts(bool value){m_bHideCollapsedPosts = value;}
+
    bool AlwaysOnTopWhenNotDocked(){return m_bAlwaysOnTopWhenNotDocked;}
 
    void SetAlwaysOnTopWhenNotDocked(bool value){m_bAlwaysOnTopWhenNotDocked = value;}
@@ -762,6 +765,10 @@ public:
       }
       return NULL;
    }
+
+   std::set<UCString> &GetFilteredUsernameList(){return m_filterusernamelist;}
+
+   std::set<UCString> &GetFilteredPhraseList(){return m_filterphraselist;}
       
 // Overrides
 public:
@@ -968,8 +975,12 @@ protected:
    bool m_bStartInDockedMode;
    bool m_bShowLOLButtons;
    bool m_bAlwaysOnTopWhenNotDocked;
+   bool m_bHideCollapsedPosts;
 
    std::map<UCString,COLORREF> m_namelist;
+
+   std::set<UCString> m_filterusernamelist;
+   std::set<UCString> m_filterphraselist;
 
    std::list<CLampView*> m_views;
 

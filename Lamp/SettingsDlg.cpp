@@ -42,6 +42,8 @@ void CSettingsDlg::OnBnClickedOk()
    CEdit *pHoursExpire = (CEdit*)GetDlgItem(IDC_NUM_HOURS_EXPIRE_EDIT);
    CButton *pUseStoneDonkey = (CButton*)GetDlgItem(ID_USE_STONEDONKEY);
    CButton *pUseSingleThreadStyle = (CButton*)GetDlgItem(ID_SINGLE_THREAD_STYLE);
+   CEdit *pFilteredUsersEdit = (CEdit*)GetDlgItem(IDC_FILTERED_USERS_EDIT);
+   CEdit *pFilteredPhrasesEdit = (CEdit*)GetDlgItem(IDC_FILTERED_PHRASES_EDIT);
 
    if(pMouseWheelSpeed != NULL &&
       pMBPanSpeed != NULL &&
@@ -50,7 +52,9 @@ void CSettingsDlg::OnBnClickedOk()
       pInertia != NULL &&
       pHoursExpire != NULL &&
       pUseStoneDonkey != NULL &&
-      pUseSingleThreadStyle != NULL)
+      pUseSingleThreadStyle != NULL &&
+      pFilteredUsersEdit != NULL &&
+      pFilteredPhrasesEdit != NULL)
    {
       CString temp;
       UCString temp2;
@@ -95,6 +99,48 @@ void CSettingsDlg::OnBnClickedOk()
       {
          theApp.SetSingleThreadStyle(false);
       }
+
+      pFilteredUsersEdit->GetWindowTextW(temp);
+      temp2 = temp;
+
+      std::set<UCString> &ful = theApp.GetFilteredUsernameList();
+      ful.clear();
+
+      temp2.ReplaceAll(L'\r',L'\n');
+      temp2.Replace(L"\n\n",L"\n");
+
+      UCString username;
+      int tokenindex = 0;
+      while(temp2.GetToken(username,tokenindex,L'\n'))
+      {
+         if(!username.IsEmpty())
+         {
+            ful.insert(username);
+         }
+         tokenindex++;
+         username = L"";
+      }
+
+      pFilteredPhrasesEdit->GetWindowTextW(temp);
+      temp2 = temp;
+
+      std::set<UCString> &fpl = theApp.GetFilteredPhraseList();
+      fpl.clear();
+
+      temp2.ReplaceAll(L'\r',L'\n');
+      temp2.Replace(L"\n\n",L"\n");
+
+      UCString phrase;
+      tokenindex = 0;
+      while(temp2.GetToken(phrase,tokenindex,L'\n'))
+      {
+         if(!phrase.IsEmpty())
+         {
+            fpl.insert(phrase);
+         }
+         tokenindex++;
+         phrase = L"";
+      }
    }
 
    OnOK();
@@ -110,6 +156,8 @@ BOOL CSettingsDlg::OnInitDialog()
    CEdit *pHoursExpire = (CEdit*)GetDlgItem(IDC_NUM_HOURS_EXPIRE_EDIT);
    CButton *pUseStoneDonkey = (CButton*)GetDlgItem(ID_USE_STONEDONKEY);
    CButton *pUseSingleThreadStyle = (CButton*)GetDlgItem(ID_SINGLE_THREAD_STYLE);
+   CEdit *pFilteredUsersEdit = (CEdit*)GetDlgItem(IDC_FILTERED_USERS_EDIT);
+   CEdit *pFilteredPhrasesEdit = (CEdit*)GetDlgItem(IDC_FILTERED_PHRASES_EDIT);
 
    if(pMouseWheelSpeed != NULL &&
       pMBPanSpeed != NULL &&
@@ -118,7 +166,9 @@ BOOL CSettingsDlg::OnInitDialog()
       pInertia != NULL &&
       pHoursExpire != NULL &&
       pUseStoneDonkey != NULL &&
-      pUseSingleThreadStyle != NULL)
+      pUseSingleThreadStyle != NULL &&
+      pFilteredUsersEdit != NULL &&
+      pFilteredPhrasesEdit != NULL)
    {
       pMouseWheelSpeed->SetWindowTextW(UCString(theApp.GetMouseWheelScale()));
       pMBPanSpeed->SetWindowTextW(UCString(theApp.GetMBPanScale()));
@@ -144,6 +194,38 @@ BOOL CSettingsDlg::OnInitDialog()
       {
          pUseSingleThreadStyle->SetCheck(BST_UNCHECKED);
       }
+
+      std::set<UCString> &ful = theApp.GetFilteredUsernameList();
+
+      UCString listtext;
+
+      std::set<UCString>::iterator it = ful.begin();
+      std::set<UCString>::iterator end = ful.end();
+
+      while(it != end)
+      {
+         listtext += (*it);
+         listtext += L"\r\n";
+         it++;
+      }
+
+      pFilteredUsersEdit->SetWindowTextW(listtext);
+
+      std::set<UCString> &fpl = theApp.GetFilteredPhraseList();
+
+      listtext = L"";
+
+      it = fpl.begin();
+      end = fpl.end();
+
+      while(it != end)
+      {
+         listtext += (*it);
+         listtext += L"\r\n";
+         it++;
+      }
+
+      pFilteredPhrasesEdit->SetWindowTextW(listtext);
    }
 
    CDialog::OnInitDialog();

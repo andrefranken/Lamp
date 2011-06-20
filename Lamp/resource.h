@@ -55,6 +55,8 @@
 #define IDC_NUM_SHOW_TRUNC_EDIT         1014
 #define IDC_NUM_MIN_INBOX_EDIT          1015
 #define IDC_NUM_HOURS_EXPIRE_EDIT       1016
+#define IDC_FILTERED_USERS_EDIT         1017
+#define IDC_FILTERED_PHRASES_EDIT       1018
 #define ID_FILE_OPENTHREAD              32771
 #define ID_EDIT_REFRESH                 32773
 #define ID_FILE_SETUPLOGININFO          32774
@@ -133,6 +135,7 @@
 #define ID_USE_STONEDONKEY              32851
 #define ID_BACK_ID                      32852
 #define ID_SINGLE_THREAD_STYLE          32853
+#define ID_HIDE_COLLAPSED_POSTS         32854
 #define ID_BOOKMARK_MENUITEM            32880
 
 // Next default values for new objects
@@ -140,8 +143,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        328
-#define _APS_NEXT_COMMAND_VALUE         32854
-#define _APS_NEXT_CONTROL_VALUE         1017
+#define _APS_NEXT_COMMAND_VALUE         32855
+#define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

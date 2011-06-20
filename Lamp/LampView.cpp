@@ -79,6 +79,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_EDIT_BOOKMARK_THIS_POST, &CLampView::OnUpdateBookmarkThisPost)
    ON_COMMAND(ID_PINNING_MENUITEM, &CLampView::OnPinning)
    ON_UPDATE_COMMAND_UI(ID_PINNING_MENUITEM, &CLampView::OnUpdatePinning)
+   ON_COMMAND(ID_HIDE_COLLAPSED_POSTS, &CLampView::OnHideCollapsedThreads)
+   ON_UPDATE_COMMAND_UI(ID_HIDE_COLLAPSED_POSTS, &CLampView::OnUpdateHideCollapsedThreads)
    ON_COMMAND(ID_CLEAR_ALL_PINNINGS_MENUITEM, &CLampView::OnClearAllPinnings)
    ON_UPDATE_COMMAND_UI(ID_CLEAR_ALL_PINNINGS_MENUITEM, &CLampView::OnUpdateClearAllPinnings)
    ON_COMMAND(ID_DOUBLE_PAGE_STORY_MENUITEM, &CLampView::OnDoublePageStory)
@@ -4413,6 +4415,26 @@ void CLampView::OnUpdatePinning(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(theApp.IsPinningInStories())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnHideCollapsedThreads()
+{
+   theApp.SetHideCollapsedPosts(!theApp.HideCollapsedPosts());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateHideCollapsedThreads(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.HideCollapsedPosts())
    {
       pCmdUI->SetCheck(TRUE);
    }

@@ -166,7 +166,7 @@ public:
 
    bool GetToken(UCString &result, int tokenindex, UCString &tokens, bool bTrimwhitespace, UCChar &TerminatingToken) const;
   
-   const UCChar *Find(const UCChar *what, const UCChar *starting = NULL, bool bPositionAfter = false) const;
+   const UCChar *Find(const UCChar *what, const UCChar *starting = NULL, bool bPositionAfter = false, bool bCaseIndependant = false) const;
   
    int FuzzyFind(const UCChar* what, const UCChar *ignore = NULL) const;
 

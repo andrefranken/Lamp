@@ -823,7 +823,25 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                ChattyPost *root_post = FindRootPost(pDD->m_id);
                if(root_post != NULL)
                {
+                  unsigned int root_id = root_post->GetId();
                   root_post->UpdatePreviewsToKnown();
+
+                  if(root_post->IsFiltered())
+                  {
+                     m_rootposts.remove(root_post);
+
+                     delete(root_post);
+                  }
+
+                  if(m_pView)
+                  {
+                     unsigned int currentid = m_pView->GetCurrentId();
+                     if(currentid != 0 &&
+                        FindPost(currentid) == NULL)
+                     {
+                        m_pView->SetCurrentId(root_id);
+                     }
+                  }
                }
 
                ChattyPost *post = FindPost(pDD->m_refreshid);

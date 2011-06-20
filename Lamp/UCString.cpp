@@ -1395,7 +1395,7 @@ bool UCString::GetToken(UCString &result, int tokenindex, UCString &tokens, bool
    
    return bFoundit;
 }
-const UCChar *UCString::Find(const UCChar *what, const UCChar *starting/* = NULL*/, bool bPositionAfter/* = false*/) const
+const UCChar *UCString::Find(const UCChar *what, const UCChar *starting/* = NULL*/, bool bPositionAfter/* = false*/, bool bCaseIndependant/* = false*/) const
 {
    const UCChar *result = NULL;
    const UCChar *searchtarget = starting;
@@ -1405,7 +1405,24 @@ const UCChar *UCString::Find(const UCChar *what, const UCChar *starting/* = NULL
    }
    if(searchtarget != NULL)
    {
-      result = wcsstr(searchtarget, what);
+      if(bCaseIndependant)
+      {
+         size_t whatlen = wcslen(what);
+         const UCChar *searchend = searchtarget + (m_stringlength - whatlen);
+         while(result == false &&
+               searchtarget <= searchend)
+         {
+            if(_wcsnicmp(searchtarget,what,whatlen) == 0)
+            {
+               result = searchtarget;
+            }
+            searchtarget++;
+         }
+      }
+      else
+      {
+         result = wcsstr(searchtarget, what);
+      }
 
       if(bPositionAfter && result != NULL)
       {

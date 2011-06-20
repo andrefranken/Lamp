@@ -245,6 +245,8 @@ public:
    afx_msg void OnUpdateBookmarkThisPost(CCmdUI *pCmdUI);
    afx_msg void OnPinning();
    afx_msg void OnUpdatePinning(CCmdUI *pCmdUI);
+   afx_msg void OnHideCollapsedThreads();
+   afx_msg void OnUpdateHideCollapsedThreads(CCmdUI *pCmdUI);
    afx_msg void OnClearAllPinnings();
    afx_msg void OnUpdateClearAllPinnings(CCmdUI *pCmdUI);
    afx_msg void OnDoublePageStory();
