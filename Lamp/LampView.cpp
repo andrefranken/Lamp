@@ -81,6 +81,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_PINNING_MENUITEM, &CLampView::OnUpdatePinning)
    ON_COMMAND(ID_HIDE_COLLAPSED_POSTS, &CLampView::OnHideCollapsedThreads)
    ON_UPDATE_COMMAND_UI(ID_HIDE_COLLAPSED_POSTS, &CLampView::OnUpdateHideCollapsedThreads)
+   ON_COMMAND(ID_INFINATE_PAGING, &CLampView::OnInfinatePaging)
+   ON_UPDATE_COMMAND_UI(ID_INFINATE_PAGING, &CLampView::OnUpdateInfinatePaging)
    ON_COMMAND(ID_CLEAR_ALL_PINNINGS_MENUITEM, &CLampView::OnClearAllPinnings)
    ON_UPDATE_COMMAND_UI(ID_CLEAR_ALL_PINNINGS_MENUITEM, &CLampView::OnUpdateClearAllPinnings)
    ON_COMMAND(ID_DOUBLE_PAGE_STORY_MENUITEM, &CLampView::OnDoublePageStory)
@@ -1736,6 +1738,18 @@ void CLampView::MakePosLegal()
 
    m_gotopos = __min(GetDocument()->GetHeight() - (DeviceRectangle.bottom - DeviceRectangle.top), m_gotopos);
    m_gotopos = __max(0, m_gotopos);
+
+   if(GetDocument()->GetDataType() == DDT_STORY &&
+      theApp.InfinatePaging() &&
+      theApp.UseShack() &&
+      !GetDocument()->IsFetchingNextPage())
+   {
+      if(m_gotopos > 0 && 
+         GetDocument()->GetHeight() - m_gotopos < (2 * (DeviceRectangle.bottom - DeviceRectangle.top) ))
+      {
+         GetDocument()->FetchNextPage();
+      }
+   }
 }
 
 
@@ -4441,6 +4455,33 @@ void CLampView::OnUpdateHideCollapsedThreads(CCmdUI *pCmdUI)
    else
    {
       pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnInfinatePaging()
+{
+   theApp.SetInfinatePaging(!theApp.InfinatePaging());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateInfinatePaging(CCmdUI *pCmdUI)
+{
+   if(theApp.UseShack())
+   {
+      pCmdUI->Enable(TRUE);
+
+      if(theApp.InfinatePaging())
+      {
+         pCmdUI->SetCheck(TRUE);
+      }
+      else
+      {
+         pCmdUI->SetCheck(FALSE);
+      }
+   }
+   else
+   {
+      pCmdUI->Enable(FALSE);
    }
 }
 

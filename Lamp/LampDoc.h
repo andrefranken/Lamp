@@ -49,7 +49,8 @@ typedef enum
    DT_SHACK_SEARCH = 17,
    DT_SHACK_SHACKMSG = 18,
    DT_SHACK_READMSG = 19,
-   DT_SHACK_SENDMSG = 20
+   DT_SHACK_SENDMSG = 20,
+   DT_SHACK_CHATTY_INFINATE_PAGE = 21
 } DownloadType;
 
 typedef enum 
@@ -254,6 +255,10 @@ public:
 
    void MakePostAvailable(unsigned int id);
 
+   bool IsFetchingNextPage(){return m_bFetchingNextPage;}
+
+   void FetchNextPage();
+
 // Implementation
 public:
 	virtual ~CLampDoc();
@@ -266,7 +271,7 @@ protected:
    void SetDataType(DocDataType datatype){m_datatype = datatype;}
    bool ReadFromRoot(CXMLTree &xmldata, std::vector<unsigned int> &existing_threads);
    bool ReadSearchResultsFromRoot(CXMLTree &xmldata);
-   void ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsigned int> &existing_threads, bool bCheckForPages);
+   void ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsigned int> &existing_threads, bool bCheckForPages, bool bSkipExistingThreads = false);
    void ReadLatestChatty();
    void ReadLatestChattyPart2();   
    void ReadLOL();
@@ -332,6 +337,8 @@ protected:
    UCString m_search_terms;
 
    bool m_bScramblePath;
+
+   bool m_bFetchingNextPage;
 
    std::map<unsigned int,unsigned int> m_id_redirects;
 

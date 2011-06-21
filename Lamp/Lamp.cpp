@@ -544,6 +544,7 @@ CLampApp::CLampApp()
    m_bShowLOLButtons = true;
    m_bHideCollapsedPosts = false;
    m_bAlwaysOnTopWhenNotDocked = false;
+   m_bInfinatePaging = false;
 
    m_normal_fontname = L"Arial";
    m_quoted_fontname = L"Times New Roman";
@@ -1277,6 +1278,10 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_bHideCollapsedPosts = setting->GetValue();
    else m_bHideCollapsedPosts = false;
 
+   setting = hostxml.FindChildElement(L"InfinatePaging");
+   if(setting!=NULL) m_bInfinatePaging = setting->GetValue();
+   else m_bInfinatePaging = false;
+
    setting = hostxml.FindChildElement(L"FlaredBranches");
    if(setting!=NULL) m_bFlaredBranches = setting->GetValue();
    else m_bFlaredBranches = true;
@@ -1647,6 +1652,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"ShowLOLButtons",UCString(m_bShowLOLButtons));
    settingsxml.AddChildElement(L"SmallLOLButtons",UCString(m_bShowSmallLOL));
    settingsxml.AddChildElement(L"HideCollapsedPosts",UCString(m_bHideCollapsedPosts));
+   settingsxml.AddChildElement(L"InfinatePaging",UCString(m_bInfinatePaging));
    settingsxml.AddChildElement(L"FlaredBranches",UCString(m_bFlaredBranches));
    settingsxml.AddChildElement(L"auto_check_inbox",UCString(m_auto_check_inbox));
    settingsxml.AddChildElement(L"show_root_selected",UCString(m_show_root_selected));

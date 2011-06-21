@@ -88,6 +88,10 @@ public:
 
    void CloseFindDlg();
 
+   void DrawEverythingToBuffer(CDCSurface *pSurface = NULL, 
+                               RECT *pDeviceRectangle = NULL, 
+                               RECT *pScrollRectangle = NULL);
+
 protected:
    void DrawHotSpots(HDC hDC);
    bool DrawCurrentHotSpots(HDC hDC);
@@ -95,10 +99,6 @@ protected:
    void DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<CHotSpot> &hotspots);
    void DrawThumb(HDC hDC, const RECT &thumbrect, scrollbitype type);
    void UpdateHotspotPosition();
-   
-   void DrawEverythingToBuffer(CDCSurface *pSurface = NULL, 
-                               RECT *pDeviceRectangle = NULL, 
-                               RECT *pScrollRectangle = NULL);
 
    void BeginInertiaPanning();
    void CancelInertiaPanning();
@@ -247,6 +247,8 @@ public:
    afx_msg void OnUpdatePinning(CCmdUI *pCmdUI);
    afx_msg void OnHideCollapsedThreads();
    afx_msg void OnUpdateHideCollapsedThreads(CCmdUI *pCmdUI);
+   afx_msg void OnInfinatePaging();
+   afx_msg void OnUpdateInfinatePaging(CCmdUI *pCmdUI);
    afx_msg void OnClearAllPinnings();
    afx_msg void OnUpdateClearAllPinnings(CCmdUI *pCmdUI);
    afx_msg void OnDoublePageStory();

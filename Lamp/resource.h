@@ -136,6 +136,7 @@
 #define ID_BACK_ID                      32852
 #define ID_SINGLE_THREAD_STYLE          32853
 #define ID_HIDE_COLLAPSED_POSTS         32854
+#define ID_INFINATE_PAGING              32855
 #define ID_BOOKMARK_MENUITEM            32880
 
 // Next default values for new objects
@@ -143,7 +144,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        328
-#define _APS_NEXT_COMMAND_VALUE         32855
+#define _APS_NEXT_COMMAND_VALUE         32856
 #define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

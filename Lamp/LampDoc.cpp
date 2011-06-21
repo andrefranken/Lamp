@@ -46,6 +46,7 @@ UINT DownloadThreadProc( LPVOID pParam )
       }
 
       if(pDD->m_dt == DT_SHACK_CHATTY ||
+         pDD->m_dt == DT_SHACK_CHATTY_INFINATE_PAGE ||
          pDD->m_dt == DT_SHACK_THREAD_CONTENTS || 
          pDD->m_dt == DT_SHACK_THREAD ||
          pDD->m_dt == DT_SHACK_POST ||
@@ -279,7 +280,8 @@ void CDownloadData::getchatty(int numtries)
       if(m_stdstring.length() > 0)
       {
          // todo : need clear way to know that the generic user login has expired, for other cases
-         if(this->m_dt == DT_SHACK_CHATTY)
+         if(m_dt == DT_SHACK_CHATTY ||
+            m_dt == DT_SHACK_CHATTY_INFINATE_PAGE)
          {
             const char *proof = strstr(m_stdstring.data(),"<li class=\"user light\">latestchatty</li>");
             if(proof == NULL)
@@ -757,11 +759,10 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             }
             m_rootposts.clear();
             m_rootposts = newroots;
-
             
             // scrape HTML
             ReadChattyPageFromHTML(pDD->m_stdstring, existing_threads, true);
-
+            
             it = m_rootposts.begin();
             end = m_rootposts.end();
             while(it != end)
@@ -772,13 +773,57 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                }
                it++;
             }
-
-            /*
-            if(theApp.IsDoublePageStory())
+         }
+         break;
+      case DT_SHACK_CHATTY_INFINATE_PAGE:
+         {
+            std::vector<unsigned int> existing_threads;
+            std::list<ChattyPost*> newroots;
+            std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+            std::list<ChattyPost*>::iterator end = m_rootposts.end();
+            std::list<ChattyPost*>::iterator last = end;
+            if(m_rootposts.size() > 0)
             {
-               ReadLatestChattyPart2();
+               last--;
             }
-            */
+            while(it != end)
+            {
+               if((*it) != NULL)
+               {
+                  existing_threads.push_back((*it)->GetId());
+               }
+               it++;
+            }
+            
+            // scrape HTML
+            ReadChattyPageFromHTML(pDD->m_stdstring, existing_threads, true, true);
+
+            if(last != end)
+            {
+               it = last;
+               it++;
+            }
+            else
+            {
+               it = m_rootposts.begin();
+            }
+            end = m_rootposts.end();
+            while(it != end)
+            {
+               if((*it) != NULL)
+               {
+                  (*it)->ShowAsTruncated();
+               }
+               it++;
+            }
+
+            // update the page's height by forcing a draw
+            if(m_pView)
+            {
+               m_pView->DrawEverythingToBuffer();
+            }
+
+            m_bFetchingNextPage = false;
          }
          break;
       case DT_SHACK_THREAD_CONTENTS:
@@ -1366,6 +1411,7 @@ CLampDoc::CLampDoc()
    m_bScramblePath = false;
    m_bBusy = false;
    m_shackmsgtype = SMT_INBOX;
+   m_bFetchingNextPage = false;
 
    m_lol_text = L"lol";
    m_inf_text = L"inf";
@@ -2628,6 +2674,7 @@ bool CLampDoc::Refresh()
       break;
    case DDT_STORY:
       {
+         m_page = 1;
          ReadLatestChatty();
          bResetPos = true;
       }
@@ -3107,143 +3154,146 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          restrect.right = imagerect.left;
 
          // draw page bar
-         
+
          FillBackground(hDC,restrect);
 
-         RECT pagingrect = restrect;
-         pagingrect.left += 20;
-         pagingrect.right -= 20;
-
-         int pagingwidth = pagingrect.right - pagingrect.left;
-
-         // each square needs 20 + 10
-         int howmanycanihave = m_lastpage + 2;
-
-         while(howmanycanihave * (20+10) > pagingwidth)
+         if(GetDataType() != DDT_STORY || !theApp.InfinatePaging())
          {
-            howmanycanihave--;
-         }
+            RECT pagingrect = restrect;
+            pagingrect.left += 20;
+            pagingrect.right -= 20;
 
-         // don't even bother if i cant' do at least 3
-         if(howmanycanihave > 3)
-         {
-            howmanycanihave -= 2;  // reserve 2 for next and previous page
+            int pagingwidth = pagingrect.right - pagingrect.left;
 
-            int first = 1;
-            int last = m_lastpage;
+            // each square needs 20 + 10
+            int howmanycanihave = m_lastpage + 2;
 
-            if(howmanycanihave < (int)m_lastpage)
+            while(howmanycanihave * (20+10) > pagingwidth)
             {
-               if((int)m_page < howmanycanihave / 2)
-               {
-                  // we can trim off the upper end
-                  first = 1;
-                  last = howmanycanihave;
-               }
-               else if((int)m_lastpage - (int)m_page < howmanycanihave / 2)
-               {
-                  // we can trim off the lower end
-                  first = ((int)m_lastpage - howmanycanihave) + 1;
-                  last = m_lastpage;
-               }
-               else
-               {
-                  // we trim both ends
-                  first = __max(1,(int)m_page - (howmanycanihave / 2));
-                  last = (first + howmanycanihave) - 1;
-               }
+               howmanycanihave--;
             }
 
-            int x = ((pagingrect.right + pagingrect.left) / 2) - (int)(((float)(howmanycanihave + 2) /2.0f) * (20.0f+10.0f));
-            int y = ((bannerrect.bottom + bannerrect.top) / 2) + 10;
-
-            ::SetTextAlign(hDC,TA_CENTER|TA_BOTTOM);
-            ::SelectObject(hDC,m_pagefont);
-            HBRUSH oldbrush = (HBRUSH)::SelectObject(hDC,m_rootbackgroundbrush);
-            HPEN oldpen = (HPEN)::SelectObject(hDC,m_roottoppen);
-            HPEN nullpen = ::CreatePen(PS_NULL,0,0);
-            ::SetTextColor(hDC,theApp.GetPostTextColor());
-
-            RECT pagebut;
-            pagebut.left = x + 5;
-            pagebut.top = y - 20;
-            pagebut.right = x + 25;
-            pagebut.bottom = y;
-
-            // draw the previous
-            if(m_page == 1)
+            // don't even bother if i cant' do at least 3
+            if(howmanycanihave > 3)
             {
-               // draw greyed out
-               ::SelectObject(hDC,nullpen);
-               ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-               ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, L"<", 1, NULL);
-               ::SelectObject(hDC,m_roottoppen);
-            }
-            else
-            {
-               ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-               ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, L"<", 1, NULL);
-               
-               hotspot.m_type = HST_PREV_PAGE;
-               hotspot.m_spot = pagebut;
-               hotspot.m_id = 0;
-               hotspots.push_back(hotspot);
-            }
-            pagebut.left += 30;
-            pagebut.right += 30;
-            x += 30;
+               howmanycanihave -= 2;  // reserve 2 for next and previous page
 
-            for(int i = first; i <= last; i++)
-            {
-               UCString pagenum = i;
+               int first = 1;
+               int last = m_lastpage;
+
+               if(howmanycanihave < (int)m_lastpage)
+               {
+                  if((int)m_page < howmanycanihave / 2)
+                  {
+                     // we can trim off the upper end
+                     first = 1;
+                     last = howmanycanihave;
+                  }
+                  else if((int)m_lastpage - (int)m_page < howmanycanihave / 2)
+                  {
+                     // we can trim off the lower end
+                     first = ((int)m_lastpage - howmanycanihave) + 1;
+                     last = m_lastpage;
+                  }
+                  else
+                  {
+                     // we trim both ends
+                     first = __max(1,(int)m_page - (howmanycanihave / 2));
+                     last = (first + howmanycanihave) - 1;
+                  }
+               }
+
+               int x = ((pagingrect.right + pagingrect.left) / 2) - (int)(((float)(howmanycanihave + 2) /2.0f) * (20.0f+10.0f));
+               int y = ((bannerrect.bottom + bannerrect.top) / 2) + 10;
+
+               ::SetTextAlign(hDC,TA_CENTER|TA_BOTTOM);
+               ::SelectObject(hDC,m_pagefont);
+               HBRUSH oldbrush = (HBRUSH)::SelectObject(hDC,m_rootbackgroundbrush);
+               HPEN oldpen = (HPEN)::SelectObject(hDC,m_roottoppen);
+               HPEN nullpen = ::CreatePen(PS_NULL,0,0);
+               ::SetTextColor(hDC,theApp.GetPostTextColor());
+
+               RECT pagebut;
+               pagebut.left = x + 5;
+               pagebut.top = y - 20;
+               pagebut.right = x + 25;
+               pagebut.bottom = y;
+
                // draw the previous
-               if(i == m_page)
+               if(m_page == 1)
                {
                   // draw greyed out
                   ::SelectObject(hDC,nullpen);
                   ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-                  ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, pagenum, pagenum.Length(), NULL);
+                  ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, L"<", 1, NULL);
                   ::SelectObject(hDC,m_roottoppen);
                }
                else
                {
                   ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-                  ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, pagenum, pagenum.Length(), NULL);
+                  ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, L"<", 1, NULL);
                   
-                  hotspot.m_type = HST_PAGE;
+                  hotspot.m_type = HST_PREV_PAGE;
                   hotspot.m_spot = pagebut;
-                  hotspot.m_id = i;
+                  hotspot.m_id = 0;
                   hotspots.push_back(hotspot);
                }
                pagebut.left += 30;
                pagebut.right += 30;
                x += 30;
-            }
-            
-            // draw the next
-            if(m_page == m_lastpage)
-            {
-               // draw greyed out
-               ::SelectObject(hDC,nullpen);
-               ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-               ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, L">", 1, NULL);
-               ::SelectObject(hDC,m_roottoppen);
-            }
-            else
-            {
-               ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-               ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, L">", 1, NULL);
-               
-               hotspot.m_type = HST_NEXT_PAGE;
-               hotspot.m_spot = pagebut;
-               hotspot.m_id = 0;
-               hotspots.push_back(hotspot);
-            }
 
-            ::SelectObject(hDC,oldbrush);
-            ::SelectObject(hDC,oldpen);
-            ::DeleteObject(nullpen);
-            ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
+               for(int i = first; i <= last; i++)
+               {
+                  UCString pagenum = i;
+                  // draw the previous
+                  if(i == m_page)
+                  {
+                     // draw greyed out
+                     ::SelectObject(hDC,nullpen);
+                     ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
+                     ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, pagenum, pagenum.Length(), NULL);
+                     ::SelectObject(hDC,m_roottoppen);
+                  }
+                  else
+                  {
+                     ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
+                     ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, pagenum, pagenum.Length(), NULL);
+                     
+                     hotspot.m_type = HST_PAGE;
+                     hotspot.m_spot = pagebut;
+                     hotspot.m_id = i;
+                     hotspots.push_back(hotspot);
+                  }
+                  pagebut.left += 30;
+                  pagebut.right += 30;
+                  x += 30;
+               }
+               
+               // draw the next
+               if(m_page == m_lastpage)
+               {
+                  // draw greyed out
+                  ::SelectObject(hDC,nullpen);
+                  ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
+                  ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, L">", 1, NULL);
+                  ::SelectObject(hDC,m_roottoppen);
+               }
+               else
+               {
+                  ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
+                  ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, L">", 1, NULL);
+                  
+                  hotspot.m_type = HST_NEXT_PAGE;
+                  hotspot.m_spot = pagebut;
+                  hotspot.m_id = 0;
+                  hotspots.push_back(hotspot);
+               }
+
+               ::SelectObject(hDC,oldbrush);
+               ::SelectObject(hDC,oldpen);
+               ::DeleteObject(nullpen);
+               ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
+            }
          }
       }
    }
@@ -3351,7 +3401,7 @@ bool GetXMLDataFromString(CXMLTree &xmldata, const char *data, int datasize)
 }
 
 
-void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsigned int> &existing_threads, bool bCheckForPages)
+void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsigned int> &existing_threads, bool bCheckForPages, bool bSkipExistingThreads/*=false*/)
 {
    if(bCheckForPages)
    {
@@ -3387,37 +3437,48 @@ void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsign
                            ChattyPost *post = NULL;
                            
                            bool bAlreadyHadIt = false;
+                           bool bSkip = false;
                            std::map<unsigned int,newness> post_newness;
 
                            for(size_t j = 0; j < existing_threads.size(); j++)
                            {
                               if(existing_threads[j] == root_id)
                               {
-                                 post = FindRootPost(root_id);
-                                 post->RecordNewness(post_newness);
-                                 post->ClearChildren();
-                                 bAlreadyHadIt = true;
+                                 if(bSkipExistingThreads)
+                                 {
+                                    bSkip = true;
+                                 }
+                                 else
+                                 {
+                                    post = FindRootPost(root_id);
+                                    post->RecordNewness(post_newness);
+                                    post->ClearChildren();
+                                 }
+                                 bAlreadyHadIt = true;                                 
                                  break;
                               }
                            }
 
-                           if(post == NULL)
+                           if(!bSkip)
                            {
-                              post = new ChattyPost();
-                              post->SetNewness(N_OLD);
-                              m_rootposts.push_back(post);
-                           }
+                              if(post == NULL)
+                              {
+                                 post = new ChattyPost();
+                                 post->SetNewness(N_OLD);
+                                 m_rootposts.push_back(post);
+                              }
 
-                           post->ReadRootChattyFromHTML(sit, this, root_id);
-                           post->EstablishNewness(post_newness);
-                           post->SetupPreviewShades(false);
-                           post->CountFamilySize();
-                           post->UpdateRootReplyList();
-                           post->SetParent(NULL);
-                           if(post->IsFiltered() && !bAlreadyHadIt)
-                           {
-                              m_rootposts.pop_back();
-                              delete post;
+                              post->ReadRootChattyFromHTML(sit, this, root_id);
+                              post->EstablishNewness(post_newness);
+                              post->SetupPreviewShades(false);
+                              post->CountFamilySize();
+                              post->UpdateRootReplyList();
+                              post->SetParent(NULL);
+                              if(post->IsFiltered() && !bAlreadyHadIt)
+                              {
+                                 m_rootposts.pop_back();
+                                 delete post;
+                              }
                            }
                         }
 
@@ -6136,5 +6197,23 @@ void CLampDoc::MakePostAvailable(unsigned int id)
                           id);
          }
       }
+   }
+}
+
+void CLampDoc::FetchNextPage()
+{
+   if(theApp.UseShack() &&
+      m_page + 1 <= m_lastpage)
+   {
+      m_bFetchingNextPage = true;
+      m_page++;
+
+      UCString story = L"/chatty?page=";
+      story += m_page;
+
+      StartDownload(L"www.shacknews.com",
+                    story,
+                    DT_SHACK_CHATTY_INFINATE_PAGE,
+                    0);
    }
 }

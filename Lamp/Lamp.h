@@ -22,7 +22,7 @@
 #define WM_WAKEUP (WM_USER + 102)
 
 #define LAMP_VERSION_MAJOR 1
-#define LAMP_VERSION_MINOR 91
+#define LAMP_VERSION_MINOR 92
 
 chattyerror download(const char* host, const char* path, char** out_response, int *psize=NULL);
 
@@ -660,6 +660,9 @@ public:
    bool HideCollapsedPosts(){return m_bHideCollapsedPosts;}
    void SetHideCollapsedPosts(bool value){m_bHideCollapsedPosts = value;}
 
+   bool InfinatePaging(){return m_bInfinatePaging;}
+   void SetInfinatePaging(bool value){m_bInfinatePaging = value;}
+
    bool AlwaysOnTopWhenNotDocked(){return m_bAlwaysOnTopWhenNotDocked;}
 
    void SetAlwaysOnTopWhenNotDocked(bool value){m_bAlwaysOnTopWhenNotDocked = value;}
@@ -976,6 +979,7 @@ protected:
    bool m_bShowLOLButtons;
    bool m_bAlwaysOnTopWhenNotDocked;
    bool m_bHideCollapsedPosts;
+   bool m_bInfinatePaging;
 
    std::map<UCString,COLORREF> m_namelist;
 
