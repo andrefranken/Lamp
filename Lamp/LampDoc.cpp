@@ -3166,12 +3166,31 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
 
          FillBackground(hDC,restrect);
 
-         if(GetDataType() != DDT_STORY || !theApp.InfinatePaging())
-         {
-            RECT pagingrect = restrect;
-            pagingrect.left += 20;
-            pagingrect.right -= 20;
+         RECT pagingrect = restrect;
+         pagingrect.left += 20;
+         pagingrect.right -= 20;
 
+         if(GetDataType() == DDT_STORY && theApp.InfinatePaging())
+         {
+            ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
+            ::SelectObject(hDC,m_pagefont);
+            ::SetTextColor(hDC,theApp.GetPostTextColor());
+
+            UCString pagenote = L"Have ";
+            pagenote += m_page;
+            pagenote += L" page";
+            if(m_page > 1)
+            {
+               pagenote += L"s";
+            }
+            pagenote += L" loaded.  Out of ";
+            pagenote += m_lastpage;
+            pagenote += L".";
+
+            ::ExtTextOut(hDC, pagingrect.left + 15, pagingrect.top + ((pagingrect.bottom - pagingrect.top) / 2) + 6, 0, NULL, pagenote.Str(), pagenote.Length(), NULL);
+         }
+         else
+         {
             int pagingwidth = pagingrect.right - pagingrect.left;
 
             // each square needs 20 + 10
