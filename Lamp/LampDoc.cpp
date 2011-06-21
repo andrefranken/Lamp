@@ -777,6 +777,11 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
          break;
       case DT_SHACK_CHATTY_INFINATE_PAGE:
          {
+            ChattyPost *pagepost = new ChattyPost();
+            pagepost->SetAsPageBreak(m_page);
+            pagepost->SetDoc(this);
+            m_rootposts.push_back(pagepost);
+
             std::vector<unsigned int> existing_threads;
             std::list<ChattyPost*> newroots;
             std::list<ChattyPost*>::iterator it = m_rootposts.begin();
@@ -2674,7 +2679,10 @@ bool CLampDoc::Refresh()
       break;
    case DDT_STORY:
       {
-         m_page = 1;
+         if(theApp.UseShack() && theApp.InfinatePaging())
+         {
+            m_page = 1;
+         }
          ReadLatestChatty();
          bResetPos = true;
       }
@@ -2772,7 +2780,8 @@ void CLampDoc::RefreshAllRoots()
 
    while(it != end)
    {
-      if(!(*it)->IsCollapsed())
+      if(!(*it)->IsCollapsed() &&
+         !(*it)->IsPageBreak())
       {
          RefreshThread((*it)->GetId(),(*it)->GetId(),true);
       }
@@ -6069,7 +6078,8 @@ unsigned int CLampDoc::GetNextRoot(ChattyPost *pRootPost)
          {
             while(it != end)
             {
-               if(!(*it)->IsCollapsed())
+               if(!(*it)->IsCollapsed() &&
+                  !(*it)->IsPageBreak())
                {
                   id = (*it)->GetId();
                   break;
@@ -6087,7 +6097,8 @@ unsigned int CLampDoc::GetNextRoot(ChattyPost *pRootPost)
                   it++;
                   while(it != end)
                   {
-                     if(!(*it)->IsCollapsed())
+                     if(!(*it)->IsCollapsed() &&
+                        !(*it)->IsPageBreak())
                      {
                         id = (*it)->GetId();
                         break;
@@ -6125,7 +6136,8 @@ unsigned int CLampDoc::GetPrevRoot(ChattyPost *pRootPost)
             it--;
             while(!done)
             {
-               if(!(*it)->IsCollapsed())
+               if(!(*it)->IsCollapsed() &&
+                  !(*it)->IsPageBreak())
                {
                   id = (*it)->GetId();
                   done = true;
@@ -6150,7 +6162,8 @@ unsigned int CLampDoc::GetPrevRoot(ChattyPost *pRootPost)
                   while(it != first)
                   {
                      it--;
-                     if(!(*it)->IsCollapsed())
+                     if(!(*it)->IsCollapsed() &&
+                        !(*it)->IsPageBreak())
                      {
                         id = (*it)->GetId();
                         break;

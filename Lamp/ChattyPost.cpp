@@ -1611,7 +1611,23 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
 {
    if(m_pDoc != NULL)
    {
-      if(m_bCollapsed)
+      if(m_bPageBreak)
+      {
+         m_pos = pos;
+         RECT myrect = DeviceRectangle;
+         myrect.top = pos;
+         myrect.bottom = pos + theApp.GetCellHeight();
+         pos = myrect.bottom;
+
+         m_pDoc->FillBackground(hDC,myrect);
+
+         myrect.left = ((myrect.right - myrect.left) - m_subjectwidth) / 2;
+
+         bool clipped = false;
+         m_pDoc->DrawPreviewText(hDC,myrect,m_subject, m_pSubjectCharWidths,m_shacktags,0,clipped);
+
+      }
+      else if(m_bCollapsed)
       {
          m_pos = pos;
          if(!theApp.HideCollapsedPosts())
@@ -2091,7 +2107,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             it++;
          }
       }
-   }
+   }   
 
    return pos;
 }
@@ -5354,3 +5370,30 @@ void ChattyPost::EstablishNewness(std::map<unsigned int,newness> &post_newness)
    }
 }
 
+void ChattyPost::SetAsPageBreak(size_t page)
+{
+   m_bPageBreak = true;
+   
+   m_subject = (UCChar)0x02C5;
+   m_subject += (UCChar)0x02C5;
+   m_subject += (UCChar)0x02C5;
+   m_subject += L" Page ";
+   m_subject += page;
+   m_subject += L" ";
+   m_subject += (UCChar)0x02C5;
+   m_subject += (UCChar)0x02C5;
+   m_subject += (UCChar)0x02C5;
+
+   if(!m_subject.IsEmpty())
+   {
+      m_pSubjectCharWidths = (int*)malloc(sizeof(int) * m_subject.Length());
+
+      GetCharWidths(m_subject, m_pSubjectCharWidths, m_subject.Length(), false, false, false, theApp.GetNormalFontName());
+
+      m_subjectwidth = 0;
+      for(int i = 0; i < m_subject.Length(); i++)
+      {
+         m_subjectwidth += m_pSubjectCharWidths[i];
+      }      
+   }
+}

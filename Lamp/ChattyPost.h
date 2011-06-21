@@ -331,6 +331,8 @@ public:
       m_bHaveLOLPreview = false;
       m_bIsMe = false;
       m_bIsPreview = false;
+      m_bPageBreak = false;
+      m_subjectwidth = 0;
       memset(&m_tm_posttime,0,sizeof(tm));
    }
    virtual ~ChattyPost();
@@ -341,6 +343,8 @@ public:
    void SetId(unsigned int newid){m_id = newid;}
 
    bool IsPreview(){return m_bIsPreview;}
+
+   bool IsPageBreak(){return m_bPageBreak;}
 
    void SetNewness(newness value){m_Newness = value;}
    void BumpNewnessDown(){if(m_Newness == N_NEW)m_Newness = N_LAST;else if(m_Newness == N_LAST)m_Newness = N_OLD;}
@@ -485,6 +489,8 @@ public:
    void RecordNewness(std::map<unsigned int,newness> &post_newness);
    void EstablishNewness(std::map<unsigned int,newness> &post_newness);
 
+   void SetAsPageBreak(size_t page);
+
 protected:
    void SetupCharWidths();
    void SetupBodyText(RECT &textrect);
@@ -578,4 +584,8 @@ protected:
    bool                    m_bIsPreview;
 
    tm                      m_tm_posttime;
+
+   bool                    m_bPageBreak;
+
+   int                     m_subjectwidth;
 };
