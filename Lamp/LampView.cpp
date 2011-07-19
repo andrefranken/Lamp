@@ -135,6 +135,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_SELECT_CUSTOM, &CLampView::OnUpdateSelectCustom)
    ON_COMMAND(ID_FLAREDBRANCHES, &CLampView::OnFlaredBranches)
    ON_UPDATE_COMMAND_UI(ID_FLAREDBRANCHES, &CLampView::OnUpdateFlaredBranches)
+   ON_COMMAND(ID_ALT_POSTKEYS, &CLampView::OnAltPostkeys)
+   ON_UPDATE_COMMAND_UI(ID_ALT_POSTKEYS, &CLampView::OnUpdateAltPostkeys)
    ON_COMMAND(ID_GOOGLE_SELECTED, &CLampView::OnGoogleSelected)
    ON_UPDATE_COMMAND_UI(ID_GOOGLE_SELECTED, &CLampView::OnUpdateGoogleSelected)
    ON_COMMAND(ID_GOOGLE_SELECTED_W_QUOTES, &CLampView::OnGoogleSelectedWQuotes)
@@ -5041,6 +5043,25 @@ void CLampView::OnUpdateFlaredBranches(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(theApp.FlaredBranches())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnAltPostkeys()
+{
+   theApp.SetAlternatePostKeys(!theApp.AlternatePostKeys());
+}
+
+void CLampView::OnUpdateAltPostkeys(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.AlternatePostKeys())
    {
       pCmdUI->SetCheck(TRUE);
    }

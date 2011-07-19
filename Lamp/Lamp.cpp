@@ -1286,6 +1286,10 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_bFlaredBranches = setting->GetValue();
    else m_bFlaredBranches = true;
 
+   setting = hostxml.FindChildElement(L"AlternatePostKeys");
+   if(setting!=NULL) m_bAlternatePostKeys = setting->GetValue();
+   else m_bAlternatePostKeys = false;
+
    setting = hostxml.FindChildElement(L"auto_check_inbox");
    if(setting!=NULL) m_auto_check_inbox = setting->GetValue();
    else m_auto_check_inbox = true;
@@ -1654,6 +1658,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"HideCollapsedPosts",UCString(m_bHideCollapsedPosts));
    settingsxml.AddChildElement(L"InfinatePaging",UCString(m_bInfinatePaging));
    settingsxml.AddChildElement(L"FlaredBranches",UCString(m_bFlaredBranches));
+   settingsxml.AddChildElement(L"AlternatePostKeys",UCString(m_bAlternatePostKeys));
    settingsxml.AddChildElement(L"auto_check_inbox",UCString(m_auto_check_inbox));
    settingsxml.AddChildElement(L"show_root_selected",UCString(m_show_root_selected));
    settingsxml.AddChildElement(L"show_thomw_lols",UCString(m_show_thomw_lols));

@@ -199,7 +199,6 @@ BEGIN
     BEGIN
         MENUITEM "Inbox",                       ID_SHKMSGS_INBOX
         MENUITEM "Sent Messages",               ID_SHKMSGS_OUTBOX
-        MENUITEM "Archived Messages",           ID_SHKMSGS_ARCHIVE
     END
     MENUITEM "&Bookmark",                   ID_BOOKMARK_MENU
     POPUP "&View"
@@ -238,6 +237,7 @@ BEGIN
         MENUITEM "Check Spelling",              ID_CHECK_SPELLING
         MENUITEM "Highlight OP's Replies",      ID_HIGHLIGHT_OP
         MENUITEM "Show recent branches Flared", ID_FLAREDBRANCHES
+        MENUITEM "Use Alternate Post Hotkeys",  ID_ALT_POSTKEYS
         MENUITEM "Auto-Check Inbox",            ID_AUTOCHECKINBOX
         MENUITEM "Show Root As Selected",       ID_SHOW_ROOT_SELECTED
         MENUITEM SEPARATOR

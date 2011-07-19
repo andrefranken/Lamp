@@ -137,6 +137,8 @@
 #define ID_SINGLE_THREAD_STYLE          32853
 #define ID_HIDE_COLLAPSED_POSTS         32854
 #define ID_INFINATE_PAGING              32855
+#define ID_ALT_POSTKEYS                 32856
+
 #define ID_BOOKMARK_MENUITEM            32880
 
 // Next default values for new objects

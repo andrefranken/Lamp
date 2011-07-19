@@ -2081,7 +2081,7 @@ void CLampDoc::PerformSearch()
       temp = m_search_parent_author;
       temp.ReplaceAll(L' ',L'+');
       path += temp;
-      path += L"&chatty_filter=all&start=";
+      path += L"&chatty_filter=all&result_sort=postdate_desc&page=";
       path += m_page;
 
       StartDownload(L"www.shacknews.com",

@@ -1512,7 +1512,10 @@ void CReplyDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
          break;
       case 0x09:// TAB
          {
-            m_bLastCharWasTab = !m_bLastCharWasTab;
+            if(theApp.AlternatePostKeys())
+            {
+               m_bLastCharWasTab = !m_bLastCharWasTab;
+            }
          }
          break;
       case 0x42:// 'B'

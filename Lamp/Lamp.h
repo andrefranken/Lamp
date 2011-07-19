@@ -698,6 +698,9 @@ public:
    bool FlaredBranches(){return m_bFlaredBranches;}
    void SetFlaredBranches(bool value){m_bFlaredBranches = value;}
 
+   bool AlternatePostKeys(){return m_bAlternatePostKeys;}
+   void SetAlternatePostKeys(bool value){m_bAlternatePostKeys = value;}
+
    bool GetAutoCheckInbox(){return m_auto_check_inbox;}
    void SetAutoCheckInbox(bool value){m_auto_check_inbox = value;}
 
@@ -1038,6 +1041,8 @@ protected:
    bool m_bShowSmallLOL;
 
    bool m_bFlaredBranches;
+
+   bool m_bAlternatePostKeys;
 
    float m_inertia_friction;
 

@@ -301,6 +301,8 @@ public:
    afx_msg void OnUpdateSelectCustom(CCmdUI *pCmdUI);
    afx_msg void OnFlaredBranches();
    afx_msg void OnUpdateFlaredBranches(CCmdUI *pCmdUI);
+   afx_msg void OnAltPostkeys();
+   afx_msg void OnUpdateAltPostkeys(CCmdUI *pCmdUI);
    afx_msg void OnGoogleSelected();
    afx_msg void OnUpdateGoogleSelected(CCmdUI *pCmdUI);
    afx_msg void OnGoogleSelectedWQuotes();
