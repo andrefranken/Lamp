@@ -442,6 +442,7 @@ void CLampDoc::StartDownload(const UCChar *host,
       dt != DT_SHACK_THREAD_CONTENTS &&
       dt != DT_READMSG &&
       dt != DT_SHACK_READMSG &&
+      dt != DT_SUBMIT_LOLVOTE &&
       ((dt != DT_SHACKMSG &&
         dt != DT_SHACK_SHACKMSG) ||
        (dt == DT_SHACKMSG ||
@@ -5685,19 +5686,12 @@ bool CLampDoc::LolTagPost(unsigned int post_id, loltagtype tag)
 
       path += L"&version=-1";
 
-      ::EnterCriticalSection(&g_ThreadAccess);
+      StartDownload(theApp.GetLolHostName(),
+                    path,
+                    DT_SUBMIT_LOLVOTE,
+                    0);
 
-      chattyerror err = webclient_download(theApp.GetLolHostName().str8(), path.str8(false,CET_UTF8), NULL, NULL, &data);
-
-      ::LeaveCriticalSection(&g_ThreadAccess);
-
-      if(err == ERR_OK && data != NULL)
-      {
-         if(strstr(data, "ok") != NULL)
-         {
-            result = true;
-         }
-      }
+      result = true;
    }   
 
 	return result;

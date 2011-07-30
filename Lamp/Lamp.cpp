@@ -261,7 +261,21 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
 
                   json_string jsondata = temp;
 
-                  JSONNode n = libjson::parse(jsondata);
+                  /*
+                  // to test parsing of non-json data, enable this
+                  jsondata = L"<b>Warning</b>:  mysql_connect() [<a href='function.mysql-connect'>function.mysql-connect</a>]: User thomw1_scf already has more than 'max_user_connections' active connections in <b>/home/thomw1/public_html/greasemonkey/shacklol/db.mysql.php</b> on line <b>72</b><br />";
+                  */
+                  JSONNode n;
+
+                  try
+                  {
+                     n = libjson::parse(jsondata);
+                  }
+                  catch(std::invalid_argument)
+                  {
+                     // whatever. move on
+                  }
+                  
                   JSONNode::json_iterator i = n.begin();
                   while (i != n.end())
                   {
