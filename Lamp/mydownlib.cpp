@@ -472,7 +472,11 @@ u32 mydown_http2file(int *sock, int timeout, u8 *host, u16 port, u8 *user, u8 *p
             *chunkedbuff    = NULL,
             *chunkedtmp     = NULL,
             *filenamemalloc = NULL,
+            *redir_host     = NULL,
+            *redir_getstr   = NULL,
             httpgzip_flags  = 0;
+
+    
 
 #define GOTOQUIT    { ret = MYDOWN_ERROR; goto quit; }
 
@@ -614,9 +618,6 @@ u32 mydown_http2file(int *sock, int timeout, u8 *host, u16 port, u8 *user, u8 *p
             code = atoi((const char *)s + 1);
 
             if((code / 100) == 3) {
-               // don't support redirects
-
-               /*
                 mydown_scanhead(buff, p - buff,
                     "location",     &location,
                     NULL,           NULL);
@@ -625,11 +626,19 @@ u32 mydown_http2file(int *sock, int timeout, u8 *host, u16 port, u8 *user, u8 *p
                     GOTOQUIT;
                 }
                 VERPRINTF2"\n- redirect: %s\n", location);
-                mydown_get_host(location, &host, &port, &getstr, &user, &pass, verbose);
-                if(sd && !sock) { closes(sd); sd = 0; }
-                mydown_free_sock(sock);
-                ret = mydown_http2file(sock, timeout, host, port, user, pass, referer, useragent, cookie, more_http, verbose, getstr, fd, filename, showhead, onlyifdiff, resume, from, tot, filesize, filedata, ret_code, onflyunzip, content, contentsize, get);
-                */
+                mydown_get_host(location, &redir_host, &port, &redir_getstr, &user, &pass, verbose);
+
+                // don't support redirects where the host and getstr are identical
+                if(strcmp((const char*)host,(const char*)redir_host) != 0 ||
+                   strcmp((const char*)getstr,(const char*)redir_getstr) != 0)
+                {
+                   host = redir_host;
+                   getstr = redir_getstr;
+                   
+                   if(sd && !sock) { closes(sd); sd = 0; }
+                   mydown_free_sock(sock);
+                   ret = mydown_http2file(sock, timeout, host, port, user, pass, referer, useragent, cookie, more_http, verbose, getstr, fd, filename, showhead, onlyifdiff, resume, from, tot, filesize, filedata, ret_code, onflyunzip, content, contentsize, get);
+                }
                 goto quit;
             }
 
