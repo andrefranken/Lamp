@@ -123,6 +123,8 @@ METHODDEF(void)
 close_backing_store (j_common_ptr cinfo, backing_store_ptr info)
 {
   JFCLOSE(info->temp_file);
+
+  _unlink(info->temp_name);
   /* Since this implementation uses tmpfile() to create the file,
    * no explicit file deletion is needed.
    */
@@ -137,15 +139,25 @@ close_backing_store (j_common_ptr cinfo, backing_store_ptr info)
  * indeed, we can't even find out the actual name of the temp file.
  */
 
+#include <direct.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 GLOBAL(void)
 jpeg_open_backing_store (j_common_ptr cinfo, backing_store_ptr info,
 			 long total_bytes_needed)
 {
    char tmp[L_tmpnam];
+
+   _getcwd(info->temp_name,1024);
+   
    if(tmpnam_s(tmp, L_tmpnam) == 0)
    {
-      fopen_s(&info->temp_file, tmp, "w");
+      strcat_s(info->temp_name,1024,tmp);
+      fopen_s(&info->temp_file, info->temp_name, "w+b");
+      //fopen_s(&info->temp_file, tmp, "w");
    }
+
    if (info->temp_file == NULL)
      ERREXITS(cinfo, JERR_TFILE_CREATE, "");
 

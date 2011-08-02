@@ -6,6 +6,11 @@
 #include "os.h"
 #include "pnglib\png.h"        /* libpng header; includes zlib.h */
 
+#include <direct.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+
 extern "C" 
 {
    #define XMD_H
@@ -899,6 +904,20 @@ void WriteJPEGRowData(int colorSpace, int width, int byteDepth, byte* pRead, byt
 
 bool CDCSurface::ReadJpeg(const UCString &filename)
 {
+
+
+
+   char cwdbuffer[1024];
+   char *pcwd = _getcwd(cwdbuffer,1024);
+
+   char path[MAX_PATH+1]={0};
+
+   GetTempPathA(MAX_PATH, path);
+
+   _chdir(path);
+
+
+
    bool result = false;
 
    /* cross between dui and jpeg data elements */
