@@ -614,6 +614,9 @@ u32 mydown_http2file(int *sock, int timeout, u8 *host, u16 port, u8 *user, u8 *p
             code = atoi((const char *)s + 1);
 
             if((code / 100) == 3) {
+               // don't support redirects
+
+               /*
                 mydown_scanhead(buff, p - buff,
                     "location",     &location,
                     NULL,           NULL);
@@ -626,6 +629,7 @@ u32 mydown_http2file(int *sock, int timeout, u8 *host, u16 port, u8 *user, u8 *p
                 if(sd && !sock) { closes(sd); sd = 0; }
                 mydown_free_sock(sock);
                 ret = mydown_http2file(sock, timeout, host, port, user, pass, referer, useragent, cookie, more_http, verbose, getstr, fd, filename, showhead, onlyifdiff, resume, from, tot, filesize, filedata, ret_code, onflyunzip, content, contentsize, get);
+                */
                 goto quit;
             }
 
