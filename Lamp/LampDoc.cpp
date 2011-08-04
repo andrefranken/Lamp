@@ -4644,6 +4644,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
    bool spoiler = false;
    bool code = false;
    bool link = false;
+   bool imagelink = false;
    bool invert = false;
    
    COLORREF normalcolor = theApp.GetPostTextColorShade(shade);
@@ -4815,6 +4816,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
          case ST_SPOILER: spoiler = true;stylechange = true;break;
          case ST_CODE: code = true;stylechange = true;break;
          case ST_LINK: link = true;stylechange = true; color = normalcolor; colorstack.push_back(color); colorchange = true; break;
+         case ST_IMAGE_LINK: imagelink = true;stylechange = true; color = normalcolor; colorstack.push_back(color); colorchange = true; break;
 
          case ST_QUOTE_END: quote = false;stylechange = true;break;
          case ST_SAMPLE_END: sample = false;stylechange = true;break;
@@ -4827,6 +4829,30 @@ void CLampDoc::DrawPreviewText(HDC hDC,
          case ST_LINK_END: 
             {
                link = false;
+               stylechange = true;
+               
+               if(colorstack.size() > 0)
+               {
+                  colorstack.pop_back();
+                  if(colorstack.size() > 0)
+                  {
+                     color = colorstack[colorstack.size()-1];
+                  }
+                  else
+                  {
+                     color = normalcolor;
+                  }
+               }
+               else
+               {
+                  color = normalcolor;
+               }
+               colorchange = true;
+            }
+            break;
+         case ST_IMAGE_LINK_END: 
+            {
+               imagelink = false;
                stylechange = true;
                
                if(colorstack.size() > 0)
@@ -4993,6 +5019,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                             std::vector<RECT> &spoilers,
                             std::vector<RECT> &links,
                             std::vector<RECT> &imagelinks,
+                            std::vector<RECT> &images,
                             const RECT *pClipRect/*=NULL*/)
 {
    int y = rect.top + 4 + theApp.GetTextHeight();
@@ -5011,6 +5038,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
    bool spoiler = false;
    bool code = false;
    bool link = false;
+   bool imagelink = false;
    COLORREF color;
    COLORREF normalcolor = theApp.GetPostTextColor();
    bool colorchange = false;
@@ -5067,7 +5095,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
             }
             else
             {
-               if(link)
+               if(link || imagelink)
                {
                   RECT linkrect;
                   linkrect.left = x;
@@ -5082,7 +5110,8 @@ void CLampDoc::DrawBodyText(HDC hDC,
                      linkrect.right += *work;
                      work++;
                   }
-                  links.push_back(linkrect);
+                  if(link)links.push_back(linkrect);
+                  else imagelinks.push_back(linkrect);
                }
                MyTextOut(hDC, x, y - rise, pLineText, numchars, pLineWidths,pClipRect);
                //::ExtTextOutW(hDC, x, y, 0, NULL, pLineText, numchars, pLineWidths);
@@ -5117,7 +5146,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                }
                else
                {
-                  if(link)
+                  if(link || imagelink)
                   {
                      RECT linkrect;
                      linkrect.left = x;
@@ -5132,7 +5161,8 @@ void CLampDoc::DrawBodyText(HDC hDC,
                         linkrect.right += *work;
                         work++;
                      }
-                     links.push_back(linkrect);
+                     if(link)links.push_back(linkrect);
+                     else imagelinks.push_back(linkrect);
                   }
                   MyTextOut(hDC, x, y - rise, pLineText, (*it).m_pos, pLineWidths,pClipRect);
                   //::ExtTextOutW(hDC, x, y, 0, NULL, pLineText, (*it).m_pos, pLineWidths);
@@ -5213,6 +5243,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                   }
                   break;
                case ST_LINK: link = true;stylechange = true; color = RGB(174,174,155); colorstack.push_back(color); colorchange = true; break;
+               case ST_IMAGE_LINK: imagelink = true;stylechange = true; color = RGB(154,154,195); colorstack.push_back(color); colorchange = true; break;
 
                case ST_QUOTE_END: quote = false;stylechange = true;break;
                case ST_SAMPLE_END: sample = false;stylechange = true;break;
@@ -5225,6 +5256,31 @@ void CLampDoc::DrawBodyText(HDC hDC,
                case ST_LINK_END: 
                   {
                      link = false;
+                     stylechange = true;
+                     
+                     if(colorstack.size() > 0)
+                     {
+                        colorstack.pop_back();
+                        if(colorstack.size() > 0)
+                        {
+                           color = colorstack[colorstack.size()-1];
+                        }
+                        else
+                        {
+                           color = normalcolor;
+                        }
+                     }
+                     else
+                     {
+                        color = normalcolor;
+                     }
+                     colorchange = true;
+                  }
+                  break;
+               
+               case ST_IMAGE_LINK_END: 
+                  {
+                     imagelink = false;
                      stylechange = true;
                      
                      if(colorstack.size() > 0)
@@ -5281,7 +5337,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                   {
                      font = theApp.GetQuotedFontName();
                   }
-                  hCreatedFont = ::CreateFontW(fsize,0,0,0,weight,italic,underline|link,strike,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,font);
+                  hCreatedFont = ::CreateFontW(fsize,0,0,0,weight,italic,underline|link|imagelink,strike,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,font);
                   hPreviousFont = (HFONT)::SelectObject(hDC, hCreatedFont);
                   stylechange = false;
                }
@@ -5314,7 +5370,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                }
                else
                {
-                  if(link)
+                  if(link || imagelink)
                   {
                      RECT linkrect;
                      linkrect.left = x;
@@ -5329,7 +5385,8 @@ void CLampDoc::DrawBodyText(HDC hDC,
                         linkrect.right += *work;
                         work++;
                      }
-                     links.push_back(linkrect);
+                     if(link)links.push_back(linkrect);
+                     else imagelinks.push_back(linkrect);
                   }
                   MyTextOut(hDC, x, y - rise, pLineText + start, finish - start, pLineWidths + start,pClipRect);
                   //::ExtTextOutW(hDC, x, y, 0, NULL, pLineText + start, finish - start, pLineWidths + start);
@@ -5362,7 +5419,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
 
             pImage->StretchBlit(hDC,output);
 
-            imagelinks.push_back(output);
+            images.push_back(output);
          }
       }
             

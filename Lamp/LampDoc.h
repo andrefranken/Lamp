@@ -132,6 +132,7 @@ public:
                      std::vector<RECT> &spoilers,
                      std::vector<RECT> &links,
                      std::vector<RECT> &imagelinks,
+                     std::vector<RECT> &images,
                      const RECT *pClipRect = NULL);
    void DrawPreviewText(HDC hDC,
                         RECT &rect,

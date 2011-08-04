@@ -467,6 +467,7 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
                               filler,
                               filler,
                               filler,
+                              filler,
                               &m_textdrawrect);
       }
 

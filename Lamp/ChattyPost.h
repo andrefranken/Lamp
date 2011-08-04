@@ -23,7 +23,8 @@ typedef enum
    HST_SPOILER,
    HST_TEXT,
    HST_LINK,
-   HST_IMAGELINK,
+   HST_IMAGE_LINK,
+   HST_IMAGE,
    HST_CLOSEREPLYDLG,
    HST_POST,
    HST_TAG_RED,
@@ -163,6 +164,10 @@ typedef enum
 
    ST_IMAGE,
    ST_IMAGE_END,
+
+   ST_IMAGE_LINK,
+   ST_IMAGE_LINK_END,
+
 }shacktag;
 
 class shacktagpos
@@ -413,6 +418,7 @@ public:
    void ClearSpoilerTags(int x, int y);
    void GetLink(int x, int y, UCString &link);
    void GetImageLink(int x, int y, UCString &link);
+   void GetLinkToImage(int x, int y, UCString &link);
    void MakeLinkIntoImage(int x, int y, unsigned int &index);
    void MakeImageIntoLink(int x, int y);
 

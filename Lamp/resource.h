@@ -138,6 +138,7 @@
 #define ID_HIDE_COLLAPSED_POSTS         32854
 #define ID_INFINATE_PAGING              32855
 #define ID_ALT_POSTKEYS                 32856
+#define ID_LOADIMAGESINLAMP             32857
 
 #define ID_BOOKMARK_MENUITEM            32880
 
@@ -146,7 +147,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        328
-#define _APS_NEXT_COMMAND_VALUE         32856
+#define _APS_NEXT_COMMAND_VALUE         32858
 #define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

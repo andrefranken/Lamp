@@ -219,8 +219,12 @@ BEGIN
                 MENUITEM "&Aqua Style",                 ID_VIEW_APPLOOK_OFF_2007_AQUA
             END
         END
+        POPUP "Image stuff"
+        BEGIN
+            MENUITEM "Load images in Lamp",         ID_LOADIMAGESINLAMP
+            MENUITEM "Auto show images that are already loaded",     ID_VIEW_AUTOSHOWLOADEDIMAGES
+        END
         MENUITEM "Smooth Scroll",               ID_VIEW_SMOOTHSCROLL
-        MENUITEM "Auto Show Loaded Images",     ID_VIEW_AUTOSHOWLOADEDIMAGES
         MENUITEM "Allow Pinning",               ID_PINNING_MENUITEM
         MENUITEM "Clear All Pinnings",          ID_CLEAR_ALL_PINNINGS_MENUITEM
         MENUITEM "Double Size Pages in Chatty", ID_DOUBLE_PAGE_STORY_MENUITEM

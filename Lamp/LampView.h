@@ -303,6 +303,8 @@ public:
    afx_msg void OnUpdateFlaredBranches(CCmdUI *pCmdUI);
    afx_msg void OnAltPostkeys();
    afx_msg void OnUpdateAltPostkeys(CCmdUI *pCmdUI);
+   afx_msg void OnLoadImagesInLamp();
+   afx_msg void OnUpdateLoadImagesInLamp(CCmdUI *pCmdUI);
    afx_msg void OnGoogleSelected();
    afx_msg void OnUpdateGoogleSelected(CCmdUI *pCmdUI);
    afx_msg void OnGoogleSelectedWQuotes();

@@ -1304,6 +1304,10 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_bAlternatePostKeys = setting->GetValue();
    else m_bAlternatePostKeys = false;
 
+   setting = hostxml.FindChildElement(L"LoadImagesInLamp");
+   if(setting!=NULL) m_bLoadImagesInLamp = setting->GetValue();
+   else m_bLoadImagesInLamp = true;
+
    setting = hostxml.FindChildElement(L"auto_check_inbox");
    if(setting!=NULL) m_auto_check_inbox = setting->GetValue();
    else m_auto_check_inbox = true;
@@ -1673,6 +1677,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"InfinatePaging",UCString(m_bInfinatePaging));
    settingsxml.AddChildElement(L"FlaredBranches",UCString(m_bFlaredBranches));
    settingsxml.AddChildElement(L"AlternatePostKeys",UCString(m_bAlternatePostKeys));
+   settingsxml.AddChildElement(L"LoadImagesInLamp",UCString(m_bLoadImagesInLamp));
    settingsxml.AddChildElement(L"auto_check_inbox",UCString(m_auto_check_inbox));
    settingsxml.AddChildElement(L"show_root_selected",UCString(m_show_root_selected));
    settingsxml.AddChildElement(L"show_thomw_lols",UCString(m_show_thomw_lols));
@@ -2638,7 +2643,7 @@ void CLampApp::RefreshLOLs()
 
    // http://lmnopc.com/greasemonkey/shacklol/api.php?special=getcounts
 
-   pDD->m_host = L"lmnopc.com";
+   pDD->m_host = GetLolHostName();
    pDD->m_path = L"/greasemonkey/shacklol/api.php?special=getcounts";
    pDD->m_WhoWants = this;
    pDD->m_dt = DT_REFRESH_LOLS;

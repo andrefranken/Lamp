@@ -1225,12 +1225,12 @@ void ChattyPost::ReadSearchResult(CXMLElement *pElement, CLampDoc *pDoc)
 
 void ChattyPost::InitImageLinks()
 {
-   if(theApp.GetAutoShowLoadedImages())
-   {
-      // see if any of the links should be converted to image links
-      int begin = -1;
-      int end = -1;
+   // see if any of the links should be converted to image links
+   int begin = -1;
+   int end = -1;
 
+   if(theApp.LoadImagesInLamp())
+   {
       for(size_t i=0; i < m_shacktags.size(); i++)
       {
          if(m_shacktags[i].m_tag == ST_LINK)
@@ -1249,11 +1249,19 @@ void ChattyPost::InitImageLinks()
 
             unsigned int index = 0;
 
-            if(theApp.HasLinkedImage(link,index))
+            if(theApp.GetAutoShowLoadedImages() &&
+               theApp.HasLinkedImage(link,index))
             {
                m_shacktags[begin].m_tag = ST_IMAGE;
                m_shacktags[begin].m_image_index = index;
                m_shacktags[end].m_tag = ST_IMAGE_END;
+            }
+            else if(link.endswith(L".jpg") != NULL ||
+                     link.endswith(L".jpeg") != NULL ||
+                     link.endswith(L".png") != NULL)
+            {
+               m_shacktags[begin].m_tag = ST_IMAGE_LINK;
+               m_shacktags[end].m_tag = ST_IMAGE_LINK_END;
             }
 
             begin = -1;
@@ -1271,12 +1279,12 @@ void ChattyPost::LoadAllImageLinks()
 
    for(size_t i=0; i < m_shacktags.size(); i++)
    {
-      if(m_shacktags[i].m_tag == ST_LINK)
+      if(m_shacktags[i].m_tag == ST_IMAGE_LINK)
       {
          begin = i;
       }
 
-      if(m_shacktags[i].m_tag == ST_LINK_END)
+      if(m_shacktags[i].m_tag == ST_IMAGE_LINK_END)
       {
          end = i;
       }
@@ -1334,8 +1342,8 @@ void ChattyPost::CloseAllImageLinks()
 
       if(begin != -1 && end != -1)
       {
-         m_shacktags[begin].m_tag = ST_LINK;
-         m_shacktags[end].m_tag = ST_LINK_END;
+         m_shacktags[begin].m_tag = ST_IMAGE_LINK;
+         m_shacktags[end].m_tag = ST_IMAGE_LINK_END;
 
          begin = -1;
          end = -1;
@@ -1377,7 +1385,8 @@ void ChattyPost::DrawTextOnly(HDC hDC, RECT &DeviceRectangle, int pos)
       std::vector<RECT> spoilers;
       std::vector<RECT> links;
       std::vector<RECT> imagelinks;
-      m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,&DeviceRectangle);
+      std::vector<RECT> images;
+      m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,&DeviceRectangle);
    }
 }
 
@@ -1515,7 +1524,8 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
             std::vector<RECT> spoilers;
             std::vector<RECT> links;
             std::vector<RECT> imagelinks;
-            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks);
+            std::vector<RECT> images;
+            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images);
             m_drewtextpos = textrect.top;
             m_drewtextedge = textrect.left;
             
@@ -1587,8 +1597,16 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
 
             for(size_t s = 0; s < imagelinks.size(); s++)
             {
-               hotspot.m_type = HST_IMAGELINK;
+               hotspot.m_type = HST_IMAGE_LINK;
                hotspot.m_spot = imagelinks[s];
+               hotspot.m_id = m_id;
+               hotspots.push_back(hotspot);
+            }
+
+            for(size_t s = 0; s < images.size(); s++)
+            {
+               hotspot.m_type = HST_IMAGE;
+               hotspot.m_spot = images[s];
                hotspot.m_id = m_id;
                hotspots.push_back(hotspot);
             }
@@ -1756,7 +1774,8 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             std::vector<RECT> spoilers;
             std::vector<RECT> links;
             std::vector<RECT> imagelinks;
-            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks);
+            std::vector<RECT> images;
+            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images);
             m_drewtextpos = textrect.top;
             m_drewtextedge = textrect.left;
 
@@ -2046,8 +2065,16 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
 
             for(size_t s = 0; s < imagelinks.size(); s++)
             {
-               hotspot.m_type = HST_IMAGELINK;
+               hotspot.m_type = HST_IMAGE_LINK;
                hotspot.m_spot = imagelinks[s];
+               hotspot.m_id = m_id;
+               hotspots.push_back(hotspot);
+            }
+
+            for(size_t s = 0; s < images.size(); s++)
+            {
+               hotspot.m_type = HST_IMAGE;
+               hotspot.m_spot = images[s];
                hotspot.m_id = m_id;
                hotspots.push_back(hotspot);
             }
@@ -2176,7 +2203,8 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                std::vector<RECT> spoilers;
                std::vector<RECT> links;
                std::vector<RECT> imagelinks;
-               m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks);
+               std::vector<RECT> images;
+               m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images);
                m_drewtextpos = textrect.top;
                m_drewtextedge = textrect.left;
 
@@ -2435,8 +2463,16 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
 
                for(size_t s = 0; s < imagelinks.size(); s++)
                {
-                  hotspot.m_type = HST_IMAGELINK;
+                  hotspot.m_type = HST_IMAGE_LINK;
                   hotspot.m_spot = imagelinks[s];
+                  hotspot.m_id = m_id;
+                  hotspots.push_back(hotspot);
+               }
+
+               for(size_t s = 0; s < images.size(); s++)
+               {
+                  hotspot.m_type = HST_IMAGE;
+                  hotspot.m_spot = images[s];
                   hotspot.m_id = m_id;
                   hotspots.push_back(hotspot);
                }
@@ -4810,6 +4846,25 @@ void ChattyPost::GetLink(int x, int y, UCString &link)
 
 void ChattyPost::GetImageLink(int x, int y, UCString &link)
 {
+   bool off_end;
+   int charpos = GetCharPos(x, y, off_end);
+
+   // find the last spoiler tag to come before the charpos
+   size_t index = 0;
+   for(size_t i=0; i < m_shacktags.size(); i++)
+   {
+      if(m_shacktags[i].m_tag == ST_IMAGE_LINK &&
+         m_shacktags[i].m_pos <= charpos)
+      {
+         index = i;
+      }
+   }
+
+   link = m_shacktags[index].m_href;
+}
+
+void ChattyPost::GetLinkToImage(int x, int y, UCString &link)
+{
    // find the line
    y -= m_drewtextpos;
    y -= 4;
@@ -4858,13 +4913,13 @@ void ChattyPost::MakeLinkIntoImage(int x, int y, unsigned int &index)
 
    for(size_t i=0; i < m_shacktags.size(); i++)
    {
-      if(m_shacktags[i].m_tag == ST_LINK &&
+      if(m_shacktags[i].m_tag == ST_IMAGE_LINK &&
          m_shacktags[i].m_pos <= charpos)
       {
          begintag = i;
       }
 
-      if(m_shacktags[i].m_tag == ST_LINK_END &&
+      if(m_shacktags[i].m_tag == ST_IMAGE_LINK_END &&
          m_shacktags[i].m_pos >= charpos &&
          pLinkEnd == NULL)
       {
@@ -4923,8 +4978,8 @@ void ChattyPost::MakeImageIntoLink(int x, int y)
          }
       }
 
-      m_shacktags[begintag].m_tag = ST_LINK;
-      m_shacktags[endtag].m_tag = ST_LINK_END;
+      m_shacktags[begintag].m_tag = ST_IMAGE_LINK;
+      m_shacktags[endtag].m_tag = ST_IMAGE_LINK_END;
       
       // this is to trigger a recalc of the line tags
       m_lasttextrectwidth = 0;

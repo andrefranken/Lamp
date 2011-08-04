@@ -137,6 +137,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_FLAREDBRANCHES, &CLampView::OnUpdateFlaredBranches)
    ON_COMMAND(ID_ALT_POSTKEYS, &CLampView::OnAltPostkeys)
    ON_UPDATE_COMMAND_UI(ID_ALT_POSTKEYS, &CLampView::OnUpdateAltPostkeys)
+   ON_COMMAND(ID_LOADIMAGESINLAMP, &CLampView::OnLoadImagesInLamp)
+   ON_UPDATE_COMMAND_UI(ID_LOADIMAGESINLAMP, &CLampView::OnUpdateLoadImagesInLamp)
    ON_COMMAND(ID_GOOGLE_SELECTED, &CLampView::OnGoogleSelected)
    ON_UPDATE_COMMAND_UI(ID_GOOGLE_SELECTED, &CLampView::OnUpdateGoogleSelected)
    ON_COMMAND(ID_GOOGLE_SELECTED_W_QUOTES, &CLampView::OnGoogleSelectedWQuotes)
@@ -433,7 +435,8 @@ void CLampView::OnContextMenu(CWnd* pWnd, CPoint point)
          m_mousepoint.y < m_hotspots[i].m_spot.bottom)
       {
          if(m_hotspots[i].m_type == HST_LINK ||
-            m_hotspots[i].m_type == HST_IMAGELINK ||
+            m_hotspots[i].m_type == HST_IMAGE_LINK ||
+            m_hotspots[i].m_type == HST_IMAGE ||
             m_hotspots[i].m_type == HST_OPENINTAB ||
             m_hotspots[i].m_type == HST_PIN ||
             m_hotspots[i].m_type == HST_REFRESH)
@@ -1242,6 +1245,7 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
             case HST_AUTHOR:
             case HST_AUTHORPREVIEW:
             case HST_LINK:
+            case HST_IMAGE_LINK:
             case HST_SPELL_SUGGESTION:
             case HST_CLOSE_MESSAGE:
             case HST_EXPAND:
@@ -1566,6 +1570,7 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
             case HST_PAGE:
             case HST_AUTHOR:
             case HST_LINK:
+            case HST_IMAGE_LINK:
             case HST_SPELL_SUGGESTION:
             case HST_CLOSE_MESSAGE:
             case HST_EXPAND:
@@ -2063,13 +2068,34 @@ void CLampView::UpdateHotspotPosition()
             }
             break;
          case HST_LINK:
-         case HST_IMAGELINK:
             {
                ChattyPost *pPost = GetDocument()->FindPost(id);
                if(pPost != NULL)
                {
                   UCString link;
                   pPost->GetLink(m_mousepoint.x, m_mousepoint.y, link);
+                  theApp.SetStatusBarText(link,this);
+               }
+            }
+            break;
+         case HST_IMAGE_LINK:
+            {
+               ChattyPost *pPost = GetDocument()->FindPost(id);
+               if(pPost != NULL)
+               {
+                  UCString link;
+                  pPost->GetImageLink(m_mousepoint.x, m_mousepoint.y, link);
+                  theApp.SetStatusBarText(link,this);
+               }
+            }
+            break;
+         case HST_IMAGE:
+            {
+               ChattyPost *pPost = GetDocument()->FindPost(id);
+               if(pPost != NULL)
+               {
+                  UCString link;
+                  pPost->GetLinkToImage(m_mousepoint.x, m_mousepoint.y, link);
                   theApp.SetStatusBarText(link,this);
                }
             }
@@ -2653,6 +2679,72 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               UCString link;
                               pPost->GetLink(m_mousepoint.x, m_mousepoint.y, link);
 
+                              bool bIsLocal = false;
+                              if(link.beginswith(L"http://www.shacknews.com/chatty?id="))// http://www.shacknews.com/chatty?id=25857324#itemanchor_25857324
+                              {
+                                 const UCChar *work = link.Str() + 35;
+                                 if(work != NULL)
+                                 {
+                                    UCString temp;
+                                    while(*work != 0 && iswdigit(*work))
+                                    {
+                                       temp += *work;
+                                       work++;
+                                    }
+
+                                    unsigned int id = temp;
+
+                                    ChattyPost *post = GetDocument()->FindPost(id);
+                                    if(post != NULL)
+                                    {
+                                       SetCurrentId(id);
+                                       m_textselectionpost = 0;
+                                       m_selectionstart = 0;
+                                       m_selectionend = 0;
+                                       bIsLocal = true;
+
+                                       // force a draw so that positions are updated
+                                       DrawEverythingToBuffer();
+                                       int top = post->GetPos();
+                                       int bottom = top + post->GetHeight();
+
+                                       RECT DeviceRectangle;
+                                       GetClientRect(&DeviceRectangle);
+                  
+                                       if(bottom - top > DeviceRectangle.bottom - DeviceRectangle.top ||
+                                          top < DeviceRectangle.top)
+                                       {
+                                          m_gotopos = m_pos + (top - DeviceRectangle.top);
+                                       }
+                                       else if(bottom > DeviceRectangle.bottom)
+                                       {
+                                          m_gotopos = m_pos + (bottom - DeviceRectangle.bottom);
+                                       }
+                                       
+                                       CancelInertiaPanning();
+                                       m_brakes = false;
+                                       
+                                       InvalidateEverything();
+                                    }
+                                 }
+                              }
+                              
+                              if(!bIsLocal)
+                              {
+                                 theApp.OpenShackLink(link);
+                              }
+                           }
+                        }
+                        break;
+                     case HST_IMAGE_LINK:
+                        {
+                           ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(pPost != NULL)
+                           {
+                              UpdateCurrentIdAsRoot(m_hotspots[i].m_id);
+                              UCString link;
+                              pPost->GetImageLink(m_mousepoint.x, m_mousepoint.y, link);
+
                               const UCChar *begin = link;
                               const UCChar *end = begin + link.Length();
                               const UCChar *ext = end;
@@ -2675,61 +2767,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                                     bMadeImage = true;
                                     InvalidateEverything();
                                  }
-                              }
-
-                              if(!bMadeImage)
-                              {
-                                 bool bIsLocal = false;
-                                 if(link.beginswith(L"http://www.shacknews.com/chatty?id="))// http://www.shacknews.com/chatty?id=25857324#itemanchor_25857324
-                                 {
-                                    const UCChar *work = link.Str() + 35;
-                                    if(work != NULL)
-                                    {
-                                       UCString temp;
-                                       while(*work != 0 && iswdigit(*work))
-                                       {
-                                          temp += *work;
-                                          work++;
-                                       }
-
-                                       unsigned int id = temp;
-
-                                       ChattyPost *post = GetDocument()->FindPost(id);
-                                       if(post != NULL)
-                                       {
-                                          SetCurrentId(id);
-                                          m_textselectionpost = 0;
-                                          m_selectionstart = 0;
-                                          m_selectionend = 0;
-                                          bIsLocal = true;
-
-                                          // force a draw so that positions are updated
-                                          DrawEverythingToBuffer();
-                                          int top = post->GetPos();
-                                          int bottom = top + post->GetHeight();
-
-                                          RECT DeviceRectangle;
-                                          GetClientRect(&DeviceRectangle);
-                     
-                                          if(bottom - top > DeviceRectangle.bottom - DeviceRectangle.top ||
-                                             top < DeviceRectangle.top)
-                                          {
-                                             m_gotopos = m_pos + (top - DeviceRectangle.top);
-                                          }
-                                          else if(bottom > DeviceRectangle.bottom)
-                                          {
-                                             m_gotopos = m_pos + (bottom - DeviceRectangle.bottom);
-                                          }
-                                          
-                                          CancelInertiaPanning();
-                                          m_brakes = false;
-                                          
-                                          InvalidateEverything();
-                                       }
-                                    }
-                                 }
-                                 
-                                 if(!bIsLocal)
+                                 else
                                  {
                                     theApp.OpenShackLink(link);
                                  }
@@ -2737,7 +2775,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            }
                         }
                         break;
-                     case HST_IMAGELINK:
+                     case HST_IMAGE:
                         {
                            ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
                            if(pPost != NULL)
@@ -3275,13 +3313,25 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
                      bHandled = true;
                   }
                   break;
-               case HST_IMAGELINK:
+               case HST_IMAGE_LINK:
                   {
                      ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
                      if(pPost != NULL)
                      {
                         UCString link;
                         pPost->GetImageLink(m_mousepoint.x, m_mousepoint.y, link);
+                        theApp.OpenShackLink(link);
+                     }
+                     bHandled = true;
+                  }
+                  break;
+               case HST_IMAGE:
+                  {
+                     ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                     if(pPost != NULL)
+                     {
+                        UCString link;
+                        pPost->GetLinkToImage(m_mousepoint.x, m_mousepoint.y, link);
                         theApp.OpenShackLink(link);
                      }
                      bHandled = true;
@@ -3689,7 +3739,8 @@ BOOL CLampView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
             case HST_COMPOSE_MESSAGE:
             case HST_REFRESHSTORY:
             case HST_LINK:
-            case HST_IMAGELINK:
+            case HST_IMAGE_LINK:
+            case HST_IMAGE:
             case HST_PREV_PAGE:
             case HST_NEXT_PAGE:
             case HST_PAGE:
@@ -4024,7 +4075,8 @@ void CLampView::OnCopyLink()
          m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
          m_rbuttondownpoint.y < m_hotspots[i].m_spot.bottom &&
          (m_hotspots[i].m_type == HST_LINK ||
-          m_hotspots[i].m_type == HST_IMAGELINK ||
+          m_hotspots[i].m_type == HST_IMAGE_LINK ||
+          m_hotspots[i].m_type == HST_IMAGE ||
           m_hotspots[i].m_type == HST_OPENINTAB ||
           m_hotspots[i].m_type == HST_PIN ||
           m_hotspots[i].m_type == HST_REFRESH ||
@@ -4039,9 +4091,13 @@ void CLampView::OnCopyLink()
             {
                pPost->GetLink(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
             }
-            else if(m_hotspots[i].m_type == HST_IMAGELINK)
+            else if(m_hotspots[i].m_type == HST_IMAGE_LINK)
             {
                pPost->GetImageLink(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
+            }
+            else if(m_hotspots[i].m_type == HST_IMAGE)
+            {
+               pPost->GetLinkToImage(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
             }
             else
             {
@@ -4069,7 +4125,8 @@ void CLampView::OnUpdateCopyLink(CCmdUI *pCmdUI)
          m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
          m_rbuttondownpoint.y < m_hotspots[i].m_spot.bottom &&
          (m_hotspots[i].m_type == HST_LINK ||
-          m_hotspots[i].m_type == HST_IMAGELINK ||
+          m_hotspots[i].m_type == HST_IMAGE_LINK ||
+          m_hotspots[i].m_type == HST_IMAGE ||
           m_hotspots[i].m_type == HST_OPENINTAB ||
           m_hotspots[i].m_type == HST_PIN ||
           m_hotspots[i].m_type == HST_REFRESH ||
@@ -4096,7 +4153,8 @@ void CLampView::OnLaunchLink()
          m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
          m_rbuttondownpoint.y < m_hotspots[i].m_spot.bottom &&
          (m_hotspots[i].m_type == HST_LINK ||
-          m_hotspots[i].m_type == HST_IMAGELINK ||
+          m_hotspots[i].m_type == HST_IMAGE_LINK ||
+          m_hotspots[i].m_type == HST_IMAGE ||
           m_hotspots[i].m_type == HST_OPENINTAB ||
           m_hotspots[i].m_type == HST_PIN ||
           m_hotspots[i].m_type == HST_REFRESH))
@@ -4109,9 +4167,13 @@ void CLampView::OnLaunchLink()
             {
                pPost->GetLink(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
             }
-            else if(m_hotspots[i].m_type == HST_IMAGELINK)
+            else if(m_hotspots[i].m_type == HST_IMAGE_LINK)
             {
                pPost->GetImageLink(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
+            }
+            else if(m_hotspots[i].m_type == HST_IMAGE)
+            {
+               pPost->GetLinkToImage(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
             }
             else
             {
@@ -5062,6 +5124,25 @@ void CLampView::OnUpdateAltPostkeys(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(theApp.AlternatePostKeys())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnLoadImagesInLamp()
+{
+   theApp.SetLoadImagesInLamp(!theApp.LoadImagesInLamp());
+}
+
+void CLampView::OnUpdateLoadImagesInLamp(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.LoadImagesInLamp())
    {
       pCmdUI->SetCheck(TRUE);
    }
