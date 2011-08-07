@@ -52,7 +52,8 @@ typedef enum
    DT_SHACK_SENDMSG = 20,
    DT_SHACK_CHATTY_INFINATE_PAGE = 21,
 
-   DT_SUBMIT_LOLVOTE = 22
+   DT_SUBMIT_LOLVOTE = 22,
+   DT_GET_IMAGE = 23
 } DownloadType;
 
 typedef enum 
@@ -92,6 +93,7 @@ public:
    UCString m_post_data;
    UCString m_username;
    UCString m_password;
+   UCString m_originalurl;
    void *m_data;
    int m_datasize;
    std::string m_stdstring;
@@ -114,6 +116,8 @@ public:
    virtual void SetPathName(LPCTSTR lpszPathName, BOOL bAddToMRU = TRUE);
 
    void SetView(CLampView *pView){m_pView = pView;}
+
+   CLampView *GetView(){return m_pView;}
 
    DocDataType GetDataType(void){return m_datatype;}
    void Draw(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id);
@@ -169,6 +173,7 @@ public:
    void SetInitialPostId(unsigned int id){m_initialpostid = id;}
    void SetReplyDlg(CReplyDlg *pReplyDlg){m_pReplyDlg = pReplyDlg;}
    void UpdateLOLsRecurse();
+   void UnloadAllImages();
 
    int GetPage(){return m_page;}
    void SetPage(int page);

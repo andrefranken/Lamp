@@ -323,6 +323,8 @@ public:
    afx_msg void OnUpdateInvertedLOLPreviews(CCmdUI *pCmdUI);
    afx_msg void OnBackId();
    afx_msg void OnUpdateBackId(CCmdUI *pCmdUI);
+   afx_msg void OnUnloadAllImages();
+   afx_msg void OnUpdateUnloadAllImages(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp

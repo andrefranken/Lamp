@@ -307,6 +307,7 @@ void ChattyPost::ReadRootChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_itera
                         HTML_GetValue(author_it, author);
                         m_author = (const char*)author.data();
                         m_author.TrimWhitespace();
+                        RemoveSomeTags(m_author);
                         UpdateAuthorColor();
                      }
                   }            
@@ -482,6 +483,7 @@ void ChattyPost::ReadPostPreviewChattyFromHTML(tree<htmlcxx::HTML::Node>::siblin
             {
                m_author = (const char*)author.data();
                m_author.TrimWhitespace();
+               RemoveSomeTags(m_author);
                UpdateAuthorColor();
             }
          }
@@ -597,6 +599,7 @@ void ChattyPost::ReadKnownPostChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_
                   HTML_GetValue(author_it, author);
                   m_author = (const char*)author.data();
                   m_author.TrimWhitespace();
+                  RemoveSomeTags(m_author);
                   UpdateAuthorColor();
                }
             }            
@@ -653,6 +656,7 @@ void ChattyPost::ReadSearchResultFromHTML(tree<htmlcxx::HTML::Node>::sibling_ite
             m_author.TrimWhitespace();
             if(m_author[m_author.Length()-1] == L':')
                m_author.TrimEnd(1);
+            RemoveSomeTags(m_author);
             UpdateAuthorColor();
          }
       }
@@ -671,11 +675,11 @@ void ChattyPost::ReadSearchResultFromHTML(tree<htmlcxx::HTML::Node>::sibling_ite
                body = (const char*)value.data();
                body.TrimWhitespace();
 
-               body.Replace(L"&quot;",L"\"");
-               body.Replace(L"&amp;",L"&");
-               body.Replace(L"&apos;",L"\'");
-               body.Replace(L"&lt;",L"<");
-               body.Replace(L"&gt;",L">");
+               body.Replace(L"&quot;",L"\"",false);
+               body.Replace(L"&amp;",L"&",false);
+               body.Replace(L"&apos;",L"\'",false);
+               body.Replace(L"&lt;",L"<",false);
+               body.Replace(L"&gt;",L">",false);
 
                body.ReplaceAll(0x02C2,L'<');
                body.ReplaceAll(0x02C3,L'>');
@@ -835,6 +839,7 @@ void ChattyPost::ReadPost(ChattyPost *pOther, CLampDoc *pDoc)
       UpdateDate();
       m_category = pOther->m_category;
       m_author = pOther->m_author;
+      RemoveSomeTags(m_author);
       UpdateAuthorColor();
 
       m_Newness = pOther->m_Newness;
@@ -1187,11 +1192,11 @@ void ChattyPost::ReadSearchResult(CXMLElement *pElement, CLampDoc *pDoc)
       UpdateLOLs();
 
       UCString body = pElement->GetAttributeValue(L"preview");
-      body.Replace(L"&quot;",L"\"");
-      body.Replace(L"&amp;",L"&");
-      body.Replace(L"&apos;",L"\'");
-      body.Replace(L"&lt;",L"<");
-      body.Replace(L"&gt;",L">");
+      body.Replace(L"&quot;",L"\"",false);
+      body.Replace(L"&amp;",L"&",false);
+      body.Replace(L"&apos;",L"\'",false);
+      body.Replace(L"&lt;",L"<",false);
+      body.Replace(L"&gt;",L">",false);
       /*
       temp = pElement->GetAttributeValue(L"story_name");// "Evening Reading"
 
@@ -1257,8 +1262,8 @@ void ChattyPost::InitImageLinks()
                m_shacktags[end].m_tag = ST_IMAGE_END;
             }
             else if(link.endswith(L".jpg") != NULL ||
-                     link.endswith(L".jpeg") != NULL ||
-                     link.endswith(L".png") != NULL)
+                    link.endswith(L".jpeg") != NULL ||
+                    link.endswith(L".png") != NULL)
             {
                m_shacktags[begin].m_tag = ST_IMAGE_LINK;
                m_shacktags[end].m_tag = ST_IMAGE_LINK_END;
@@ -1310,6 +1315,11 @@ void ChattyPost::LoadAllImageLinks()
                m_shacktags[begin].m_tag = ST_IMAGE;
                m_shacktags[begin].m_image_index = index;
                m_shacktags[end].m_tag = ST_IMAGE_END;
+
+               if(!theApp.IsImageLoaded(index))
+               {
+                  theApp.LoadImage(index,m_id);
+               }
             }
          }
 
@@ -1320,6 +1330,22 @@ void ChattyPost::LoadAllImageLinks()
 
    // this is to trigger a recalc of the line tags
    m_lasttextrectwidth = 0;
+}
+
+void ChattyPost::UnloadAllImagesRecurse()
+{
+   CloseAllImageLinks();
+
+   std::list<ChattyPost*>::iterator it = m_children.begin();
+   std::list<ChattyPost*>::iterator end = m_children.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         (*it)->UnloadAllImagesRecurse();
+      }
+      it++;
+   }
 }
 
 void ChattyPost::CloseAllImageLinks()
@@ -3479,12 +3505,12 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
 
 void ChattyPost::RemoveSomeTags(UCString &str)
 {
-   str.Replace(L"&lt;",L"<");
-   str.Replace(L"&gt;",L">");
-   str.Replace(L"&apos;",L"\'");
-   str.Replace(L"&quot;",L"\"");
-   str.Replace(L"&amp;",L"&");
-   str.Replace(L"&#10;",L"\n");
+   str.Replace(L"&lt;",L"<",false);
+   str.Replace(L"&gt;",L">",false);
+   str.Replace(L"&apos;",L"\'",false);
+   str.Replace(L"&quot;",L"\"",false);
+   str.Replace(L"&amp;",L"&",false);
+   str.Replace(L"&#10;",L"\n",false);
 }
 
 void ChattyPost::DecodeString(UCString &from, UCString &to, std::vector<shacktagpos> &shacktags)

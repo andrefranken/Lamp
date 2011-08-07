@@ -237,7 +237,7 @@ const UCChar *UCString::endswith(const UCChar *str) const
       {
          int offset = m_stringlength - len;
          UCChar *result = m_string + offset;
-         if(wcscmp(result,str) == 0) 
+         if(wcsicmp(result,str) == 0) 
             return result;
       }
    }
@@ -2278,7 +2278,7 @@ void UCString::RNtoN(void)
    }
 }
 
-int UCString::Replace(UCChar *find, UCChar *replace)
+int UCString::Replace(UCChar *find, UCChar *replace, bool bAllowRecurse/* = true*/)
 {
    int numfound = 0;
    int len1;
@@ -2286,7 +2286,7 @@ int UCString::Replace(UCChar *find, UCChar *replace)
 
    // make sure that the replace string does not contain the 
    // find string, otherwise we will recurse forever.
-   if(wcsstr(replace,find) == NULL)
+   if(wcsstr(replace,find) == NULL && bAllowRecurse)
    {
       UCString tmpStr;
       int pos;

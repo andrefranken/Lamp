@@ -464,6 +464,119 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                   }
                }
             }
+            else if(pDD->m_dt == DT_GET_IMAGE)
+            {
+               if(IsValidImageIndex(pDD->m_id))
+               {
+                  CImageCacheItem &ici = m_imagecache[pDD->m_id];
+                  if(pDD->m_data != NULL)
+                  {
+                     for(size_t i = 0; i < ici.m_notifylist.size(); i++)
+                     {
+                        InvalidateContentLayout(ici.m_notifylist[i]);
+                     }
+                     ici.m_notifylist.clear();
+
+                     char *data = (char*)pDD->m_data;
+                     int size = pDD->m_datasize;
+
+                     if((data[0] == (char)0xff && data[1] == (char)0xe0) ||
+                        (data[0] == (char)0xff && data[1] == (char)0xe1) ||
+                        (data[0] == (char)0xff && data[1] == (char)0xd8 && data[2] == (char)0xff && data[3] == (char)0xe0) ||
+                        (data[0] == (char)0xff && data[1] == (char)0xd8 && data[2] == (char)0xff && data[3] == (char)0xe2) ||
+                        (data[0] == (char)0xff && data[1] == (char)0xd8 && data[2] == (char)0xff && data[3] == (char)0xdb) ||
+                        (data[0] == (char)0xff && data[1] == (char)0xd8 && data[2] == (char)0xff && data[3] == (char)0xe1) ||
+                        (data[0] == (char)0x89 && data[1] == (char)0x50 && data[2] == (char)0x4e && data[3] == (char)0x47))
+                     {
+                        wchar_t path[MAX_PATH+1]={0};
+
+                        DWORD processId = GetCurrentProcessId();
+                        DWORD threadId = GetCurrentThreadId();
+                        time_t t = time(&t);
+                        struct tm lt;
+                        localtime_s(&lt,&t);
+                        wchar_t asciitime[8] = {0};
+                        swprintf_s(asciitime, 8,
+                                   L"%02d%02d%02d",
+                                   lt.tm_year-100,
+                                   lt.tm_mon+1,
+                                   lt.tm_mday);
+
+                        if(GetTempPath(MAX_PATH, path) != 0)
+                        {
+                           if(path[wcslen(path)-1] != L'\\')
+                           {
+                              wcscat_s(path,MAX_PATH,L"\\");
+                           }
+
+                           bool gotit = false;
+                           while(!gotit)
+                           {
+                              UCString suspect = path;
+                              suspect += L"Lamp_";
+                              suspect += asciitime;
+                              suspect += L"_";         
+                              suspect += (int)processId;
+                              suspect += L"_";         
+                              suspect += (int)threadId;
+                              suspect += L"_";
+                              suspect += (int)GetTickCount();
+                              suspect += ici.m_ext;
+
+                              if(_waccess(suspect,00) == -1)
+                              {
+                                 FILE *pFile = NULL;
+                                 fopen_s(&pFile,suspect.str8(),"wb");
+                                 if(pFile != NULL)
+                                 {
+                                    if(_wcsicmp(ici.m_ext,L".jpg") == 0 ||
+                                       _wcsicmp(ici.m_ext,L".jpeg") == 0)
+                                    {
+                                       if(data[0] == (char)0xff &&
+                                          data[1] == (char)0xe0)
+                                       {
+                                          char t = (char)0xff;
+                                          fwrite(&t,1,1,pFile);
+                                          t = (char)0xd8;
+                                          fwrite(&t,1,1,pFile);
+                                       }
+                                    }
+
+                                    fwrite(data,1,size,pFile);
+                                    fclose(pFile);
+                                    gotit = true;
+                                                                     
+
+                                    if(_wcsicmp(ici.m_ext,L".png") == 0)
+                                    {
+                                       ici.m_image.ReadPNG(suspect);
+                                    }      
+                                    else // if(_wcsicmp(ici.m_ext,L".jpg") == 0 || _wcsicmp(ici.m_ext,L".jpeg") == 0)
+                                    {
+                                       ici.m_image.ReadJpeg(suspect);
+                                    }
+                                    ici.m_image.EnableCachedStretchImage(true);
+
+                                    _wunlink(suspect);
+
+                                 }
+                              }
+                           }
+                        }
+                     }
+                     else
+                     {
+                        ici.m_image.Resize(152,130);
+                        ici.m_image.Fill(0,0,0);
+                     }
+                  }
+                  else
+                  {
+                     ici.m_image.Resize(152,130);
+                     ici.m_image.Fill(0,0,0);
+                  }
+               }
+            }
 
             if(pDD->m_data != NULL)
             {
@@ -583,6 +696,11 @@ CLampApp::CLampApp()
    m_pDocWho = NULL;
 
    g_bSingleThreadStyle = false;
+
+   m_tempimage.Resize(152,130);
+   m_tempimage.Fill(64,64,128);
+
+   m_nextimagecacheindex = 0;
 
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
@@ -877,15 +995,6 @@ BOOL CLampApp::InitInstance()
 
 int CLampApp::ExitInstance() 
 {
-   for(size_t i = 0; i < m_imagecache.size();i++)
-   {
-      if(!m_imagecache[i].m_tempfilename.IsEmpty() &&
-         _waccess(m_imagecache[i].m_tempfilename,0) != -1)
-      {
-         _wunlink(m_imagecache[i].m_tempfilename);
-      }
-   }
-
    std::map<unsigned int,ChattyPost *>::iterator pit = m_KnownPosts.begin();
    std::map<unsigned int,ChattyPost *>::iterator pend = m_KnownPosts.end();
    while(pit != pend)
@@ -2494,6 +2603,16 @@ void CLampApp::ReadSkinFiles()
    imagefilename += L"\\mb_pan.png";
    imagepath.PathToMe(imagefilename);
    m_mb_pan.ReadPNG(imagepath);
+
+   m_tempimage.Resize(152,130);
+   m_tempimage.Fill(GetRValue(m_spoiler_color),GetGValue(m_spoiler_color),GetBValue(m_spoiler_color));
+   RECT rect;
+   rect.top = rect.left = 0;
+   rect.right = 152;
+   rect.bottom = 130;
+   ::SetTextColor(m_tempimage.GetDC(),theApp.GetPostTextColor());
+   ::SetBkMode(m_tempimage.GetDC(),TRANSPARENT);
+   ::DrawText(m_tempimage.GetDC(),L"Loading...",10,&rect,DT_CENTER|DT_VCENTER|DT_SINGLELINE);
 }
 
 void CLampApp::SetStatusBarText(const UCString &text, CLampView *pView)
@@ -3456,18 +3575,19 @@ bool CLampApp::HasLinkedImage(const UCString &link, unsigned int &index)
 
    // see if we already have it
    
-   for(size_t i = 0; i < m_imagecache.size(); i++)
+   std::map<unsigned int,CImageCacheItem>::iterator it = m_imagecache.begin();
+   std::map<unsigned int,CImageCacheItem>::iterator iend = m_imagecache.end();
+
+   while(it != iend)
    {
-      if(m_imagecache[i].m_host == host &&
-         m_imagecache[i].m_path == path &&
-         m_imagecache[i].m_image.GetDC() != NULL &&
-         m_imagecache[i].m_image.GetWidth() > 0 &&
-         m_imagecache[i].m_image.GetHeight() > 0)
+      if(it->second.m_host == host &&
+         it->second.m_path == path)
       {
-         index = i;
+         index = it->first;
          result = true;
          break;
       }
+      it++;
    }
 
    return result;
@@ -3475,6 +3595,7 @@ bool CLampApp::HasLinkedImage(const UCString &link, unsigned int &index)
 
 CDCSurface *CLampApp::GetLinkedImage(const UCString &link, unsigned int &index)
 {
+   index = 0xFFFFFFFF;
    CDCSurface *result = NULL;
    // split the link into host and path
    const UCChar *begin = link;
@@ -3496,29 +3617,42 @@ CDCSurface *CLampApp::GetLinkedImage(const UCString &link, unsigned int &index)
 
    // see if we already have it
    
-   for(size_t i = 0; i < m_imagecache.size(); i++)
+   std::map<unsigned int,CImageCacheItem>::iterator it = m_imagecache.begin();
+   std::map<unsigned int,CImageCacheItem>::iterator iend = m_imagecache.end();
+
+   while(it != iend)
    {
-      if(m_imagecache[i].m_host == host &&
-         m_imagecache[i].m_path == path)
+      if(it->second.m_host == host &&
+         it->second.m_path == path)
       {
-         result = m_imagecache[i].GetImage();
-         index = i;
+         index = it->first;
          break;
       }
+      it++;
    }
+      
 
-   if(result == NULL)
+   if(index == 0xFFFFFFFF)
    {
       const UCChar *ext = end;
       while(ext > begin && *ext != L'.') ext--;
 
       // create it
-      m_imagecache.push_back(CImageCacheItem());
-      m_imagecache[m_imagecache.size()-1].m_host = host;
-      m_imagecache[m_imagecache.size()-1].m_path = path;
-      m_imagecache[m_imagecache.size()-1].m_ext = ext;
-      result = m_imagecache[m_imagecache.size()-1].GetImage();
-      index = m_imagecache.size()-1;
+      CImageCacheItem ici;
+      ici.m_host = host;
+      ici.m_path = path;
+      ici.m_ext = ext;
+
+      m_imagecache[m_nextimagecacheindex] = ici;
+      index = m_nextimagecacheindex;
+      m_nextimagecacheindex++;
+   }
+
+   result = m_imagecache[index].GetImage();
+
+   if(result == NULL)
+   {
+      result = theApp.GetTempImage();
    }
 
    return result;
@@ -3527,13 +3661,100 @@ CDCSurface *CLampApp::GetLinkedImage(const UCString &link, unsigned int &index)
 CDCSurface *CLampApp::GetLinkedImage(unsigned int index)
 {
    CDCSurface *result = NULL;
-   
-   if(index < m_imagecache.size())
+
+   if(IsValidImageIndex(index))
    {
       result = m_imagecache[index].GetImage();
    }
 
+   if(result == NULL)
+   {
+      result = theApp.GetTempImage();
+   }
+
    return result;
+}
+
+bool CLampApp::IsImageLoaded(unsigned int index)
+{
+   bool result = false;
+   
+   if(IsValidImageIndex(index))
+   {
+      CDCSurface *pimage = m_imagecache[index].GetImage();
+      if(pimage != NULL &&
+         pimage->GetDC() != NULL &&
+         pimage->GetWidth() > 0 &&
+         pimage->GetHeight() > 0)
+      {
+         result = true;
+      }
+   }
+
+   return result;
+}
+
+void CLampApp::LoadImage(unsigned int index, unsigned int postid)
+{
+   if(IsValidImageIndex(index))
+   {
+      CImageCacheItem &ici = m_imagecache[index];
+
+      ici.AddNotify(postid);
+
+      UCString temphost = ici.m_host;
+      UCString temppath = ici.m_path;
+      if(ici.m_host == L"www.shackpics.com" ||
+         ici.m_host == L"shackpics.com")
+      {
+         // http://www.shackpics.com/viewer.x?file=pic.jpg
+         // http://www.shackpics.com/files/pic.jpg
+         temppath.Replace(L"viewer.x?file=",L"files/");
+         temphost = L"www.shackpics.com";
+      }
+
+      if(ici.m_host == L"www.chattypics.com" ||
+         ici.m_host == L"chattypics.com")
+      {
+         // http://www.shackpics.com/viewer.x?file=pic.jpg
+         // http://www.shackpics.com/files/pic.jpg
+         temppath.Replace(L"viewer.php?file=",L"files/");
+         temphost = L"chattypics.com";
+      }
+
+      if(ici.m_host == L"www.fukung.net" ||
+         ici.m_host == L"fukung.net")
+      {
+         // http://www.fukung.net/v/32798/b3194b0e9a4e7f629059c0ff55d91bff.jpg
+         // http://media.fukung.net/images/32798/b3194b0e9a4e7f629059c0ff55d91bff.jpg
+         temppath.Replace(L"/v/",L"/images/");
+         temphost = L"media.fukung.net";
+      }
+
+      if(!temppath.IsEmpty())
+      {
+         const char *str8 = temppath.str8();
+         char *altstr8 = url_decode(str8);
+         temppath = altstr8;
+         free(altstr8);
+      }
+
+
+      CDownloadData *pDD = new CDownloadData();
+
+      // http://shacklamp.omgninja.com/update.xml"
+
+      pDD->m_host = temphost;
+      pDD->m_path = temppath;
+      pDD->m_WhoWants = this;
+      pDD->m_dt = DT_GET_IMAGE;
+      pDD->m_id = index;
+      pDD->m_refreshid = 0;
+      pDD->reply_to_id = 0;
+      pDD->m_postrootid = 0;
+
+      AfxBeginThread(DownloadThreadProc, pDD);
+   }
 }
 
 
@@ -3543,151 +3764,27 @@ CDCSurface *CImageCacheItem::GetImage()
       m_image.GetHeight() == 0 ||
       m_image.GetDC() == NULL)
    {
-      if(m_tempfilename.IsEmpty())
-      {
-         CWaitCursor wait;
-         // download it
-         UCString temphost = m_host;
-         UCString temppath = m_path;
-         if(m_host == L"www.shackpics.com" ||
-            m_host == L"shackpics.com")
-         {
-            // http://www.shackpics.com/viewer.x?file=pic.jpg
-            // http://www.shackpics.com/files/pic.jpg
-            temppath.Replace(L"viewer.x?file=",L"files/");
-            temphost = L"www.shackpics.com";
-         }
-
-         if(m_host == L"www.chattypics.com" ||
-            m_host == L"chattypics.com")
-         {
-            // http://www.shackpics.com/viewer.x?file=pic.jpg
-            // http://www.shackpics.com/files/pic.jpg
-            temppath.Replace(L"viewer.php?file=",L"files/");
-            temphost = L"chattypics.com";
-         }
-
-         if(m_host == L"www.fukung.net" ||
-            m_host == L"fukung.net")
-         {
-            // http://www.fukung.net/v/32798/b3194b0e9a4e7f629059c0ff55d91bff.jpg
-            // http://media.fukung.net/images/32798/b3194b0e9a4e7f629059c0ff55d91bff.jpg
-            temppath.Replace(L"/v/",L"/images/");
-            temphost = L"media.fukung.net";
-         }
-
-         temppath.Replace(L"%20",L" ");
-
-         char *data = NULL;
-         int size = 0;
-
-         if(!g_bSingleThreadStyle)
-         {
-            ::EnterCriticalSection(&g_ThreadAccess);
-         }
-      
-         chattyerror err = download(temphost.str8(), temppath.str8(), &data, &size);
-
-         if(!g_bSingleThreadStyle)
-         {
-            ::LeaveCriticalSection(&g_ThreadAccess);
-         }
-
-         if(err == ERR_OK && data != NULL)
-         {
-            if((data[0] == (char)0xff && data[1] == (char)0xe0) ||
-               (data[0] == (char)0xff && data[1] == (char)0xe1) ||
-               (data[0] == (char)0xff && data[1] == (char)0xd8 && data[2] == (char)0xff && data[3] == (char)0xe0) ||
-               (data[0] == (char)0xff && data[1] == (char)0xd8 && data[2] == (char)0xff && data[3] == (char)0xe1) ||
-               (data[0] == (char)0x89 && data[1] == (char)0x50 && data[2] == (char)0x4e && data[3] == (char)0x47))
-            {
-               wchar_t path[MAX_PATH+1]={0};
-
-               DWORD processId = GetCurrentProcessId();
-               DWORD threadId = GetCurrentThreadId();
-               time_t t = time(&t);
-               struct tm lt;
-               localtime_s(&lt,&t);
-               wchar_t asciitime[8] = {0};
-               swprintf_s(asciitime, 8,
-                          L"%02d%02d%02d",
-                          lt.tm_year-100,
-                          lt.tm_mon+1,
-                          lt.tm_mday);
-
-               if(GetTempPath(MAX_PATH, path) != 0)
-               {
-                  if(path[wcslen(path)-1] != L'\\')
-                  {
-                     wcscat_s(path,MAX_PATH,L"\\");
-                  }
-
-                  bool gotit = false;
-                  while(!gotit)
-                  {
-                     UCString suspect = path;
-                     suspect += L"Lamp_";
-                     suspect += asciitime;
-                     suspect += L"_";         
-                     suspect += (int)processId;
-                     suspect += L"_";         
-                     suspect += (int)threadId;
-                     suspect += L"_";
-                     suspect += (int)GetTickCount();
-                     suspect += m_ext;
-
-                     if(_waccess(suspect,00) == -1)
-                     {
-                        FILE *pFile = NULL;
-                        fopen_s(&pFile,suspect.str8(),"wb");
-                        if(pFile != NULL)
-                        {
-                           if(_wcsicmp(m_ext,L".jpg") == 0 ||
-                              _wcsicmp(m_ext,L".jpeg") == 0)
-                           {
-                              if(data[0] == (char)0xff &&
-                                 data[1] == (char)0xe0)
-                              {
-                                 char t = (char)0xff;
-                                 fwrite(&t,1,1,pFile);
-                                 t = (char)0xd8;
-                                 fwrite(&t,1,1,pFile);
-                              }
-                           }
-
-                           fwrite(data,1,size,pFile);
-                           fclose(pFile);
-                           gotit = true;
-                           m_tempfilename = suspect;
-                        }
-                     }
-                  }
-               }
-            }
-         }
-
-         if(data != NULL)
-         {
-            free(data);
-         }
-      }
-
-      if(!m_tempfilename.IsEmpty())
-      {
-         if(_wcsicmp(m_ext,L".png") == 0)
-         {
-            m_image.ReadPNG(m_tempfilename);
-         }      
-         else // if(_wcsicmp(m_ext,L".jpg") == 0 || _wcsicmp(m_ext,L".jpeg") == 0)
-         {
-            m_image.ReadJpeg(m_tempfilename);
-         }
-         m_image.EnableCachedStretchImage(true);
-      }
+      return NULL;
    }
 
    return &m_image;
 }
+
+void CImageCacheItem::AddNotify(unsigned int id)
+{
+   // see if we already have it
+   for(size_t i = 0; i < m_notifylist.size(); i++)
+   {
+      if(m_notifylist[i] == id)
+      {
+         // already have it
+         return;
+      }
+   }
+
+   m_notifylist.push_back(id);
+}
+
 void CLampApp::OnViewAutoshowloadedimages()
 {
    m_AutoShowLoadedImages = !m_AutoShowLoadedImages;
@@ -3965,6 +4062,54 @@ CXMLElement *CLampApp::GetCachedThreadReplies(unsigned int id)
       result->SetUserDefinedFlagPack(::GetTickCount());
    }
    return result;
+}
+
+void CLampApp::UnloadAllImages()
+{
+   std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
+   std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
+
+   while(it != end)
+   {
+      (*it)->UnloadAllImages();
+      
+      if((*it)->GetView() != NULL)
+      {
+         (*it)->GetView()->InvalidateEverything();
+      }
+
+      it++;
+   }
+
+   m_imagecache.clear();
+   m_nextimagecacheindex = 0;
+}
+
+void CLampApp::InvalidateContentLayout(unsigned int id)
+{
+   std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
+   std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
+
+   while(it != end)
+   {
+      DocDataType ddt = (*it)->GetDataType();
+      if(ddt == DDT_STORY ||
+         ddt == DDT_THREAD)
+      {
+         ChattyPost *thispost = (*it)->FindPost(id);
+         if(thispost != NULL)
+         {
+            thispost->InvalidateContentLayout();
+         }
+      }
+
+      if((*it)->GetView() != NULL)
+      {
+         (*it)->GetView()->InvalidateEverything();
+      }
+
+      it++;
+   }
 }
 
 ChattyPost *CLampApp::FindFromAnywhere(unsigned int id)

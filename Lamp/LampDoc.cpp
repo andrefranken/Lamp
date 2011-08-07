@@ -2077,10 +2077,12 @@ void CLampDoc::PerformSearch()
       path += L"&chatty_user=";
       temp = m_search_author;
       temp.ReplaceAll(L' ',L'+');
+      temp.Replace(L"&",L"%26");
       path += temp;
       path += L"&chatty_author=";
       temp = m_search_parent_author;
       temp.ReplaceAll(L' ',L'+');
+      temp.Replace(L"&",L"%26");
       path += temp;
       path += L"&chatty_filter=all&result_sort=postdate_desc&page=";
       path += m_page;
@@ -6048,6 +6050,20 @@ void CLampDoc::UpdateLOLsRecurse()
       if((*it) != NULL)
       {
          (*it)->UpdateLOLsRecurse();
+      }
+      it++;
+   }
+}
+
+void CLampDoc::UnloadAllImages()
+{
+   std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+   std::list<ChattyPost*>::iterator end = m_rootposts.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         (*it)->UnloadAllImagesRecurse();
       }
       it++;
    }

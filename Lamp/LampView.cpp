@@ -155,6 +155,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_VERBOSE_LOL_PREVIEWS, &CLampView::OnUpdateVerboseLOLPreviews)
    ON_COMMAND(ID_INVERTED_LOL_PREVIEWS, &CLampView::OnInvertedLOLPreviews)
    ON_UPDATE_COMMAND_UI(ID_INVERTED_LOL_PREVIEWS, &CLampView::OnUpdateInvertedLOLPreviews)
+   ON_COMMAND(ID_UNLOADALLIMAGES, &CLampView::OnUnloadAllImages)
+   ON_UPDATE_COMMAND_UI(ID_UNLOADALLIMAGES, &CLampView::OnUpdateUnloadAllImages)
 
    ON_COMMAND(ID_BACK_ID, &CLampView::OnBackId)
    ON_UPDATE_COMMAND_UI(ID_BACK_ID, &CLampView::OnUpdateBackId)
@@ -2750,26 +2752,19 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               const UCChar *ext = end;
                               while(ext > begin && *ext != L'.') ext--;
 
-                              bool bMadeImage = false;
-
                               if(_wcsicmp(ext,L".png") == 0 ||
                                  _wcsicmp(ext,L".jpg") == 0 || 
                                  _wcsicmp(ext,L".jpeg") == 0)
                               {
                                  unsigned int index;
                                  CDCSurface *pImage = theApp.GetLinkedImage(link,index);
-                                 if(pImage != NULL &&
-                                    pImage->GetDC() != NULL &&
-                                    pImage->GetWidth() > 0 &&
-                                    pImage->GetHeight() > 0)
+                                 
+                                 pPost->MakeLinkIntoImage(m_mousepoint.x, m_mousepoint.y, index);
+                                 InvalidateEverything();
+
+                                 if(!theApp.IsImageLoaded(index))
                                  {
-                                    pPost->MakeLinkIntoImage(m_mousepoint.x, m_mousepoint.y, index);
-                                    bMadeImage = true;
-                                    InvalidateEverything();
-                                 }
-                                 else
-                                 {
-                                    theApp.OpenShackLink(link);
+                                    theApp.LoadImage(index,m_hotspots[i].m_id);
                                  }
                               }
                            }
@@ -5490,4 +5485,15 @@ void CLampView::OnUpdateBackId(CCmdUI *pCmdUI)
    {
       pCmdUI->Enable(FALSE);
    }
+}
+
+
+void CLampView::OnUnloadAllImages()
+{
+   theApp.UnloadAllImages();
+}
+
+void CLampView::OnUpdateUnloadAllImages(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
 }

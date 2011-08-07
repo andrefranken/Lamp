@@ -21,8 +21,8 @@
 #define WM_EXPAND_TABS (WM_USER + 101)
 #define WM_WAKEUP (WM_USER + 102)
 
-#define LAMP_VERSION_MAJOR 1
-#define LAMP_VERSION_MINOR 94
+#define LAMP_VERSION_MAJOR 2
+#define LAMP_VERSION_MINOR 00
 
 chattyerror download(const char* host, const char* path, char** out_response, int *psize=NULL);
 
@@ -89,7 +89,6 @@ public:
       m_host = other.m_host;
       m_path = other.m_path;
       m_ext = other.m_ext;
-      m_tempfilename = other.m_tempfilename;
    }
 
    ~CImageCacheItem()
@@ -98,12 +97,15 @@ public:
 
    CDCSurface *GetImage();
 
+   void AddNotify(unsigned int id);
+
    UCString m_host;
    UCString m_path;
    UCString m_ext;
-   UCString m_tempfilename;
 
    CDCSurface m_image;
+
+   std::vector<unsigned int> m_notifylist;
 };
 
 class CLampApp : public CWinAppEx
@@ -125,7 +127,15 @@ public:
 
    ChattyPost *FindFromAnywhere(unsigned int id);
 
+   void InvalidateContentLayout(unsigned int id);
+
    bool HasLinkedImage(const UCString &link, unsigned int &index);
+
+   bool IsImageLoaded(unsigned int index);
+
+   void LoadImage(unsigned int index, unsigned int postid);
+
+   void UnloadAllImages();
 
    void UpdateTabSizes();
 
@@ -778,6 +788,18 @@ public:
    std::set<UCString> &GetFilteredUsernameList(){return m_filterusernamelist;}
 
    std::set<UCString> &GetFilteredPhraseList(){return m_filterphraselist;}
+
+   CDCSurface *GetTempImage(){return &m_tempimage;}
+
+   bool IsValidImageIndex(unsigned int index)
+   {
+      std::map<unsigned int,CImageCacheItem>::iterator it = m_imagecache.find(index);
+      if(it != m_imagecache.end())
+      {
+         return true;
+      }
+      return false;
+   }
       
 // Overrides
 public:
@@ -1003,7 +1025,8 @@ protected:
    UCString m_last_search_parent_author;
    UCString m_last_search_terms;
 
-   std::vector<CImageCacheItem> m_imagecache;
+   std::map<unsigned int,CImageCacheItem> m_imagecache;
+   unsigned int m_nextimagecacheindex;
 
    std::list<CLampDoc*> m_MyDocuments;
 
@@ -1082,6 +1105,8 @@ protected:
    UCString m_open_doc;
 
    CDocument *m_pDocWho;
+
+   CDCSurface m_tempimage;
 
 public:
    afx_msg void OnFileSetuplogininfo();

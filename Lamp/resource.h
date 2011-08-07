@@ -46,17 +46,17 @@
 #define IDC_SEARCH_TERMS_EDIT           1006
 #define IDC_SEARCH_USER_EDIT            1007
 #define IDC_SEARCH_PARENT_EDIT          1008
-#define IDC_TO_EDIT                     1008
-#define IDC_BM_TITLE_EDIT               1009
-#define IDC_SUBJECT_EDIT                1010
-#define IDC_SHACKMSG_EDIT               1011
-#define IDC_MOUSE_WHEEL_SPEED_EDIT      1012
-#define IDC_MB_PAN_SPEED_EDIT           1013
-#define IDC_NUM_SHOW_TRUNC_EDIT         1014
-#define IDC_NUM_MIN_INBOX_EDIT          1015
-#define IDC_NUM_HOURS_EXPIRE_EDIT       1016
-#define IDC_FILTERED_USERS_EDIT         1017
-#define IDC_FILTERED_PHRASES_EDIT       1018
+#define IDC_TO_EDIT                     1009
+#define IDC_BM_TITLE_EDIT               1010
+#define IDC_SUBJECT_EDIT                1011
+#define IDC_SHACKMSG_EDIT               1012
+#define IDC_MOUSE_WHEEL_SPEED_EDIT      1013
+#define IDC_MB_PAN_SPEED_EDIT           1014
+#define IDC_NUM_SHOW_TRUNC_EDIT         1015
+#define IDC_NUM_MIN_INBOX_EDIT          1016
+#define IDC_NUM_HOURS_EXPIRE_EDIT       1017
+#define IDC_FILTERED_USERS_EDIT         1018
+#define IDC_FILTERED_PHRASES_EDIT       1019
 #define ID_FILE_OPENTHREAD              32771
 #define ID_EDIT_REFRESH                 32773
 #define ID_FILE_SETUPLOGININFO          32774
@@ -139,6 +139,7 @@
 #define ID_INFINATE_PAGING              32855
 #define ID_ALT_POSTKEYS                 32856
 #define ID_LOADIMAGESINLAMP             32857
+#define ID_UNLOADALLIMAGES              32858
 
 #define ID_BOOKMARK_MENUITEM            32880
 
@@ -147,8 +148,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        328
-#define _APS_NEXT_COMMAND_VALUE         32858
-#define _APS_NEXT_CONTROL_VALUE         1018
+#define _APS_NEXT_COMMAND_VALUE         32859
+#define _APS_NEXT_CONTROL_VALUE         1020
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

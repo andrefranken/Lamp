@@ -449,6 +449,7 @@ public:
 
    void LoadAllImageLinks();
    void CloseAllImageLinks();
+   void UnloadAllImagesRecurse();
 
    bool IsFiltered();
 
@@ -496,6 +497,8 @@ public:
    void EstablishNewness(std::map<unsigned int,newness> &post_newness);
 
    void SetAsPageBreak(size_t page);
+
+   void InvalidateContentLayout(){m_lasttextrectwidth = 0;}
 
 protected:
    void SetupCharWidths();

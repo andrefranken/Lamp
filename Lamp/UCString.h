@@ -146,7 +146,7 @@ public:
 
    void ReplaceAll(UCChar find, UCChar replace);
 
-   int Replace(UCChar *find, UCChar *replace);
+   int Replace(UCChar *find, UCChar *replace, bool bAllowRecurse = true);
 
    void NtoRN(void);
    void RNtoN(void);
