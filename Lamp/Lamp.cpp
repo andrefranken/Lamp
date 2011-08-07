@@ -469,14 +469,11 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                if(IsValidImageIndex(pDD->m_id))
                {
                   CImageCacheItem &ici = m_imagecache[pDD->m_id];
+
+                  bool bGotImage = false;
+
                   if(pDD->m_data != NULL)
                   {
-                     for(size_t i = 0; i < ici.m_notifylist.size(); i++)
-                     {
-                        InvalidateContentLayout(ici.m_notifylist[i]);
-                     }
-                     ici.m_notifylist.clear();
-
                      char *data = (char*)pDD->m_data;
                      int size = pDD->m_datasize;
 
@@ -559,22 +556,33 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
 
                                     _wunlink(suspect);
 
+                                    bGotImage = true;
                                  }
                               }
                            }
                         }
                      }
-                     else
-                     {
-                        ici.m_image.Resize(152,130);
-                        ici.m_image.Fill(0,0,0);
-                     }
                   }
-                  else
+                  
+                  if(!bGotImage)
                   {
                      ici.m_image.Resize(152,130);
                      ici.m_image.Fill(0,0,0);
+
+                     RECT rect;
+                     rect.top = rect.left = 0;
+                     rect.right = 152;
+                     rect.bottom = 130;
+                     ::SetTextColor(ici.m_image.GetDC(),RGB(255,0,0));
+                     ::SetBkMode(ici.m_image.GetDC(),TRANSPARENT);
+                     ::DrawText(ici.m_image.GetDC(),L":-(",3,&rect,DT_CENTER|DT_VCENTER|DT_SINGLELINE);
                   }
+
+                  for(size_t i = 0; i < ici.m_notifylist.size(); i++)
+                  {
+                     InvalidateContentLayout(ici.m_notifylist[i]);
+                  }
+                  ici.m_notifylist.clear();
                }
             }
 
@@ -698,7 +706,7 @@ CLampApp::CLampApp()
    g_bSingleThreadStyle = false;
 
    m_tempimage.Resize(152,130);
-   m_tempimage.Fill(64,64,128);
+   m_tempimage.Fill(0,0,0);
 
    m_nextimagecacheindex = 0;
 
@@ -4094,7 +4102,8 @@ void CLampApp::InvalidateContentLayout(unsigned int id)
    {
       DocDataType ddt = (*it)->GetDataType();
       if(ddt == DDT_STORY ||
-         ddt == DDT_THREAD)
+         ddt == DDT_THREAD ||
+         ddt == DDT_LOLS)
       {
          ChattyPost *thispost = (*it)->FindPost(id);
          if(thispost != NULL)
