@@ -118,6 +118,8 @@ BEGIN_MESSAGE_MAP(CLampApp, CWinAppEx)
    ON_UPDATE_COMMAND_UI(ID_SHKMSGS_ARCHIVE, &CLampApp::OnUpdateShackMsg_Archive)
    ON_COMMAND(ID_AUTOLOADCHATTYPICSTHUMBS, &CLampApp::OnAutoLoadChattypicsThumbs)
    ON_UPDATE_COMMAND_UI(ID_AUTOLOADCHATTYPICSTHUMBS, &CLampApp::OnUpdateAutoLoadChattypicsThumbs)
+   ON_COMMAND(ID_DONTAUTOLOADNWSTHUMBS, &CLampApp::OnDontAutoLoadNWSThumbs)
+   ON_UPDATE_COMMAND_UI(ID_DONTAUTOLOADNWSTHUMBS, &CLampApp::OnUpdateDontAutoLoadNWSThumbs)
    //ON_MESSAGE(WM_THREAD_DOWNLOAD, &CLampApp::OnThreadDownload)
 
 END_MESSAGE_MAP()
@@ -767,6 +769,7 @@ CLampApp::CLampApp()
    m_smooth_scroll = true;
    m_bShowImageThumbs = true;
    m_bAutoLoadChattypicsThumbs = true;
+   m_bDontAutoLoadNWSThumbs = false;
 	m_bHiColorIcons = TRUE;
    m_smoothscrollscale = 0.1f;
 
@@ -1490,6 +1493,10 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_bAutoLoadChattypicsThumbs = setting->GetValue();
    else m_bAutoLoadChattypicsThumbs = true;
 
+   setting = hostxml.FindChildElement(L"DontAutoLoadNWSThumbs");
+   if(setting!=NULL) m_bDontAutoLoadNWSThumbs = setting->GetValue();
+   else m_bDontAutoLoadNWSThumbs = false;
+
    setting = hostxml.FindChildElement(L"single_thread_style");
    if(setting!=NULL) g_bSingleThreadStyle = setting->GetValue();
    else g_bSingleThreadStyle = false;
@@ -1906,6 +1913,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"smooth_scroll",UCString(m_smooth_scroll));
    settingsxml.AddChildElement(L"ShowImageThumbs",UCString(m_bShowImageThumbs));
    settingsxml.AddChildElement(L"AutoLoadChattypicsThumbs",UCString(m_bAutoLoadChattypicsThumbs));
+   settingsxml.AddChildElement(L"DontAutoLoadNWSThumbs",UCString(m_bDontAutoLoadNWSThumbs));
    settingsxml.AddChildElement(L"single_thread_style",UCString(g_bSingleThreadStyle));
    settingsxml.AddChildElement(L"text_scale",UCString(m_textscaler));
    settingsxml.AddChildElement(L"DockedMode",UCString(m_bWasInDockedMode));
@@ -4154,6 +4162,26 @@ void CLampApp::OnUpdateAutoLoadChattypicsThumbs(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(m_bAutoLoadChattypicsThumbs)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+
+void CLampApp::OnDontAutoLoadNWSThumbs()
+{
+   m_bDontAutoLoadNWSThumbs = !m_bDontAutoLoadNWSThumbs;
+}
+
+void CLampApp::OnUpdateDontAutoLoadNWSThumbs(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(m_bDontAutoLoadNWSThumbs)
    {
       pCmdUI->SetCheck(TRUE);
    }

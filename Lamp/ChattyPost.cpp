@@ -470,6 +470,7 @@ void ChattyPost::ReadPostPreviewChattyFromHTML(tree<htmlcxx::HTML::Node>::siblin
                   body_temp.AppendEncodedString((const char *)body_preview.data(),body_preview.length(),CET_UTF8);
                   body_temp.ReplaceAll(0x02C2,L'<');
                   body_temp.ReplaceAll(0x02C3,L'>');
+                  body_temp.Replace(L"\r\n",L" ");
                }
             }
          }
@@ -1258,9 +1259,18 @@ void ChattyPost::InitImageLinks()
                theApp.HasLinkedImage(link,index) &&
                theApp.IsThumbLoaded(index))
             {
-               m_shacktags[begin].m_tag = ST_THUMB;
-               m_shacktags[begin].m_image_index = index;
-               m_shacktags[end].m_tag = ST_THUMB_END;
+               if(!theApp.DontAutoLoadNWSThumbs() ||
+                  !IsNWSPost())
+               {
+                  m_shacktags[begin].m_tag = ST_THUMB;
+                  m_shacktags[begin].m_image_index = index;
+                  m_shacktags[end].m_tag = ST_THUMB_END;
+               }
+               else
+               {
+                  m_shacktags[begin].m_tag = ST_LINK;
+                  m_shacktags[end].m_tag = ST_LINK_END;
+               }
             }
             else if(link.endswith(L".jpg") != NULL ||
                     link.endswith(L".jpeg") != NULL ||
@@ -1271,12 +1281,21 @@ void ChattyPost::InitImageLinks()
                   (link.beginswith(L"http://www.chattypics.com") != NULL ||
                    link.beginswith(L"http://chattypics.com") != NULL))
                {
-                  theApp.GetLinkedImage(link,index);
-                  
-                  m_shacktags[begin].m_image_index = index;
-                  m_shacktags[begin].m_tag = ST_THUMB;
-                  m_shacktags[end].m_tag = ST_THUMB_END;
-                  theApp.LoadImageThumb(index,m_id);
+                  if(!theApp.DontAutoLoadNWSThumbs() ||
+                     !IsNWSPost())
+                  {
+                     theApp.GetLinkedImage(link,index);
+                     
+                     m_shacktags[begin].m_image_index = index;
+                     m_shacktags[begin].m_tag = ST_THUMB;
+                     m_shacktags[end].m_tag = ST_THUMB_END;
+                     theApp.LoadImageThumb(index,m_id);
+                  }
+                  else
+                  {
+                     m_shacktags[begin].m_tag = ST_LINK;
+                     m_shacktags[end].m_tag = ST_LINK_END;
+                  }
                }
                else
                {
@@ -5708,4 +5727,61 @@ void ChattyPost::SetAsPageBreak(size_t page)
          m_subjectwidth += m_pSubjectCharWidths[i];
       }      
    }
+}
+
+bool ChattyPost::IsNWSPost()
+{
+   if(m_category == PCT_NWS)
+      return true;
+
+   const UCChar *start = m_bodytext.Str();
+   const UCChar *work = start;
+   const UCChar *end = work + m_bodytext.Length();
+
+   int status = 0;
+
+   while(work < end)
+   {
+      switch(status)
+      {
+      case 0: // have nothing
+         if(*work == L'n' ||
+            *work == L'N')
+         {
+            status++;
+         }
+         else status = 0;
+         break;
+      case 1: // have n
+         if(*work == L'w' ||
+            *work == L'W')
+         {
+            status++;
+         }
+         else status = 0;
+         break;
+      case 2: // have w
+         if(*work == L's' ||
+            *work == L'S')
+         {
+            // check to see if the character before nws was nonalpha
+            if(work - 2 == start ||
+               (!iswalpha(*(work - 3))))
+            {
+               // check to see if the character after nws was nonalpha
+               if(work + 1 == end ||
+                  (!iswalpha(*(work + 1))))
+               {
+                  return true;
+               }
+            }
+         }
+         status = 0;
+         break;
+      }
+
+      work++;
+   }
+
+   return false;
 }

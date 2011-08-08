@@ -632,6 +632,7 @@ public:
    bool ShowImageThumbs(){return m_bShowImageThumbs;}
 
    bool AutoLoadChattypicsThumbs(){return m_bAutoLoadChattypicsThumbs;}
+   bool DontAutoLoadNWSThumbs(){return m_bDontAutoLoadNWSThumbs;}
 
    bool EnableNWS(){return m_enable_nws;}
    bool EnableINF(){return m_enable_inf;}
@@ -999,6 +1000,7 @@ protected:
 
    bool m_bShowImageThumbs;
    bool m_bAutoLoadChattypicsThumbs;
+   bool m_bDontAutoLoadNWSThumbs;
 
    bool m_smooth_scroll;
    float m_smoothscrollscale;
@@ -1160,6 +1162,8 @@ public:
    afx_msg void OnUpdateViewShowThumbs(CCmdUI *pCmdUI);
    afx_msg void OnAutoLoadChattypicsThumbs();
    afx_msg void OnUpdateAutoLoadChattypicsThumbs(CCmdUI *pCmdUI);
+   afx_msg void OnDontAutoLoadNWSThumbs();
+   afx_msg void OnUpdateDontAutoLoadNWSThumbs(CCmdUI *pCmdUI);
    afx_msg void OnShackMsg_Inbox();
    afx_msg void OnUpdateShackMsg_Inbox(CCmdUI *pCmdUI);
    afx_msg void OnShackMsg_Outbox();

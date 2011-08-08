@@ -511,6 +511,8 @@ public:
 
    void InvalidateContentLayout(){m_lasttextrectwidth = 0;}
 
+   bool IsNWSPost();
+
 protected:
    void SetupCharWidths();
    void SetupBodyText(RECT &textrect);

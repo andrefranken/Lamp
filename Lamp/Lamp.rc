@@ -224,6 +224,8 @@ BEGIN
             MENUITEM "Load images in Lamp",         ID_LOADIMAGESINLAMP
             MENUITEM "Show thumbnails for loaded images",     ID_VIEW_SHOWIMAGETHUMBS
             MENUITEM "Auto load thumbnails for chattypics images",     ID_AUTOLOADCHATTYPICSTHUMBS
+            MENUITEM "Don't auto load thumbnails in NWS posts",     ID_DONTAUTOLOADNWSTHUMBS
+            MENUITEM SEPARATOR
             MENUITEM "Unload all images from memory",  ID_UNLOADALLIMAGES
         END
         MENUITEM "Smooth Scroll",               ID_VIEW_SMOOTHSCROLL
