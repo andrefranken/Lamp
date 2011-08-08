@@ -439,6 +439,7 @@ void CLampView::OnContextMenu(CWnd* pWnd, CPoint point)
          if(m_hotspots[i].m_type == HST_LINK ||
             m_hotspots[i].m_type == HST_IMAGE_LINK ||
             m_hotspots[i].m_type == HST_IMAGE ||
+            m_hotspots[i].m_type == HST_THUMB ||
             m_hotspots[i].m_type == HST_OPENINTAB ||
             m_hotspots[i].m_type == HST_PIN ||
             m_hotspots[i].m_type == HST_REFRESH)
@@ -2102,6 +2103,17 @@ void CLampView::UpdateHotspotPosition()
                }
             }
             break;
+         case HST_THUMB:
+            {
+               ChattyPost *pPost = GetDocument()->FindPost(id);
+               if(pPost != NULL)
+               {
+                  UCString link;
+                  pPost->GetLinkToThumb(m_mousepoint.x, m_mousepoint.y, link);
+                  theApp.SetStatusBarText(link,this);
+               }
+            }
+            break;
          }
       }
       else
@@ -2776,8 +2788,37 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            if(pPost != NULL)
                            {
                               UpdateCurrentIdAsRoot(m_hotspots[i].m_id);
-                              pPost->MakeImageIntoLink(m_mousepoint.x, m_mousepoint.y);
+                              if(theApp.ShowImageThumbs())
+                              {
+                                 pPost->MakeImageIntoThumb(m_mousepoint.x, m_mousepoint.y);
+                              }
+                              else
+                              {
+                                 pPost->MakeImageIntoLink(m_mousepoint.x, m_mousepoint.y);
+                              }
                               InvalidateEverything();
+                           }
+                        }
+                        break;
+                     case HST_THUMB:
+                        {
+                           ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(pPost != NULL)
+                           {
+                              UpdateCurrentIdAsRoot(m_hotspots[i].m_id);
+                              UCString link;
+                              pPost->GetThumbLink(m_mousepoint.x, m_mousepoint.y, link);
+
+                              unsigned int index;
+                              CDCSurface *pImage = theApp.GetLinkedImageThumb(link,index);
+                              
+                              pPost->MakeThumbIntoImage(m_mousepoint.x, m_mousepoint.y, index);
+                              InvalidateEverything();
+
+                              if(!theApp.IsImageLoaded(index))
+                              {
+                                 theApp.LoadImage(index,m_hotspots[i].m_id);
+                              }
                            }
                         }
                         break;
@@ -3332,6 +3373,18 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
                      bHandled = true;
                   }
                   break;
+               case HST_THUMB:
+                  {
+                     ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                     if(pPost != NULL)
+                     {
+                        UCString link;
+                        pPost->GetLinkToThumb(m_mousepoint.x, m_mousepoint.y, link);
+                        theApp.OpenShackLink(link);
+                     }
+                     bHandled = true;
+                  }
+                  break;
                }
                break;
             }
@@ -3736,6 +3789,7 @@ BOOL CLampView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
             case HST_LINK:
             case HST_IMAGE_LINK:
             case HST_IMAGE:
+            case HST_THUMB:
             case HST_PREV_PAGE:
             case HST_NEXT_PAGE:
             case HST_PAGE:
@@ -4072,6 +4126,7 @@ void CLampView::OnCopyLink()
          (m_hotspots[i].m_type == HST_LINK ||
           m_hotspots[i].m_type == HST_IMAGE_LINK ||
           m_hotspots[i].m_type == HST_IMAGE ||
+          m_hotspots[i].m_type == HST_THUMB ||
           m_hotspots[i].m_type == HST_OPENINTAB ||
           m_hotspots[i].m_type == HST_PIN ||
           m_hotspots[i].m_type == HST_REFRESH ||
@@ -4093,6 +4148,10 @@ void CLampView::OnCopyLink()
             else if(m_hotspots[i].m_type == HST_IMAGE)
             {
                pPost->GetLinkToImage(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
+            }
+            else if(m_hotspots[i].m_type == HST_THUMB)
+            {
+               pPost->GetLinkToThumb(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
             }
             else
             {
@@ -4122,6 +4181,7 @@ void CLampView::OnUpdateCopyLink(CCmdUI *pCmdUI)
          (m_hotspots[i].m_type == HST_LINK ||
           m_hotspots[i].m_type == HST_IMAGE_LINK ||
           m_hotspots[i].m_type == HST_IMAGE ||
+          m_hotspots[i].m_type == HST_THUMB ||
           m_hotspots[i].m_type == HST_OPENINTAB ||
           m_hotspots[i].m_type == HST_PIN ||
           m_hotspots[i].m_type == HST_REFRESH ||
@@ -4150,6 +4210,7 @@ void CLampView::OnLaunchLink()
          (m_hotspots[i].m_type == HST_LINK ||
           m_hotspots[i].m_type == HST_IMAGE_LINK ||
           m_hotspots[i].m_type == HST_IMAGE ||
+          m_hotspots[i].m_type == HST_THUMB ||
           m_hotspots[i].m_type == HST_OPENINTAB ||
           m_hotspots[i].m_type == HST_PIN ||
           m_hotspots[i].m_type == HST_REFRESH))
@@ -4169,6 +4230,10 @@ void CLampView::OnLaunchLink()
             else if(m_hotspots[i].m_type == HST_IMAGE)
             {
                pPost->GetLinkToImage(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
+            }
+            else if(m_hotspots[i].m_type == HST_THUMB)
+            {
+               pPost->GetLinkToThumb(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
             }
             else
             {

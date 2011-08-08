@@ -21,8 +21,8 @@
 #define WM_EXPAND_TABS (WM_USER + 101)
 #define WM_WAKEUP (WM_USER + 102)
 
-#define LAMP_VERSION_MAJOR 2
-#define LAMP_VERSION_MINOR 00
+#define LAMP_VERSION_MAJOR 1
+#define LAMP_VERSION_MINOR 99
 
 chattyerror download(const char* host, const char* path, char** out_response, int *psize=NULL);
 
@@ -96,6 +96,9 @@ public:
    }
 
    CDCSurface *GetImage();
+   CDCSurface *GetImageThumb();
+
+   void MakeThumb();
 
    void AddNotify(unsigned int id);
 
@@ -104,6 +107,7 @@ public:
    UCString m_ext;
 
    CDCSurface m_image;
+   CDCSurface m_imagethumb;
 
    std::vector<unsigned int> m_notifylist;
 };
@@ -133,15 +137,23 @@ public:
 
    bool IsImageLoaded(unsigned int index);
 
+   bool IsThumbLoaded(unsigned int index);
+
    void LoadImage(unsigned int index, unsigned int postid);
+
+   void LoadImageThumb(unsigned int index, unsigned int postid);
 
    void UnloadAllImages();
 
    void UpdateTabSizes();
 
    CDCSurface *GetLinkedImage(const UCString &link, unsigned int &index);
-
    CDCSurface *GetLinkedImage(unsigned int index);
+
+   CDCSurface *GetLinkedImageThumb(const UCString &link, unsigned int &index);
+   CDCSurface *GetLinkedImageThumb(unsigned int index);
+
+   void MakeThumb(unsigned int index);
 
    UCString &GetUsername(){return m_username;}
    UCString &GetPassword(){return m_password;}
@@ -617,7 +629,9 @@ public:
       m_last_search_terms = terms;
    }
 
-   bool GetAutoShowLoadedImages(){return m_AutoShowLoadedImages;}
+   bool ShowImageThumbs(){return m_bShowImageThumbs;}
+
+   bool AutoLoadChattypicsThumbs(){return m_bAutoLoadChattypicsThumbs;}
 
    bool EnableNWS(){return m_enable_nws;}
    bool EnableINF(){return m_enable_inf;}
@@ -983,7 +997,8 @@ protected:
    bool m_enable_stupid;
    bool m_enable_political;
 
-   bool m_AutoShowLoadedImages;
+   bool m_bShowImageThumbs;
+   bool m_bAutoLoadChattypicsThumbs;
 
    bool m_smooth_scroll;
    float m_smoothscrollscale;
@@ -1141,8 +1156,10 @@ public:
    afx_msg void OnUpdateShackSearch(CCmdUI *pCmdUI);
    afx_msg void OnRepliesToMe();
    afx_msg void OnUpdateRepliesToMe(CCmdUI *pCmdUI);
-   afx_msg void OnViewAutoshowloadedimages();
-   afx_msg void OnUpdateViewAutoshowloadedimages(CCmdUI *pCmdUI);
+   afx_msg void OnViewShowThumbs();
+   afx_msg void OnUpdateViewShowThumbs(CCmdUI *pCmdUI);
+   afx_msg void OnAutoLoadChattypicsThumbs();
+   afx_msg void OnUpdateAutoLoadChattypicsThumbs(CCmdUI *pCmdUI);
    afx_msg void OnShackMsg_Inbox();
    afx_msg void OnUpdateShackMsg_Inbox(CCmdUI *pCmdUI);
    afx_msg void OnShackMsg_Outbox();

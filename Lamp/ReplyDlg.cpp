@@ -468,6 +468,7 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
                               filler,
                               filler,
                               filler,
+                              filler,
                               &m_textdrawrect);
       }
 
@@ -667,7 +668,7 @@ void CReplyDlg::RecalcLines()
          m_linesizes.push_back(0);
          std::vector<shacktagpos> blank;
          m_linetags.push_back(blank);
-         m_linetypes.push_back(linetype(true,0,theApp.GetTextHeight()));
+         m_linetypes.push_back(linetype(true,0,theApp.GetTextHeight(),false));
          m_textsizerect.bottom += theApp.GetTextHeight();
       }
    }

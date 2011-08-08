@@ -25,6 +25,7 @@ typedef enum
    HST_LINK,
    HST_IMAGE_LINK,
    HST_IMAGE,
+   HST_THUMB,
    HST_CLOSEREPLYDLG,
    HST_POST,
    HST_TAG_RED,
@@ -168,6 +169,9 @@ typedef enum
    ST_IMAGE_LINK,
    ST_IMAGE_LINK_END,
 
+   ST_THUMB,
+   ST_THUMB_END,
+
 }shacktag;
 
 class shacktagpos
@@ -189,13 +193,15 @@ public:
 class linetype
 {
 public:
-   linetype(bool bIsText, unsigned int image_index, unsigned int height)
+   linetype(bool bIsText, unsigned int image_index, unsigned int height, bool bIsThumb)
    {
       m_bIsText = bIsText;
       m_image_index = image_index;
       m_height = height;
+      m_bIsThumb = bIsThumb;
    }
    bool m_bIsText;
+   bool m_bIsThumb;
    unsigned int m_image_index;
    unsigned int m_height;
 };
@@ -418,9 +424,14 @@ public:
    void ClearSpoilerTags(int x, int y);
    void GetLink(int x, int y, UCString &link);
    void GetImageLink(int x, int y, UCString &link);
+   void GetThumbLink(int x, int y, UCString &link);
    void GetLinkToImage(int x, int y, UCString &link);
+   void GetLinkToThumb(int x, int y, UCString &link);
    void MakeLinkIntoImage(int x, int y, unsigned int &index);
+   void MakeThumbIntoImage(int x, int y, unsigned int &index);
    void MakeImageIntoLink(int x, int y);
+   void MakeImageIntoThumb(int x, int y);
+   
 
    int GetCharPos(int x, int y, bool &off_end);
    void GetCharPosesForWord(int x, int y, int &selectionstart, int &selectionend);

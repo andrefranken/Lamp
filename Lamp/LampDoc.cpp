@@ -4018,6 +4018,9 @@ void CLampDoc::CalcBodyText(RECT &rect,
    int image_endtag = -1;
    int image_begin = -1;
    int image_end = -1;
+
+   bool bIsThumb = false;
+
    for(unsigned int tag = 0; tag < shacktags.size(); tag++)
    {
       if(image_begin == -1 && 
@@ -4027,8 +4030,17 @@ void CLampDoc::CalcBodyText(RECT &rect,
          image_begin = shacktags[tag].m_pos;
       }
 
+      if(image_begin == -1 && 
+         shacktags[tag].m_tag == ST_THUMB)
+      {
+         image_tag = (int)tag;
+         image_begin = shacktags[tag].m_pos;
+         bIsThumb = true;
+      }
+
       if(image_begin != -1 &&
-         shacktags[tag].m_tag == ST_IMAGE_END)
+         ((!bIsThumb && shacktags[tag].m_tag == ST_IMAGE_END) || 
+          (bIsThumb && shacktags[tag].m_tag == ST_THUMB_END)))
       {
          image_endtag = (int)tag;
          image_end = shacktags[tag].m_pos;
@@ -4051,7 +4063,7 @@ void CLampDoc::CalcBodyText(RECT &rect,
             lines_of_text.push_back(thistext);
             charsizes.push_back(thiswidths);
             linesizes.push_back(i - thisi);
-            linetypes.push_back(linetype(true,0,theApp.GetTextHeight()));
+            linetypes.push_back(linetype(true,0,theApp.GetTextHeight(),false));
             rectheight += theApp.GetTextHeight();
             // setup tags for this finished line
             std::vector<shacktagpos> thislinetags;
@@ -4078,13 +4090,23 @@ void CLampDoc::CalcBodyText(RECT &rect,
 
          unsigned int height = theApp.GetTextHeight();
 
-         CDCSurface *pImage = theApp.GetLinkedImage(shacktags[image_tag].m_image_index);
+         CDCSurface *pImage = NULL;
+
+         if(bIsThumb)
+         {
+            pImage = theApp.GetLinkedImageThumb(shacktags[image_tag].m_image_index);
+         }
+         else
+         {
+            pImage = theApp.GetLinkedImage(shacktags[image_tag].m_image_index);
+         }
+
          if(pImage != NULL)
          {
             height = pImage->GetHeightForWidth(textwidth);
          }
 
-         linetypes.push_back(linetype(false,shacktags[image_tag].m_image_index,height));
+         linetypes.push_back(linetype(false,shacktags[image_tag].m_image_index,height,bIsThumb));
          rectheight += height;
 
          // setup tags for this finished line
@@ -4100,6 +4122,7 @@ void CLampDoc::CalcBodyText(RECT &rect,
          image_tag = -1;
          image_begin = -1;
          image_end = -1;
+         bIsThumb = false;
          for(; tag < shacktags.size(); tag++)
          {
             if(image_begin == -1 && 
@@ -4109,8 +4132,17 @@ void CLampDoc::CalcBodyText(RECT &rect,
                image_begin = shacktags[tag].m_pos;
             }
 
+            if(image_begin == -1 && 
+               shacktags[tag].m_tag == ST_THUMB)
+            {
+               image_tag = (int)tag;
+               image_begin = shacktags[tag].m_pos;
+               bIsThumb = true;
+            }
+
             if(image_begin != -1 &&
-               shacktags[tag].m_tag == ST_IMAGE_END)
+               ((!bIsThumb && shacktags[tag].m_tag == ST_IMAGE_END) || 
+                (bIsThumb && shacktags[tag].m_tag == ST_THUMB_END)))
             {
                image_endtag = (int)tag;
                image_end = shacktags[tag].m_pos;
@@ -4133,7 +4165,7 @@ void CLampDoc::CalcBodyText(RECT &rect,
          lines_of_text.push_back(thistext);
          charsizes.push_back(thiswidths);
          linesizes.push_back(i - thisi);
-         linetypes.push_back(linetype(true,0,theApp.GetTextHeight()));
+         linetypes.push_back(linetype(true,0,theApp.GetTextHeight(),false));
          rectheight += theApp.GetTextHeight();
          // setup tags for this finished line
          std::vector<shacktagpos> thislinetags;
@@ -4159,7 +4191,7 @@ void CLampDoc::CalcBodyText(RECT &rect,
          lines_of_text.push_back(thistext);
          charsizes.push_back(thiswidths);
          linesizes.push_back(i - thisi);
-         linetypes.push_back(linetype(true,0,theApp.GetTextHeight()));
+         linetypes.push_back(linetype(true,0,theApp.GetTextHeight(),false));
          rectheight += theApp.GetTextHeight();
          // setup tags for this finished line
          std::vector<shacktagpos> thislinetags;
@@ -4187,16 +4219,20 @@ void CLampDoc::CalcBodyText(RECT &rect,
       }
    }
 
-   // insert the remainder
-   lines_of_text.push_back(thistext);
-   charsizes.push_back(thiswidths);
-   linesizes.push_back(i - thisi);
-   linetypes.push_back(linetype(true,0,theApp.GetTextHeight()));
-   rectheight += theApp.GetTextHeight();
-   // setup tags for this finished line
-   std::vector<shacktagpos> thislinetags;
-   CalcLineTags(shacktags,thislinetags, thistext - text, i);
-   linetags.push_back(thislinetags);
+
+   if(thistext < text + numchars)
+   {
+      // insert the remainder
+      lines_of_text.push_back(thistext);
+      charsizes.push_back(thiswidths);
+      linesizes.push_back(i - thisi);
+      linetypes.push_back(linetype(true,0,theApp.GetTextHeight(),false));
+      rectheight += theApp.GetTextHeight();
+      // setup tags for this finished line
+      std::vector<shacktagpos> thislinetags;
+      CalcLineTags(shacktags,thislinetags, thistext - text, i);
+      linetags.push_back(thislinetags);
+   }
    
    rect.bottom = rectheight;
 }
@@ -5022,6 +5058,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                             std::vector<RECT> &links,
                             std::vector<RECT> &imagelinks,
                             std::vector<RECT> &images,
+                            std::vector<RECT> &thumbs,
                             const RECT *pClipRect/*=NULL*/)
 {
    int y = rect.top + 4 + theApp.GetTextHeight();
@@ -5405,23 +5442,48 @@ void CLampDoc::DrawBodyText(HDC hDC,
       else // ! linetypes[i].m_bIsText
       {
          // draw image
-         CDCSurface *pImage = theApp.GetLinkedImage(linetypes[i].m_image_index);
-         if(pImage != NULL)
+
+         if(linetypes[i].m_bIsThumb)
          {
-            RECT output;
-            output.left = rect.left + 5;
-            output.right = rect.right - 5;
-            output.top = y - theApp.GetTextHeight();
-            output.bottom = (y - theApp.GetTextHeight()) + linetypes[i].m_height;
-
-            if(output.right - output.left > pImage->GetWidth())
+            CDCSurface *pImage = theApp.GetLinkedImageThumb(linetypes[i].m_image_index);
+            if(pImage != NULL)
             {
-               output.right = output.left + pImage->GetWidth();
+               RECT output;
+               output.left = rect.left + 5;
+               output.right = rect.right - 5;
+               output.top = y - theApp.GetTextHeight();
+               output.bottom = (y - theApp.GetTextHeight()) + linetypes[i].m_height;
+
+               if(output.right - output.left > pImage->GetWidth())
+               {
+                  output.right = output.left + pImage->GetWidth();
+               }
+
+               pImage->StretchBlit(hDC,output);
+
+               thumbs.push_back(output);
             }
+         }
+         else
+         {
+            CDCSurface *pImage = theApp.GetLinkedImage(linetypes[i].m_image_index);
+            if(pImage != NULL)
+            {
+               RECT output;
+               output.left = rect.left + 5;
+               output.right = rect.right - 5;
+               output.top = y - theApp.GetTextHeight();
+               output.bottom = (y - theApp.GetTextHeight()) + linetypes[i].m_height;
 
-            pImage->StretchBlit(hDC,output);
+               if(output.right - output.left > pImage->GetWidth())
+               {
+                  output.right = output.left + pImage->GetWidth();
+               }
 
-            images.push_back(output);
+               pImage->StretchBlit(hDC,output);
+
+               images.push_back(output);
+            }
          }
       }
             

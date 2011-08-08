@@ -53,7 +53,8 @@ typedef enum
    DT_SHACK_CHATTY_INFINATE_PAGE = 21,
 
    DT_SUBMIT_LOLVOTE = 22,
-   DT_GET_IMAGE = 23
+   DT_GET_IMAGE = 23,
+   DT_GET_THUMB = 24
 } DownloadType;
 
 typedef enum 
@@ -137,6 +138,7 @@ public:
                      std::vector<RECT> &links,
                      std::vector<RECT> &imagelinks,
                      std::vector<RECT> &images,
+                     std::vector<RECT> &thumbs,
                      const RECT *pClipRect = NULL);
    void DrawPreviewText(HDC hDC,
                         RECT &rect,

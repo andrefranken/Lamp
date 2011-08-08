@@ -81,7 +81,6 @@
 #define ID_VANITY_SEARCH                32797
 #define ID_SHACK_SEARCH                 32798
 #define ID_REPLIES_TO_ME                32799
-#define ID_VIEW_AUTOSHOWLOADEDIMAGES    32800
 #define ID_EDIT_LOADALLIMAGES           32801
 #define ID_EDIT_CLOSEALLIMAGES          32802
 #define ID_BOOKMARK_MENU                32803
@@ -140,6 +139,8 @@
 #define ID_ALT_POSTKEYS                 32856
 #define ID_LOADIMAGESINLAMP             32857
 #define ID_UNLOADALLIMAGES              32858
+#define ID_AUTOLOADCHATTYPICSTHUMBS     32859
+#define ID_VIEW_SHOWIMAGETHUMBS         32860
 
 #define ID_BOOKMARK_MENUITEM            32880
 
@@ -148,7 +149,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        328
-#define _APS_NEXT_COMMAND_VALUE         32859
+#define _APS_NEXT_COMMAND_VALUE         32861
 #define _APS_NEXT_CONTROL_VALUE         1020
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

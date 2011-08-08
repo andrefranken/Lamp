@@ -237,7 +237,7 @@ const UCChar *UCString::endswith(const UCChar *str) const
       {
          int offset = m_stringlength - len;
          UCChar *result = m_string + offset;
-         if(wcsicmp(result,str) == 0) 
+         if(_wcsicmp(result,str) == 0) 
             return result;
       }
    }

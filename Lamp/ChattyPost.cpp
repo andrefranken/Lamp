@@ -1254,19 +1254,35 @@ void ChattyPost::InitImageLinks()
 
             unsigned int index = 0;
 
-            if(theApp.GetAutoShowLoadedImages() &&
-               theApp.HasLinkedImage(link,index))
+            if(theApp.ShowImageThumbs() &&
+               theApp.HasLinkedImage(link,index) &&
+               theApp.IsThumbLoaded(index))
             {
-               m_shacktags[begin].m_tag = ST_IMAGE;
+               m_shacktags[begin].m_tag = ST_THUMB;
                m_shacktags[begin].m_image_index = index;
-               m_shacktags[end].m_tag = ST_IMAGE_END;
+               m_shacktags[end].m_tag = ST_THUMB_END;
             }
             else if(link.endswith(L".jpg") != NULL ||
                     link.endswith(L".jpeg") != NULL ||
                     link.endswith(L".png") != NULL)
             {
-               m_shacktags[begin].m_tag = ST_IMAGE_LINK;
-               m_shacktags[end].m_tag = ST_IMAGE_LINK_END;
+               if(theApp.ShowImageThumbs() &&
+                  theApp.AutoLoadChattypicsThumbs() &&
+                  (link.beginswith(L"http://www.chattypics.com") != NULL ||
+                   link.beginswith(L"http://chattypics.com") != NULL))
+               {
+                  theApp.GetLinkedImage(link,index);
+                  
+                  m_shacktags[begin].m_image_index = index;
+                  m_shacktags[begin].m_tag = ST_THUMB;
+                  m_shacktags[end].m_tag = ST_THUMB_END;
+                  theApp.LoadImageThumb(index,m_id);
+               }
+               else
+               {
+                  m_shacktags[begin].m_tag = ST_IMAGE_LINK;
+                  m_shacktags[end].m_tag = ST_IMAGE_LINK_END;
+               }
             }
 
             begin = -1;
@@ -1282,14 +1298,28 @@ void ChattyPost::LoadAllImageLinks()
    int begin = -1;
    int end = -1;
 
+   shacktag type = ST_RED;
+
    for(size_t i=0; i < m_shacktags.size(); i++)
    {
       if(m_shacktags[i].m_tag == ST_IMAGE_LINK)
       {
          begin = i;
+         type = ST_IMAGE_LINK;
       }
 
-      if(m_shacktags[i].m_tag == ST_IMAGE_LINK_END)
+      if(m_shacktags[i].m_tag == ST_THUMB)
+      {
+         begin = i;
+         type = ST_THUMB;
+      }
+
+      if(m_shacktags[i].m_tag == ST_IMAGE_LINK_END && type == ST_IMAGE_LINK)
+      {
+         end = i;
+      }
+
+      if(m_shacktags[i].m_tag == ST_THUMB_END && type == ST_THUMB)
       {
          end = i;
       }
@@ -1354,14 +1384,28 @@ void ChattyPost::CloseAllImageLinks()
    int begin = -1;
    int end = -1;
 
+   shacktag type = ST_RED;
+
    for(size_t i=0; i < m_shacktags.size(); i++)
    {
       if(m_shacktags[i].m_tag == ST_IMAGE)
       {
          begin = i;
+         type = ST_IMAGE;
       }
 
-      if(m_shacktags[i].m_tag == ST_IMAGE_END)
+      if(m_shacktags[i].m_tag == ST_THUMB)
+      {
+         begin = i;
+         type = ST_THUMB;
+      }
+
+      if(m_shacktags[i].m_tag == ST_IMAGE_END && type == ST_IMAGE)
+      {
+         end = i;
+      }
+
+      if(m_shacktags[i].m_tag == ST_THUMB_END && type == ST_THUMB)
       {
          end = i;
       }
@@ -1412,7 +1456,8 @@ void ChattyPost::DrawTextOnly(HDC hDC, RECT &DeviceRectangle, int pos)
       std::vector<RECT> links;
       std::vector<RECT> imagelinks;
       std::vector<RECT> images;
-      m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,&DeviceRectangle);
+      std::vector<RECT> thumbs;
+      m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs,&DeviceRectangle);
    }
 }
 
@@ -1551,7 +1596,8 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
             std::vector<RECT> links;
             std::vector<RECT> imagelinks;
             std::vector<RECT> images;
-            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images);
+            std::vector<RECT> thumbs;
+            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs);
             m_drewtextpos = textrect.top;
             m_drewtextedge = textrect.left;
             
@@ -1633,6 +1679,14 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
             {
                hotspot.m_type = HST_IMAGE;
                hotspot.m_spot = images[s];
+               hotspot.m_id = m_id;
+               hotspots.push_back(hotspot);
+            }
+
+            for(size_t s = 0; s < thumbs.size(); s++)
+            {
+               hotspot.m_type = HST_THUMB;
+               hotspot.m_spot = thumbs[s];
                hotspot.m_id = m_id;
                hotspots.push_back(hotspot);
             }
@@ -1801,7 +1855,8 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             std::vector<RECT> links;
             std::vector<RECT> imagelinks;
             std::vector<RECT> images;
-            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images);
+            std::vector<RECT> thumbs;
+            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs);
             m_drewtextpos = textrect.top;
             m_drewtextedge = textrect.left;
 
@@ -2105,6 +2160,14 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                hotspots.push_back(hotspot);
             }
 
+            for(size_t s = 0; s < thumbs.size(); s++)
+            {
+               hotspot.m_type = HST_THUMB;
+               hotspot.m_spot = thumbs[s];
+               hotspot.m_id = m_id;
+               hotspots.push_back(hotspot);
+            }
+
             hotspot.m_type = HST_TEXT;
             hotspot.m_spot = textrect;
             hotspot.m_id = m_id;
@@ -2230,7 +2293,8 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                std::vector<RECT> links;
                std::vector<RECT> imagelinks;
                std::vector<RECT> images;
-               m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images);
+               std::vector<RECT> thumbs;
+               m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs);
                m_drewtextpos = textrect.top;
                m_drewtextedge = textrect.left;
 
@@ -2499,6 +2563,14 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                {
                   hotspot.m_type = HST_IMAGE;
                   hotspot.m_spot = images[s];
+                  hotspot.m_id = m_id;
+                  hotspots.push_back(hotspot);
+               }
+
+               for(size_t s = 0; s < thumbs.size(); s++)
+               {
+                  hotspot.m_type = HST_THUMB;
+                  hotspot.m_spot = thumbs[s];
                   hotspot.m_id = m_id;
                   hotspots.push_back(hotspot);
                }
@@ -4566,11 +4638,23 @@ void ChattyPost::GetTextSelectionRects(int selectionstart, int selectionend, std
                }
                else
                {
-                  CDCSurface *pImage = theApp.GetLinkedImage(m_linetypes[line].m_image_index);
-                  if(pImage != NULL)
+                  if(m_linetypes[line].m_bIsThumb)
                   {
-                     rect.left = m_drewtextedge + 5;
-                     rect.right = rect.left + __min(m_lasttextrectwidth - 10,pImage->GetWidth());
+                     CDCSurface *pImage = theApp.GetLinkedImageThumb(m_linetypes[line].m_image_index);
+                     if(pImage != NULL)
+                     {
+                        rect.left = m_drewtextedge + 5;
+                        rect.right = rect.left + __min(m_lasttextrectwidth - 10,pImage->GetWidth());
+                     }
+                  }
+                  else
+                  {
+                     CDCSurface *pImage = theApp.GetLinkedImage(m_linetypes[line].m_image_index);
+                     if(pImage != NULL)
+                     {
+                        rect.left = m_drewtextedge + 5;
+                        rect.right = rect.left + __min(m_lasttextrectwidth - 10,pImage->GetWidth());
+                     }
                   }
                }
                
@@ -4889,6 +4973,64 @@ void ChattyPost::GetImageLink(int x, int y, UCString &link)
    link = m_shacktags[index].m_href;
 }
 
+void ChattyPost::GetThumbLink(int x, int y, UCString &link)
+{
+   bool off_end;
+   int charpos = GetCharPos(x, y, off_end);
+
+   // find the last spoiler tag to come before the charpos
+   size_t index = 0;
+   for(size_t i=0; i < m_shacktags.size(); i++)
+   {
+      if(m_shacktags[i].m_tag == ST_THUMB &&
+         m_shacktags[i].m_pos <= charpos)
+      {
+         index = i;
+      }
+   }
+
+   link = m_shacktags[index].m_href;
+}
+
+
+void ChattyPost::GetLinkToThumb(int x, int y, UCString &link)
+{
+   // find the line
+   y -= m_drewtextpos;
+   y -= 4;
+   size_t line =0;
+   while(line < m_linetypes.size() && 
+         y > (int)m_linetypes[line].m_height)
+   {
+      y -= m_linetypes[line].m_height;
+
+      line++;
+   }
+
+   if(!m_linetypes[line].m_bIsText && m_linetypes[line].m_bIsThumb)
+   {
+      // find the last spoiler tag to come before the charpos
+      const UCChar *pLink = m_lines_of_text[line];
+      const UCChar *pLinkEnd = pLink + m_linesizes[line];
+
+      if(pLink != NULL)
+      { 
+         if(pLinkEnd == NULL)
+         {
+            pLinkEnd = m_bodytext.Str() + m_bodytext.Length();
+         }
+
+         if(*(pLinkEnd - 1) == L'\n')
+         {
+            pLinkEnd--;
+         }
+
+         link.AppendUnicodeString(pLink, pLinkEnd - pLink);
+      }
+   }
+}
+
+
 void ChattyPost::GetLinkToImage(int x, int y, UCString &link)
 {
    // find the line
@@ -4903,7 +5045,7 @@ void ChattyPost::GetLinkToImage(int x, int y, UCString &link)
       line++;
    }
 
-   if(!m_linetypes[line].m_bIsText)
+   if(!m_linetypes[line].m_bIsText && !m_linetypes[line].m_bIsThumb)
    {
       // find the last spoiler tag to come before the charpos
       const UCChar *pLink = m_lines_of_text[line];
@@ -4962,6 +5104,42 @@ void ChattyPost::MakeLinkIntoImage(int x, int y, unsigned int &index)
    m_lasttextrectwidth = 0;
 }
 
+void ChattyPost::MakeThumbIntoImage(int x, int y, unsigned int &index)
+{
+   bool off_end;
+   int charpos = GetCharPos(x, y, off_end);
+
+   // find the last spoiler tag to come before the charpos
+   const UCChar *pLink = m_bodytext.Str();
+   const UCChar *pLinkEnd = NULL;
+   int begintag = 0;
+   int endtag = 0;
+
+   for(size_t i=0; i < m_shacktags.size(); i++)
+   {
+      if(m_shacktags[i].m_tag == ST_THUMB &&
+         m_shacktags[i].m_pos <= charpos)
+      {
+         begintag = i;
+      }
+
+      if(m_shacktags[i].m_tag == ST_THUMB_END &&
+         m_shacktags[i].m_pos >= charpos &&
+         pLinkEnd == NULL)
+      {
+         endtag = i;
+         break;
+      }
+   }
+
+   m_shacktags[begintag].m_tag = ST_IMAGE;
+   m_shacktags[begintag].m_image_index = index;
+   m_shacktags[endtag].m_tag = ST_IMAGE_END;
+   
+   // this is to trigger a recalc of the line tags
+   m_lasttextrectwidth = 0;
+}
+
 void ChattyPost::MakeImageIntoLink(int x, int y)
 {
    // find the line
@@ -4976,7 +5154,7 @@ void ChattyPost::MakeImageIntoLink(int x, int y)
       line++;
    }
 
-   if(!m_linetypes[line].m_bIsText)
+   if(!m_linetypes[line].m_bIsText && !m_linetypes[line].m_bIsThumb)
    {
       int charpos = m_lines_of_text[line] - m_bodytext.Str();
       charpos += (m_linesizes[line] / 2);
@@ -5006,6 +5184,59 @@ void ChattyPost::MakeImageIntoLink(int x, int y)
 
       m_shacktags[begintag].m_tag = ST_IMAGE_LINK;
       m_shacktags[endtag].m_tag = ST_IMAGE_LINK_END;
+      
+      // this is to trigger a recalc of the line tags
+      m_lasttextrectwidth = 0;
+   }
+}
+
+
+void ChattyPost::MakeImageIntoThumb(int x, int y)
+{
+   // find the line
+   y -= m_drewtextpos;
+   y -= 4;
+   size_t line =0;
+   while(line < m_linetypes.size() && 
+         y > (int)m_linetypes[line].m_height)
+   {
+      y -= m_linetypes[line].m_height;
+
+      line++;
+   }
+
+   if(!m_linetypes[line].m_bIsText && !m_linetypes[line].m_bIsThumb)
+   {
+      int charpos = m_lines_of_text[line] - m_bodytext.Str();
+      charpos += (m_linesizes[line] / 2);
+
+      // find the last image tag to come before the charpos
+      const UCChar *pLink = m_bodytext.Str();
+      const UCChar *pLinkEnd = NULL;
+      int begintag = 0;
+      int endtag = 0;
+
+      for(size_t i=0; i < m_shacktags.size(); i++)
+      {
+         if(m_shacktags[i].m_tag == ST_IMAGE &&
+            m_shacktags[i].m_pos <= charpos)
+         {
+            begintag = i;
+         }
+
+         if(m_shacktags[i].m_tag == ST_IMAGE_END &&
+            m_shacktags[i].m_pos >= charpos &&
+            pLinkEnd == NULL)
+         {
+            endtag = i;
+            break;
+         }
+      }
+
+      m_shacktags[begintag].m_tag = ST_THUMB;
+      m_shacktags[endtag].m_tag = ST_THUMB_END;
+
+      theApp.MakeThumb(m_shacktags[begintag].m_image_index);
       
       // this is to trigger a recalc of the line tags
       m_lasttextrectwidth = 0;
