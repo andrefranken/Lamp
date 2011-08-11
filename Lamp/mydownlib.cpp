@@ -479,7 +479,7 @@ u32 mydown_http2file(int *sock, int timeout, u8 *host, u16 port, u8 *user, u8 *p
     
 
 #define GOTOQUIT    { ret = MYDOWN_ERROR; goto quit; }
-
+    
     if(!sock || !*sock) {
         peer.sin_addr.s_addr = mydown_resolv((char *)host);
         if(peer.sin_addr.s_addr == INADDR_NONE) GOTOQUIT;

@@ -354,8 +354,19 @@ void CDownloadData::download(int numtries)
    }
    */
 
-   const char *enc_username = m_username.str8(false,CET_UTF8);
-   const char *enc_password = m_password.str8(false,CET_UTF8);
+   const char *enc_username = NULL;
+
+   if(!m_username.IsEmpty())
+   {
+      enc_username = m_username.str8(false,CET_UTF8);
+   }
+
+   const char *enc_password = NULL;
+
+   if(!m_password.IsEmpty())
+   {
+      enc_password = m_password.str8(false,CET_UTF8);
+   }
 
    while(numtries > 0)
    {
@@ -3465,50 +3476,53 @@ void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsign
                         {
                            unsigned int root_id = HTML_GetIDAttribute(sit);
 
-                           ChattyPost *post = NULL;
-                           
-                           bool bAlreadyHadIt = false;
-                           bool bSkip = false;
-                           std::map<unsigned int,newness> post_newness;
-
-                           for(size_t j = 0; j < existing_threads.size(); j++)
+                           if(root_id != 0)
                            {
-                              if(existing_threads[j] == root_id)
-                              {
-                                 if(bSkipExistingThreads)
-                                 {
-                                    bSkip = true;
-                                 }
-                                 else
-                                 {
-                                    post = FindRootPost(root_id);
-                                    post->RecordNewness(post_newness);
-                                    post->ClearChildren();
-                                 }
-                                 bAlreadyHadIt = true;                                 
-                                 break;
-                              }
-                           }
+                              ChattyPost *post = NULL;
+                              
+                              bool bAlreadyHadIt = false;
+                              bool bSkip = false;
+                              std::map<unsigned int,newness> post_newness;
 
-                           if(!bSkip)
-                           {
-                              if(post == NULL)
+                              for(size_t j = 0; j < existing_threads.size(); j++)
                               {
-                                 post = new ChattyPost();
-                                 post->SetNewness(N_OLD);
-                                 m_rootposts.push_back(post);
+                                 if(existing_threads[j] == root_id)
+                                 {
+                                    if(bSkipExistingThreads)
+                                    {
+                                       bSkip = true;
+                                    }
+                                    else
+                                    {
+                                       post = FindRootPost(root_id);
+                                       post->RecordNewness(post_newness);
+                                       post->ClearChildren();
+                                    }
+                                    bAlreadyHadIt = true;                                 
+                                    break;
+                                 }
                               }
 
-                              post->ReadRootChattyFromHTML(sit, this, root_id);
-                              post->EstablishNewness(post_newness);
-                              post->SetupPreviewShades(false);
-                              post->CountFamilySize();
-                              post->UpdateRootReplyList();
-                              post->SetParent(NULL);
-                              if(post->IsFiltered() && !bAlreadyHadIt)
+                              if(!bSkip)
                               {
-                                 m_rootposts.pop_back();
-                                 delete post;
+                                 if(post == NULL)
+                                 {
+                                    post = new ChattyPost();
+                                    post->SetNewness(N_OLD);
+                                    m_rootposts.push_back(post);
+                                 }
+
+                                 post->ReadRootChattyFromHTML(sit, this, root_id);
+                                 post->EstablishNewness(post_newness);
+                                 post->SetupPreviewShades(false);
+                                 post->CountFamilySize();
+                                 post->UpdateRootReplyList();
+                                 post->SetParent(NULL);
+                                 if(post->IsFiltered() && !bAlreadyHadIt)
+                                 {
+                                    m_rootposts.pop_back();
+                                    delete post;
+                                 }
                               }
                            }
                         }
