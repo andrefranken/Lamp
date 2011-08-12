@@ -53,7 +53,8 @@ UINT DownloadThreadProc( LPVOID pParam )
          pDD->m_dt == DT_SHACK_SEARCH ||
          pDD->m_dt == DT_SHACK_SHACKMSG ||
          pDD->m_dt == DT_SHACK_READMSG ||
-         pDD->m_dt == DT_SHACK_SENDMSG)
+         pDD->m_dt == DT_SHACK_SENDMSG ||
+         pDD->m_dt == DT_LOL)
       {
          pDD->getchatty(3);
       }
@@ -1092,9 +1093,16 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
          break;
       case DT_LOL:
          {
+            /*
             if(pDD->m_data != NULL)
             {
                ProcessLOLData((char *)pDD->m_data, pDD->m_datasize);
+            }
+            */
+
+            if(pDD->m_stdstring.length() > 0)
+            {
+               ProcessLOLData((char *)pDD->m_stdstring.data(), pDD->m_stdstring.length());
             }
          }
          break;

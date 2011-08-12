@@ -1606,8 +1606,6 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_text_selection_color = setting->GetValue();
    else m_text_selection_color = RGB(0,0,255);
 
-
-
    setting = hostxml.FindChildElement(L"enable_nws");
    if(setting!=NULL) m_enable_nws = setting->GetValue();
    else m_enable_nws = true;
