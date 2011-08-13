@@ -548,14 +548,15 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                                     gotit = true;
                                                                      
 
-                                    if(_wcsicmp(ici.m_ext,L".png") == 0)
+                                    if(data[0] == (char)0x89 && data[1] == (char)0x50 && data[2] == (char)0x4e && data[3] == (char)0x47)
                                     {
-                                       ici.m_image.ReadPNG(suspect);
+                                       ici.m_image.ReadPNG(suspect,true);
                                     }      
                                     else // if(_wcsicmp(ici.m_ext,L".jpg") == 0 || _wcsicmp(ici.m_ext,L".jpeg") == 0)
                                     {
                                        ici.m_image.ReadJpeg(suspect);
                                     }
+
                                     ici.m_image.EnableCachedStretchImage(true);
 
                                     _wunlink(suspect);
@@ -652,7 +653,8 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                                  if(pFile != NULL)
                                  {
                                     if(_wcsicmp(ici.m_ext,L".jpg") == 0 ||
-                                       _wcsicmp(ici.m_ext,L".jpeg") == 0)
+                                       _wcsicmp(ici.m_ext,L".jpeg") == 0 ||
+                                       _wcsicmp(ici.m_ext,L".png") == 0)
                                     {
                                        if(data[0] == (char)0xff &&
                                           data[1] == (char)0xe0)
@@ -667,8 +669,15 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                                     fwrite(data,1,size,pFile);
                                     fclose(pFile);
                                     gotit = true;
-                                                                     
-                                    ici.m_imagethumb.ReadJpeg(suspect);
+                                    
+                                    if(data[0] == (char)0x89 && data[1] == (char)0x50 && data[2] == (char)0x4e && data[3] == (char)0x47)
+                                    {
+                                       ici.m_imagethumb.ReadPNG(suspect,true);
+                                    }
+                                    else
+                                    {
+                                       ici.m_imagethumb.ReadJpeg(suspect);
+                                    }
                                     
                                     ici.m_image.EnableCachedStretchImage(true);
 

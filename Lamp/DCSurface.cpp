@@ -1,6 +1,7 @@
 // DCSurface.cpp : implementation file
 //
 #include "stdafx.h"
+#include "Lamp.h"
 #include "UCString.h"
 #include "DCSurface.h"
 #include "os.h"
@@ -33,7 +34,10 @@ struct MyJpegErrorMgr {
   jmp_buf setjmp_buffer;	/* for return to caller */
 };
 
+extern CRITICAL_SECTION g_ThreadAccess;
 
+bool CDCSurface::m_bPopulatedBlendTable = false;
+byte CDCSurface::m_BlendTable[256][256];
 
 /////////////////////////////////////////////////////////////////////////////
 // CDCSurface
@@ -384,7 +388,7 @@ void CDCSurface::Fill(byte red, byte green, byte blue)
    }
 }
 
-bool CDCSurface::ReadPNG(const UCString &FileName)
+bool CDCSurface::ReadPNG(const UCString &FileName, bool bBackgroundAlpha/*= false*/)
 {
    bool result = false;
 
@@ -400,21 +404,29 @@ bool CDCSurface::ReadPNG(const UCString &FileName)
       m_bytedepth == 4 
       /* && OS is XP */)
    {
-      MakeTransparentBitmap();
+      MakeTransparentBitmap(bBackgroundAlpha);
    }
 
    return result;
 }
 
-void CDCSurface::MakeTransparentBitmap()
+void CDCSurface::MakeTransparentBitmap(bool bBackgroundAlpha)
 {
    if(m_bytedepth == 4)
    {
+      setupBlendTable();
+
       int width = m_PixelWidth;
       int height = m_PixelHeight;
       int oldscanlinesize = m_ScanlineByteLength;   
       byte *pOldPixels = (byte*)malloc(m_PixelHeight * m_ScanlineByteLength);
       memcpy(pOldPixels, m_pBits, m_PixelHeight * m_ScanlineByteLength);
+
+      COLORREF crf = theApp.GetPostBackgroundColor();
+      byte bkclr[3];
+      bkclr[0] = GetBValue(crf);
+      bkclr[1] = GetGValue(crf);
+      bkclr[2] = GetRValue(crf);
 
       // destroy old
       if(m_DC != NULL)
@@ -448,6 +460,8 @@ void CDCSurface::MakeTransparentBitmap()
 
       byte *pReadScanline = pOldPixels;
 
+      byte ipercent, invpercent;
+
       while(pWriteScanline < pWriteScanlineEnd)
       {
          byte *pWrite = (byte *)pWriteScanline;
@@ -456,17 +470,29 @@ void CDCSurface::MakeTransparentBitmap()
 
          while(pWrite < pWriteEnd)
          {
-            if(pRead[3] > 127)
+            if(bBackgroundAlpha)
             {
-               pWrite[0] = pRead[0];
-               pWrite[1] = pRead[1];
-               pWrite[2] = pRead[2];
+               ipercent = pRead[3];
+               invpercent = 255 - ipercent;
+               
+               pWrite[0] = m_BlendTable[pRead[0]][ipercent] + m_BlendTable[bkclr[0]][invpercent];
+               pWrite[1] = m_BlendTable[pRead[1]][ipercent] + m_BlendTable[bkclr[1]][invpercent];
+               pWrite[2] = m_BlendTable[pRead[2]][ipercent] + m_BlendTable[bkclr[2]][invpercent];
             }
             else
             {
-               pWrite[0] = 255;
-               pWrite[1] = 0;
-               pWrite[2] = 255;
+               if(pRead[3] > 127)
+               {
+                  pWrite[0] = pRead[0];
+                  pWrite[1] = pRead[1];
+                  pWrite[2] = pRead[2];
+               }
+               else
+               {
+                  pWrite[0] = 255;
+                  pWrite[1] = 0;
+                  pWrite[2] = 255;
+               }
             }
 
             pWrite += 3;
@@ -1107,4 +1133,27 @@ bool CDCSurface::ReadJpeg(const UCString &filename)
    /* And we're done! */
 
    return result;
+}
+
+
+void CDCSurface::setupBlendTable(void)
+{
+   if(!m_bPopulatedBlendTable)
+   {
+      ::EnterCriticalSection(&g_ThreadAccess);
+
+      if(!m_bPopulatedBlendTable)
+      {
+         for(int i = 0; i < 256; i++)
+         {
+            for(int p = 0; p < 256; p++)
+            {         
+               m_BlendTable[i][p] = (byte)((float)i * ((float)p / (float)255.0));
+            }
+         }
+         m_bPopulatedBlendTable = true;
+      }
+
+      ::LeaveCriticalSection(&g_ThreadAccess);
+   }
 }

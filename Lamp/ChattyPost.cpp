@@ -1272,9 +1272,10 @@ void ChattyPost::InitImageLinks()
                   m_shacktags[end].m_tag = ST_IMAGE_LINK_END;
                }
             }
-            else if(link.endswith(L".jpg") != NULL ||
-                    link.endswith(L".jpeg") != NULL ||
-                    link.endswith(L".png") != NULL)
+            else if((link.endswith(L".jpg") != NULL ||
+                     link.endswith(L".jpeg") != NULL ||
+                     link.endswith(L".png") != NULL) &&
+                     link.beginswith(L"http://"))
             {
                if(theApp.ShowImageThumbs() &&
                   theApp.AutoLoadChattypicsThumbs() &&
@@ -4428,12 +4429,7 @@ int ChattyPost::GetCharPos(int x, int y, bool &off_end)
          y > (int)m_linetypes[line].m_height)
    {
       y -= m_linetypes[line].m_height;
-
-      if(line < m_linesizes.size())
-      {
-         charpos += m_linesizes[line];
-      }
-
+      charpos += m_linesizes[line];
       line++;
    }
 
@@ -5026,7 +5022,7 @@ void ChattyPost::GetLinkToThumb(int x, int y, UCString &link)
       line++;
    }
 
-   if(!m_linetypes[line].m_bIsText && m_linetypes[line].m_bIsThumb)
+   if(line < m_linetypes.size() && !m_linetypes[line].m_bIsText && m_linetypes[line].m_bIsThumb)
    {
       // find the last spoiler tag to come before the charpos
       const UCChar *pLink = m_lines_of_text[line];
@@ -5064,7 +5060,7 @@ void ChattyPost::GetLinkToImage(int x, int y, UCString &link)
       line++;
    }
 
-   if(!m_linetypes[line].m_bIsText && !m_linetypes[line].m_bIsThumb)
+   if(line < m_linetypes.size() && !m_linetypes[line].m_bIsText && !m_linetypes[line].m_bIsThumb)
    {
       // find the last spoiler tag to come before the charpos
       const UCChar *pLink = m_lines_of_text[line];
@@ -5173,7 +5169,7 @@ void ChattyPost::MakeImageIntoLink(int x, int y)
       line++;
    }
 
-   if(!m_linetypes[line].m_bIsText && !m_linetypes[line].m_bIsThumb)
+   if(line < m_linetypes.size() && !m_linetypes[line].m_bIsText && !m_linetypes[line].m_bIsThumb)
    {
       int charpos = m_lines_of_text[line] - m_bodytext.Str();
       charpos += (m_linesizes[line] / 2);
@@ -5224,7 +5220,7 @@ void ChattyPost::MakeImageIntoThumb(int x, int y)
       line++;
    }
 
-   if(!m_linetypes[line].m_bIsText && !m_linetypes[line].m_bIsThumb)
+   if(line < m_linetypes.size() && !m_linetypes[line].m_bIsText && !m_linetypes[line].m_bIsThumb)
    {
       int charpos = m_lines_of_text[line] - m_bodytext.Str();
       charpos += (m_linesizes[line] / 2);
