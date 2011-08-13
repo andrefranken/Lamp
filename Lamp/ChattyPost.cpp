@@ -1268,8 +1268,8 @@ void ChattyPost::InitImageLinks()
                }
                else
                {
-                  m_shacktags[begin].m_tag = ST_LINK;
-                  m_shacktags[end].m_tag = ST_LINK_END;
+                  m_shacktags[begin].m_tag = ST_IMAGE_LINK;
+                  m_shacktags[end].m_tag = ST_IMAGE_LINK_END;
                }
             }
             else if(link.endswith(L".jpg") != NULL ||
@@ -1293,8 +1293,8 @@ void ChattyPost::InitImageLinks()
                   }
                   else
                   {
-                     m_shacktags[begin].m_tag = ST_LINK;
-                     m_shacktags[end].m_tag = ST_LINK_END;
+                     m_shacktags[begin].m_tag = ST_IMAGE_LINK;
+                     m_shacktags[end].m_tag = ST_IMAGE_LINK_END;
                   }
                }
                else

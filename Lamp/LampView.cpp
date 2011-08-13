@@ -2788,7 +2788,9 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            if(pPost != NULL)
                            {
                               UpdateCurrentIdAsRoot(m_hotspots[i].m_id);
-                              if(theApp.ShowImageThumbs())
+                              if(theApp.ShowImageThumbs() &&
+                                 (!theApp.DontAutoLoadNWSThumbs() ||
+                                  !pPost->IsNWSPost()))
                               {
                                  pPost->MakeImageIntoThumb(m_mousepoint.x, m_mousepoint.y);
                               }
