@@ -405,7 +405,7 @@ public:
                 UCString &body);
    int DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly);
    int DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, int indent, unsigned int current_id, int &trunkatingposts, const UCString &rootauthor);
-   int DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots);
+   int DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id);
    void DrawTextOnly(HDC hDC, RECT &DeviceRectangle, int pos);
    void SetupPreviewShades(bool bDoingNewFlags);
 

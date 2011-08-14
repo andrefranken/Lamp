@@ -777,18 +777,71 @@ void ChattyPost::ReadMessageFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator
             std::string body_str;
             HTML_GetValue(body_it, body_str);
             body = (char*)body_str.data();
-            body.Replace(L"<br>",L"<br/>");
+            //body.Replace(L"<br>",L"<br/>");
+            body.Replace(L"\n<br>",L"\n");
+            body.Replace(L"<br>",L"\n");
             body.Replace(L"<p>",L"");
             body.Replace(L"</p>",L"");
             body.ReplaceAll(0x02C2,L'<');
             body.ReplaceAll(0x02C3,L'>');
+
+            // find links and use the link shacktag l{...}l
+            const UCChar *start = body.Str();
+            const UCChar *end = start + body.Length();
+            const UCChar *current = start;
+
+            bool bContinue = true;
+
+            while(bContinue && current < end)
+            {
+               const UCChar *suspect = wcsstr(current, L"http://");
+               if(suspect == NULL)
+                  suspect = wcsstr(current, L"https://");
+
+               if(suspect != NULL)
+               {
+                  // find the end of it
+                  const UCChar *work = suspect;
+
+                  while(work < end &&
+                        iswspace(*work) == 0)
+                  {
+                     work++;
+                  }
+
+                  if(work > suspect)
+                  {
+                     int position = suspect - start;
+                     int suspectlen = work - suspect;
+                     body.InsertChar(L'l', position);
+                     position++;
+                     body.InsertChar(L'{', position);
+                     position++;
+                     position += suspectlen;
+                     body.InsertChar(L'}', position);
+                     position++;
+                     body.InsertChar(L'l', position);
+                     position++;
+
+                     start = body.Str();
+                     end = start + body.Length();
+                     current = start + position;
+                  }
+               }
+               else
+               {
+                  bContinue = false;
+               }
+            }
          }
       }
    }
 
    m_bodytext = L"";
    m_shacktags.clear();
-   DecodeString(body,m_bodytext,m_shacktags);
+   //DecodeString(body,m_bodytext,m_shacktags);
+   DecodeShackTagsString(body);
+
    //m_bodytext.MakeNormal();
    SetupCharWidths();
    m_lines_of_text.clear();
@@ -1482,7 +1535,7 @@ void ChattyPost::DrawTextOnly(HDC hDC, RECT &DeviceRectangle, int pos)
 }
 
 
-int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots)
+int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id)
 {
    if(m_pDoc != NULL)
    {
@@ -1547,7 +1600,8 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
             int shade = 10;
             if(m_bHaveRead) shade = 0;
             bool clipped = false;
-            m_pDoc->DrawPreviewText(hDC,subjectrect,m_subject,m_pSubjectCharWidths,m_shacktags,shade,clipped);
+            std::vector<shacktagpos> emptytags;
+            m_pDoc->DrawPreviewText(hDC,subjectrect,m_subject,m_pSubjectCharWidths,emptytags,shade,clipped);
 
             CHotSpot hotspot;
             hotspot.m_bAnim = false;
@@ -1610,7 +1664,14 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
             myrect.left += 20;
             myrect.right -= 20;
             //myrect.top += 20;
-            m_pDoc->FillExpandedBackground(hDC,myrect,true,m_category,!theApp.StrokeRootEdges());
+
+            bool bAsRoot = true;
+            if(current_id == m_id)
+            {
+               bAsRoot = false;
+            }
+
+            m_pDoc->FillExpandedBackground(hDC,myrect,bAsRoot,m_category,!theApp.StrokeRootEdges());
 
             std::vector<RECT> spoilers;
             std::vector<RECT> links;
@@ -1642,7 +1703,8 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
             subjectrect.top = authorrect.top;
             subjectrect.bottom = authorrect.bottom;
             bool clipped = false;
-            m_pDoc->DrawPreviewText(hDC,subjectrect,m_subject,m_pSubjectCharWidths,m_shacktags,0,clipped);
+            std::vector<shacktagpos> emptytags;
+            m_pDoc->DrawPreviewText(hDC,subjectrect,m_subject,m_pSubjectCharWidths,emptytags,0,clipped);
 
             hotspot.m_type = HST_CLOSE_MESSAGE;
             hotspot.m_spot = subjectrect;
@@ -3194,8 +3256,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
 
    std::vector<shacktag> tagstack;
 
-   const UCChar *read = from;
+   const UCChar *readstart = from;
+   const UCChar *read = readstart;
    const UCChar *readend = read + from.Length();
+
+   const UCChar *linkstart = NULL;
 
    // skip leading whitespace
    bool bAtStartOfALine = true;
@@ -3524,6 +3589,33 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
          if(spoiler == 1)
          {
             m_shacktags.push_back(shacktagpos(ST_SPOILER,m_bodytext.Length()));
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"l{",2) == 0)
+      {
+         link++;
+         tagstack.push_back(ST_LINK);
+         if(link == 1)
+         {
+            m_shacktags.push_back(shacktagpos(ST_LINK,m_bodytext.Length()));
+            linkstart = read + 2;
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"}l", 2) == 0)
+      {
+         link--;
+         PopTag(tagstack, ST_LINK);
+         if(link == 0)
+         {
+            UCString linktext;
+            if(m_shacktags[m_shacktags.size() - 1].m_tag == ST_LINK)
+            {
+               linktext.AppendUnicodeString(linkstart, read - linkstart);
+               m_shacktags[m_shacktags.size() - 1].m_href = linktext;
+            }
+            m_shacktags.push_back(shacktagpos(ST_LINK_END,m_bodytext.Length()));
          }
          read+=2;
       }

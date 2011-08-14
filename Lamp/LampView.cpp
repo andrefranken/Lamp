@@ -2609,15 +2609,16 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                                  UCString subject = L"Re: ";
                                  subject += post->GetSubject();
 
-                                 UCString shackmsg = L"\r\nOn ";
+                                 UCString shackmsg = L"\r\n/[On ";
                                  shackmsg += post->GetDateText();
                                  shackmsg += L" ";
                                  shackmsg += author;
-                                 shackmsg += L" wrote:\r\n";
+                                 shackmsg += L" wrote:\r\n-----\r\n";
 
                                  UCString temp = post->GetBodyText();
                                  temp.Replace(L"\n",L"\r\n");
                                  shackmsg += temp;
+                                 shackmsg += L"\r\n-----]/";
 
                                  m_dlgup = true;
                                  theApp.SendMessageDlg(GetDocument(),author,subject,shackmsg);
@@ -2638,15 +2639,16 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                                  UCString subject = L"Fwd: ";
                                  subject += post->GetSubject();
 
-                                 UCString shackmsg = L"\r\nOn ";
+                                 UCString shackmsg = L"\r\n/[On ";
                                  shackmsg += post->GetDateText();
                                  shackmsg += L" ";
                                  shackmsg += post->GetAuthor();
-                                 shackmsg += L" wrote:\r\n";
+                                 shackmsg += L" wrote:\r\n-----\r\n";
 
                                  UCString temp = post->GetBodyText();
                                  temp.Replace(L"\n",L"\r\n");
                                  shackmsg += temp;
+                                 shackmsg += L"\r\n-----]/";
 
                                  m_dlgup = true;
                                  theApp.SendMessageDlg(GetDocument(),UCString(),subject,shackmsg);
@@ -4120,8 +4122,7 @@ void CLampView::OnCopyLink()
 {
    for(size_t i = 0; i < m_hotspots.size(); i++)
    {
-      if(GetDocument()->GetDataType() != DDT_SHACKMSG &&
-         m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
+      if(m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
          m_rbuttondownpoint.x < m_hotspots[i].m_spot.right &&
          m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
          m_rbuttondownpoint.y < m_hotspots[i].m_spot.bottom &&
@@ -4133,7 +4134,7 @@ void CLampView::OnCopyLink()
           m_hotspots[i].m_type == HST_PIN ||
           m_hotspots[i].m_type == HST_REFRESH ||
           m_hotspots[i].m_type == HST_REPLIESTOROOTPOSTHINT ||
-          m_hotspots[i].m_type == HST_TEXT))
+          (m_hotspots[i].m_type == HST_TEXT && GetDocument()->GetDataType() != DDT_SHACKMSG)))
       {
          ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
          if(pPost != NULL)
@@ -4175,8 +4176,7 @@ void CLampView::OnUpdateCopyLink(CCmdUI *pCmdUI)
    BOOL enable = FALSE;
    for(size_t i = 0; i < m_hotspots.size(); i++)
    {
-      if(GetDocument()->GetDataType() != DDT_SHACKMSG &&
-         m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
+      if(m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
          m_rbuttondownpoint.x < m_hotspots[i].m_spot.right &&
          m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
          m_rbuttondownpoint.y < m_hotspots[i].m_spot.bottom &&
@@ -4188,7 +4188,7 @@ void CLampView::OnUpdateCopyLink(CCmdUI *pCmdUI)
           m_hotspots[i].m_type == HST_PIN ||
           m_hotspots[i].m_type == HST_REFRESH ||
           m_hotspots[i].m_type == HST_REPLIESTOROOTPOSTHINT ||
-          m_hotspots[i].m_type == HST_TEXT))
+          (m_hotspots[i].m_type == HST_TEXT && GetDocument()->GetDataType() != DDT_SHACKMSG)))
       {
          ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
          if(pPost != NULL)

@@ -3103,7 +3103,7 @@ void CLampDoc::Draw(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpo
          if(m_rootposts.size() > 0)
          {
             pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, true);
-            pos = DrawMessages(hDC, DeviceRectangle, pos, hotspots);
+            pos = DrawMessages(hDC, DeviceRectangle, pos, hotspots, current_id);
             pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, true);
          }
       }
@@ -3383,7 +3383,7 @@ int CLampDoc::DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<
 }
 
 
-int CLampDoc::DrawMessages(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots)
+int CLampDoc::DrawMessages(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id)
 {
    std::list<ChattyPost*>::iterator begin = m_rootposts.begin();
    std::list<ChattyPost*>::iterator end = m_rootposts.end();
@@ -3391,7 +3391,7 @@ int CLampDoc::DrawMessages(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<
 
    while(it != end)
    {
-      pos = (*it)->DrawMessage(hDC,DeviceRectangle,pos,hotspots);
+      pos = (*it)->DrawMessage(hDC,DeviceRectangle,pos,hotspots, current_id);
       it++;
 
       if(it != end)

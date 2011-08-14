@@ -4489,7 +4489,8 @@ void CLampApp::InvalidateContentLayout(unsigned int id)
       DocDataType ddt = (*it)->GetDataType();
       if(ddt == DDT_STORY ||
          ddt == DDT_THREAD ||
-         ddt == DDT_LOLS)
+         ddt == DDT_LOLS ||
+         ddt == DDT_SHACKMSG)
       {
          ChattyPost *thispost = (*it)->FindPost(id);
          if(thispost != NULL)
