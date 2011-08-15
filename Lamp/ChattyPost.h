@@ -73,7 +73,8 @@ typedef enum
    HST_REPLY_TO_MESSAGE,
    HST_FORWARD_MESSAGE,
    HST_COMPOSE_MESSAGE,
-   HST_NEW_MESSAGES_NOTE
+   HST_NEW_MESSAGES_NOTE,
+   HST_BANNER_BACKGROUND,
 }hotspottype;
 
 typedef enum 
@@ -441,7 +442,7 @@ public:
    void GetSelectedText(int selectionstart, int selectionend, UCString &selectionrects);
 
    bool FindNext(const UCChar *search, unsigned int &textselectionpost, int &selectionstart, int &selectionend);
-
+                                          
    int GetPos(){return m_pos;}
    int GetHeight(){return m_height;}
 

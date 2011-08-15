@@ -90,7 +90,8 @@ public:
 
    void DrawEverythingToBuffer(CDCSurface *pSurface = NULL, 
                                RECT *pDeviceRectangle = NULL, 
-                               RECT *pScrollRectangle = NULL);
+                               RECT *pScrollRectangle = NULL,
+                               bool bClearHotspots = true);
 
 protected:
    void DrawHotSpots(HDC hDC);
@@ -105,12 +106,15 @@ protected:
    void TrackMouse(CPoint &point);
    void UpdateCurrentIdAsRoot(unsigned int id);
    
+   void MakeCurrentPostLegal(bool bTopOnly = false);
    void MakePosLegal();
    void GetDocHeight();
    CDCSurface *m_backbuffer;
    CDCSurface m_backbuffer1;
    CDCSurface m_backbuffer2;
    CDCSurface m_whitebuffer;
+   CDCSurface m_bannerbuffer;
+   RECT m_BannerRectangle;
    int m_pos;
    int m_gotopos;
    int m_lastdrawnpos;
@@ -185,6 +189,10 @@ protected:
    bool m_brakes;
 
    CFindTextDlg *m_pFindDlg;
+
+   RECT m_ScrollRectangle;
+
+   int m_banneroffset;
 // Generated message map functions
 protected:
    

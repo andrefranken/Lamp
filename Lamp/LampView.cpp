@@ -198,6 +198,7 @@ CLampView::CLampView()
    m_bStartedTrackingMouse = false;
    m_brakes = false;
    m_bDoubleClickDragging = false;
+   m_banneroffset = 0;
    
    m_pFindDlg = NULL;
 
@@ -506,6 +507,8 @@ void CLampView::OnDraw(CDC* pDC)
 
          bool bDrewNewMessagesTab = false;
 
+         bool bDrewBanner = false;
+
          if(m_bDrawHotsOnly)
          {
             m_bDrawHotsOnly = false;
@@ -522,6 +525,18 @@ void CLampView::OnDraw(CDC* pDC)
                m_backbuffer2.Resize(width, height);
                m_whitebuffer.Resize(width, height);
                m_whitebuffer.Fill(GetRValue(theApp.GetHoverColor()),GetGValue(theApp.GetHoverColor()),GetBValue(theApp.GetHoverColor()));
+
+               int bannerheight = 71;
+               CDCSurface *pNTImage = theApp.GetNewThreadImage(false);
+               if(pNTImage != NULL)
+               {
+                  bannerheight = pNTImage->GetHeight();
+               }
+               m_bannerbuffer.Resize(width, bannerheight);
+               m_BannerRectangle.left = m_BannerRectangle.top = 0;
+               m_BannerRectangle.right = width;
+               m_BannerRectangle.bottom = bannerheight;
+               
                m_bPanOnly = false;
                theApp.UpdateTabSizes();
             }
@@ -628,8 +643,64 @@ void CLampView::OnDraw(CDC* pDC)
 
             ::SetStretchBltMode(pSurface->GetDC(),HALFTONE);
             ::SetBrushOrgEx(pSurface->GetDC(), brushorg.x, brushorg.y, NULL);
+
+            m_hotspots.clear();
+
+            if(theApp.HaveNewMessages() && theApp.GetAutoCheckInbox())
+            {
+               const UCChar *pChar;
+               int *widths;
+               size_t numchars;
+               int textwidth;
+               int center_x = (DeviceRectangle.left + DeviceRectangle.right) / 2;
+               theApp.GetNewMessagesText(&pChar, &widths, numchars, textwidth);
+
+               RECT newmessagesrect;
+               newmessagesrect.top = DeviceRectangle.top;
+               newmessagesrect.bottom = newmessagesrect.top + theApp.GetTextHeight();
+               newmessagesrect.left = center_x - (textwidth / 2) - 5;
+               newmessagesrect.right = newmessagesrect.left + textwidth + 10;
+
+               CHotSpot hotspot;
+               hotspot.m_bAnim = false;
+               hotspot.m_type = HST_NEW_MESSAGES_NOTE;
+               hotspot.m_spot = newmessagesrect;
+               hotspot.m_id = 0;
+               m_hotspots.push_back(hotspot);
+            }
+
+            ::SetTextAlign(m_bannerbuffer.GetDC(),TA_LEFT|TA_BOTTOM);
+            ::SetBkMode(m_bannerbuffer.GetDC(),TRANSPARENT);
+
+            switch(pDoc->GetDataType())
+            {
+            case DDT_STORY:
+               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, true, false);
+               bDrewBanner = true;
+               break;
+            case DDT_LOLS:
+               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, false);
+               bDrewBanner = true;
+               break;
+            case DDT_SEARCH:
+               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, false);
+               bDrewBanner = true;
+               break;
+            case DDT_SHACKMSG:
+               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, true);
+               bDrewBanner = true;
+               break;
+            }            
+
+            m_banneroffset = 0;
+
+            if(bDrewBanner)
+            {
+               m_banneroffset = m_bannerbuffer.GetHeight();
+               ScrollRectangle.top += m_bannerbuffer.GetHeight();
+            }
             
-            DrawEverythingToBuffer(pSurface,&DocRectangle,&ScrollRectangle);
+            DrawEverythingToBuffer(pSurface,&DocRectangle,&ScrollRectangle,false);
 
             if(m_pos != m_gotopos)
             {
@@ -642,7 +713,16 @@ void CLampView::OnDraw(CDC* pDC)
             }
             ::ExtSelectClipRgn(pSurface->GetDC(),NULL,RGN_COPY);
 
-            pSurface->Blit(hDC, DeviceRectangle);
+            if(bDrewBanner)
+            {
+               DeviceRectangle.top += m_bannerbuffer.GetHeight();
+               pSurface->BlitRect2Rect(hDC,DeviceRectangle,DeviceRectangle);
+               DeviceRectangle.top -= m_bannerbuffer.GetHeight();
+            }
+            else
+            {
+               pSurface->Blit(hDC, DeviceRectangle);
+            }
 
             m_lastdrawnpos = m_pos;
             
@@ -661,6 +741,12 @@ void CLampView::OnDraw(CDC* pDC)
          }
 
          //
+
+         if(bDrewBanner)
+         {
+            ::BitBlt(hDC, m_BannerRectangle.left, m_BannerRectangle.top, m_BannerRectangle.right - m_BannerRectangle.left, m_BannerRectangle.bottom - m_BannerRectangle.top, m_bannerbuffer.GetDC(), 0, 0, SRCCOPY);
+         }
+
          if(!bDrewNewMessagesTab && theApp.HaveNewMessages() && theApp.GetAutoCheckInbox())
          {
             const UCChar *pChar;
@@ -760,7 +846,8 @@ void CLampView::OnDraw(CDC* pDC)
 
 void CLampView::DrawEverythingToBuffer(CDCSurface *pSurface/* = NULL*/, 
                                        RECT *pDeviceRectangle/* = NULL*/, 
-                                       RECT *pScrollRectangle/* = NULL*/)
+                                       RECT *pScrollRectangle/* = NULL*/,
+                                       bool bClearHotspots/* = true*/)
 {
    if(pSurface == NULL)
    {
@@ -784,31 +871,8 @@ void CLampView::DrawEverythingToBuffer(CDCSurface *pSurface/* = NULL*/,
       DeviceRectangle.bottom = pSurface->GetHeight();
    }
 
-   m_hotspots.clear();
-
-   if(theApp.HaveNewMessages() && theApp.GetAutoCheckInbox())
-   {
-      const UCChar *pChar;
-      int *widths;
-      size_t numchars;
-      int textwidth;
-      int center_x = (DeviceRectangle.left + DeviceRectangle.right) / 2;
-      theApp.GetNewMessagesText(&pChar, &widths, numchars, textwidth);
-
-      RECT newmessagesrect;
-      newmessagesrect.top = DeviceRectangle.top;
-      newmessagesrect.bottom = newmessagesrect.top + theApp.GetTextHeight();
-      newmessagesrect.left = center_x - (textwidth / 2) - 5;
-      newmessagesrect.right = newmessagesrect.left + textwidth + 10;
-
-      CHotSpot hotspot;
-      hotspot.m_bAnim = false;
-      hotspot.m_type = HST_NEW_MESSAGES_NOTE;
-      hotspot.m_spot = newmessagesrect;
-      hotspot.m_id = 0;
-      m_hotspots.push_back(hotspot);
-   }
-
+   if(bClearHotspots)
+      m_hotspots.clear();
 
    m_hotspot = NULL;
    m_lasthotspot = NULL;
@@ -824,22 +888,20 @@ void CLampView::DrawEverythingToBuffer(CDCSurface *pSurface/* = NULL*/,
       }
    }
 
-   RECT ScrollRectangle;
-
    if(pScrollRectangle != NULL)
    {
-      ScrollRectangle = *pScrollRectangle;
+      m_ScrollRectangle = *pScrollRectangle;
    }
    else
    {
-      ScrollRectangle = DeviceRectangle;
-      ScrollRectangle.left = ScrollRectangle.right;
-      ScrollRectangle.right += 16;
+      m_ScrollRectangle = DeviceRectangle;
+      m_ScrollRectangle.left = m_ScrollRectangle.right;
+      m_ScrollRectangle.right += 16;
    }
 
    ::ExtSelectClipRgn(pSurface->GetDC(),NULL,RGN_COPY);
 
-   DrawScrollbar(pSurface->GetDC(), ScrollRectangle, m_hotspots);
+   DrawScrollbar(pSurface->GetDC(), m_ScrollRectangle, m_hotspots);
 
    ::IntersectClipRect(pSurface->GetDC(),DeviceRectangle.left,DeviceRectangle.top,DeviceRectangle.right,DeviceRectangle.bottom);
    
@@ -901,15 +963,16 @@ void CLampView::DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<
    int trackheight = scrollbarheight - 16 - 16;
    int docheight = GetDocument()->GetHeight();
    int thumbtop = m_pos;
-   int thumbbottom = thumbtop + scrollbarheight;//scrollbarheight is also screenheight
+   int thumbbottom = thumbtop + scrollbarheight + ScrollRectangle.top;//scrollbarheight is also screenheight
 
    // now translate those to the range of the scrollbar's pixels
    m_scrollscale =  (float)trackheight / (float)docheight;
-   thumbtop = __max(16, 16 + (int)((float)thumbtop * m_scrollscale));
-   thumbbottom = __min(scrollbarheight - 16, 16 + (int)((float)thumbbottom * m_scrollscale));
+   thumbtop = ScrollRectangle.top + __max(16, 16 + (int)((float)thumbtop * m_scrollscale));
+   thumbbottom = ScrollRectangle.top + __min(scrollbarheight - 16, 16 + (int)((float)thumbbottom * m_scrollscale));
    int thumbheight = thumbbottom - thumbtop;
    
-   if(thumbheight < (4 + 4))
+   if(docheight > 0 && 
+      thumbheight < (4 + 4))
    {
       // too small, bump it up
       int thumbcenter = (thumbtop + thumbbottom) >> 1;
@@ -934,7 +997,8 @@ void CLampView::DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<
 
    m_bdrawthumb = false;
    // draw thumb
-   if(thumbbottom - thumbtop < trackheight)
+   if(docheight > 0 && 
+      thumbbottom - thumbtop < trackheight)
    {
       m_bdrawthumb = true;
       m_thumbrect = ScrollRectangle;
@@ -1166,6 +1230,11 @@ void CLampView::DrawHotSpots(HDC hDC)
 
 bool CLampView::DrawCurrentHotSpots(HDC hDC)
 {
+   RECT DeviceRectangle;
+   GetClientRect(&DeviceRectangle);
+
+   ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
+
    bool bDrewNewMessagesTab = false;
    if(m_lasthotspot != NULL)
    {
@@ -1226,25 +1295,28 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                break;
             case HST_NEWTHREAD:
                {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
                   theApp.GetNewThreadImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,20,20);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
                }
                break;
             case HST_COMPOSE_MESSAGE:
                {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
                   theApp.GetComposeImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,20,20);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
                }
                break;
             case HST_REFRESHSTORY:
                {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
                   theApp.GetRefreshStoryImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,34,20);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
                }
                break;
             case HST_REPLIESTOROOTPOSTHINT:
             case HST_REPLYPREVIEW:
             case HST_POSTAS:
-            case HST_PREV_PAGE:
-            case HST_NEXT_PAGE:
-            case HST_PAGE:
             case HST_AUTHOR:
             case HST_AUTHORPREVIEW:
             case HST_LINK:
@@ -1256,10 +1328,17 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                   m_backbuffer->Blit(hDC, m_hotspots[i].m_spot, false);
                }
                break;
+            case HST_PREV_PAGE:
+            case HST_NEXT_PAGE:
+            case HST_PAGE:
+               {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
+                  m_bannerbuffer.Blit(hDC, m_hotspots[i].m_spot, false);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
+               }
+               break;
             case HST_NEW_MESSAGES_NOTE:
                {
-                  RECT DeviceRectangle;
-                  GetClientRect(&DeviceRectangle);
                   const UCChar *pChar;
                   int *widths;
                   size_t numchars;
@@ -1413,6 +1492,14 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                   GetDocument()->DrawLOLField(hDC, LTT_WTF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
                }
                break;
+            case HST_BANNER_BACKGROUND:
+               {
+                  /* 
+                  do nothing.
+                  just eat the hotspot to keep others from processing further.
+                  */
+               }
+               break;
             }
             break;
          }
@@ -1525,23 +1612,27 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                break;
             case HST_NEWTHREAD:
                {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
                   theApp.GetNewThreadImage(true)->Blit(hDC,m_hotspots[i].m_spot);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
                }
                break;
             case HST_COMPOSE_MESSAGE:
                {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
                   theApp.GetComposeImage(true)->Blit(hDC,m_hotspots[i].m_spot);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
                }
                break;
             case HST_REFRESHSTORY:
                {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
                   theApp.GetRefreshStoryImage(true)->Blit(hDC,m_hotspots[i].m_spot);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
                }
                break;
             case HST_NEW_MESSAGES_NOTE:
                {
-                  RECT DeviceRectangle;
-                  GetClientRect(&DeviceRectangle);
                   const UCChar *pChar;
                   int *widths;
                   size_t numchars;
@@ -1568,9 +1659,6 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                break;
             case HST_REPLIESTOROOTPOSTHINT:
             case HST_POSTAS:
-            case HST_PREV_PAGE:
-            case HST_NEXT_PAGE:
-            case HST_PAGE:
             case HST_AUTHOR:
             case HST_LINK:
             case HST_IMAGE_LINK:
@@ -1580,6 +1668,16 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                {
                   m_backbuffer->Blit(hDC, m_hotspots[i].m_spot, false);
                   m_whitebuffer.AlphaBlit(hDC, m_hotspots[i].m_spot, false, 32);
+               }
+               break;
+            case HST_PREV_PAGE:
+            case HST_NEXT_PAGE:
+            case HST_PAGE:
+               {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
+                  m_bannerbuffer.Blit(hDC, m_hotspots[i].m_spot, false);
+                  m_whitebuffer.AlphaBlit(hDC, m_hotspots[i].m_spot, false, 32);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
                }
                break;
             case HST_CREATEREPLY:
@@ -1718,6 +1816,14 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                   GetDocument()->DrawLOLField(hDC, LTT_WTF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
                }
                break;
+            case HST_BANNER_BACKGROUND:
+               {
+                  /* 
+                  do nothing.
+                  just eat the hotspot to keep others from processing further.
+                  */
+               }
+               break;
             }
             break;
          }
@@ -1738,7 +1844,44 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
       }
    }
 
+   ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
+
    return bDrewNewMessagesTab;
+}
+
+void CLampView::MakeCurrentPostLegal(bool bTopOnly/* = false*/)
+{
+   if(GetCurrentId() != 0)
+   {
+      // force a draw so that positions are updated
+      ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+      if(pPost != NULL)
+      {            
+         CancelInertiaPanning();
+         m_brakes = false;
+         DrawEverythingToBuffer();
+         int top = pPost->GetPos();
+         int bottom = top + pPost->GetHeight();
+
+         RECT DeviceRectangle;
+         GetClientRect(&DeviceRectangle);
+         DeviceRectangle.top += (20 + m_banneroffset);
+         DeviceRectangle.bottom -= 20;
+
+         if(bTopOnly ||
+            top < DeviceRectangle.top)
+         {
+            m_gotopos += (top - DeviceRectangle.top);
+         }
+         else if(bottom > DeviceRectangle.bottom)
+         {
+            m_gotopos += (bottom - DeviceRectangle.bottom);
+         }
+         
+         MakePosLegal();
+         InvalidateEverything();
+      }
+   }
 }
 
 void CLampView::MakePosLegal()
@@ -2114,6 +2257,14 @@ void CLampView::UpdateHotspotPosition()
                }
             }
             break;
+          case HST_BANNER_BACKGROUND:
+            {
+               /* 
+               do nothing.
+               just eat the hotspot to keep others from processing further.
+               */
+            }
+            break;
          }
       }
       else
@@ -2274,20 +2425,17 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               m_mousepoint.y >= m_uptrackrect.top &&
                               m_mousepoint.y < m_uptrackrect.bottom)
                            {
-                              RECT DeviceRectangle;
-                              GetClientRect(&DeviceRectangle);
-
                               if(m_mousepoint.y >= (m_uptrackrect.bottom - (m_thumbrect.bottom - m_thumbrect.top)))
                               {
                                  // prev page
-                                 m_gotopos -= ((DeviceRectangle.bottom - DeviceRectangle.top) - 20);
+                                 m_gotopos -= ((m_ScrollRectangle.bottom - m_ScrollRectangle.top) - 20);
                                  MakePosLegal();
                                  InvalidateEverythingPan();
                               }
                               else
                               {
                                  // goto spot
-                                 m_gotopos = ((int)((float)(m_mousepoint.y - 16) * (1.0f / m_scrollscale))) - ((DeviceRectangle.bottom - DeviceRectangle.top) >> 1);
+                                 m_gotopos = ((int)((float)(m_mousepoint.y - 16 - m_ScrollRectangle.top) * (1.0f / m_scrollscale))) - ((m_ScrollRectangle.bottom - m_ScrollRectangle.top) >> 1);
                                  MakePosLegal();
                                  InvalidateEverythingPan();
                               }
@@ -2303,14 +2451,14 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               if(m_mousepoint.y <= (m_downtrackrect.top + (m_thumbrect.bottom - m_thumbrect.top)))
                               {
                                  // next page
-                                 m_gotopos += ((DeviceRectangle.bottom - DeviceRectangle.top) - 20);
+                                 m_gotopos += ((m_ScrollRectangle.bottom - m_ScrollRectangle.top) - 20);
                                  MakePosLegal();
                                  InvalidateEverythingPan();
                               }
                               else
                               {
                                  // goto spot
-                                 m_gotopos = ((int)((float)(m_mousepoint.y - 16) * (1.0f / m_scrollscale))) - ((DeviceRectangle.bottom - DeviceRectangle.top) >> 1);
+                                 m_gotopos = ((int)((float)(m_mousepoint.y - 16 - m_ScrollRectangle.top) * (1.0f / m_scrollscale))) - ((m_ScrollRectangle.bottom - m_ScrollRectangle.top) >> 1);
                                  MakePosLegal();
                                  InvalidateEverythingPan();
                               }
@@ -2453,25 +2601,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               m_selectionstart = 0;
                               m_selectionend = 0;
                               // force a draw so that positions are updated
-                              DrawEverythingToBuffer();
-                              int top = post->GetPos();
-                              int bottom = top + post->GetHeight();
-
-                              if(m_mousepoint.y < top ||
-                                 m_mousepoint.y > bottom)
-                              {
-                                 m_gotopos = m_pos + (((top + bottom) / 2) - m_mousepoint.y);
-                                 MakePosLegal();
-                                 m_pos = m_gotopos;// don't animate to the pos
-                              }
-                              else if(top < 0)
-                              {
-                                 m_gotopos += top;
-                                 MakePosLegal();
-                                 m_pos = m_gotopos;// don't animate to the pos
-                              }
-                              
-                              InvalidateEverything();
+                              MakeCurrentPostLegal();
                            }
                         }
                         break;
@@ -2588,7 +2718,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                                  
                                  if(bottom > DeviceRectangle.bottom)
                                  {
-                                    m_gotopos = m_pos + (bottom - DeviceRectangle.bottom) + 20;
+                                    m_gotopos += (bottom - DeviceRectangle.bottom) + 20;
                                     DrawEverythingToBuffer();
                                     MakePosLegal();
                                  }
@@ -2694,61 +2824,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               UpdateCurrentIdAsRoot(m_hotspots[i].m_id);
                               UCString link;
                               pPost->GetLink(m_mousepoint.x, m_mousepoint.y, link);
-
-                              bool bIsLocal = false;
-                              if(link.beginswith(L"http://www.shacknews.com/chatty?id="))// http://www.shacknews.com/chatty?id=25857324#itemanchor_25857324
-                              {
-                                 const UCChar *work = link.Str() + 35;
-                                 if(work != NULL)
-                                 {
-                                    UCString temp;
-                                    while(*work != 0 && iswdigit(*work))
-                                    {
-                                       temp += *work;
-                                       work++;
-                                    }
-
-                                    unsigned int id = temp;
-
-                                    ChattyPost *post = GetDocument()->FindPost(id);
-                                    if(post != NULL)
-                                    {
-                                       SetCurrentId(id);
-                                       m_textselectionpost = 0;
-                                       m_selectionstart = 0;
-                                       m_selectionend = 0;
-                                       bIsLocal = true;
-
-                                       // force a draw so that positions are updated
-                                       DrawEverythingToBuffer();
-                                       int top = post->GetPos();
-                                       int bottom = top + post->GetHeight();
-
-                                       RECT DeviceRectangle;
-                                       GetClientRect(&DeviceRectangle);
-                  
-                                       if(bottom - top > DeviceRectangle.bottom - DeviceRectangle.top ||
-                                          top < DeviceRectangle.top)
-                                       {
-                                          m_gotopos = m_pos + (top - DeviceRectangle.top);
-                                       }
-                                       else if(bottom > DeviceRectangle.bottom)
-                                       {
-                                          m_gotopos = m_pos + (bottom - DeviceRectangle.bottom);
-                                       }
-                                       
-                                       CancelInertiaPanning();
-                                       m_brakes = false;
-                                       
-                                       InvalidateEverything();
-                                    }
-                                 }
-                              }
-                              
-                              if(!bIsLocal)
-                              {
-                                 theApp.OpenShackLink(link);
-                              }
+                              theApp.OpenShackLink(link);
                            }
                         }
                         break;
@@ -2884,6 +2960,14 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               pPost->AddLolTag(LTT_WTF);
                               InvalidateEverything();
                            }
+                        }
+                        break;
+                     case HST_BANNER_BACKGROUND:
+                        {
+                           /* 
+                           do nothing.
+                           just eat the hotspot to keep others from processing further.
+                           */
                         }
                         break;
                      }
@@ -3555,33 +3639,7 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                      m_selectionend = 0;
                   }
                   // force a draw so that positions are updated
-                  ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
-                  if(pPost != NULL)
-                  {            
-                     DrawEverythingToBuffer();
-                     int top = pPost->GetPos();
-                     int bottom = top + pPost->GetHeight();
-
-                     RECT DeviceRectangle;
-                     GetClientRect(&DeviceRectangle);
-
-                     
-                     if(bottom - top > DeviceRectangle.bottom - DeviceRectangle.top ||
-                        top < DeviceRectangle.top)
-                     {
-                        m_gotopos = m_pos + (top - DeviceRectangle.top);
-                     }
-                     else if(bottom > DeviceRectangle.bottom)
-                     {
-                        m_gotopos = m_pos + (bottom - DeviceRectangle.bottom);
-                     }
-                     
-                     CancelInertiaPanning();
-                     m_brakes = false;
-                     MakePosLegal();
-                     m_pos = m_gotopos;// don't animate to the pos
-                  }
-                  InvalidateEverything();
+                  MakeCurrentPostLegal();
                }
             }
          }
@@ -3633,29 +3691,7 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                m_selectionend = 0;
             }
 
-            if(GetCurrentId() != 0)
-            {
-               // force a draw so that positions are updated
-               ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
-               if(pPost != NULL)
-               {            
-                  CancelInertiaPanning();
-                  m_brakes = false;
-                  DrawEverythingToBuffer();
-                  int top = pPost->GetPos();
-                  int bottom = top + pPost->GetHeight();
-
-                  RECT DeviceRectangle;
-                  GetClientRect(&DeviceRectangle);
-                  DeviceRectangle.top += 20;
-                  DeviceRectangle.bottom -= 20;
-                  
-                  m_gotopos = m_pos + (top - DeviceRectangle.top);
-                  
-                  MakePosLegal();
-                  InvalidateEverything();
-               }
-            }
+            MakeCurrentPostLegal(true);
          }
          else if((nChar == 'r' ||
                   nChar == 'R') &&
@@ -3823,6 +3859,7 @@ BOOL CLampView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
                   SetCursor(::LoadCursor(NULL, IDC_IBEAM));
                }
                break;
+            case HST_BANNER_BACKGROUND:
             default:
                SetCursor(::LoadCursor(NULL, IDC_ARROW) );
                break;
@@ -5514,29 +5551,8 @@ void CLampView::OnBackId()
          m_textselectionpost = 0;
          m_selectionstart = 0;
          m_selectionend = 0;
-         // force a draw so that positions are updated
-         DrawEverythingToBuffer();
-         int top = post->GetPos();
-         int bottom = top + post->GetHeight();
-
-         RECT DeviceRectangle;
-         GetClientRect(&DeviceRectangle);
-
          
-         if(bottom - top > DeviceRectangle.bottom - DeviceRectangle.top ||
-            top < DeviceRectangle.top)
-         {
-            m_gotopos = m_pos + (top - DeviceRectangle.top);
-         }
-         else if(bottom > DeviceRectangle.bottom)
-         {
-            m_gotopos = m_pos + (bottom - DeviceRectangle.bottom);
-         }
-         
-         CancelInertiaPanning();
-         m_brakes = false;
-         
-         InvalidateEverything();
+         MakeCurrentPostLegal();
       }
    }
 }

@@ -2966,6 +2966,13 @@ void CLampDoc::Draw(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpo
 
    int startpos = pos;
 
+   int bannerheight = 71;
+   CDCSurface *pNTImage = theApp.GetNewThreadImage(false);
+   if(pNTImage != NULL)
+   {
+      bannerheight = pNTImage->GetHeight();
+   }
+
    switch(m_datatype)
    {
    case DDT_EPICFAILD:
@@ -2975,7 +2982,8 @@ void CLampDoc::Draw(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpo
       {
          if(m_rootposts.size() > 0)
          {
-            pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, true, false);
+            //pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, true, false);
+            pos += bannerheight;
 
             if(m_pReplyDlg != NULL)
             {
@@ -3013,7 +3021,13 @@ void CLampDoc::Draw(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpo
 
             pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, false);
 
-            pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, true, false);
+            RECT backrect = DeviceRectangle;
+            backrect.top = pos;
+            backrect.bottom = pos + 20;
+            FillBackground(hDC,backrect);
+            pos += 20;
+
+            //pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, true, false);
          }
       }
       break;
@@ -3037,74 +3051,46 @@ void CLampDoc::Draw(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpo
       {
          if(m_rootposts.size() > 0)
          {
-            if(m_lastpage > 1)
-            {
-               pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, false);
-            }
-            else
-            {
-               RECT backrect = DeviceRectangle;
-               backrect.top = pos;
-               backrect.bottom = pos + 20;
-               FillBackground(hDC,backrect);
-               pos += 20;
-            }
+            //pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, false);
+            pos += bannerheight;
             
             pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, true);
 
-            if(m_lastpage > 1)
-            {
-               pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, false);
-            }
-            else
-            {
-               RECT backrect = DeviceRectangle;
-               backrect.top = pos;
-               backrect.bottom = pos + 20;
-               FillBackground(hDC,backrect);
-               pos += 20;
-            }
+            RECT backrect = DeviceRectangle;
+            backrect.top = pos;
+            backrect.bottom = pos + 20;
+            FillBackground(hDC,backrect);
+            pos += 20;
          }
       }
       break;
    case DDT_SEARCH:
       {
-         if(m_lastpage > 1)
-         {
-            pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, false);
-         }
-         else
-         {
-            RECT backrect = DeviceRectangle;
-            backrect.top = pos;
-            backrect.bottom = pos + 20;
-            FillBackground(hDC,backrect);
-            pos += 20;
-         }
+         //pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, false);
+         pos += bannerheight;
          
          pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, true);
-         
-         if(m_lastpage > 1)
-         {
-            pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, false);
-         }
-         else
-         {
-            RECT backrect = DeviceRectangle;
-            backrect.top = pos;
-            backrect.bottom = pos + 20;
-            FillBackground(hDC,backrect);
-            pos += 20;
-         }
+
+         RECT backrect = DeviceRectangle;
+         backrect.top = pos;
+         backrect.bottom = pos + 20;
+         FillBackground(hDC,backrect);
+         pos += 20;
       }
       break;
    case DDT_SHACKMSG:
       {
          if(m_rootposts.size() > 0)
          {
-            pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, true);
+            //pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, true);
+            pos += bannerheight;
             pos = DrawMessages(hDC, DeviceRectangle, pos, hotspots, current_id);
-            pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, true);
+
+            RECT backrect = DeviceRectangle;
+            backrect.top = pos;
+            backrect.bottom = pos + 20;
+            FillBackground(hDC,backrect);
+            pos += 20;
          }
       }
       break;
@@ -3345,6 +3331,11 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
             }
          }
+
+         hotspot.m_type = HST_BANNER_BACKGROUND;
+         hotspot.m_spot = DeviceRectangle;
+         hotspot.m_id = 0;
+         hotspots.push_back(hotspot);
       }
    }
 
