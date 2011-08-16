@@ -1849,7 +1849,7 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
    return bDrewNewMessagesTab;
 }
 
-void CLampView::MakeCurrentPostLegal(bool bTopOnly/* = false*/)
+void CLampView::MakeCurrentPostLegal(bool bTopOnly/* = false*/, bool bKeepInSameLocation/* = false*/, int y/* = 0*/, bool bInstant/* = false*/)
 {
    if(GetCurrentId() != 0)
    {
@@ -1859,6 +1859,10 @@ void CLampView::MakeCurrentPostLegal(bool bTopOnly/* = false*/)
       {            
          CancelInertiaPanning();
          m_brakes = false;
+
+         int old_top = pPost->GetPos();
+         int old_bottom = old_top + pPost->GetHeight();
+
          DrawEverythingToBuffer();
          int top = pPost->GetPos();
          int bottom = top + pPost->GetHeight();
@@ -1867,6 +1871,17 @@ void CLampView::MakeCurrentPostLegal(bool bTopOnly/* = false*/)
          GetClientRect(&DeviceRectangle);
          DeviceRectangle.top += (20 + m_banneroffset);
          DeviceRectangle.bottom -= 20;
+
+         if(bKeepInSameLocation)
+         {
+            if(y < top || y > bottom)
+            {
+               int offset = ((top + bottom) / 2) - ((old_top + old_bottom) / 2);
+               m_gotopos += offset;
+               top -= offset;
+               bottom -= offset;
+            }
+         }
 
          if(bTopOnly ||
             top < DeviceRectangle.top)
@@ -1879,6 +1894,10 @@ void CLampView::MakeCurrentPostLegal(bool bTopOnly/* = false*/)
          }
          
          MakePosLegal();
+         if(bInstant)
+         {
+            m_pos = m_gotopos;
+         }
          InvalidateEverything();
       }
    }
@@ -2077,7 +2096,7 @@ void CLampView::UpdateHotspotPosition()
          {
          case HST_REPLIESTOROOTPOSTHINT:
             {
-               theApp.SetStatusBarText(L"Show ALl Replies",this);
+               theApp.SetStatusBarText(L"Show All Replies",this);
             }
             break;
          case HST_REFRESH: 
@@ -2338,6 +2357,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
             if(bCloseReplyDlg)
             {
                CloseReplyDialog();
+               bContinue = false;
             }
          
             if(!bContinue)
@@ -2601,7 +2621,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               m_selectionstart = 0;
                               m_selectionend = 0;
                               // force a draw so that positions are updated
-                              MakeCurrentPostLegal();
+                              MakeCurrentPostLegal(false,true,m_mousepoint.y,true);
                            }
                         }
                         break;
@@ -2833,7 +2853,8 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
                            if(pPost != NULL)
                            {
-                              UpdateCurrentIdAsRoot(m_hotspots[i].m_id);
+                              unsigned int id = m_hotspots[i].m_id;
+                              UpdateCurrentIdAsRoot(id);
                               UCString link;
                               pPost->GetImageLink(m_mousepoint.x, m_mousepoint.y, link);
 
@@ -2854,7 +2875,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
 
                                  if(!theApp.IsImageLoaded(index))
                                  {
-                                    theApp.LoadImage(index,m_hotspots[i].m_id);
+                                    theApp.LoadImage(index,id);
                                  }
                               }
                            }
@@ -2885,7 +2906,8 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
                            if(pPost != NULL)
                            {
-                              UpdateCurrentIdAsRoot(m_hotspots[i].m_id);
+                              unsigned int id = m_hotspots[i].m_id;
+                              UpdateCurrentIdAsRoot(id);
                               UCString link;
                               pPost->GetThumbLink(m_mousepoint.x, m_mousepoint.y, link);
 
@@ -2897,7 +2919,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
 
                               if(!theApp.IsImageLoaded(index))
                               {
-                                 theApp.LoadImage(index,m_hotspots[i].m_id);
+                                 theApp.LoadImage(index,id);
                               }
                            }
                         }

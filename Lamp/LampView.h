@@ -106,7 +106,7 @@ protected:
    void TrackMouse(CPoint &point);
    void UpdateCurrentIdAsRoot(unsigned int id);
    
-   void MakeCurrentPostLegal(bool bTopOnly = false);
+   void MakeCurrentPostLegal(bool bTopOnly = false, bool bKeepInSameLocation = false, int y = 0, bool bInstant = false);
    void MakePosLegal();
    void GetDocHeight();
    CDCSurface *m_backbuffer;
