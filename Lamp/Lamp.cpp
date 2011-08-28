@@ -3057,8 +3057,11 @@ void CLampApp::ShowNewMessages()
       if((*it)->GetDocument()->GetDataType() == DDT_SHACKMSG &&
          (*it)->GetDocument()->GetShackMessageType() == SMT_INBOX)
       {
-         (*it)->GetDocument()->SetPage(1);
-         (*it)->GetDocument()->Refresh();
+         if((*it)->GetDocument()->GetPage() > 1)
+         {
+            (*it)->GetDocument()->SetPage(1);
+            (*it)->GetDocument()->Refresh();
+         }
          
          CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
          if(pMainFrame)

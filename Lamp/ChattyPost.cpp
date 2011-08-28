@@ -794,9 +794,22 @@ void ChattyPost::ReadMessageFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator
 
             while(bContinue && current < end)
             {
-               const UCChar *suspect = wcsstr(current, L"http://");
-               if(suspect == NULL)
-                  suspect = wcsstr(current, L"https://");
+               const UCChar *suspect = NULL;
+               const UCChar *suspecta = wcsstr(current, L"http://");
+               const UCChar *suspectb = wcsstr(current, L"https://");
+               if(suspecta != NULL &&
+                  suspectb != NULL)
+               {
+                  suspect = __min(suspecta,suspectb);
+               }
+               else if(suspecta != NULL)
+               {
+                  suspect = suspecta;
+               }
+               else if(suspectb != NULL)
+               {
+                  suspect = suspectb;
+               }
 
                if(suspect != NULL)
                {

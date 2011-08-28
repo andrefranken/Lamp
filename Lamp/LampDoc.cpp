@@ -2135,6 +2135,19 @@ void CLampDoc::GetShackMessages()
 {
    if(theApp.UseShack())
    {
+      std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+      std::list<ChattyPost*>::iterator end = m_rootposts.end();
+      while(it != end)
+      {
+         if((*it) != NULL)
+         {
+            delete (*it);
+            (*it) = NULL;
+         }
+         it++;
+      }
+      m_rootposts.clear();
+
       UCString path = L"/messages/";
 
       switch(m_shackmsgtype)
@@ -3660,7 +3673,7 @@ void CLampDoc::ReadShackMessagesHTML(std::string &stdstring)
                tree<htmlcxx::HTML::Node>::sibling_iterator pagination_it;
                if(HTML_FindChild_HasAttribute(it,pagination_it, "div", "class", "message-nav-bar"))
                {
-                  if(HTML_FindChild_HasAttribute(pagination_it,pagination_it, "div", "class", "navigate-column"))
+                  if(HTML_FindChild_HasAttribute(pagination_it,pagination_it, "div", "class", "navigate-column pagination"))
                   {
                      tree<htmlcxx::HTML::Node>::sibling_iterator sit = pagination_it.begin();
                      tree<htmlcxx::HTML::Node>::sibling_iterator send = pagination_it.end();
