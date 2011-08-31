@@ -1125,10 +1125,13 @@ void ChattyPost::Read(CXMLElement *pElement, CLampDoc *pDoc, bool bDoingNewFlags
                if(this_id != 0 &&
                   this_id != last_id)
                {
+                  bool bAddedBeforeIt = false;
+
                   if(it != end &&
                      (*it)->GetId() == this_id)
                   {
                      post = (*it);
+                     bAddedBeforeIt = true;
                      post->BumpNewnessDown();
                      it++;
                   }
@@ -1141,6 +1144,7 @@ void ChattyPost::Read(CXMLElement *pElement, CLampDoc *pDoc, bool bDoingNewFlags
                         if(it != end)
                         {
                            m_children.insert(it,post);
+                           bAddedBeforeIt = true;
                         }
                         else
                         {
@@ -1163,14 +1167,30 @@ void ChattyPost::Read(CXMLElement *pElement, CLampDoc *pDoc, bool bDoingNewFlags
                   }
 
                   post->Read(pChild, pDoc, bDoingNewFlags);
-                  last_id = post->GetId();
+                  
                   if(post->IsFiltered())
                   {
-                     m_children.pop_back();
-                     lastpost->SetNextSibling(NULL);
+                     if(bAddedBeforeIt)
+                     {
+                        std::list<ChattyPost*>::iterator newit = it;
+                        newit--;
+                        m_children.erase(newit);
+                     }
+                     else
+                     {
+                        m_children.pop_back();
+                     }
+                     if(lastpost != NULL)
+                     {
+                        lastpost->SetNextSibling(NULL);
+                     }
                      delete post;
                      post = lastpost;
                      last_id = 0;
+                  }
+                  else
+                  {
+                     last_id = post->GetId();
                   }
                }
             }

@@ -388,7 +388,15 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
             else if(pDD->m_dt == DT_SHACK_SHACKMSG)
             {
                htmlcxx::HTML::ParserDom parser;
-               tree<htmlcxx::HTML::Node> dom = parser.parseTree(pDD->m_stdstring);
+               tree<htmlcxx::HTML::Node> dom;
+               try
+               {
+                  dom = parser.parseTree(pDD->m_stdstring);
+               }
+               catch(...)
+               {
+                  // whatever. move on
+               }
 
                m_unreadmessagecount = 0;
 

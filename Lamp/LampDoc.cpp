@@ -847,7 +847,16 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
       case DT_SHACK_THREAD_CONTENTS:
          {
             htmlcxx::HTML::ParserDom parser;
-            tree<htmlcxx::HTML::Node> dom = parser.parseTree(pDD->m_stdstring);
+            tree<htmlcxx::HTML::Node> dom;
+            try
+            {
+               dom = parser.parseTree(pDD->m_stdstring);
+            }
+            catch(...)
+            {
+               // whatever. move on
+            }
+            
 
             tree<htmlcxx::HTML::Node>::iterator it = dom.begin();
             tree<htmlcxx::HTML::Node>::iterator end = dom.end();
@@ -1016,7 +1025,15 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
       case DT_SHACK_SEARCH:
          {
             htmlcxx::HTML::ParserDom parser;
-            tree<htmlcxx::HTML::Node> dom = parser.parseTree(pDD->m_stdstring);
+            tree<htmlcxx::HTML::Node> dom;
+            try
+            {
+               dom = parser.parseTree(pDD->m_stdstring);
+            }
+            catch(...)
+            {
+               // whatever. move on
+            }
 
             tree<htmlcxx::HTML::Node>::sibling_iterator it;
             if(HTML_FindChild(dom,it, "body"))
@@ -3462,7 +3479,15 @@ void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsign
       m_lastpage = 1;
    }
    htmlcxx::HTML::ParserDom parser;
-   tree<htmlcxx::HTML::Node> dom = parser.parseTree(stdstring);
+   tree<htmlcxx::HTML::Node> dom;
+   try
+   {
+      dom = parser.parseTree(stdstring);
+   }
+   catch(...)
+   {
+      // whatever. move on
+   }
 
    tree<htmlcxx::HTML::Node>::sibling_iterator it;
    if(HTML_FindChild(dom,it, "body"))
@@ -3659,7 +3684,15 @@ bool CLampDoc::ReadFromRoot(CXMLTree &xmldata, std::vector<unsigned int> &existi
 void CLampDoc::ReadShackMessagesHTML(std::string &stdstring)
 {
    htmlcxx::HTML::ParserDom parser;
-   tree<htmlcxx::HTML::Node> dom = parser.parseTree(stdstring);
+   tree<htmlcxx::HTML::Node> dom;
+   try
+   {
+      dom = parser.parseTree(stdstring);
+   }
+   catch(...)
+   {
+      // whatever. move on
+   }
                   
    tree<htmlcxx::HTML::Node>::sibling_iterator it;
    if(HTML_FindChild(dom,it, "body"))
