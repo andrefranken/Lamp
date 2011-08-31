@@ -1872,6 +1872,8 @@ void CLampView::MakeCurrentPostLegal(bool bTopOnly/* = false*/, bool bKeepInSame
          DeviceRectangle.top += (20 + m_banneroffset);
          DeviceRectangle.bottom -= 20;
 
+         m_gotopos = m_pos;
+
          if(bKeepInSameLocation)
          {
             if(y < top || y > bottom)
