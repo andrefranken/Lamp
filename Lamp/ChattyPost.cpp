@@ -362,9 +362,10 @@ void ChattyPost::ReadRootChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_itera
                         post->SetNewness(N_OLD);
                         m_children.push_back(post);
 
-                        post->ReadPostPreviewChattyFromHTML(child_it, pDoc, child_id);
-
                         post->SetParent(this);
+
+                        post->ReadPostPreviewChattyFromHTML(child_it, pDoc, child_id);
+                                                
                         post->SetPrevSibling(lastpost);
                         post->SetNextSibling(NULL);
                         if(lastpost != NULL)
@@ -511,9 +512,10 @@ void ChattyPost::ReadPostPreviewChattyFromHTML(tree<htmlcxx::HTML::Node>::siblin
                post->SetNewness(N_OLD);
                m_children.push_back(post);
 
-               post->ReadPostPreviewChattyFromHTML(child_it, pDoc, child_id);
-
                post->SetParent(this);
+
+               post->ReadPostPreviewChattyFromHTML(child_it, pDoc, child_id);
+               
                post->SetPrevSibling(lastpost);
                post->SetNextSibling(NULL);
                if(lastpost != NULL)
@@ -3228,8 +3230,9 @@ void ChattyPost::SetupCharWidths()
    UpdateLOLs();
 }
 
-void ChattyPost::PopTag(std::vector<shacktag> &shacktags, shacktag who)
+bool PopTag(std::vector<shacktag> &shacktags, shacktag who)
 {         
+   bool badscope = false;
    if(shacktags.size() > 0)
    {
       if(shacktags[shacktags.size()-1] == who)
@@ -3238,6 +3241,7 @@ void ChattyPost::PopTag(std::vector<shacktag> &shacktags, shacktag who)
       }
       else
       {
+         badscope = true;
          std::vector<shacktag>::iterator begin = shacktags.begin();
          std::vector<shacktag>::iterator it = shacktags.end();
          it--;
@@ -3260,7 +3264,337 @@ void ChattyPost::PopTag(std::vector<shacktag> &shacktags, shacktag who)
          }               
       }
    }
+   else
+   {
+      badscope = true;
+   }
+
+   return badscope;
 }
+
+
+void MergeTags(std::vector<shacktagpos> &ina, std::vector<shacktagpos> &inb, std::vector<shacktagpos> &out)
+{
+   if(ina.size() == 0)
+   {
+      out = inb;
+   }
+   else if(inb.size() == 0)
+   {
+      out = ina;
+   }
+   else
+   {
+      int a = 0;
+      int a_end = ina.size();
+      int b = 0;
+      int b_end = inb.size();
+
+      while(a < a_end && b < b_end)
+      {
+         if(ina[a].m_pos <= inb[b].m_pos)
+         {
+            out.push_back(ina[a]);
+            a++;
+            if(ina[a].m_tag == ina[a-1].m_tag + 30)
+            {
+               out.push_back(ina[a]);
+               if(ina[a].m_pos > inb[b].m_pos)
+               {
+                  inb[b].m_pos = ina[a].m_pos;
+               }
+               a++;
+            }
+         }
+         else 
+         {
+            out.push_back(inb[b]);
+            b++;
+            if(inb[b].m_tag == inb[b-1].m_tag + 30)
+            {
+               out.push_back(inb[b]);
+               if(inb[b].m_pos > ina[a].m_pos)
+               {
+                  ina[a].m_pos = inb[b].m_pos;
+               }
+               b++;
+            }
+         }
+      }
+
+      while(a < a_end)
+      {
+         out.push_back(ina[a]);
+         a++;
+      }
+
+      while(b < b_end)
+      {
+         out.push_back(inb[b]);
+         b++;
+      }
+   }
+}
+
+void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
+{
+   shacktags.clear();
+
+   std::vector<shacktag> tagstack;
+
+   const UCChar *readstart = from;
+   const UCChar *read = readstart;
+   const UCChar *readend = read + from.Length();
+
+   while(read < readend)
+   {
+      if(_wcsnicmp(read,L"r{",2) == 0 ||
+         _wcsnicmp(read,L"r[",2) == 0)
+      {
+         tagstack.push_back(ST_RED);
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"g{",2) == 0 ||
+              _wcsnicmp(read,L"g[",2) == 0)
+      {
+         tagstack.push_back(ST_GREEN);
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"b{",2) == 0 ||
+              _wcsnicmp(read,L"d[",2) == 0)
+      {
+         tagstack.push_back(ST_BLUE);
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"y{",2) == 0 ||
+              _wcsnicmp(read,L"y[",2) == 0)
+      {
+         tagstack.push_back(ST_YELLOW);
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"e[",2) == 0)
+      {
+         tagstack.push_back(ST_OLIVE);
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"l[",2) == 0 ||
+              _wcsnicmp(read,L"f[",2) == 0)
+      {
+         tagstack.push_back(ST_LIME);
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"n[",2) == 0)
+      {
+         tagstack.push_back(ST_ORANGE);
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"p[",2) == 0)
+      {
+         tagstack.push_back(ST_PINK);
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"q[",2) == 0)
+      {
+         tagstack.push_back(ST_QUOTE);
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"s[",2) == 0)
+      {
+         tagstack.push_back(ST_SAMPLE);
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"-[",2) == 0)
+      {
+         tagstack.push_back(ST_STRIKE);
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"/[",2) == 0 ||
+              _wcsnicmp(read,L"i[",2) == 0)
+      {
+         tagstack.push_back(ST_ITALIC);
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"]/",2) == 0 ||
+              _wcsnicmp(read,L"]i",2) == 0)
+      {
+         if(PopTag(tagstack, ST_ITALIC))
+         {
+            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
+            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"b[",2) == 0 ||
+              _wcsnicmp(read,L"*[",2) == 0)
+      {
+         tagstack.push_back(ST_BOLD);
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"]b", 2) == 0 ||
+              _wcsnicmp(read,L"]*", 2) == 0)
+      {
+         if(PopTag(tagstack, ST_BOLD))
+         {
+            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
+            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"}r",2) == 0 ||
+              _wcsnicmp(read,L"]r",2) == 0)
+      {
+         if(PopTag(tagstack, ST_RED))
+         {
+            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
+            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"}g",2) == 0 ||
+              _wcsnicmp(read,L"]g",2) == 0)
+      {
+         if(PopTag(tagstack, ST_GREEN))
+         {
+            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
+            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"}b",2) == 0 ||
+              _wcsnicmp(read,L"]d",2) == 0)
+      {
+         if(PopTag(tagstack, ST_BLUE))
+         {
+            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
+            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"}y",2) == 0 ||
+              _wcsnicmp(read,L"]y",2) == 0)
+      {
+         if(PopTag(tagstack, ST_YELLOW))
+         {
+            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
+            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"]e",2) == 0)
+      {
+         if(PopTag(tagstack, ST_OLIVE))
+         {
+            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
+            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"]l",2) == 0 ||
+              _wcsnicmp(read,L"]f",2) == 0)
+      {
+         if(PopTag(tagstack, ST_LIME))
+         {
+            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
+            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"]n",2) == 0)
+      {
+         if(PopTag(tagstack, ST_ORANGE))
+         {
+            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
+            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"]p",2) == 0)
+      {
+         if(PopTag(tagstack, ST_PINK))
+         {
+            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
+            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"]q",2) == 0)
+      {
+         if(PopTag(tagstack, ST_QUOTE))
+         {
+            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
+            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"]s",2) == 0)
+      {
+         if(PopTag(tagstack, ST_SAMPLE))
+         {
+            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
+            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"]-",2) == 0)
+      {
+         if(PopTag(tagstack, ST_STRIKE))
+         {
+            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
+            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"]o",2) == 0)
+      {
+         if(PopTag(tagstack, ST_SPOILER))
+         {
+            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
+            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"_[",2) == 0 ||
+              _wcsnicmp(read,L"u[",2) == 0)
+      {
+         tagstack.push_back(ST_UNDERLINE);
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"]_",2) == 0 ||
+              _wcsnicmp(read,L"]u",2) == 0)
+      {
+         if(PopTag(tagstack, ST_UNDERLINE))
+         {
+            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
+            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+         }
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"o[",2) == 0)
+      {
+         tagstack.push_back(ST_SPOILER);
+         read+=2;
+      }
+      else if(_wcsnicmp(read,L"/{{",3) == 0)
+      {
+         tagstack.push_back(ST_CODE);
+         read+=3;
+      }
+      else if(_wcsnicmp(read,L"}}/",3) == 0)
+      {
+         if(PopTag(tagstack, ST_CODE))
+         {
+            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
+            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 3));
+         }
+         read+=3;
+      }
+      else
+      {
+         read++;
+      }
+   }
+}
+
 
 void ChattyPost::DecodeShackTagsString(UCString &from)
 {
@@ -3439,8 +3773,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
               _wcsnicmp(read,L"]i",2) == 0)
       {
          italic--;
-         PopTag(tagstack, ST_ITALIC);
-         if(italic == 0)
+         if(PopTag(tagstack, ST_ITALIC))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(italic == 0)
          {
             m_shacktags.push_back(shacktagpos(ST_ITALIC_END,m_bodytext.Length()));
          }
@@ -3461,8 +3798,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
               _wcsnicmp(read,L"]*", 2) == 0)
       {
          bold--;
-         PopTag(tagstack, ST_BOLD);
-         if(bold == 0)
+         if(PopTag(tagstack, ST_BOLD))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(bold == 0)
          {
             m_shacktags.push_back(shacktagpos(ST_BOLD_END,m_bodytext.Length()));
          }
@@ -3472,8 +3812,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
               _wcsnicmp(read,L"]r",2) == 0)
       {
          red--;
-         PopTag(tagstack, ST_RED);
-         if(red == 0)
+         if(PopTag(tagstack, ST_RED))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(red == 0)
          {
             m_shacktags.push_back(shacktagpos(ST_RED_END,m_bodytext.Length()));
          }
@@ -3483,8 +3826,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
               _wcsnicmp(read,L"]g",2) == 0)
       {
          green--;
-         PopTag(tagstack, ST_GREEN);
-         if(green == 0)
+         if(PopTag(tagstack, ST_GREEN))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(green == 0)
          {
             m_shacktags.push_back(shacktagpos(ST_GREEN_END,m_bodytext.Length()));
          }
@@ -3494,8 +3840,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
               _wcsnicmp(read,L"]d",2) == 0)
       {
          blue--;
-         PopTag(tagstack, ST_BLUE);
-         if(blue == 0)
+         if(PopTag(tagstack, ST_BLUE))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(blue == 0)
          {
             m_shacktags.push_back(shacktagpos(ST_BLUE_END,m_bodytext.Length()));
          }
@@ -3505,8 +3854,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
               _wcsnicmp(read,L"]y",2) == 0)
       {
          yellow--;
-         PopTag(tagstack, ST_YELLOW);
-         if(yellow == 0)
+         if(PopTag(tagstack, ST_YELLOW))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(yellow == 0)
          {
             m_shacktags.push_back(shacktagpos(ST_YELLOW_END,m_bodytext.Length()));
          }
@@ -3515,8 +3867,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
       else if(_wcsnicmp(read,L"]e",2) == 0)
       {
          olive--;
-         PopTag(tagstack, ST_OLIVE);
-         if(olive == 0)
+         if(PopTag(tagstack, ST_OLIVE))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(olive == 0)
          {
             m_shacktags.push_back(shacktagpos(ST_OLIVE_END,m_bodytext.Length()));
          }
@@ -3526,8 +3881,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
               _wcsnicmp(read,L"]f",2) == 0)
       {
          lime--;
-         PopTag(tagstack, ST_LIME);
-         if(lime == 0)
+         if(PopTag(tagstack, ST_LIME))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(lime == 0)
          {
             m_shacktags.push_back(shacktagpos(ST_LIME_END,m_bodytext.Length()));
          }
@@ -3536,8 +3894,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
       else if(_wcsnicmp(read,L"]n",2) == 0)
       {
          orange--;
-         PopTag(tagstack, ST_ORANGE);
-         if(orange == 0)
+         if(PopTag(tagstack, ST_ORANGE))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(orange == 0)
          {
             m_shacktags.push_back(shacktagpos(ST_ORANGE_END,m_bodytext.Length()));
          }
@@ -3546,8 +3907,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
       else if(_wcsnicmp(read,L"]p",2) == 0)
       {
          pink--;
-         PopTag(tagstack, ST_PINK);
-         if(pink == 0)
+         if(PopTag(tagstack, ST_PINK))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(pink == 0)
          {
             m_shacktags.push_back(shacktagpos(ST_PINK_END,m_bodytext.Length()));
          }
@@ -3556,8 +3920,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
       else if(_wcsnicmp(read,L"]q",2) == 0)
       {
          quote--;
-         PopTag(tagstack, ST_QUOTE);
-         if(quote == 0)
+         if(PopTag(tagstack, ST_QUOTE))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(quote == 0)
          {
             m_shacktags.push_back(shacktagpos(ST_QUOTE_END,m_bodytext.Length()));
          }
@@ -3566,8 +3933,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
       else if(_wcsnicmp(read,L"]s",2) == 0)
       {
          sample--;
-         PopTag(tagstack, ST_SAMPLE);
-         if(sample == 0)
+         if(PopTag(tagstack, ST_SAMPLE))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(sample == 0)
          {
             m_shacktags.push_back(shacktagpos(ST_SAMPLE_END,m_bodytext.Length()));
          }
@@ -3576,8 +3946,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
       else if(_wcsnicmp(read,L"]-",2) == 0)
       {
          strike--;
-         PopTag(tagstack, ST_STRIKE);
-         if(strike == 0)
+         if(PopTag(tagstack, ST_STRIKE))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(strike == 0)
          {
             m_shacktags.push_back(shacktagpos(ST_STRIKE_END,m_bodytext.Length()));
          }
@@ -3586,8 +3959,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
       else if(_wcsnicmp(read,L"]o",2) == 0)
       {
          spoiler--;
-         PopTag(tagstack, ST_SPOILER);
-         if(spoiler == 0)
+         if(PopTag(tagstack, ST_SPOILER))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(spoiler == 0)
          {
             m_shacktags.push_back(shacktagpos(ST_SPOILER_END,m_bodytext.Length()));
          }
@@ -3608,8 +3984,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
               _wcsnicmp(read,L"]u",2) == 0)
       {
          underline--;
-         PopTag(tagstack, ST_UNDERLINE);
-         if(underline == 0)
+         if(PopTag(tagstack, ST_UNDERLINE))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(underline == 0)
          {
             m_shacktags.push_back(shacktagpos(ST_UNDERLINE_END,m_bodytext.Length()));
          }
@@ -3639,8 +4018,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
       else if(_wcsnicmp(read,L"}l", 2) == 0)
       {
          link--;
-         PopTag(tagstack, ST_LINK);
-         if(link == 0)
+         if(PopTag(tagstack, ST_LINK))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(link == 0)
          {
             UCString linktext;
             if(m_shacktags[m_shacktags.size() - 1].m_tag == ST_LINK)
@@ -3675,8 +4057,11 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
       else if(_wcsnicmp(read,L"}}/",3) == 0)
       {
          code--;
-         PopTag(tagstack, ST_CODE);
-         if(code == 0)
+         if(PopTag(tagstack, ST_CODE))
+         {
+            m_bodytext.AppendUnicodeString(read, 3);
+         }
+         else if(code == 0)
          {
             while(m_bodytext.Length() > 0 &&
                m_bodytext[m_bodytext.Length()-1] == L' ')
@@ -5853,6 +6238,11 @@ void ChattyPost::SetAsPageBreak(size_t page)
 bool ChattyPost::IsNWSPost()
 {
    if(m_category == PCT_NWS)
+      return true;
+
+   ChattyPost *root = GetRoot();
+   if(root != NULL &&
+      root->GetCategory() == PCT_NWS)
       return true;
 
    const UCChar *start = m_bodytext.Str();

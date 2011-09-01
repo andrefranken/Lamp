@@ -1886,7 +1886,8 @@ void CLampView::MakeCurrentPostLegal(bool bTopOnly/* = false*/, bool bKeepInSame
          }
 
          if(bTopOnly ||
-            top < DeviceRectangle.top)
+            top < DeviceRectangle.top ||
+            bottom - top > DeviceRectangle.bottom - DeviceRectangle.top)
          {
             m_gotopos += (top - DeviceRectangle.top);
          }
@@ -2770,7 +2771,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                                  UCString temp = post->GetBodyText();
                                  temp.Replace(L"\n",L"\r\n");
                                  shackmsg += temp;
-                                 shackmsg += L"\r\n-----]/";
+                                 shackmsg += L"]/";
 
                                  m_dlgup = true;
                                  theApp.SendMessageDlg(GetDocument(),author,subject,shackmsg);
@@ -2800,7 +2801,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                                  UCString temp = post->GetBodyText();
                                  temp.Replace(L"\n",L"\r\n");
                                  shackmsg += temp;
-                                 shackmsg += L"\r\n-----]/";
+                                 shackmsg += L"]/";
 
                                  m_dlgup = true;
                                  theApp.SendMessageDlg(GetDocument(),UCString(),subject,shackmsg);
@@ -3621,7 +3622,7 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             m_brakes = false;
             RECT DeviceRectangle;
             GetClientRect(&DeviceRectangle);
-            m_gotopos += ((DeviceRectangle.bottom - DeviceRectangle.top) - 20);
+            m_gotopos += ((DeviceRectangle.bottom - DeviceRectangle.top) - 20 - m_banneroffset);
             MakePosLegal();
             InvalidateEverythingPan();
          }
@@ -3633,7 +3634,7 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             m_brakes = false;
             RECT DeviceRectangle;
             GetClientRect(&DeviceRectangle);
-            m_gotopos -= ((DeviceRectangle.bottom - DeviceRectangle.top) - 20);
+            m_gotopos -= ((DeviceRectangle.bottom - DeviceRectangle.top) - 20 - m_banneroffset);
             MakePosLegal();
             InvalidateEverythingPan();
          }

@@ -158,7 +158,7 @@ protected:
       m_bLastEventWasDeletion = false;
    }
 
-   void CheckSpelling();
+   void CheckSpellingAndTags();
       
    CLampDoc *m_pDoc;
    unsigned int m_replytoid;

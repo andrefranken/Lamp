@@ -2248,7 +2248,7 @@ void CReplyDlg::InvalidateSkin()
    }
 }
 
-void CReplyDlg::CheckSpelling()
+void CReplyDlg::CheckSpellingAndTags()
 {
    m_badwords.clear();
    m_shacktags.clear();
@@ -2256,17 +2256,52 @@ void CReplyDlg::CheckSpelling()
    const UCChar *end = begin + m_replytext.Length();
    const UCChar *work = begin;
    const UCChar *wordstart = NULL;
-   int num_alphanums = 0;
+   int num_alphas = 0;
+
+   std::vector<shacktagpos> shacktags;
 
    while(work < end)
    {
-      if(iswalnum(*work))
+      if(iswalpha(*work))
       {
          if(wordstart == NULL)
          {
-            wordstart = work;
+            if(work - begin > 0 &&
+               ((*(work - 1) == L'}' &&
+                (*work == L'r' ||
+                 *work == L'g' ||
+                 *work == L'b' ||
+                 *work == L'y')) ||
+               (*(work - 1) == L']' &&
+                (*work == L'r' ||
+                 *work == L'g' ||
+                 *work == L'd' ||
+                 *work == L'y' ||
+                 *work == L'e' ||
+                 *work == L'l' ||
+                 *work == L'f' ||
+                 *work == L'n' ||
+                 *work == L'p' ||
+                 *work == L'q' ||
+                 *work == L's' ||
+                 *work == L'i' ||
+                 *work == L'b' ||
+                 *work == L'u' ||
+                 *work == L'o'))))
+            {
+               // skip it,
+               // it is part of a shacktag
+            }
+            else
+            {
+               wordstart = work;
+               num_alphas++;
+            }
          }
-         num_alphanums++;
+         else
+         {
+            num_alphas++;
+         }
       }
       else if(*work == L'\'' ||
               *work == L'_' ||
@@ -2279,10 +2314,36 @@ void CReplyDlg::CheckSpelling()
       }
       else
       {
-         if(wordstart != NULL)
+         if(wordstart != NULL && num_alphas > 2)
          {            
-            if(num_alphanums > 0 &&
-               !theApp.IsSpelledCorrectly(wordstart, work - wordstart))
+            const UCChar *prev_char = work - 1;
+            if((*work == L'{' &&
+                (*prev_char == L'r' ||
+                 *prev_char == L'g' ||
+                 *prev_char == L'b' ||
+                 *prev_char == L'y')) ||
+               (*work == L'[' &&
+                (*prev_char == L'r' ||
+                 *prev_char == L'g' ||
+                 *prev_char == L'd' ||
+                 *prev_char == L'y' ||
+                 *prev_char == L'e' ||
+                 *prev_char == L'l' ||
+                 *prev_char == L'f' ||
+                 *prev_char == L'n' ||
+                 *prev_char == L'p' ||
+                 *prev_char == L'q' ||
+                 *prev_char == L's' ||
+                 *prev_char == L'i' ||
+                 *prev_char == L'b' ||
+                 *prev_char == L'u' ||
+                 *prev_char == L'o')))
+            {
+               // it is part of a shacktag
+               work = prev_char;
+            }
+
+            if(!theApp.IsSpelledCorrectly(wordstart, work - wordstart))
             {
                // flag this word as bad
                CCharRange badword;
@@ -2291,24 +2352,23 @@ void CReplyDlg::CheckSpelling()
                m_badwords.push_back(badword);
 
                shacktagpos tag(ST_RED,wordstart - begin);
-               m_shacktags.push_back(tag);
+               shacktags.push_back(tag);
 
                tag.m_tag = ST_RED_END;
                tag.m_pos = work - begin;
-               m_shacktags.push_back(tag);
+               shacktags.push_back(tag);
             }
-            wordstart = NULL;
-            num_alphanums = 0;
          }
+         wordstart = NULL;
+         num_alphas = 0;
       }
 
       work++;
    }
 
-   if(wordstart != NULL)
+   if(wordstart != NULL && num_alphas > 2)
    {
-      if(num_alphanums > 0 &&
-         !theApp.IsSpelledCorrectly(wordstart, end - wordstart))
+      if(!theApp.IsSpelledCorrectly(wordstart, end - wordstart))
       {
          // flag this word as bad
          CCharRange badword;
@@ -2317,14 +2377,21 @@ void CReplyDlg::CheckSpelling()
          m_badwords.push_back(badword);
 
          shacktagpos tag(ST_RED,wordstart - begin);
-         m_shacktags.push_back(tag);
+         shacktags.push_back(tag);
 
          tag.m_tag = ST_RED_END;
          tag.m_pos = end - begin;
-         m_shacktags.push_back(tag);
+         shacktags.push_back(tag);
       }
       wordstart = NULL;
+      num_alphas = 0;
    }
+
+   std::vector<shacktagpos> badtags;
+
+   FindBadShackTagsString(m_replytext, badtags);
+
+   MergeTags(shacktags, badtags, m_shacktags);
 
    RecalcLines();
 }
@@ -2337,7 +2404,7 @@ void CReplyDlg::OnTimer(UINT nIDEvent)
    {
       m_pView->KillTimer(m_timer);
    }
-   CheckSpelling();
+   CheckSpellingAndTags();
    m_pView->InvalidateEverything();
 }
 

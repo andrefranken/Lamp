@@ -121,7 +121,7 @@ public:
 
 typedef enum 
 {
-   ST_RED,
+   ST_RED = 0,
    ST_GREEN,
    ST_BLUE,
    ST_YELLOW,
@@ -130,7 +130,6 @@ typedef enum
    ST_ORANGE,
    ST_PURPLE,
    ST_PINK,
-   ST_FUCHSIA,
    ST_QUOTE,
    ST_SAMPLE,
    ST_STRIKE,
@@ -142,8 +141,11 @@ typedef enum
    ST_LINK,
    ST_UNSPOILER,
    ST_INVERT,
+   ST_IMAGE,
+   ST_IMAGE_LINK,
+   ST_THUMB,
 
-   ST_RED_END,
+   ST_RED_END = 30,
    ST_GREEN_END,
    ST_BLUE_END,
    ST_YELLOW_END,
@@ -163,14 +165,8 @@ typedef enum
    ST_LINK_END,
    ST_UNSPOILER_END,
    ST_INVERT_END,
-
-   ST_IMAGE,
    ST_IMAGE_END,
-
-   ST_IMAGE_LINK,
    ST_IMAGE_LINK_END,
-
-   ST_THUMB,
    ST_THUMB_END,
 
 }shacktag;
@@ -301,6 +297,10 @@ bool HTML_FindChild_StartsWithAttribute(tree<htmlcxx::HTML::Node> &from_dom,
                                         const char *attribute_name, 
                                         const char *attribute_value, 
                                         std::string *attribute_value_remainder = 0);
+
+bool PopTag(std::vector<shacktag> &shacktags, shacktag who);
+void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags);
+void MergeTags(std::vector<shacktagpos> &ina, std::vector<shacktagpos> &inb, std::vector<shacktagpos> &out);
 
 class ChattyPost
 {
@@ -518,7 +518,6 @@ protected:
    void SetupCharWidths();
    void SetupBodyText(RECT &textrect);
    void InitImageLinks();
-   void PopTag(std::vector<shacktag> &shacktags, shacktag who);
    void DecodeString(UCString &from, UCString &to, std::vector<shacktagpos> &shacktags);
    void GatherIds(std::list<unsigned int> &ids);
    void RemoveSomeTags(UCString &str);
