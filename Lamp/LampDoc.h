@@ -176,7 +176,8 @@ public:
    void SetReplyDlg(CReplyDlg *pReplyDlg){m_pReplyDlg = pReplyDlg;}
    void UpdateLOLsRecurse();
    void UnloadAllImages();
-
+   void UnloadImage(unsigned int image_index);
+   
    int GetPage(){return m_page;}
    void SetPage(int page);
 
@@ -223,6 +224,7 @@ public:
    void DeleteShackMessage(unsigned int id);
 
    ShackMsgType GetShackMessageType(){return m_shackmsgtype;}
+     
 
 // Operations
 public:

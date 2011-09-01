@@ -4089,6 +4089,8 @@ void CLampApp::LoadImageThumb(unsigned int index, unsigned int postid)
 
 CDCSurface *CImageCacheItem::GetImage()
 {
+   m_time = ::GetTickCount();
+
    if(m_image.GetWidth() == 0 ||
       m_image.GetHeight() == 0 ||
       m_image.GetDC() == NULL)
@@ -4101,6 +4103,8 @@ CDCSurface *CImageCacheItem::GetImage()
 
 CDCSurface *CImageCacheItem::GetImageThumb()
 {
+   m_time = ::GetTickCount();
+
    if(m_imagethumb.GetWidth() == 0 ||
       m_imagethumb.GetHeight() == 0 ||
       m_imagethumb.GetDC() == NULL)
@@ -4742,3 +4746,47 @@ void CLampApp::SetSingleThreadStyle(bool value)
 {
    g_bSingleThreadStyle = value;
 }
+
+void CLampApp::CheckForExpiredImages(void)
+{
+   DWORD currenttime = ::GetTickCount();
+
+   std::map<unsigned int,CImageCacheItem>::iterator it = m_imagecache.begin();
+
+   while(it != m_imagecache.end())
+   {
+      if(currenttime - it->second.m_time > 60000 * (60 * 4))
+      {
+         std::list<CLampDoc*>::iterator doc_it = m_MyDocuments.begin();
+         std::list<CLampDoc*>::iterator doc_end = m_MyDocuments.end();
+
+         while(doc_it != doc_end)
+         {
+            (*doc_it)->UnloadImage(it->first);
+            doc_it++;
+         }
+
+         m_imagecache.erase(it);
+
+         it = m_imagecache.begin();
+      }
+      else
+      {
+         it++;
+      }
+   }
+
+   std::list<CLampDoc*>::iterator doc_it = m_MyDocuments.begin();
+   std::list<CLampDoc*>::iterator doc_end = m_MyDocuments.end();
+
+   while(doc_it != doc_end)
+   {
+      if((*doc_it)->GetView() != NULL)
+      {
+         (*doc_it)->GetView()->InvalidateEverything();
+      }
+
+      doc_it++;
+   }
+}
+

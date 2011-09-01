@@ -1486,6 +1486,44 @@ void ChattyPost::UnloadAllImagesRecurse()
    }
 }
 
+void ChattyPost::UnloadImageRecurse(unsigned int image_index)
+{
+   bool bFoundStart = false;
+   for(size_t i=0; i < m_shacktags.size(); i++)
+   {
+      if((m_shacktags[i].m_tag == ST_IMAGE ||
+          m_shacktags[i].m_tag == ST_THUMB) &&
+          m_shacktags[i].m_image_index == image_index)
+      {
+         m_shacktags[i].m_tag = ST_IMAGE_LINK;
+         bFoundStart = true;
+      }
+
+      if((m_shacktags[i].m_tag == ST_IMAGE_END ||
+          m_shacktags[i].m_tag == ST_THUMB_END) &&
+          bFoundStart)
+      {
+         m_shacktags[i].m_tag = ST_IMAGE_LINK_END;
+         bFoundStart = false;
+      }
+   }
+
+   // this is to trigger a recalc of the line tags
+   m_lasttextrectwidth = 0;
+
+
+   std::list<ChattyPost*>::iterator it = m_children.begin();
+   std::list<ChattyPost*>::iterator end = m_children.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         (*it)->UnloadImageRecurse(image_index);
+      }
+      it++;
+   }
+}
+
 void ChattyPost::CloseAllImageLinks()
 {
    // see if any of the links should be converted to image links

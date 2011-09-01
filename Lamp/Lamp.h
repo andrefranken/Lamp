@@ -110,6 +110,8 @@ public:
    CDCSurface m_imagethumb;
 
    std::vector<unsigned int> m_notifylist;
+
+   DWORD m_time;
 };
 
 class CLampApp : public CWinAppEx
@@ -815,6 +817,8 @@ public:
       }
       return false;
    }
+
+   void CheckForExpiredImages(void);
       
 // Overrides
 public:

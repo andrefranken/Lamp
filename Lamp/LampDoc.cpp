@@ -6193,6 +6193,20 @@ void CLampDoc::UnloadAllImages()
    }
 }
 
+void CLampDoc::UnloadImage(unsigned int image_index)
+{
+   std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+   std::list<ChattyPost*>::iterator end = m_rootposts.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         (*it)->UnloadImageRecurse(image_index);
+      }
+      it++;
+   }
+}
+
 void CLampDoc::GetLaunchString(UCString &launch, unsigned int current_id)
 {
    switch(m_datatype)

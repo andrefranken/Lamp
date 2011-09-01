@@ -462,6 +462,7 @@ public:
    void LoadAllImageLinks();
    void CloseAllImageLinks();
    void UnloadAllImagesRecurse();
+   void UnloadImageRecurse(unsigned int image_index);
 
    bool IsFiltered();
 

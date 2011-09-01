@@ -9,6 +9,7 @@
 #define INBOX_TIMER 16
 #define UPDATE_TIMER 17
 #define REFRESH_LOL_TIMER 18
+#define IMAGE_EXPIRE_TIMER 19
 
 class CBMMenu : public CMenu
 {

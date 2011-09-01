@@ -134,6 +134,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
    SetTimer(INBOX_TIMER,(UINT)60000 * (UINT)theApp.GetNumMinutesCheckInbox(),NULL);
 
+   SetTimer(IMAGE_EXPIRE_TIMER,(UINT)60000 * 60,NULL);
+
    m_bFirstUpdate = true;
    SetTimer(UPDATE_TIMER,(UINT)60000 * 1,NULL); // check for updates starting in 1 minutes
 
@@ -445,6 +447,10 @@ void CMainFrame::OnTimer(UINT nIDEvent)
             SetTimer(UPDATE_TIMER,(UINT)60000 * 30,NULL); // check for updates every 30 minutes
          }
          theApp.CheckForUpdates();
+      }
+      else if(nIDEvent == IMAGE_EXPIRE_TIMER)
+      {
+         theApp.CheckForExpiredImages();
       }
    }
    else
