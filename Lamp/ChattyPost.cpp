@@ -6207,6 +6207,57 @@ void ChattyPost::EstablishNewness(std::map<unsigned int,newness> &post_newness)
    }
 }
 
+void ChattyPost::RecordTags(std::map<unsigned int,std::vector<shacktagpos>> &post_tags)
+{
+   post_tags[m_id] = m_shacktags;
+
+   std::list<ChattyPost*>::iterator it = m_children.begin();
+   std::list<ChattyPost*>::iterator end = m_children.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         (*it)->RecordTags(post_tags);
+      }
+      it++;
+   }
+}
+
+void ChattyPost::EstablishTags(std::map<unsigned int,std::vector<shacktagpos>> &post_tags)
+{
+   std::map<unsigned int,std::vector<shacktagpos>>::iterator me = post_tags.find(m_id);
+   if(me != post_tags.end() &&
+      m_shacktags.size() == me->second.size())
+   {
+      m_shacktags = me->second;
+
+      for(size_t i=0; i < m_shacktags.size(); i++)
+      {
+         if(m_shacktags[i].m_tag == ST_UNSPOILER)
+         {
+            m_shacktags[i].m_tag = ST_SPOILER;
+         }
+
+         if(m_shacktags[i].m_tag == ST_UNSPOILER_END)
+         {
+            m_shacktags[i].m_tag = ST_SPOILER_END;
+         }
+      }
+   }
+
+   std::list<ChattyPost*>::iterator it = m_children.begin();
+   std::list<ChattyPost*>::iterator end = m_children.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         (*it)->EstablishTags(post_tags);
+      }
+      it++;
+   }
+}
+
+
 void ChattyPost::SetAsPageBreak(size_t page)
 {
    m_bPageBreak = true;

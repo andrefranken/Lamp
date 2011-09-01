@@ -508,6 +508,9 @@ public:
    void RecordNewness(std::map<unsigned int,newness> &post_newness);
    void EstablishNewness(std::map<unsigned int,newness> &post_newness);
 
+   void RecordTags(std::map<unsigned int,std::vector<shacktagpos>> &post_tags);
+   void EstablishTags(std::map<unsigned int,std::vector<shacktagpos>> &post_tags);
+
    void SetAsPageBreak(size_t page);
 
    void InvalidateContentLayout(){m_lasttextrectwidth = 0;}

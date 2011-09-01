@@ -3520,6 +3520,7 @@ void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsign
                               bool bAlreadyHadIt = false;
                               bool bSkip = false;
                               std::map<unsigned int,newness> post_newness;
+                              std::map<unsigned int,std::vector<shacktagpos>> post_tags;
 
                               for(size_t j = 0; j < existing_threads.size(); j++)
                               {
@@ -3533,6 +3534,7 @@ void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsign
                                     {
                                        post = FindRootPost(root_id);
                                        post->RecordNewness(post_newness);
+                                       post->RecordTags(post_tags);
                                        post->ClearChildren();
                                     }
                                     bAlreadyHadIt = true;                                 
@@ -3551,6 +3553,7 @@ void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsign
 
                                  post->ReadRootChattyFromHTML(sit, this, root_id);
                                  post->EstablishNewness(post_newness);
+                                 post->EstablishTags(post_tags);
                                  post->SetupPreviewShades(false);
                                  post->CountFamilySize();
                                  post->UpdateRootReplyList();
