@@ -1377,7 +1377,7 @@ bool CReplyDlg::OnLButtonDown(UINT nFlags, CPoint point, bool &bCloseReplyDlg)
                   break;
                case HST_TAG_CODE:
                   {
-                     Enclose(L"/{{",L"}}/");
+                     Enclose(L"/{{",L"}}/",false);
                      SetHasFocus(true);
                      m_pView->InvalidateEverything();
                   }
@@ -1901,7 +1901,7 @@ void CReplyDlg::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
    }
 }
 
-void CReplyDlg::Enclose(const UCChar *frontbit,const UCChar *backbit)
+void CReplyDlg::Enclose(const UCChar *frontbit,const UCChar *backbit, bool bTighten /*= true*/)
 {
    m_undobuffer = m_replytext;
    m_undocaretpos = m_caretpos;
@@ -1912,17 +1912,20 @@ void CReplyDlg::Enclose(const UCChar *frontbit,const UCChar *backbit)
    int mincaretpos = __min(m_caretpos,m_caretanchor);
    int maxcaretpos = __max(m_caretpos,m_caretanchor);
 
-   // skip any leading whitespace
-   while(iswspace(m_replytext[mincaretpos]))
+   if(bTighten)
    {
-      mincaretpos++;
-   }
+      // skip any leading whitespace
+      while(iswspace(m_replytext[mincaretpos]))
+      {
+         mincaretpos++;
+      }
 
-   // skip any trailing whitespace
-   while(maxcaretpos > mincaretpos &&
-         iswspace(m_replytext[maxcaretpos - 1]))
-   {
-      maxcaretpos--;
+      // skip any trailing whitespace
+      while(maxcaretpos > mincaretpos &&
+            iswspace(m_replytext[maxcaretpos - 1]))
+      {
+         maxcaretpos--;
+      }
    }
 
    const UCChar *work = frontbit;

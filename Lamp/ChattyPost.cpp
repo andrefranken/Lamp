@@ -1667,7 +1667,7 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
             RECT subjectrect;
             subjectrect.left = authorrect.right + 5;
             subjectrect.right = daterect.left - 5;
-            subjectrect.top = myrect.bottom;
+            subjectrect.top = myrect.top;
             subjectrect.bottom = myrect.bottom;
 
             int shade = 10;
@@ -1751,7 +1751,7 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
             std::vector<RECT> imagelinks;
             std::vector<RECT> images;
             std::vector<RECT> thumbs;
-            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs);
+            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs,&textrect);
             m_drewtextpos = textrect.top;
             m_drewtextedge = textrect.left;
             
@@ -2011,7 +2011,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             std::vector<RECT> imagelinks;
             std::vector<RECT> images;
             std::vector<RECT> thumbs;
-            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs);
+            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs,&textrect);
             m_drewtextpos = textrect.top;
             m_drewtextedge = textrect.left;
 
@@ -2449,7 +2449,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                std::vector<RECT> imagelinks;
                std::vector<RECT> images;
                std::vector<RECT> thumbs;
-               m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs);
+               m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs,&textrect);
                m_drewtextpos = textrect.top;
                m_drewtextedge = textrect.left;
 
@@ -3197,6 +3197,7 @@ void ChattyPost::SetupCharWidths()
             m_pCharWidths[i] = 4;
          }
 
+         /*
          if(m_pCharWidths[i] == 0)
          {
             if(m_bodytext[i] > 255)
@@ -3239,6 +3240,7 @@ void ChattyPost::SetupCharWidths()
                }
             }
          }
+         */
       }
    }
 

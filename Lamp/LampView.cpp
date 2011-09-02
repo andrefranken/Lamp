@@ -1923,10 +1923,10 @@ void CLampView::MakePosLegal()
          GetDocument()->GetHeight() - m_gotopos < (2 * (DeviceRectangle.bottom - DeviceRectangle.top) ))
       {
          GetDocument()->FetchNextPage();
+         m_bTrackingThumb = false;
       }
    }
 }
-
 
 void CLampView::InvalidateEverything()
 {
@@ -2938,6 +2938,11 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               {
                                  pPost->MakeImageIntoLink(m_mousepoint.x, m_mousepoint.y);
                               }
+                              
+                              if(m_hotspots[i].m_spot.top < (20 + m_banneroffset))
+
+                              m_gotopos = m_pos + (m_hotspots[i].m_spot.top - (20 + m_banneroffset));
+                              MakePosLegal();
                               InvalidateEverything();
                            }
                         }
@@ -4439,6 +4444,18 @@ void CLampView::OnKillFocus(CWnd* pNewWnd)
          }
          
          theApp.GetMainWnd()->ShowWindow(SW_HIDE);
+      }
+
+      if(pNewWnd != NULL)
+      {
+         HWND hWnd = pNewWnd->GetSafeHwnd();
+
+         AttachThreadInput(GetWindowThreadProcessId(::GetForegroundWindow(),NULL),GetCurrentThreadId(),TRUE);
+               
+         ::SetForegroundWindow(hWnd);	
+         ::SetFocus(hWnd);
+         
+         AttachThreadInput(GetWindowThreadProcessId(::GetForegroundWindow(),NULL),GetCurrentThreadId(),FALSE);
       }
    }
 }

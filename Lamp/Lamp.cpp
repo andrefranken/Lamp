@@ -3991,13 +3991,14 @@ void CLampApp::LoadImage(unsigned int index, unsigned int postid)
 
       UCString temphost = ici.m_host;
       UCString temppath = ici.m_path;
+
       if(ici.m_host == L"www.shackpics.com" ||
          ici.m_host == L"shackpics.com")
       {
          // http://www.shackpics.com/viewer.x?file=pic.jpg
          // http://www.shackpics.com/files/pic.jpg
          temppath.Replace(L"viewer.x?file=",L"files/");
-         temphost = L"www.shackpics.com";
+         temphost = L"chattypics.com";
       }
 
       if(ici.m_host == L"www.chattypics.com" ||

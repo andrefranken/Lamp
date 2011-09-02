@@ -305,6 +305,18 @@ void CMainFrame::OnKillFocus(CWnd* pNewWnd)
          
          ShowWindow(SW_HIDE);
       }
+
+      if(pNewWnd != NULL)
+      {
+         HWND hWnd = pNewWnd->GetSafeHwnd();
+
+         AttachThreadInput(GetWindowThreadProcessId(::GetForegroundWindow(),NULL),GetCurrentThreadId(),TRUE);
+               
+         ::SetForegroundWindow(hWnd);	
+         ::SetFocus(hWnd);
+         
+         AttachThreadInput(GetWindowThreadProcessId(::GetForegroundWindow(),NULL),GetCurrentThreadId(),FALSE);
+      }
    }
    CMDIFrameWndEx::OnKillFocus(pNewWnd);
 }

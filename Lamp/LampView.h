@@ -93,6 +93,8 @@ public:
                                RECT *pScrollRectangle = NULL,
                                bool bClearHotspots = true);
 
+   
+
 protected:
    void DrawHotSpots(HDC hDC);
    bool DrawCurrentHotSpots(HDC hDC);

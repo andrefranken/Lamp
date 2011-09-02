@@ -98,7 +98,7 @@ public:
       }
    }
 
-   void Enclose(const UCChar *frontbit,const UCChar *backbit);
+   void Enclose(const UCChar *frontbit,const UCChar *backbit, bool bTighten = true);
    
    RECT GetThumbRect(){return m_thumbrect;}
    RECT GetUpRect(){return m_uprect;}

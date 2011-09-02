@@ -2915,6 +2915,7 @@ bool CLampDoc::PostReply(const UCString &replytext, unsigned int to_id)
       UCString temp = replytext;
       temp.ReplaceAll(L'<',0x02C2);
       temp.ReplaceAll(L'>',0x02C3);
+      temp.Replace(L"\n",L"\r\n");
 
       char *enc_reply = url_encode((char*)temp.str8(false,CET_UTF8));
       postdata += enc_reply;
@@ -4807,7 +4808,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
       }
       else
       {
-         MyTextOut(hDC, rect.left, rect.bottom - rise, text, numchars, charwidths, NULL);
+         MyTextOut(hDC, rect.left, rect.bottom - rise, text, numchars, charwidths, &rect);
          //::ExtTextOutW(hDC, rect.left, rect.bottom, 0, NULL, text, numchars, charwidths);
       }
    }
@@ -4842,7 +4843,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
          }
          else
          {
-            MyTextOut(hDC, x, rect.bottom - rise, text, charsthisrun, charwidths, NULL);
+            MyTextOut(hDC, x, rect.bottom - rise, text, charsthisrun, charwidths, &rect);
             //::ExtTextOutW(hDC, x, rect.bottom, 0, NULL, text, charsthisrun, charwidths);
          }
          
@@ -5078,7 +5079,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
                   ::DeleteObject(newbrush);
                   ::SetTextColor(hDC,theApp.GetBackgroundColor());
                }
-               MyTextOut(hDC, x, rect.bottom - rise, text.Str() + start, finish - start, charwidths + start, NULL);
+               MyTextOut(hDC, x, rect.bottom - rise, text.Str() + start, finish - start, charwidths + start, &rect);
                //::ExtTextOutW(hDC, x, rect.bottom, 0, NULL, text.Str() + start, finish - start, charwidths + start);
             }
          }
