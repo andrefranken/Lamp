@@ -299,18 +299,25 @@ void ChattyPost::ReadRootChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_itera
             {
                if(HTML_FindChild_HasAttribute(author_it, author_it, "span", "class", "author"))
                {
-                  if(HTML_FindChild_HasAttribute(author_it, author_it, "span", "class", "user"))
+                  tree<htmlcxx::HTML::Node>::sibling_iterator user_it = author_it;
+
+                  if(HTML_FindChild_HasAttribute(user_it, user_it, "span", "class", "user"))
                   {
-                     if(HTML_FindChild_StartsWithAttribute(author_it, author_it, "a", "href", "/user/"))
+                     if(HTML_FindChild_StartsWithAttribute(user_it, user_it, "a", "href", "/user/"))
                      {
                         std::string author;
-                        HTML_GetValue(author_it, author);
+                        HTML_GetValue(user_it, author);
                         m_author = (const char*)author.data();
                         m_author.TrimWhitespace();
                         RemoveSomeTags(m_author);
                         UpdateAuthorColor();
                      }
-                  }            
+                  }
+
+                  if(HTML_FindChild_HasAttribute(author_it, user_it, "a", "class", "lightningbolt"))
+                  {
+                     m_lightningbolt = true;
+                  }
                }
             }
 
@@ -488,6 +495,14 @@ void ChattyPost::ReadPostPreviewChattyFromHTML(tree<htmlcxx::HTML::Node>::siblin
                RemoveSomeTags(m_author);
                UpdateAuthorColor();
             }
+
+            tree<htmlcxx::HTML::Node>::sibling_iterator lightning_it = author_it;
+            lightning_it++;
+            if(lightning_it->tagName() == "a" &&
+               HTML_HasAttribute(lightning_it, "class", "lightningbolt"))
+            {
+               m_lightningbolt = true;
+            }
          }
       }
    }
@@ -594,18 +609,25 @@ void ChattyPost::ReadKnownPostChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_
       {
          if(HTML_FindChild_HasAttribute(author_it, author_it, "span", "class", "author"))
          {
-            if(HTML_FindChild_HasAttribute(author_it, author_it, "span", "class", "user"))
+            tree<htmlcxx::HTML::Node>::sibling_iterator user_it = author_it;
+
+            if(HTML_FindChild_HasAttribute(user_it, user_it, "span", "class", "user"))
             {
-               if(HTML_FindChild_StartsWithAttribute(author_it, author_it, "a", "href", "/user/"))
+               if(HTML_FindChild_StartsWithAttribute(user_it, user_it, "a", "href", "/user/"))
                {
                   std::string author;
-                  HTML_GetValue(author_it, author);
+                  HTML_GetValue(user_it, author);
                   m_author = (const char*)author.data();
                   m_author.TrimWhitespace();
                   RemoveSomeTags(m_author);
                   UpdateAuthorColor();
                }
-            }            
+            }
+
+            if(HTML_FindChild_HasAttribute(author_it, user_it, "a", "class", "lightningbolt"))
+            {
+               m_lightningbolt = true;
+            }
          }
       }
 
@@ -2088,6 +2110,8 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             authorrect.top = authorrect.bottom - theApp.GetTextHeight();
             m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor);
 
+            int rightofauthor = authorrect.right;
+
             authorrect.left = textrect.left + theApp.GetCellHeight() + 5;
             CHotSpot hotspot;
             hotspot.m_bAnim = false;
@@ -2095,6 +2119,24 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             hotspot.m_spot = authorrect;
             hotspot.m_id = m_id;
             hotspots.push_back(hotspot);
+
+            if(m_lightningbolt)
+            {
+               CDCSurface *pLImage = theApp.GetLightningBoltImage(false);
+               if(pLImage != NULL)
+               {
+                  //pLImage->Blit(hDC, lightningrect);
+                  hotspot.m_type = HST_LIGHTNINGBOLT;
+                  hotspot.m_spot.left = authorrect.right;
+                  hotspot.m_spot.top = authorrect.top;
+                  hotspot.m_spot.right = hotspot.m_spot.left + pLImage->GetWidth();
+                  hotspot.m_spot.bottom = hotspot.m_spot.top + pLImage->GetHeight();
+                  hotspot.m_id = 0;
+                  hotspots.push_back(hotspot);
+
+                  rightofauthor = hotspot.m_spot.right;
+               }
+            }
 
             bool bThread = (m_pDoc->GetDataType() == DDT_THREAD);
 
@@ -2177,7 +2219,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                if(theApp.ShowLOLButtons())
                {
                   RECT lolrect;
-                  lolrect.left = authorrect.right + 10;
+                  lolrect.left = rightofauthor + 10;
                   lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
                   if(theApp.ShowThomWLOLS())
                   {
@@ -2526,6 +2568,8 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                authorrect.top = authorrect.bottom - theApp.GetTextHeight();
                m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor);
 
+               int rightofauthor = authorrect.right;
+
                authorrect.left = textrect.left + theApp.GetCellHeight() + 5;
                CHotSpot hotspot;
                hotspot.m_bAnim = false;
@@ -2533,6 +2577,24 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                hotspot.m_spot = authorrect;
                hotspot.m_id = m_id;
                hotspots.push_back(hotspot);
+
+               if(m_lightningbolt)
+               {
+                  CDCSurface *pLImage = theApp.GetLightningBoltImage(false);
+                  if(pLImage != NULL)
+                  {
+                     //pLImage->Blit(hDC, lightningrect);
+                     hotspot.m_type = HST_LIGHTNINGBOLT;
+                     hotspot.m_spot.left = authorrect.right;
+                     hotspot.m_spot.top = authorrect.top;
+                     hotspot.m_spot.right = hotspot.m_spot.left + pLImage->GetWidth();
+                     hotspot.m_spot.bottom = hotspot.m_spot.top + pLImage->GetHeight();
+                     hotspot.m_id = 0;
+                     hotspots.push_back(hotspot);
+
+                     rightofauthor = hotspot.m_spot.right;
+                  }
+               }
 
                RECT daterect;
                daterect.left = textrect.left;
@@ -2585,7 +2647,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                if(theApp.ShowLOLButtons())
                {
                   RECT lolrect;
-                  lolrect.left = authorrect.right + 10;
+                  lolrect.left = rightofauthor + 10;
                   lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
                   if(theApp.ShowThomWLOLS())
                   {
@@ -2799,6 +2861,15 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   myrect.right -= m_lol_preview_size;
                }
 
+               if(m_lightningbolt)
+               {
+                  CDCSurface *pLImage = theApp.GetLightningBoltImage(false);
+                  if(pLImage != NULL)
+                  {
+                     myrect.right -= pLImage->GetWidth();
+                  }
+               }
+
                RECT textrect = myrect;
 
                if(m_category == PCT_INF)
@@ -2904,11 +2975,31 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                hotspot.m_id = m_id;
                hotspots.push_back(hotspot);
 
+               int rightofauthor = authorrect.right;
+
+               if(m_lightningbolt)
+               {
+                  CDCSurface *pLImage = theApp.GetLightningBoltImage(false);
+                  if(pLImage != NULL)
+                  {
+                     //pLImage->Blit(hDC, lightningrect);
+                     hotspot.m_type = HST_LIGHTNINGBOLT;
+                     hotspot.m_spot.left = authorrect.right;
+                     hotspot.m_spot.top = authorrect.top;
+                     hotspot.m_spot.right = hotspot.m_spot.left + pLImage->GetWidth();
+                     hotspot.m_spot.bottom = hotspot.m_spot.top + pLImage->GetHeight();
+                     hotspot.m_id = 0;
+                     hotspots.push_back(hotspot);
+
+                     rightofauthor = hotspot.m_spot.right;
+                  }
+               }
+
                //
                if(theApp.ShowLOLButtons() && m_bHaveLOLPreview)
                {
                   RECT lolpreviewrect = authorrect;
-                  lolpreviewrect.left = lolpreviewrect.right;
+                  lolpreviewrect.left = rightofauthor;
                   lolpreviewrect.right = lolpreviewrect.left + m_lol_preview_size;
 
                   m_pDoc->DrawPreviewText(hDC,lolpreviewrect,m_lol_preview_text,m_plol_preview_charwidths,m_lol_preview_shacktags,10,clipped);
@@ -4708,6 +4799,7 @@ void ChattyPost::ReadFromKnown(CLampDoc *pDoc)
          m_author = knownpost->m_author;
          m_bodytext = knownpost->m_bodytext;
          m_shacktags = knownpost->m_shacktags;
+         m_lightningbolt = knownpost->m_lightningbolt;
 
          if(pDoc->GetDataType() == DDT_STORY)
          {

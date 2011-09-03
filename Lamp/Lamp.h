@@ -819,6 +819,18 @@ public:
    }
 
    void CheckForExpiredImages(void);
+
+   CDCSurface *GetLightningBoltImage(bool bHover)
+   {
+      if(bHover)
+      {
+         return &m_lightningbolt_hover;
+      }
+      else
+      {
+         return &m_lightningbolt;
+      }
+   }
       
 // Overrides
 public:
@@ -860,6 +872,8 @@ protected:
    bool PreventMultipleInstances();
 
    void CalcDescent();
+
+   void GenerateLightningBolt();
 
    HANDLE m_hMutex;
    
@@ -934,6 +948,9 @@ protected:
    CDCSurface m_forward_hover;
 
    CDCSurface m_mb_pan;
+
+   CDCSurface m_lightningbolt;
+   CDCSurface m_lightningbolt_hover;
 
    CDCSurface m_refresh_anim[8];
 

@@ -970,7 +970,7 @@ BOOL CLampApp::InitInstance()
    ReadBookmarks();
    ReadSettingsFile();
    ReadSkinFiles();
-
+   
    UCString langfile;
    langfile = L"hun_dic\\";
    langfile += m_lang;
@@ -1038,6 +1038,8 @@ BOOL CLampApp::InitInstance()
    m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
 
    UpdateNewMessages();
+
+   GenerateLightningBolt();
 
    ///
    WNDCLASSW wndcls;
@@ -3051,6 +3053,8 @@ void CLampApp::InvalidateSkinAllViews()
       (*it)->InvalidateSkin();
       it++;
    }
+
+   GenerateLightningBolt();
 }
 
 void CLampApp::ShowNewMessages()
@@ -4652,6 +4656,45 @@ void CLampApp::CalcDescent()
    {
       ::DeleteObject(hCreatedFont);
    }
+}
+
+void CLampApp::GenerateLightningBolt()
+{
+   CDCSurface canvas;
+   int lbsize = m_textheight / 2;
+   canvas.Resize(lbsize * 2,lbsize);
+   canvas.Fill(0,0,0);
+
+   HDC hdc = canvas.GetDC();
+
+   HBRUSH hbrush = ::CreateSolidBrush(RGB(255,255,255));
+   HPEN hpen = ::CreatePen(PS_NULL,0,0);
+   HBRUSH hold_brush = (HBRUSH)::SelectObject(hdc,hbrush);
+   HPEN hold_pen = (HPEN)::SelectObject(hdc,hpen);
+
+   POINT points[6];
+   points[0].x = 1;
+   points[0].y = 1;
+   points[1].x = (int)(((float)lbsize * 2) * (3.0/8.0));
+   points[1].y = lbsize - 1;
+   points[2].x = (int)(((float)lbsize * 2) * (5.0/8.0));
+   points[2].y = lbsize / 2;
+   points[3].x = (lbsize * 2) - 1;
+   points[3].y = lbsize - 1;
+   points[4].x = (int)(((float)lbsize * 2) * (5.0/8.0));
+   points[4].y = 1;
+   points[5].x = (int)(((float)lbsize * 2) * (3.0/8.0));
+   points[5].y = lbsize / 2;
+
+   ::Polygon(hdc,points,6);
+
+   ::SelectObject(hdc,hold_brush);
+   ::SelectObject(hdc,hold_pen);
+   ::DeleteObject(hbrush);
+   ::DeleteObject(hpen);
+
+   m_lightningbolt.MakeDecal(&canvas, GetRValue(m_author_color), GetGValue(m_author_color), GetBValue(m_author_color));
+   m_lightningbolt_hover.MakeDecal(&canvas, GetRValue(m_mypost_color), GetGValue(m_mypost_color), GetBValue(m_mypost_color));
 }
 
 bool CLampApp::IsPostKnown(unsigned int id)

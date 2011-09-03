@@ -1187,6 +1187,11 @@ void CLampView::DrawHotSpots(HDC hDC)
             theApp.GetPinImage(m_hotspots[i].m_bOn,hover)->Blit(hDC,m_hotspots[i].m_spot);
          }
          break;
+      case HST_LIGHTNINGBOLT:
+         {
+            theApp.GetLightningBoltImage(hover)->Blit(hDC,m_hotspots[i].m_spot);
+         }
+         break;
       case HST_CREATEREPLY:
       case HST_REPLY_TO_MESSAGE:
          {
@@ -1291,6 +1296,11 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
             case HST_PIN:
                {
                   theApp.GetPinImage(m_hotspots[i].m_bOn,false)->Blit(hDC,m_hotspots[i].m_spot);
+               }
+               break;
+            case HST_LIGHTNINGBOLT:
+               {
+                  theApp.GetLightningBoltImage(false)->Blit(hDC,m_hotspots[i].m_spot);
                }
                break;
             case HST_NEWTHREAD:
@@ -1608,6 +1618,11 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
             case HST_PIN:
                {
                   theApp.GetPinImage(m_hotspots[i].m_bOn,true)->Blit(hDC,m_hotspots[i].m_spot);
+               }
+               break;
+            case HST_LIGHTNINGBOLT:
+               {
+                  theApp.GetLightningBoltImage(true)->Blit(hDC,m_hotspots[i].m_spot);
                }
                break;
             case HST_NEWTHREAD:
@@ -2137,6 +2152,11 @@ void CLampView::UpdateHotspotPosition()
                theApp.SetStatusBarText(L"Pin This Thread",this);
             }
             break;
+         case HST_LIGHTNINGBOLT:
+            {
+               theApp.SetStatusBarText(L"This Person Is Cool!",this);
+            }
+            break;
          case HST_NEWTHREAD:
             {
                theApp.SetStatusBarText(L"Post a New Thread",this);
@@ -2587,6 +2607,12 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               post->SetPinned(!post->IsPinned());
                               InvalidateEverything();
                            }
+                        }
+                        break;
+                     case HST_LIGHTNINGBOLT:
+                        {
+                           UCString link(L"http://www.shacknews.com/mercury");
+                           theApp.OpenShackLink(link);
                         }
                         break;
                      case HST_NEWTHREAD:
@@ -3912,6 +3938,7 @@ BOOL CLampView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
             case HST_TAGTAG:
             case HST_NEW_MESSAGES_NOTE:
             case HST_WTFTAG:
+            case HST_LIGHTNINGBOLT:
                {
                   SetCursor(::LoadCursor(NULL, IDC_HAND));
                }

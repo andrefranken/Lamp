@@ -86,6 +86,8 @@ public:
 
    HBITMAP GetBitmap(){return m_hBitmap;}
 
+   void MakeDecal(CDCSurface *from, byte red, byte green, byte blue);
+
 protected:
    void setupBlendTable(void);
 

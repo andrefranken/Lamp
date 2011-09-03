@@ -508,6 +508,59 @@ void CDCSurface::MakeTransparentBitmap(bool bBackgroundAlpha)
    }
 }
 
+void CDCSurface::MakeDecal(CDCSurface *from, byte red, byte green, byte blue)
+{
+   if(from != NULL &&
+      from->GetWidth() > 0 &&
+      from->GetHeight() > 0)
+   {
+      int width = from->GetWidth();
+      int height = from->GetHeight();
+
+      UseAlphaChannel(false);
+      Resize(width,height);
+            
+      int oldscanlinesize = from->m_ScanlineByteLength;   
+      // make mask
+
+      byte *pWriteScanline = (byte *)m_pBits;
+      byte *pWriteScanlineEnd = pWriteScanline + (m_ScanlineByteLength * m_PixelHeight);
+
+      byte *pReadScanline = (byte *)from->m_pBits;
+
+      while(pWriteScanline < pWriteScanlineEnd)
+      {
+         byte *pWrite = (byte *)pWriteScanline;
+         byte *pWriteEnd = pWrite + (m_PixelWidth * 3);
+         byte *pRead = (byte *)pReadScanline;
+
+         while(pWrite < pWriteEnd)
+         {
+            if(*pRead > 127)
+            {
+               pWrite[0] = blue;
+               pWrite[1] = green;
+               pWrite[2] = red;
+            }
+            else
+            {
+               pWrite[0] = 255;
+               pWrite[1] = 0;
+               pWrite[2] = 255;
+            }
+
+            pWrite += 3;
+            pRead += 3;
+         }
+
+         pWriteScanline += m_ScanlineByteLength;
+         pReadScanline += oldscanlinesize;
+      }
+
+      m_bIsTransparent = true;
+   }
+}
+
 void CDCSurface::AddScanline(byte *pScanline, int numbytes, bool reverse /* = false*/, bool invertbits /* = false*/)
 {
    if( m_pBits             != NULL  &&

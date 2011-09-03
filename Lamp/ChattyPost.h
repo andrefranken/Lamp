@@ -75,6 +75,7 @@ typedef enum
    HST_COMPOSE_MESSAGE,
    HST_NEW_MESSAGES_NOTE,
    HST_BANNER_BACKGROUND,
+   HST_LIGHTNINGBOLT
 }hotspottype;
 
 typedef enum 
@@ -346,6 +347,7 @@ public:
       m_bPageBreak = false;
       m_subjectwidth = 0;
       memset(&m_tm_posttime,0,sizeof(tm));
+      m_lightningbolt = false;
    }
    virtual ~ChattyPost();
 
@@ -614,4 +616,6 @@ protected:
    bool                    m_bPageBreak;
 
    int                     m_subjectwidth;
+
+   bool                    m_lightningbolt;
 };
