@@ -2933,8 +2933,16 @@ bool CLampDoc::PostReply(const UCString &replytext, unsigned int to_id)
    }
    else
    {
-      ChattyPost *parent = FindPost(to_id);
-      parent = parent->GetRoot();
+      ChattyPost *parent = NULL;
+
+      if(to_id != 0)
+      {
+         parent = FindPost(to_id);
+         if(parent != NULL)
+         {
+            parent = parent->GetRoot();
+         }
+      }
 
       theApp.SetLastPost(replytext);
       UCString path = L"/post/";
