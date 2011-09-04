@@ -459,6 +459,18 @@ public:
          return &m_forward;
       }
    }
+
+   CDCSurface *GetDeleteImage(bool bHover)
+   {
+      if(bHover)
+      {
+         return &m_delete_hover;
+      }
+      else
+      {
+         return &m_delete;
+      }
+   }
    
    CDCSurface *GetDockTabImage(){return &m_docktabimage;}
 
@@ -946,6 +958,8 @@ protected:
    CDCSurface m_compose_hover;
    CDCSurface m_forward;
    CDCSurface m_forward_hover;
+   CDCSurface m_delete;
+   CDCSurface m_delete_hover;
 
    CDCSurface m_mb_pan;
 

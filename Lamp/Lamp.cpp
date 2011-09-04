@@ -2311,6 +2311,8 @@ void CLampApp::ReadSkinFiles()
    m_compose_hover.Resize(0,0);
    m_forward.Resize(0,0);
    m_forward_hover.Resize(0,0);
+   m_delete.Resize(0,0);
+   m_delete_hover.Resize(0,0);
    m_mb_pan.Resize(0,0);
    for(size_t i=0;i<8;i++)
       m_refresh_anim[i].Resize(0,0);
@@ -2753,6 +2755,18 @@ void CLampApp::ReadSkinFiles()
    imagefilename += L"\\forward_hover.png";
    imagepath.PathToMe(imagefilename);
    m_forward_hover.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\delete.png";
+   imagepath.PathToMe(imagefilename);
+   m_delete.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\delete_hover.png";
+   imagepath.PathToMe(imagefilename);
+   m_delete_hover.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;

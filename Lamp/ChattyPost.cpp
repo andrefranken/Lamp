@@ -1828,6 +1828,15 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
             hotspot.m_id = m_id;
             hotspots.push_back(hotspot);
 
+            if(theApp.UseShack() && theApp.GetDeleteImage(false)->GetWidth() > 0)
+            {
+               hotspot.m_type = HST_DELETE_MESSAGE;
+               hotspot.m_spot.left = hotspot.m_spot.right;
+               hotspot.m_spot.right = hotspot.m_spot.left + theApp.GetDeleteImage(false)->GetWidth();
+               hotspot.m_id = m_id;
+               hotspots.push_back(hotspot);
+            }
+
             for(size_t s = 0; s < spoilers.size(); s++)
             {
                hotspot.m_type = HST_SPOILER;

@@ -54,6 +54,7 @@ UINT DownloadThreadProc( LPVOID pParam )
          pDD->m_dt == DT_SHACK_SHACKMSG ||
          pDD->m_dt == DT_SHACK_READMSG ||
          pDD->m_dt == DT_SHACK_SENDMSG ||
+         pDD->m_dt == DT_SHACK_DELETEMSG ||
          pDD->m_dt == DT_LOL)
       {
          pDD->getchatty(3);
@@ -453,6 +454,7 @@ void CLampDoc::StartDownload(const UCChar *host,
       dt != DT_SHACK_THREAD &&
       dt != DT_SHACK_THREAD_CONTENTS &&
       dt != DT_READMSG &&
+      dt != DT_SHACK_DELETEMSG &&
       dt != DT_SHACK_READMSG &&
       dt != DT_SUBMIT_LOLVOTE &&
       ((dt != DT_SHACKMSG &&
@@ -1390,6 +1392,11 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             // do nothing
          }
          break;
+      case DT_SHACK_DELETEMSG:
+         {
+            Refresh();
+         }
+         break;
       case DT_SENDMSG:
          {
             if(pDD->m_data != NULL)
@@ -2270,20 +2277,35 @@ void CLampDoc::MarkShackMessageRead(unsigned int id)
 
 void CLampDoc::DeleteShackMessage(unsigned int id)
 {
-   // "http://shackapi.stonedonkey.com/messages/read/?username=" + _login +"&password=" + _password +"&messageid=" + 
-   UCString path = L"/Messages/read/?messageid=";
-   
-   path += id;
+   if(theApp.UseShack())
+   {
+      UCString path = L"/messages/delete";
 
-   StartDownload(L"shackapi.stonedonkey.com",
-                 path,
-                 DT_READMSG,
-                 0,
-                 0,
-                 0,
-                 NULL,
-                 theApp.GetUsername(),
-                 theApp.GetPassword());
+      UCString postdata = L"mid=";
+      postdata += id;
+
+      if(m_shackmsgtype == SMT_INBOX)
+      {
+         postdata += L"&type=inbox";
+      }
+      else
+      {
+         postdata += L"&type=sent";
+      }
+
+      StartDownload(L"www.shacknews.com",
+                    path,
+                    DT_SHACK_DELETEMSG,
+                    0,
+                    0,
+                    0,
+                    postdata,
+                    theApp.GetUsername(),
+                    theApp.GetPassword());
+   }
+   else
+   {
+   }
 }
 
 void CLampDoc::SendMessage(const UCString &to, const UCString &subject, const UCString &shackmsg)
@@ -3217,7 +3239,7 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          pagingrect.left += 20;
          pagingrect.right -= 20;
 
-         if(GetDataType() == DDT_STORY && theApp.InfinatePaging())
+         if(GetDataType() == DDT_STORY && theApp.InfinatePaging() && theApp.UseShack())
          {
             ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
             ::SelectObject(hDC,m_pagefont);

@@ -1203,6 +1203,11 @@ void CLampView::DrawHotSpots(HDC hDC)
             theApp.GetForwardImage(hover)->Blit(hDC,m_hotspots[i].m_spot);
          }
          break;
+      case HST_DELETE_MESSAGE:
+         {
+            theApp.GetDeleteImage(hover)->Blit(hDC,m_hotspots[i].m_spot);
+         }
+         break;
       case HST_CLOSEREPLYDLG:
          {
             theApp.GetCloseImage(hover)->Blit(hDC,m_hotspots[i].m_spot);
@@ -1375,6 +1380,11 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
             case HST_FORWARD_MESSAGE:
                {
                   theApp.GetForwardImage(false)->Blit(hDC,m_hotspots[i].m_spot);
+               }
+               break;
+            case HST_DELETE_MESSAGE:
+               {
+                  theApp.GetDeleteImage(false)->Blit(hDC,m_hotspots[i].m_spot);
                }
                break;
             case HST_CLOSEREPLYDLG:
@@ -1704,6 +1714,11 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
             case HST_FORWARD_MESSAGE:
                {
                   theApp.GetForwardImage(true)->Blit(hDC,m_hotspots[i].m_spot);
+               }
+               break;
+            case HST_DELETE_MESSAGE:
+               {
+                  theApp.GetDeleteImage(true)->Blit(hDC,m_hotspots[i].m_spot);
                }
                break;
             case HST_CLOSEREPLYDLG:
@@ -2227,6 +2242,11 @@ void CLampView::UpdateHotspotPosition()
          case HST_FORWARD_MESSAGE:
             {
                theApp.SetStatusBarText(L"Forward",this);
+            }
+            break;
+         case HST_DELETE_MESSAGE:
+            {
+               theApp.SetStatusBarText(L"Delete",this);
             }
             break;
          case HST_CLOSEREPLYDLG:
@@ -2834,6 +2854,23 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                                  m_dlgup = false;
                                  
                                  InvalidateEverything();
+                              }
+                           }
+                        }
+                        break;
+                     case HST_DELETE_MESSAGE:
+                        {
+                           if(GetDocument()->GetDataType() == DDT_SHACKMSG)
+                           {
+                              ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
+                              if(post != NULL)
+                              {
+                                 UCString msg(L"Are you sure you wish to delete this message?");
+                                 int ret = MessageBox(msg,L"Lamp",MB_YESNO);
+                                 if(ret == IDYES)
+                                 {
+                                    GetDocument()->DeleteShackMessage(post->GetId());
+                                 }
                               }
                            }
                         }
@@ -3894,6 +3931,7 @@ BOOL CLampView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
             case HST_CREATEREPLY:
             case HST_REPLY_TO_MESSAGE:
             case HST_FORWARD_MESSAGE:
+            case HST_DELETE_MESSAGE:
             case HST_COLLAPSEPOST:
             case HST_EXPAND:
             case HST_CLOSEREPLYDLG:
