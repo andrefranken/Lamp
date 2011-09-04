@@ -109,6 +109,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_SKIN_ROUNDSHACK, &CLampView::OnUpdateSkinRoundShack)
    ON_COMMAND(ID_SKIN_DEFAULT, &CLampView::OnSkinSquareShack)
    ON_UPDATE_COMMAND_UI(ID_SKIN_DEFAULT, &CLampView::OnUpdateSkinSquareShack)
+   ON_COMMAND(ID_SKIN_WORKSAFE, &CLampView::OnSkinWorksafeShack)
+   ON_UPDATE_COMMAND_UI(ID_SKIN_WORKSAFE, &CLampView::OnUpdateSkinWorksafeShack)
    ON_COMMAND(ID_SKIN_CUSTOM, &CLampView::OnSkinCustom)
    ON_UPDATE_COMMAND_UI(ID_SKIN_CUSTOM, &CLampView::OnUpdateSkinCustom)
    ON_COMMAND(ID_HIGHLIGHT_OP, &CLampView::OnHighlightOP)
@@ -5065,6 +5067,25 @@ void CLampView::OnUpdateSkinSquareShack(CCmdUI *pCmdUI)
    }
 }
 
+void CLampView::OnSkinWorksafeShack()
+{
+   theApp.SetSkinFolder(L"worksafe");
+}
+
+void CLampView::OnUpdateSkinWorksafeShack(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.GetSkinFolder() == L"worksafe")
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
 void CLampView::OnSkinCustom()
 {
    ReleaseCapture();
@@ -5110,7 +5131,8 @@ void CLampView::OnUpdateSkinCustom(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(theApp.GetSkinFolder() != L"roundshack" &&
-      theApp.GetSkinFolder() != L"default")
+      theApp.GetSkinFolder() != L"default" &&
+      theApp.GetSkinFolder() != L"worksafe")
    {
       pCmdUI->SetCheck(TRUE);
    }
