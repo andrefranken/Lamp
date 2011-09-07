@@ -177,6 +177,7 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                         pDevs != NULL)
                      {
                         m_namelist.clear();
+                        m_mod_list.clear();
 
                         // the update doesn't have colors, so preserve them
                         UCString existingcolor = m_Mods.GetAttributeValue(L"color");
@@ -198,6 +199,11 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                                  UCString temp = name->GetValue();
                                  temp.MakeLower();
                                  m_namelist[temp] = color;
+
+                                 temp = name->GetValue();
+                                 temp.TrimWhitespace();
+                                 temp.MakeLower();
+                                 m_mod_list.insert(temp);
                               }
                            }
                         }
@@ -249,7 +255,8 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                               }
                            }
                         }
-                     }                     
+                     }    
+                     CheckForModMode();
                   }
                }
             }
@@ -847,6 +854,8 @@ CLampApp::CLampApp()
    m_tempimage.Fill(0,0,0);
 
    m_nextimagecacheindex = 0;
+
+   m_modmode = false;
 
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
@@ -1450,6 +1459,8 @@ void CLampApp::ReadSettingsFile()
       }
    }
 
+   CheckForModMode();
+
    setting = hostxml.FindChildElement(L"tab_title_word_limit");
    if(setting!=NULL) m_tab_title_word_limit = setting->GetValue();
    else m_tab_title_word_limit = 7;
@@ -1678,6 +1689,9 @@ void CLampApp::ReadSettingsFile()
       }
    }
 
+   m_namelist.clear();
+   m_mod_list.clear();
+
    setting = hostxml.FindChildElement(L"Mods");
    if(setting != NULL)
    {
@@ -1709,6 +1723,11 @@ void CLampApp::ReadSettingsFile()
                UCString temp = name->GetValue();
                temp.MakeLower();
                m_namelist[temp] = color;
+
+               temp = name->GetValue();
+               temp.TrimWhitespace();
+               temp.MakeLower();
+               m_mod_list.insert(temp);
             }
          }
       }
@@ -1719,6 +1738,8 @@ void CLampApp::ReadSettingsFile()
       m_Mods.SetAttributeValue(L"color",L"255,0,0");
       m_Mods.SetAttributeValue(L"enable",L"true");
    }
+
+   CheckForModMode();
 
    setting = hostxml.FindChildElement(L"ShackEmployees");
    if(setting != NULL)
@@ -2272,21 +2293,25 @@ void CLampApp::ReadSkinFiles()
    m_thumb_grip_active.Resize(0,0);
    m_thumb_grip_hover.Resize(0,0);
    m_track.Resize(0,0);
-   m_infreply.Resize(0,0);
-   m_infroot.Resize(0,0);
+   m_ontopic.Resize(0,0);
+   m_ontopic_hover.Resize(0,0);
+   m_inf_hover.Resize(0,0);
+   m_inf.Resize(0,0);
    m_infstar.Resize(0,0);
-   m_nwsreply.Resize(0,0);
-   m_nwsroot.Resize(0,0);
+   m_nws_hover.Resize(0,0);
+   m_nws.Resize(0,0);
    m_nwsstar.Resize(0,0);
-   m_stupidroot.Resize(0,0);
-   m_stupidreply.Resize(0,0);
+   m_stupid.Resize(0,0);
+   m_stupid_hover.Resize(0,0);
    m_stupidstar.Resize(0,0);
-   m_offtopicroot.Resize(0,0);
-   m_offtopicreply.Resize(0,0);
+   m_offtopic.Resize(0,0);
+   m_offtopic_hover.Resize(0,0);
    m_offtopicstar.Resize(0,0);
-   m_politicalroot.Resize(0,0);
-   m_politicalreply.Resize(0,0);
+   m_political.Resize(0,0);
+   m_political_hover.Resize(0,0);
    m_politicalstar.Resize(0,0);
+   m_nuked.Resize(0,0);
+   m_nuked_hover.Resize(0,0);
    m_close.Resize(0,0);
    m_close_hover.Resize(0,0);
    m_post.Resize(0,0);
@@ -2472,15 +2497,27 @@ void CLampApp::ReadSkinFiles()
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
-   imagefilename += L"\\inf_root.png";
+   imagefilename += L"\\ontopic.png";
    imagepath.PathToMe(imagefilename);
-   m_infroot.ReadPNG(imagepath);
+   m_ontopic.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
-   imagefilename += L"\\inf_reply.png";
+   imagefilename += L"\\ontopic_hover.png";
    imagepath.PathToMe(imagefilename);
-   m_infreply.ReadPNG(imagepath);
+   m_ontopic_hover.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\inf.png";
+   imagepath.PathToMe(imagefilename);
+   m_inf.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\inf_hover.png";
+   imagepath.PathToMe(imagefilename);
+   m_inf_hover.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
@@ -2490,15 +2527,15 @@ void CLampApp::ReadSkinFiles()
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
-   imagefilename += L"\\nws_root.png";
+   imagefilename += L"\\nws.png";
    imagepath.PathToMe(imagefilename);
-   m_nwsroot.ReadPNG(imagepath);
+   m_nws.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
-   imagefilename += L"\\nws_reply.png";
+   imagefilename += L"\\nws_hover.png";
    imagepath.PathToMe(imagefilename);
-   m_nwsreply.ReadPNG(imagepath);
+   m_nws_hover.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
@@ -2508,15 +2545,15 @@ void CLampApp::ReadSkinFiles()
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
-   imagefilename += L"\\stupid_root.png";
+   imagefilename += L"\\stupid.png";
    imagepath.PathToMe(imagefilename);
-   m_stupidroot.ReadPNG(imagepath);
+   m_stupid.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
-   imagefilename += L"\\stupid_reply.png";
+   imagefilename += L"\\stupid_hover.png";
    imagepath.PathToMe(imagefilename);
-   m_stupidreply.ReadPNG(imagepath);
+   m_stupid_hover.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
@@ -2526,15 +2563,15 @@ void CLampApp::ReadSkinFiles()
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
-   imagefilename += L"\\offtopic_root.png";
+   imagefilename += L"\\offtopic.png";
    imagepath.PathToMe(imagefilename);
-   m_offtopicroot.ReadPNG(imagepath);
+   m_offtopic.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
-   imagefilename += L"\\offtopic_reply.png";
+   imagefilename += L"\\offtopic_hover.png";
    imagepath.PathToMe(imagefilename);
-   m_offtopicreply.ReadPNG(imagepath);
+   m_offtopic_hover.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
@@ -2544,21 +2581,33 @@ void CLampApp::ReadSkinFiles()
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
-   imagefilename += L"\\political_root.png";
+   imagefilename += L"\\political.png";
    imagepath.PathToMe(imagefilename);
-   m_politicalroot.ReadPNG(imagepath);
+   m_political.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
-   imagefilename += L"\\political_reply.png";
+   imagefilename += L"\\political_hover.png";
    imagepath.PathToMe(imagefilename);
-   m_politicalreply.ReadPNG(imagepath);
+   m_political_hover.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
    imagefilename += L"\\political_star.png";
    imagepath.PathToMe(imagefilename);
    m_politicalstar.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\nuked.png";
+   imagepath.PathToMe(imagefilename);
+   m_nuked.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\nuked_hover.png";
+   imagepath.PathToMe(imagefilename);
+   m_nuked_hover.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
@@ -2904,6 +2953,9 @@ bool CLampApp::Login()
       m_password = logindlg.m_password;
       have = true;
    }
+
+   CheckForModMode();
+
    return have;
 }
 
@@ -3188,6 +3240,8 @@ void CLampApp::OnFileSetuplogininfo()
       m_username = logindlg.m_username;
       m_password = logindlg.m_password;
    }
+
+   CheckForModMode();
 }
 
 void CLampApp::OnUpdateFileSetuplogininfo(CCmdUI *pCmdUI)
@@ -4364,7 +4418,7 @@ void CLampApp::ReadBookmarks()
          else if(temp == L"notworksafe") bm.m_category = PCT_NWS;
          else if(temp == L"stupid") bm.m_category = PCT_STUPID;
          else if(temp == L"offtopic") bm.m_category = PCT_OFFTOPIC;
-         else if(temp == L"political") bm.m_category = PCT_POLITCIAL;
+         else if(temp == L"political") bm.m_category = PCT_POLITICAL;
 
          bm.m_title = pElement->GetValue();
 
@@ -4405,7 +4459,7 @@ void CLampApp::WriteBookmarks()
          case PCT_NWS:temp = L"notworksafe";break;
          case PCT_STUPID:temp = L"stupid";break;
          case PCT_OFFTOPIC:temp = L"offtopic";break;
-         case PCT_POLITCIAL:temp = L"political";break;
+         case PCT_POLITICAL:temp = L"political";break;
          }
          pElement->AddAttribute(L"category",temp);
 
@@ -4848,3 +4902,28 @@ void CLampApp::CheckForExpiredImages(void)
    }
 }
 
+
+void CLampApp::CheckForModMode()
+{
+   UCString temp = GetUsername();
+   temp.MakeLower();
+
+   std::set<UCString>::iterator it = m_mod_list.find(temp);
+  
+   if(it != m_mod_list.end())
+   {
+      m_modmode = true;
+   }
+   else
+   {
+      m_modmode = false;
+   }
+
+   // del me
+   /*
+   if(temp == L"crasterimage")
+   {
+      m_modmode = true;
+   }
+   */
+}

@@ -76,7 +76,10 @@ typedef enum
    HST_COMPOSE_MESSAGE,
    HST_NEW_MESSAGES_NOTE,
    HST_BANNER_BACKGROUND,
-   HST_LIGHTNINGBOLT
+   HST_LIGHTNINGBOLT,
+   HST_MOD_TOOL,
+   HST_MOD_TOOL_ITEM
+
 }hotspottype;
 
 typedef enum 
@@ -85,21 +88,6 @@ typedef enum
    N_LAST,
    N_NEW
 }newness;
-
-class CHotSpot
-{
-public:
-   hotspottype    m_type;
-   RECT           m_spot;
-   unsigned int   m_id;
-   bool           m_bAnim;
-   bool           m_bOn;
-
-   UCString       m_loltext;
-   bool           m_lolvoted;
-   bool           m_lolroot;
-   bool           m_haslols;
-};
 
 class CLOLFlags
 {
@@ -240,8 +228,26 @@ typedef enum
    PCT_NWS,
    PCT_STUPID,
    PCT_OFFTOPIC,
-   PCT_POLITCIAL
+   PCT_POLITICAL,
+   PCT_NUKED
 }postcategorytype;
+
+class CHotSpot
+{
+public:
+   hotspottype    m_type;
+   RECT           m_spot;
+   unsigned int   m_id;
+   bool           m_bAnim;
+   bool           m_bOn;
+
+   UCString       m_loltext;
+   bool           m_lolvoted;
+   bool           m_lolroot;
+   bool           m_haslols;
+   postcategorytype m_cat_type;
+};
+
 
 typedef enum 
 {
@@ -407,8 +413,8 @@ public:
                 UCString &lolcount,
                 UCString &author,
                 UCString &body);
-   int DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly);
-   int DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, int indent, unsigned int current_id, int &trunkatingposts, const UCString &rootauthor);
+   int DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
+   int DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, int indent, unsigned int current_id, int &trunkatingposts, const UCString &rootauthor, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
    int DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id);
    void DrawTextOnly(HDC hDC, RECT &DeviceRectangle, int pos);
    void SetupPreviewShades(bool bDoingNewFlags);

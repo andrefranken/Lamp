@@ -14,6 +14,7 @@
 #include "comm.h"
 #include "mydownlib.h"
 
+extern char g_useragent[256];
 
 /* Internal variables */
 
@@ -99,7 +100,10 @@ client::client(boost::asio::io_service& io_service,
    request_stream << "Accept: */*\r\n";
    request_stream << "Accept-Charset: utf-8\r\n";
    request_stream << "Connection: close\r\n";
-   request_stream << "User-Agent: Lamp v1.8\r\n";
+   request_stream << "User-Agent: ";
+   request_stream << g_useragent;
+   request_stream << "\r\n";
+
    if(cookie != NULL)
    {
       request_stream << "Cookie: ";

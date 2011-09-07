@@ -201,6 +201,7 @@ CLampView::CLampView()
    m_brakes = false;
    m_bDoubleClickDragging = false;
    m_banneroffset = 0;
+   m_bModToolIsUp = false;
    
    m_pFindDlg = NULL;
 
@@ -293,6 +294,12 @@ void CLampView::OnRButtonDown(UINT nFlags, CPoint point)
       m_panpoint = point;
       m_bPanning = true;
       m_panpos = m_pos;
+   }
+
+   if(m_bModToolIsUp)
+   {
+      m_bModToolIsUp = false;
+      InvalidateEverything();
    }
 }
 
@@ -881,7 +888,7 @@ void CLampView::DrawEverythingToBuffer(CDCSurface *pSurface/* = NULL*/,
 
    if(DeviceRectangle.bottom > DeviceRectangle.top)
    {
-      GetDocument()->Draw(pSurface->GetDC(),DeviceRectangle, m_pos, m_hotspots, GetCurrentId());
+      GetDocument()->Draw(pSurface->GetDC(), pSurface->GetHeight(),DeviceRectangle, m_pos, m_hotspots, GetCurrentId(), m_bModToolIsUp, m_ModToolRect, m_ModToolPostID);
    
       if(m_pReplyDlg != NULL)
       {
@@ -906,8 +913,60 @@ void CLampView::DrawEverythingToBuffer(CDCSurface *pSurface/* = NULL*/,
    DrawScrollbar(pSurface->GetDC(), m_ScrollRectangle, m_hotspots);
 
    ::IntersectClipRect(pSurface->GetDC(),DeviceRectangle.left,DeviceRectangle.top,DeviceRectangle.right,DeviceRectangle.bottom);
-   
+
    DrawHotSpots(pSurface->GetDC());
+
+   if(m_bModToolIsUp)
+   {
+      m_hotspots.clear();
+      if(!(m_ModToolRect.top == -1 && m_ModToolRect.bottom == -1))
+      {
+         GetDocument()->FillBackground(pSurface->GetDC(), m_ModToolRect);
+
+         CHotSpot hotspot;
+         hotspot.m_type = HST_MOD_TOOL_ITEM;
+         hotspot.m_bAnim = false;
+         hotspot.m_id = 0;
+         hotspot.m_spot = m_ModToolRect;
+         int itemheight = (m_ModToolRect.bottom - m_ModToolRect.top) / 7;
+         hotspot.m_spot.bottom = hotspot.m_spot.top + itemheight;
+
+         hotspot.m_cat_type = PCT_NORMAL;
+         m_hotspots.push_back(hotspot);
+         hotspot.m_spot.top += itemheight;
+         hotspot.m_spot.bottom += itemheight;
+
+         hotspot.m_cat_type = PCT_OFFTOPIC;
+         m_hotspots.push_back(hotspot);
+         hotspot.m_spot.top += itemheight;
+         hotspot.m_spot.bottom += itemheight;
+
+         hotspot.m_cat_type = PCT_INF;
+         m_hotspots.push_back(hotspot);
+         hotspot.m_spot.top += itemheight;
+         hotspot.m_spot.bottom += itemheight;
+
+         hotspot.m_cat_type = PCT_NWS;
+         m_hotspots.push_back(hotspot);
+         hotspot.m_spot.top += itemheight;
+         hotspot.m_spot.bottom += itemheight;
+
+         hotspot.m_cat_type = PCT_STUPID;
+         m_hotspots.push_back(hotspot);
+         hotspot.m_spot.top += itemheight;
+         hotspot.m_spot.bottom += itemheight;
+
+         hotspot.m_cat_type = PCT_POLITICAL;
+         m_hotspots.push_back(hotspot);
+         hotspot.m_spot.top += itemheight;
+         hotspot.m_spot.bottom += itemheight;
+
+         hotspot.m_cat_type = PCT_NUKED;
+         m_hotspots.push_back(hotspot);
+
+         DrawHotSpots(pSurface->GetDC());
+      }
+   }
 }
 
 void CLampView::DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<CHotSpot> &hotspots)
@@ -1189,6 +1248,34 @@ void CLampView::DrawHotSpots(HDC hDC)
             theApp.GetPinImage(m_hotspots[i].m_bOn,hover)->Blit(hDC,m_hotspots[i].m_spot);
          }
          break;
+      case HST_MOD_TOOL:
+         {
+            switch(m_hotspots[i].m_cat_type)
+            {
+            case PCT_NORMAL:        theApp.GetOnTopicImage(hover)->Blit(hDC,m_hotspots[i].m_spot);break;
+            case PCT_INF:           theApp.GetINFImage(hover)->Blit(hDC,m_hotspots[i].m_spot);break;
+            case PCT_NWS:           theApp.GetNWSImage(hover)->Blit(hDC,m_hotspots[i].m_spot);break;
+            case PCT_STUPID:        theApp.GetStupidImage(hover)->Blit(hDC,m_hotspots[i].m_spot);break;
+            case PCT_OFFTOPIC:      theApp.GetOffTopicImage(hover)->Blit(hDC,m_hotspots[i].m_spot);break;
+            case PCT_POLITICAL:     theApp.GetPoliticalImage(hover)->Blit(hDC,m_hotspots[i].m_spot);break;
+            case PCT_NUKED:         theApp.GetNukedImage(hover)->Blit(hDC,m_hotspots[i].m_spot);break;
+            }
+         }
+         break;
+      case HST_MOD_TOOL_ITEM:
+         {
+            switch(m_hotspots[i].m_cat_type)
+            {
+            case PCT_NORMAL:        theApp.GetOnTopicImage(hover)->Blit(hDC,m_hotspots[i].m_spot);break;
+            case PCT_INF:           theApp.GetINFImage(hover)->Blit(hDC,m_hotspots[i].m_spot);break;
+            case PCT_NWS:           theApp.GetNWSImage(hover)->Blit(hDC,m_hotspots[i].m_spot);break;
+            case PCT_STUPID:        theApp.GetStupidImage(hover)->Blit(hDC,m_hotspots[i].m_spot);break;
+            case PCT_OFFTOPIC:      theApp.GetOffTopicImage(hover)->Blit(hDC,m_hotspots[i].m_spot);break;
+            case PCT_POLITICAL:     theApp.GetPoliticalImage(hover)->Blit(hDC,m_hotspots[i].m_spot);break;
+            case PCT_NUKED:         theApp.GetNukedImage(hover)->Blit(hDC,m_hotspots[i].m_spot);break;
+            }
+         }
+         break;
       case HST_LIGHTNINGBOLT:
          {
             theApp.GetLightningBoltImage(hover)->Blit(hDC,m_hotspots[i].m_spot);
@@ -1303,6 +1390,34 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
             case HST_PIN:
                {
                   theApp.GetPinImage(m_hotspots[i].m_bOn,false)->Blit(hDC,m_hotspots[i].m_spot);
+               }
+               break;
+            case HST_MOD_TOOL:
+               {
+                  switch(m_hotspots[i].m_cat_type)
+                  {
+                  case PCT_NORMAL:        theApp.GetOnTopicImage(false)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_INF:           theApp.GetINFImage(false)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_NWS:           theApp.GetNWSImage(false)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_STUPID:        theApp.GetStupidImage(false)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_OFFTOPIC:      theApp.GetOffTopicImage(false)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_POLITICAL:     theApp.GetPoliticalImage(false)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_NUKED:         theApp.GetNukedImage(false)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  }
+               }
+               break;
+            case HST_MOD_TOOL_ITEM:
+               {
+                  switch(m_hotspots[i].m_cat_type)
+                  {
+                  case PCT_NORMAL:        theApp.GetOnTopicImage(false)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_INF:           theApp.GetINFImage(false)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_NWS:           theApp.GetNWSImage(false)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_STUPID:        theApp.GetStupidImage(false)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_OFFTOPIC:      theApp.GetOffTopicImage(false)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_POLITICAL:     theApp.GetPoliticalImage(false)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_NUKED:         theApp.GetNukedImage(false)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  }
                }
                break;
             case HST_LIGHTNINGBOLT:
@@ -1630,6 +1745,34 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
             case HST_PIN:
                {
                   theApp.GetPinImage(m_hotspots[i].m_bOn,true)->Blit(hDC,m_hotspots[i].m_spot);
+               }
+               break;
+            case HST_MOD_TOOL:
+               {
+                  switch(m_hotspots[i].m_cat_type)
+                  {
+                  case PCT_NORMAL:        theApp.GetOnTopicImage(true)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_INF:           theApp.GetINFImage(true)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_NWS:           theApp.GetNWSImage(true)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_STUPID:        theApp.GetStupidImage(true)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_OFFTOPIC:      theApp.GetOffTopicImage(true)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_POLITICAL:     theApp.GetPoliticalImage(true)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_NUKED:         theApp.GetNukedImage(true)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  }
+               }
+               break;
+            case HST_MOD_TOOL_ITEM:
+               {
+                  switch(m_hotspots[i].m_cat_type)
+                  {
+                  case PCT_NORMAL:        theApp.GetOnTopicImage(true)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_INF:           theApp.GetINFImage(true)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_NWS:           theApp.GetNWSImage(true)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_STUPID:        theApp.GetStupidImage(true)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_OFFTOPIC:      theApp.GetOffTopicImage(true)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_POLITICAL:     theApp.GetPoliticalImage(true)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  case PCT_NUKED:         theApp.GetNukedImage(true)->Blit(hDC,m_hotspots[i].m_spot);break;
+                  }
                }
                break;
             case HST_LIGHTNINGBOLT:
@@ -2169,6 +2312,16 @@ void CLampView::UpdateHotspotPosition()
                theApp.SetStatusBarText(L"Pin This Thread",this);
             }
             break;
+         case HST_MOD_TOOL:
+            {
+               theApp.SetStatusBarText(L"Set Category",this);
+            }
+            break;
+         case HST_MOD_TOOL_ITEM:
+            {
+               theApp.SetStatusBarText(L"Set Category",this);
+            }
+            break;
          case HST_LIGHTNINGBOLT:
             {
                theApp.SetStatusBarText(L"This Person Is Cool!",this);
@@ -2387,6 +2540,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
    m_mousepoint = point;
    m_bDrawMButtonDownIcon = false;
    m_bDoubleClickDragging = false;
+   bool bJustPutUpModTool = false;
 
    if(!m_brakes)
    {
@@ -2629,6 +2783,31 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               post->SetPinned(!post->IsPinned());
                               InvalidateEverything();
                            }
+                        }
+                        break;
+                     case HST_MOD_TOOL:
+                        {
+                           CDCSurface *pImage = theApp.GetINFImage(true);
+                           if(pImage != NULL)
+                           {
+                              m_ModToolPostID = m_hotspots[i].m_id;
+
+                              m_ModToolRect.left = m_hotspots[i].m_spot.left;
+                              m_ModToolRect.top = m_hotspots[i].m_spot.bottom;
+                              m_ModToolRect.right = m_ModToolRect.left + pImage->GetWidth();
+                              m_ModToolRect.bottom = m_ModToolRect.top + (pImage->GetHeight() * 7);
+
+                              m_bModToolIsUp = true;
+                              bJustPutUpModTool = true;
+                              InvalidateEverything();
+                           }
+                        }
+                        break;
+                     case HST_MOD_TOOL_ITEM:
+                        {
+                           GetDocument()->SetCategory_Mod(m_ModToolPostID, m_hotspots[i].m_cat_type);
+                           m_bModToolIsUp = false;
+                           InvalidateEverything();
                         }
                         break;
                      case HST_LIGHTNINGBOLT:
@@ -3126,6 +3305,13 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
       m_panpos = m_pos;
       InvalidateEverything();
    }
+
+   if(m_bModToolIsUp && !bJustPutUpModTool)
+   {
+      m_bModToolIsUp = false;
+      InvalidateEverything();
+   }
+
    CView::OnLButtonDown(nFlags, point);
 }
 
@@ -3216,6 +3402,22 @@ void CLampView::OnLButtonUp(UINT nFlags, CPoint point)
                MakePosLegal();
                m_pos = m_gotopos;// no smooth on pan
                BeginInertiaPanning();
+            }
+            else
+            {
+               for(size_t i = 0; i < m_hotspots.size(); i++)
+               {
+                  if(m_hotspots[i].m_type == HST_MOD_TOOL_ITEM &&
+                     m_mousepoint.x >= m_hotspots[i].m_spot.left &&
+                     m_mousepoint.x < m_hotspots[i].m_spot.right &&
+                     m_mousepoint.y >= m_hotspots[i].m_spot.top &&
+                     m_mousepoint.y < m_hotspots[i].m_spot.bottom)
+                  {
+                     GetDocument()->SetCategory_Mod(m_ModToolPostID, m_hotspots[i].m_cat_type);
+                     m_bModToolIsUp = false;
+                     InvalidateEverything();
+                  }
+               }
             }
          }
       }
@@ -3495,6 +3697,12 @@ void CLampView::OnMButtonDown(UINT nFlags, CPoint point)
       m_bDrawMButtonDownIcon = false;
    }
 
+   if(m_bModToolIsUp)
+   {
+      m_bModToolIsUp = false;
+      InvalidateEverything();
+   }
+
    CView::OnMButtonDown(nFlags, point);
 }
 
@@ -3626,6 +3834,12 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
 
 void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
+   if(m_bModToolIsUp)
+   {
+      m_bModToolIsUp = false;
+      InvalidateEverything();
+   }
+
    if(!GetDocument()->IsBusy())
    {
       if(nChar == VK_ESCAPE)
@@ -3733,6 +3947,12 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
+   if(m_bModToolIsUp)
+   {
+      m_bModToolIsUp = false;
+      InvalidateEverything();
+   }
+
    if(!GetDocument()->IsBusy())
    {
       if(m_pReplyDlg != NULL &&
@@ -3979,6 +4199,8 @@ BOOL CLampView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
             case HST_NEW_MESSAGES_NOTE:
             case HST_WTFTAG:
             case HST_LIGHTNINGBOLT:
+            case HST_MOD_TOOL:
+            case HST_MOD_TOOL_ITEM:
                {
                   SetCursor(::LoadCursor(NULL, IDC_HAND));
                }

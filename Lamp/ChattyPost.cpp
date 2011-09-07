@@ -290,8 +290,9 @@ void ChattyPost::ReadRootChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_itera
                if(strncmp(pClassStr, "informative",11) == 0)   {m_category = PCT_INF;}
                else if(strncmp(pClassStr, "nws",3) == 0)       {m_category = PCT_NWS;}
                else if(strncmp(pClassStr, "offtopic",8) == 0)  {m_category = PCT_OFFTOPIC;}
-               else if(strncmp(pClassStr, "political",9) == 0) {m_category = PCT_POLITCIAL;}
+               else if(strncmp(pClassStr, "political",9) == 0) {m_category = PCT_POLITICAL;}
                else if(strncmp(pClassStr, "stupid",6) == 0)    {m_category = PCT_STUPID;}
+               else if(strncmp(pClassStr, "nuked",5) == 0)     {m_category = PCT_NUKED;}
             }
 
             tree<htmlcxx::HTML::Node>::sibling_iterator author_it;
@@ -301,7 +302,8 @@ void ChattyPost::ReadRootChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_itera
                {
                   tree<htmlcxx::HTML::Node>::sibling_iterator user_it = author_it;
 
-                  if(HTML_FindChild_HasAttribute(user_it, user_it, "span", "class", "user"))
+                  if(HTML_FindChild_HasAttribute(user_it, user_it, "span", "class", "user") || 
+                     HTML_FindChild_HasAttribute(user_it, user_it, "span", "class", "user this-user"))
                   {
                      if(HTML_FindChild_StartsWithAttribute(user_it, user_it, "a", "href", "/user/"))
                      {
@@ -460,8 +462,9 @@ void ChattyPost::ReadPostPreviewChattyFromHTML(tree<htmlcxx::HTML::Node>::siblin
          if(strncmp(pClassStr, "informative",11) == 0)   {m_category = PCT_INF;}
          else if(strncmp(pClassStr, "nws",3) == 0)       {m_category = PCT_NWS;}
          else if(strncmp(pClassStr, "offtopic",8) == 0)  {m_category = PCT_OFFTOPIC;}
-         else if(strncmp(pClassStr, "political",9) == 0) {m_category = PCT_POLITCIAL;}
+         else if(strncmp(pClassStr, "political",9) == 0) {m_category = PCT_POLITICAL;}
          else if(strncmp(pClassStr, "stupid",6) == 0)    {m_category = PCT_STUPID;}
+         else if(strncmp(pClassStr, "nuked",5) == 0)     {m_category = PCT_NUKED;}
       }
 
       if(!bKnown)
@@ -484,7 +487,8 @@ void ChattyPost::ReadPostPreviewChattyFromHTML(tree<htmlcxx::HTML::Node>::siblin
          }
 
          tree<htmlcxx::HTML::Node>::sibling_iterator author_it;
-         if(HTML_FindChild_HasAttribute(it, author_it, "span", "class", "oneline_user"))
+         if(HTML_FindChild_HasAttribute(it, author_it, "span", "class", "oneline_user") ||
+            HTML_FindChild_HasAttribute(it, author_it, "span", "class", "oneline_user this_user"))
          {
             std::string author;
             HTML_GetValue(author_it, author);
@@ -600,8 +604,9 @@ void ChattyPost::ReadKnownPostChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_
          if(strncmp(pClassStr, "informative",11) == 0)   {m_category = PCT_INF;}
          else if(strncmp(pClassStr, "nws",3) == 0)       {m_category = PCT_NWS;}
          else if(strncmp(pClassStr, "offtopic",8) == 0)  {m_category = PCT_OFFTOPIC;}
-         else if(strncmp(pClassStr, "political",9) == 0) {m_category = PCT_POLITCIAL;}
+         else if(strncmp(pClassStr, "political",9) == 0) {m_category = PCT_POLITICAL;}
          else if(strncmp(pClassStr, "stupid",6) == 0)    {m_category = PCT_STUPID;}
+         else if(strncmp(pClassStr, "nuked",5) == 0)     {m_category = PCT_NUKED;}
       }
 
       tree<htmlcxx::HTML::Node>::sibling_iterator author_it;
@@ -611,7 +616,8 @@ void ChattyPost::ReadKnownPostChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_
          {
             tree<htmlcxx::HTML::Node>::sibling_iterator user_it = author_it;
 
-            if(HTML_FindChild_HasAttribute(user_it, user_it, "span", "class", "user"))
+            if(HTML_FindChild_HasAttribute(user_it, user_it, "span", "class", "user") ||
+               HTML_FindChild_HasAttribute(user_it, user_it, "span", "class", "user this-user"))
             {
                if(HTML_FindChild_StartsWithAttribute(user_it, user_it, "a", "href", "/user/"))
                {
@@ -1014,11 +1020,15 @@ void ChattyPost::Read(CXMLElement *pElement, CLampDoc *pDoc, bool bDoingNewFlags
       }
       else if(category == L"political")
       {
-         m_category = PCT_POLITCIAL;
+         m_category = PCT_POLITICAL;
       }
       else if(category == L"stupid")
       {
          m_category = PCT_STUPID;
+      }
+      else if(category == "nuked")
+      {
+         m_category = PCT_NUKED;
       }
 
       m_author = pElement->GetAttributeValue(L"author");
@@ -1891,7 +1901,7 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
 }
 
 
-int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly)
+int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
 {
    if(m_pDoc != NULL)
    {
@@ -2005,6 +2015,14 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          {
             // do nothing, we are not on the screen
             // but update the pos
+
+            if(bAllowModTools && bModToolIsUp && m_id == ModToolPostID)
+            {
+               // update the hotspot locations
+               ModToolRect.top = -1;
+               ModToolRect.bottom = -1;
+            }
+
             pos = myrect.bottom;
             m_bDrewTextBody = false;
          }
@@ -2046,69 +2064,134 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             m_drewtextpos = textrect.top;
             m_drewtextedge = textrect.left;
 
-            if(m_category == PCT_INF)
+            if(bAllowModTools)
             {
-               CDCSurface *pINFIMage = theApp.GetINFImage(bAsRoot);
-               if(pINFIMage != NULL)
+               if(bModToolIsUp && m_id == ModToolPostID)
                {
-                  RECT infrect;
-                  infrect.right = myrect.right - 60;
-                  infrect.left = infrect.right - pINFIMage->GetWidth();
-                  infrect.top = myrect.top;
-                  infrect.bottom = myrect.top + 20;
-                  pINFIMage->Blit(hDC, infrect);
+                  CDCSurface *pModImage = NULL;
+                  switch(m_category)
+                  {
+                  case PCT_NORMAL:        pModImage = theApp.GetOnTopicImage(true);break;
+                  case PCT_INF:           pModImage = theApp.GetINFImage(true);break;
+                  case PCT_NWS:           pModImage = theApp.GetNWSImage(true);break;
+                  case PCT_STUPID:        pModImage = theApp.GetStupidImage(true);break;
+                  case PCT_OFFTOPIC:      pModImage = theApp.GetOffTopicImage(true);break;
+                  case PCT_POLITICAL:     pModImage = theApp.GetPoliticalImage(true);break;
+                  case PCT_NUKED:         pModImage = theApp.GetNukedImage(true);break;
+                  }
+                  
+                  if(pModImage != NULL)
+                  {
+                     RECT modrect;
+                     modrect.right = myrect.right - 60;
+                     modrect.left = modrect.right - pModImage->GetWidth();
+                     modrect.top = myrect.top;
+                     modrect.bottom = myrect.top + 20;
+                     pModImage->Blit(hDC, modrect);
+                     
+                     // update the hotspot locations
+                     int modheight = pModImage->GetHeight();
+                     ModToolRect = modrect;
+                     ModToolRect.top = ModToolRect.bottom;
+                     ModToolRect.bottom = ModToolRect.top + (modheight * 7);
+                  }
+               }
+               else
+               {
+                  CDCSurface *pCatImage = NULL;
+                  switch(m_category)
+                  {
+                  case PCT_NORMAL:        pCatImage = theApp.GetOnTopicImage(true);break;
+                  case PCT_INF:           pCatImage = theApp.GetINFImage(true);break;
+                  case PCT_NWS:           pCatImage = theApp.GetNWSImage(true);break;
+                  case PCT_STUPID:        pCatImage = theApp.GetStupidImage(true);break;
+                  case PCT_OFFTOPIC:      pCatImage = theApp.GetOffTopicImage(true);break;
+                  case PCT_POLITICAL:     pCatImage = theApp.GetPoliticalImage(true);break;
+                  case PCT_NUKED:         pCatImage = theApp.GetNukedImage(true);break;
+                  }
+                  if(pCatImage != NULL)
+                  {
+                     CHotSpot hotspot;
+                     hotspot.m_bAnim = false;
+                     hotspot.m_type = HST_MOD_TOOL;
+
+                     hotspot.m_spot.right = myrect.right - 60;
+                     hotspot.m_spot.left = hotspot.m_spot.right - pCatImage->GetWidth();
+                     hotspot.m_spot.top = myrect.top;
+                     hotspot.m_spot.bottom = myrect.top + 20;
+
+                     hotspot.m_id = m_id;
+                     hotspot.m_cat_type = m_category;
+                     hotspots.push_back(hotspot);
+                  }
                }
             }
-            else if(m_category == PCT_NWS)
+            else
             {
-               CDCSurface *pNWSIMage = theApp.GetNWSImage(bAsRoot);
-               if(pNWSIMage != NULL)
+               if(m_category == PCT_INF)
                {
-                  RECT nwsrect;
-                  nwsrect.right = myrect.right - 60;
-                  nwsrect.left = nwsrect.right - pNWSIMage->GetWidth();
-                  nwsrect.top = myrect.top;
-                  nwsrect.bottom = myrect.top + 20;
-                  pNWSIMage->Blit(hDC, nwsrect);
+                  CDCSurface *pINFIMage = theApp.GetINFImage(false);
+                  if(pINFIMage != NULL)
+                  {
+                     RECT infrect;
+                     infrect.right = myrect.right - 60;
+                     infrect.left = infrect.right - pINFIMage->GetWidth();
+                     infrect.top = myrect.top;
+                     infrect.bottom = myrect.top + 20;
+                     pINFIMage->Blit(hDC, infrect);
+                  }
                }
-            }
-            else if(m_category == PCT_OFFTOPIC)
-            {
-               CDCSurface *pOTIMage = theApp.GetOffTopicImage(bAsRoot);
-               if(pOTIMage != NULL)
+               else if(m_category == PCT_NWS)
                {
-                  RECT otrect;
-                  otrect.right = myrect.right - 60;
-                  otrect.left = otrect.right - pOTIMage->GetWidth();
-                  otrect.top = myrect.top;
-                  otrect.bottom = myrect.top + 20;
-                  pOTIMage->Blit(hDC, otrect);
+                  CDCSurface *pNWSIMage = theApp.GetNWSImage(false);
+                  if(pNWSIMage != NULL)
+                  {
+                     RECT nwsrect;
+                     nwsrect.right = myrect.right - 60;
+                     nwsrect.left = nwsrect.right - pNWSIMage->GetWidth();
+                     nwsrect.top = myrect.top;
+                     nwsrect.bottom = myrect.top + 20;
+                     pNWSIMage->Blit(hDC, nwsrect);
+                  }
                }
-            }
-            else if(m_category == PCT_POLITCIAL)
-            {
-               CDCSurface *pPIMage = theApp.GetPoliticalImage(bAsRoot);
-               if(pPIMage != NULL)
+               else if(m_category == PCT_OFFTOPIC)
                {
-                  RECT prect;
-                  prect.right = myrect.right - 60;
-                  prect.left = prect.right - pPIMage->GetWidth();
-                  prect.top = myrect.top;
-                  prect.bottom = myrect.top + 20;
-                  pPIMage->Blit(hDC, prect);
+                  CDCSurface *pOTIMage = theApp.GetOffTopicImage(false);
+                  if(pOTIMage != NULL)
+                  {
+                     RECT otrect;
+                     otrect.right = myrect.right - 60;
+                     otrect.left = otrect.right - pOTIMage->GetWidth();
+                     otrect.top = myrect.top;
+                     otrect.bottom = myrect.top + 20;
+                     pOTIMage->Blit(hDC, otrect);
+                  }
                }
-            }
-            else if(m_category == PCT_STUPID)
-            {
-               CDCSurface *pSIMage = theApp.GetStupidImage(bAsRoot);
-               if(pSIMage != NULL)
+               else if(m_category == PCT_POLITICAL)
                {
-                  RECT srect;
-                  srect.right = myrect.right - 60;
-                  srect.left = srect.right - pSIMage->GetWidth();
-                  srect.top = myrect.top;
-                  srect.bottom = myrect.top + 20;
-                  pSIMage->Blit(hDC, srect);
+                  CDCSurface *pPIMage = theApp.GetPoliticalImage(false);
+                  if(pPIMage != NULL)
+                  {
+                     RECT prect;
+                     prect.right = myrect.right - 60;
+                     prect.left = prect.right - pPIMage->GetWidth();
+                     prect.top = myrect.top;
+                     prect.bottom = myrect.top + 20;
+                     pPIMage->Blit(hDC, prect);
+                  }
+               }
+               else if(m_category == PCT_STUPID)
+               {
+                  CDCSurface *pSIMage = theApp.GetStupidImage(false);
+                  if(pSIMage != NULL)
+                  {
+                     RECT srect;
+                     srect.right = myrect.right - 60;
+                     srect.left = srect.right - pSIMage->GetWidth();
+                     srect.top = myrect.top;
+                     srect.bottom = myrect.top + 20;
+                     pSIMage->Blit(hDC, srect);
+                  }
                }
             }
             
@@ -2424,7 +2507,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                {
                   rootauthor = m_author;
                }                  
-               pos = (*it)->DrawReply(hDC, DeviceRectangle, pos, hotspots, indent, current_id, trunkatingposts, rootauthor);
+               pos = (*it)->DrawReply(hDC, DeviceRectangle, pos, hotspots, indent, current_id, trunkatingposts, rootauthor, bAllowModTools, bModToolIsUp, ModToolRect, ModToolPostID);
             }
             it++;
          }
@@ -2434,7 +2517,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
    return pos;
 }
 
-int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, int indent, unsigned int current_id, int &trunkatingposts, const UCString &rootauthor)
+int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, int indent, unsigned int current_id, int &trunkatingposts, const UCString &rootauthor, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
 {
    if(m_pDoc != NULL)
    {
@@ -2479,6 +2562,14 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
             {
                // do nothing, we are not on the screen
                // but update the pos
+
+               if(bAllowModTools && bModToolIsUp && m_id == ModToolPostID)
+               {
+                  // update the hotspot locations
+                  ModToolRect.top = -1;
+                  ModToolRect.bottom = -1;
+               }
+
                pos = myrect.bottom;
                m_bDrewTextBody = false;
             }
@@ -2504,69 +2595,134 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                m_drewtextpos = textrect.top;
                m_drewtextedge = textrect.left;
 
-               if(m_category == PCT_INF)
+               if(bAllowModTools)
                {
-                  CDCSurface *pINFIMage = theApp.GetINFImage(false);
-                  if(pINFIMage != NULL)
+                  if(bModToolIsUp && m_id == ModToolPostID)
                   {
-                     RECT infrect;
-                     infrect.right = myrect.right - 60;
-                     infrect.left = infrect.right - pINFIMage->GetWidth();
-                     infrect.top = myrect.top;
-                     infrect.bottom = myrect.top + 20;
-                     pINFIMage->Blit(hDC, infrect);
+                     CDCSurface *pModImage = NULL;
+                     switch(m_category)
+                     {
+                     case PCT_NORMAL:        pModImage = theApp.GetOnTopicImage(true);break;
+                     case PCT_INF:           pModImage = theApp.GetINFImage(true);break;
+                     case PCT_NWS:           pModImage = theApp.GetNWSImage(true);break;
+                     case PCT_STUPID:        pModImage = theApp.GetStupidImage(true);break;
+                     case PCT_OFFTOPIC:      pModImage = theApp.GetOffTopicImage(true);break;
+                     case PCT_POLITICAL:     pModImage = theApp.GetPoliticalImage(true);break;
+                     case PCT_NUKED:         pModImage = theApp.GetNukedImage(true);break;
+                     }
+                     
+                     if(pModImage != NULL)
+                     {
+                        RECT modrect;
+                        modrect.right = myrect.right - 60;
+                        modrect.left = modrect.right - pModImage->GetWidth();
+                        modrect.top = myrect.top;
+                        modrect.bottom = myrect.top + 20;
+                        pModImage->Blit(hDC, modrect);
+                        
+                        // update the hotspot locations
+                        int modheight = pModImage->GetHeight();
+                        ModToolRect = modrect;
+                        ModToolRect.top = ModToolRect.bottom;
+                        ModToolRect.bottom = ModToolRect.top + (modheight * 7);
+                     }
+                  }
+                  else
+                  {
+                     CDCSurface *pCatImage = NULL;
+                     switch(m_category)
+                     {
+                     case PCT_NORMAL:        pCatImage = theApp.GetOnTopicImage(true);break;
+                     case PCT_INF:           pCatImage = theApp.GetINFImage(true);break;
+                     case PCT_NWS:           pCatImage = theApp.GetNWSImage(true);break;
+                     case PCT_STUPID:        pCatImage = theApp.GetStupidImage(true);break;
+                     case PCT_OFFTOPIC:      pCatImage = theApp.GetOffTopicImage(true);break;
+                     case PCT_POLITICAL:     pCatImage = theApp.GetPoliticalImage(true);break;
+                     case PCT_NUKED:         pCatImage = theApp.GetNukedImage(true);break;
+                     }
+                     if(pCatImage != NULL)
+                     {
+                        CHotSpot hotspot;
+                        hotspot.m_bAnim = false;
+                        hotspot.m_type = HST_MOD_TOOL;
+
+                        hotspot.m_spot.right = myrect.right - 60;
+                        hotspot.m_spot.left = hotspot.m_spot.right - pCatImage->GetWidth();
+                        hotspot.m_spot.top = myrect.top;
+                        hotspot.m_spot.bottom = myrect.top + 20;
+
+                        hotspot.m_id = m_id;
+                        hotspot.m_cat_type = m_category;
+                        hotspots.push_back(hotspot);
+                     }
                   }
                }
-               else if(m_category == PCT_NWS)
+               else
                {
-                  CDCSurface *pNWSIMage = theApp.GetNWSImage(false);
-                  if(pNWSIMage != NULL)
+                  if(m_category == PCT_INF)
                   {
-                     RECT nwsrect;
-                     nwsrect.right = myrect.right - 60;
-                     nwsrect.left = nwsrect.right - pNWSIMage->GetWidth();
-                     nwsrect.top = myrect.top;
-                     nwsrect.bottom = myrect.top + 20;
-                     pNWSIMage->Blit(hDC, nwsrect);
+                     CDCSurface *pINFIMage = theApp.GetINFImage(false);
+                     if(pINFIMage != NULL)
+                     {
+                        RECT infrect;
+                        infrect.right = myrect.right - 60;
+                        infrect.left = infrect.right - pINFIMage->GetWidth();
+                        infrect.top = myrect.top;
+                        infrect.bottom = myrect.top + 20;
+                        pINFIMage->Blit(hDC, infrect);
+                     }
                   }
-               }
-               else if(m_category == PCT_OFFTOPIC)
-               {
-                  CDCSurface *pOTIMage = theApp.GetOffTopicImage(false);
-                  if(pOTIMage != NULL)
+                  else if(m_category == PCT_NWS)
                   {
-                     RECT otrect;
-                     otrect.right = myrect.right - 60;
-                     otrect.left = otrect.right - pOTIMage->GetWidth();
-                     otrect.top = myrect.top;
-                     otrect.bottom = myrect.top + 20;
-                     pOTIMage->Blit(hDC, otrect);
+                     CDCSurface *pNWSIMage = theApp.GetNWSImage(false);
+                     if(pNWSIMage != NULL)
+                     {
+                        RECT nwsrect;
+                        nwsrect.right = myrect.right - 60;
+                        nwsrect.left = nwsrect.right - pNWSIMage->GetWidth();
+                        nwsrect.top = myrect.top;
+                        nwsrect.bottom = myrect.top + 20;
+                        pNWSIMage->Blit(hDC, nwsrect);
+                     }
                   }
-               }
-               else if(m_category == PCT_POLITCIAL)
-               {
-                  CDCSurface *pPIMage = theApp.GetPoliticalImage(false);
-                  if(pPIMage != NULL)
+                  else if(m_category == PCT_OFFTOPIC)
                   {
-                     RECT prect;
-                     prect.right = myrect.right - 60;
-                     prect.left = prect.right - pPIMage->GetWidth();
-                     prect.top = myrect.top;
-                     prect.bottom = myrect.top + 20;
-                     pPIMage->Blit(hDC, prect);
+                     CDCSurface *pOTIMage = theApp.GetOffTopicImage(false);
+                     if(pOTIMage != NULL)
+                     {
+                        RECT otrect;
+                        otrect.right = myrect.right - 60;
+                        otrect.left = otrect.right - pOTIMage->GetWidth();
+                        otrect.top = myrect.top;
+                        otrect.bottom = myrect.top + 20;
+                        pOTIMage->Blit(hDC, otrect);
+                     }
                   }
-               }
-               else if(m_category == PCT_STUPID)
-               {
-                  CDCSurface *pSIMage = theApp.GetStupidImage(false);
-                  if(pSIMage != NULL)
+                  else if(m_category == PCT_POLITICAL)
                   {
-                     RECT srect;
-                     srect.right = myrect.right - 60;
-                     srect.left = srect.right - pSIMage->GetWidth();
-                     srect.top = myrect.top;
-                     srect.bottom = myrect.top + 20;
-                     pSIMage->Blit(hDC, srect);
+                     CDCSurface *pPIMage = theApp.GetPoliticalImage(false);
+                     if(pPIMage != NULL)
+                     {
+                        RECT prect;
+                        prect.right = myrect.right - 60;
+                        prect.left = prect.right - pPIMage->GetWidth();
+                        prect.top = myrect.top;
+                        prect.bottom = myrect.top + 20;
+                        pPIMage->Blit(hDC, prect);
+                     }
+                  }
+                  else if(m_category == PCT_STUPID)
+                  {
+                     CDCSurface *pSIMage = theApp.GetStupidImage(false);
+                     if(pSIMage != NULL)
+                     {
+                        RECT srect;
+                        srect.right = myrect.right - 60;
+                        srect.left = srect.right - pSIMage->GetWidth();
+                        srect.top = myrect.top;
+                        srect.bottom = myrect.top + 20;
+                        pSIMage->Blit(hDC, srect);
+                     }
                   }
                }
                
@@ -2914,7 +3070,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   }
                   textrect.left += 16;
                }
-               else if(m_category == PCT_POLITCIAL)
+               else if(m_category == PCT_POLITICAL)
                {
                   CDCSurface *pPIMage = theApp.GetPoliticalStar();
                   if(pPIMage != NULL)
@@ -3128,7 +3284,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
       {
          if((*it) != NULL)
          {
-            pos = (*it)->DrawReply(hDC, DeviceRectangle, pos, hotspots, indent, current_id, trunkatingposts, rootauthor);
+            pos = (*it)->DrawReply(hDC, DeviceRectangle, pos, hotspots, indent, current_id, trunkatingposts, rootauthor, bAllowModTools, bModToolIsUp, ModToolRect, ModToolPostID);
          }
          it++;
       }
@@ -5954,7 +6110,7 @@ bool ChattyPost::IsFiltered()
    case PCT_OFFTOPIC:
       result = !theApp.EnableOffTopic();
       break;
-   case PCT_POLITCIAL:
+   case PCT_POLITICAL:
       result = !theApp.EnablePolitical();
       break;
    }

@@ -274,75 +274,99 @@ public:
       return &m_track;
    }
 
-   CDCSurface *GetINFImage(bool root)
+   CDCSurface *GetOnTopicImage(bool hover)
    {
-      if(root)
+      if(!hover)
       {
-         return &m_infroot;
+         return &m_ontopic;
       }
       else
       {
-         return &m_infreply;
+         return &m_ontopic_hover;
+      }
+   }
+
+   CDCSurface *GetINFImage(bool hover)
+   {
+      if(!hover)
+      {
+         return &m_inf;
+      }
+      else
+      {
+         return &m_inf_hover;
       }
    }
 
    CDCSurface *GetINFStar(){return &m_infstar;}
 
-   CDCSurface *GetNWSImage(bool root)
+   CDCSurface *GetNWSImage(bool hover)
    {
-      if(root)
+      if(!hover)
       {
-         return &m_nwsroot;
+         return &m_nws;
       }
       else
       {
-         return &m_nwsreply;
+         return &m_nws_hover;
       }
    }
 
    CDCSurface *GetNWSStar(){return &m_nwsstar;}
 
-   CDCSurface *GetStupidImage(bool root)
+   CDCSurface *GetStupidImage(bool hover)
    {
-      if(root)
+      if(!hover)
       {
-         return &m_stupidroot;
+         return &m_stupid;
       }
       else
       {
-         return &m_stupidreply;
+         return &m_stupid_hover;
       }
    }
 
    CDCSurface *GetStupidStar(){return &m_stupidstar;}
 
-   CDCSurface *GetOffTopicImage(bool root)
+   CDCSurface *GetOffTopicImage(bool hover)
    {
-      if(root)
+      if(!hover)
       {
-         return &m_offtopicroot;
+         return &m_offtopic;
       }
       else
       {
-         return &m_offtopicreply;
+         return &m_offtopic_hover;
       }
    }
 
    CDCSurface *GetOffTopicStar(){return &m_offtopicstar;}
 
-   CDCSurface *GetPoliticalImage(bool root)
+   CDCSurface *GetPoliticalImage(bool hover)
    {
-      if(root)
+      if(!hover)
       {
-         return &m_politicalroot;
+         return &m_political;
       }
       else
       {
-         return &m_politicalreply;
+         return &m_political_hover;
       }
    }
 
    CDCSurface *GetPoliticalStar(){return &m_politicalstar;}
+
+   CDCSurface *GetNukedImage(bool hover)
+   {
+      if(!hover)
+      {
+         return &m_nuked;
+      }
+      else
+      {
+         return &m_nuked_hover;
+      }
+   }
 
    CDCSurface *GetCloseImage(bool bHover)
    {
@@ -843,6 +867,10 @@ public:
          return &m_lightningbolt;
       }
    }
+
+   bool IsModMode(){return m_modmode;}
+
+   void SetModMode(bool value){m_modmode = value;}
       
 // Overrides
 public:
@@ -887,6 +915,8 @@ protected:
 
    void GenerateLightningBolt();
 
+   void CheckForModMode();
+
    HANDLE m_hMutex;
    
    CDCSurface m_refresh_buffer;
@@ -915,21 +945,25 @@ protected:
    CDCSurface m_thumb_grip_active;
    CDCSurface m_thumb_grip_hover;
    CDCSurface m_track;
-   CDCSurface m_infreply;
-   CDCSurface m_infroot;
+   CDCSurface m_ontopic;
+   CDCSurface m_ontopic_hover;
+   CDCSurface m_inf_hover;
+   CDCSurface m_inf;
    CDCSurface m_infstar;
-   CDCSurface m_nwsreply;
-   CDCSurface m_nwsroot;
+   CDCSurface m_nws_hover;
+   CDCSurface m_nws;
    CDCSurface m_nwsstar;
-   CDCSurface m_stupidroot;
-   CDCSurface m_stupidreply;
+   CDCSurface m_stupid;
+   CDCSurface m_stupid_hover;
    CDCSurface m_stupidstar;
-   CDCSurface m_offtopicroot;
-   CDCSurface m_offtopicreply;
+   CDCSurface m_offtopic;
+   CDCSurface m_offtopic_hover;
    CDCSurface m_offtopicstar;
-   CDCSurface m_politicalroot;
-   CDCSurface m_politicalreply;
+   CDCSurface m_political;
+   CDCSurface m_political_hover;
    CDCSurface m_politicalstar;
+   CDCSurface m_nuked;
+   CDCSurface m_nuked_hover;
    CDCSurface m_close;
    CDCSurface m_close_hover;
    CDCSurface m_post;
@@ -1065,6 +1099,7 @@ protected:
 
    std::set<UCString> m_filterusernamelist;
    std::set<UCString> m_filterphraselist;
+   std::set<UCString> m_mod_list;
 
    std::list<CLampView*> m_views;
 
@@ -1125,6 +1160,8 @@ protected:
    bool m_bLoadImagesInLamp;
 
    float m_inertia_friction;
+
+   bool m_modmode;
 
    std::vector<CSuggestion> m_cheatsheet;
 

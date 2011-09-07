@@ -55,6 +55,7 @@ UINT DownloadThreadProc( LPVOID pParam )
          pDD->m_dt == DT_SHACK_READMSG ||
          pDD->m_dt == DT_SHACK_SENDMSG ||
          pDD->m_dt == DT_SHACK_DELETEMSG ||
+         pDD->m_dt == DT_SHACK_MOD_CATEGORY_CHANGE ||
          pDD->m_dt == DT_LOL)
       {
          pDD->getchatty(3);
@@ -464,6 +465,26 @@ void CLampDoc::StartDownload(const UCChar *host,
        ((CMainFrame*)theApp.GetMainWnd())->GetActiveLampView() == m_pView))
    {
       m_bBusy = true;
+   }
+
+   if(theApp.IsModMode() &&
+      (dt == DT_SHACK_CHATTY ||
+       dt == DT_SHACK_CHATTY_INFINATE_PAGE ||
+       dt == DT_SHACK_THREAD_CONTENTS || 
+       dt == DT_SHACK_THREAD ||
+       dt == DT_SHACK_POST ||
+       dt == DT_SHACK_SEARCH ||
+       dt == DT_SHACK_SHACKMSG ||
+       dt == DT_SHACK_READMSG ||
+       dt == DT_SHACK_SENDMSG ||
+       dt == DT_SHACK_DELETEMSG ||
+       dt == DT_SHACK_MOD_CATEGORY_CHANGE ||
+       dt == DT_LOL) &&
+      (username == NULL ||
+       password == NULL))
+   {
+      username = theApp.GetUsername();
+      password = theApp.GetPassword();
    }
 
    CDownloadData *pDD = new CDownloadData();
@@ -1411,6 +1432,11 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                   }
                }
             }
+         }
+         break;
+      case DT_SHACK_MOD_CATEGORY_CHANGE:
+         {
+            RefreshThread(GetRootId(pDD->m_id), pDD->m_id);
          }
          break;
       }
@@ -2407,6 +2433,51 @@ void CLampDoc::SendMessage(const UCString &to, const UCString &subject, const UC
    }
 }
 
+void CLampDoc::SetCategory_Mod(unsigned int id, postcategorytype type)
+{
+   if(theApp.UseShack())
+   {
+      ChattyPost *post = FindPost(id);
+      if(post != NULL)
+      {
+         ChattyPost *root = post->GetRoot();
+         if(root != NULL)
+         {
+            // http://www.shacknews.com/mod_chatty.x?root=[root post id]&post_id=[post id]&mod_type_id=[x] 
+
+            UCString path = L"/mod_chatty.x?root=";
+            
+            path += root->GetId();
+            path += L"&post_id=";
+            path += post->GetId();
+            path += L"&mod_type_id=";
+
+            UCString msg;
+            switch(type)
+            {
+            case PCT_NORMAL:        path += "5";break;
+            case PCT_INF:           path += "1";break;
+            case PCT_NWS:           path += "2";break;
+            case PCT_STUPID:        path += "3";break;
+            case PCT_OFFTOPIC:      path += "4";break;
+            case PCT_POLITICAL:     path += "9";break;
+            case PCT_NUKED:         path += "8";break;
+            }
+            
+            StartDownload(L"www.shacknews.com",
+                          path,
+                          DT_SHACK_MOD_CATEGORY_CHANGE,
+                          id,
+                          0,
+                          0,
+                          NULL,
+                          theApp.GetUsername(),
+                          theApp.GetPassword());
+         }
+      }
+   }
+}
+
 void CLampDoc::ReadLOL()
 {
    UCString LOLup = m_loltag;
@@ -3021,7 +3092,7 @@ void CLampDoc::Dump(CDumpContext& dc) const
 
 
 // CLampDoc commands
-void CLampDoc::Draw(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id)
+void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
 {
    pos = -pos;
 
@@ -3080,13 +3151,13 @@ void CLampDoc::Draw(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpo
                }
             }
 
-            pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, false);
+            pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, false, theApp.IsModMode(), bModToolIsUp, ModToolRect, ModToolPostID);
 
             RECT backrect = DeviceRectangle;
             backrect.top = pos;
-            backrect.bottom = pos + 20;
+            backrect.bottom = pos + (device_height / 2);
             FillBackground(hDC,backrect);
-            pos += 20;
+            pos += (device_height / 2);
 
             //pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, true, false);
          }
@@ -3100,12 +3171,12 @@ void CLampDoc::Draw(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpo
          FillBackground(hDC,backrect);
          pos += 20;
          
-         pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, false);
+         pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, false, theApp.IsModMode(), bModToolIsUp, ModToolRect, ModToolPostID);
 
          backrect.top = pos;
-         backrect.bottom = pos + 20;
+         backrect.bottom = pos + (device_height / 2);
          FillBackground(hDC,backrect);
-         pos += 20;
+         pos += (device_height / 2);
       }
       break;
    case DDT_LOLS:
@@ -3115,13 +3186,13 @@ void CLampDoc::Draw(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpo
             //pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, false);
             pos += bannerheight;
             
-            pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, true);
+            pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, true, false, false, ModToolRect, 0);
 
             RECT backrect = DeviceRectangle;
             backrect.top = pos;
-            backrect.bottom = pos + 20;
+            backrect.bottom = pos + (device_height / 2);
             FillBackground(hDC,backrect);
-            pos += 20;
+            pos += (device_height / 2);
          }
       }
       break;
@@ -3130,13 +3201,13 @@ void CLampDoc::Draw(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpo
          //pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, false);
          pos += bannerheight;
          
-         pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, true);
+         pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, true, false, false, ModToolRect, 0);
 
          RECT backrect = DeviceRectangle;
          backrect.top = pos;
-         backrect.bottom = pos + 20;
+         backrect.bottom = pos + (device_height / 2);
          FillBackground(hDC,backrect);
-         pos += 20;
+         pos += (device_height / 2);
       }
       break;
    case DDT_SHACKMSG:
@@ -3149,9 +3220,9 @@ void CLampDoc::Draw(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpo
 
             RECT backrect = DeviceRectangle;
             backrect.top = pos;
-            backrect.bottom = pos + 20;
+            backrect.bottom = pos + (device_height / 2);
             FillBackground(hDC,backrect);
-            pos += 20;
+            pos += (device_height / 2);
          }
       }
       break;
@@ -3403,7 +3474,7 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
    return bannerrect.bottom;
 }
 
-int CLampDoc::DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly)
+int CLampDoc::DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
 {
    std::list<ChattyPost*>::iterator begin = m_rootposts.begin();
    std::list<ChattyPost*>::iterator end = m_rootposts.end();
@@ -3411,7 +3482,7 @@ int CLampDoc::DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<
 
    while(it != end)
    {
-      pos = (*it)->DrawRoot(hDC,DeviceRectangle,pos,hotspots, current_id, bLinkOnly);
+      pos = (*it)->DrawRoot(hDC,DeviceRectangle,pos,hotspots, current_id, bLinkOnly, bAllowModTools, bModToolIsUp, ModToolRect, ModToolPostID);
       it++;
 
       if(it != end)
@@ -4383,7 +4454,7 @@ void CLampDoc::FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcat
       case PCT_NWS:        ::SelectObject(hDC,m_nwspen); break;
       case PCT_STUPID:     ::SelectObject(hDC,m_stupidpen); break;
       case PCT_OFFTOPIC:   ::SelectObject(hDC,m_offtopicpen); break;
-      case PCT_POLITCIAL:  ::SelectObject(hDC,m_politicalpen); break;
+      case PCT_POLITICAL:  ::SelectObject(hDC,m_politicalpen); break;
       }
    }
 
@@ -4414,7 +4485,7 @@ void CLampDoc::FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcat
          case PCT_NWS:        ::SelectObject(hDC,m_nwspen); break;
          case PCT_STUPID:     ::SelectObject(hDC,m_stupidpen); break;
          case PCT_OFFTOPIC:   ::SelectObject(hDC,m_offtopicpen); break;
-         case PCT_POLITCIAL:  ::SelectObject(hDC,m_politicalpen); break;
+         case PCT_POLITICAL:  ::SelectObject(hDC,m_politicalpen); break;
          }
          ::MoveToEx(hDC,temprect.left, temprect.top,NULL);
          ::LineTo(hDC,temprect.right - 1, temprect.top);

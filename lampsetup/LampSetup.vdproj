@@ -15,6 +15,12 @@
     {
         "Entry"
         {
+        "MsmKey" = "8:_0201BBB952A74C55AAB1CE6526F4C0F3"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_020C7A5E35B24294AB94ADF608E271C4"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -33,13 +39,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_04430245F87B4B5E9F8D27DF48B5FD0F"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_046A1EAD662D45A58D0C32EC5E2CB3BF"
+        "MsmKey" = "8:_03D82C1597444E15A0514216CB0F0981"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -63,13 +63,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_0972FDE8E8754329BF430A06433CA500"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_0CDE5A132B02409BA86931840CF1B865"
+        "MsmKey" = "8:_0CCA9FEEFF044E9BAD6B367840C66823"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -77,12 +71,6 @@
         {
         "MsmKey" = "8:_0D7596EB94374F1997C17359F0BE2357"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_0D81000F06FF4396932211CE33ECD4CE"
-        "OwnerKey" = "8:_2E81C3EB44B449A8B72886262C00EFC0"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -105,6 +93,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_11BB04754FDB4AA79285924A2A1A2E98"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_1216235100CE4FC3AFDED2127CF3F93D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -118,6 +112,12 @@
         "Entry"
         {
         "MsmKey" = "8:_14E4ED88BEBB45EE8D666122CFE8386F"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_167CCFC2C1CA486EA9E46650E835CCDE"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -165,12 +165,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_1DA171131E25400CA2DF4F2EAC8D70D9"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_1DD29C0E9E72455995B84FC9D5D0F902"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -207,12 +201,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_23C41BC5618548AEA702D0B2757D59B9"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_2544E2340A4C40FBA39FF201C035FB2C"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -220,6 +208,12 @@
         "Entry"
         {
         "MsmKey" = "8:_257ED62678854D298327252AC60B18D7"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_27955288E7924ACBBF6402923F3A02D2"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -255,20 +249,8 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_2D94C34CDCFA41F0A21FC60D730FB9F9"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_2DADC5FDB1D04CB383987D358DB03BA1"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_2E81C3EB44B449A8B72886262C00EFC0"
-        "OwnerKey" = "8:_50008E36A76240C3A2B3EEE67AF703BC"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -297,7 +279,19 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_326FE4D6357E6F297D731FBE3FEE84DE"
+        "OwnerKey" = "8:_50008E36A76240C3A2B3EEE67AF703BC"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_333280A2CAC846C1A7C251B9D543C92F"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_340F1E814D254814AEA09BC96FA06BC9"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -333,7 +327,19 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_39C3AC2BF6BE40B19CCE1DA28EC6BFB5"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_3A1891763A5845F39B9C92DD9AFC40F2"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_3A57438185D24082BA925451F9CDCBCF"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -345,13 +351,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_3AB03B8E3B5346B38D52512825CB1C70"
+        "MsmKey" = "8:_3AB96A79056C44ABBA8B55BFAD83A87A"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_3AB96A79056C44ABBA8B55BFAD83A87A"
+        "MsmKey" = "8:_3ADBCC9C893D4EB493B70C6C8886FF3B"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -381,12 +387,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_41F1DEF6966C4782ABCEE3BD58F82DFA"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_4332888A84FC44EDB36B770CF3006FF6"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -394,12 +394,6 @@
         "Entry"
         {
         "MsmKey" = "8:_43ABB75A6F4D4E0E9A8B435550CE90C2"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_43BA33800B51447B941683D3CEE07B3A"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -423,19 +417,19 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_487E978744BD4FBAAEF7796E7E017859"
+        "MsmKey" = "8:_48756F50580D4E13AC3EAA9E25B6AED6"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_48B2446FDC764F1AB8A4A5A3D6C8BE14"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_48C6A92A79B743319F8A232BD986CE42"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_48F81A8403D243DFA8F7973A0C07F73B"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -495,6 +489,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_5131B3E9EB24403EB19109FE136F4E6C"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_51F0F81BEDC94EBB8FE97E84EC5C5AEC"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -507,7 +507,25 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_5311CC08938443E382687BD0CFE0A12B"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_5516BD1CA6FC49BCB49AC57C1B69EBFA"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_55E60534972F41D0AEBA13F1F2593FC3"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_56776B819F4143E0A40186934F3E4F81"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -561,6 +579,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_625640E870C64290AB38FB5FA60EC10D"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_62AC745B0FC94283907D50CDA0C45065"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -585,7 +609,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_65A9447110104FF1A2395E24A26FBB2A"
+        "MsmKey" = "8:_67F441687E4B403E9A104C5A39127369"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -603,6 +627,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_6A23E79F64DD4D96BAA5CD0DD9351766"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_6AD23881864643EA80DA621CBEAC1B04"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -610,12 +640,6 @@
         "Entry"
         {
         "MsmKey" = "8:_6BD0097E51F0468DB80D0195B7785DD5"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_6DC0184BDF07487FA51D342A8E3A0C63"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -639,12 +663,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_72ABEA96622142D78AFC7E493C91BC4A"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_733B41AC00954528BB34ACA3E2D75ECC"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -652,6 +670,12 @@
         "Entry"
         {
         "MsmKey" = "8:_74034D54D369447DA1ED3146ACDBDC23"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_75C30608A3494C5490A2A845E78EAD94"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -675,6 +699,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_7B84F70214964DBDB23C92746B937508"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_7E0182094DB94B57AD8EAAE53D1DBC90"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -687,7 +717,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_7FDBC91BF1C944EB9C4E1738CE4A28F3"
+        "MsmKey" = "8:_7F7B5040240844A7A442D6D70F7700B0"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -765,12 +795,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_89ABBE9CC8E94F2580421428DE1B4B5F"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_8ABA68D504B5417CA809638AD3FB9248"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -783,31 +807,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_8E745A3872423B95B46B9A0B5780BCD1"
-        "OwnerKey" = "8:_50008E36A76240C3A2B3EEE67AF703BC"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_8F272B4583014BBFA21FF8EF50E19CEC"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_901F196BFC834A5B8712D126D95E8F65"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_909E7CA32648426281A0CCEE61EECD04"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_9169B3BEFBF847189F573C323083961C"
+        "MsmKey" = "8:_91748034D8FF48A98A608DCDE0068FE0"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -820,12 +826,6 @@
         "Entry"
         {
         "MsmKey" = "8:_93E9E4199D3340F19977CA1C093C1FFF"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_950496044D2741D3B2E2763D70632975"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -844,6 +844,12 @@
         "Entry"
         {
         "MsmKey" = "8:_97DE6F0A7C5F4F028B74603546C71282"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_98EA3355F9C54EC8808CEA6154A9CE06"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -879,6 +885,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_9CC736DB122C46B1897CED3FBF17916E"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_9D159A1E0FD84DEA9874923D7A3B65B4"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -897,14 +909,26 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_A0E13CCB152340D09055FA836738B329"
+        "MsmKey" = "8:_A2672D1CF7804FEFAFB3D5744A37B69F"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_A2B683443F0E5652C96594D7A0B50231"
         "OwnerKey" = "8:_50008E36A76240C3A2B3EEE67AF703BC"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_A64DBDF9977E40EF8A965236B9D924E5"
+        "MsmKey" = "8:_A33F38ABA11D4B9DB939C8F4906C3BFC"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_A44F3A509B9F1549462B81D77B6E0FC4"
+        "OwnerKey" = "8:_50008E36A76240C3A2B3EEE67AF703BC"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -939,7 +963,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_AD94AC4DE45945488514C3EEB4935231"
+        "MsmKey" = "8:_ACD076B01B80746D7FFE3E060DFD150B"
+        "OwnerKey" = "8:_50008E36A76240C3A2B3EEE67AF703BC"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_AEDE1F7E0F3446A4A922B609A96980D6"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -969,25 +999,43 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_B2E336598E104CCE938530D8F42722F2"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_B3541556B00141F6944FC7F51D2056B4"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_BA019C752D0E44E5B050557CFA3FA0EA"
+        "MsmKey" = "8:_B70F8133B5E66FC1B7E660EBBC4F6BBE"
+        "OwnerKey" = "8:_50008E36A76240C3A2B3EEE67AF703BC"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_B75320FE56F04E788E7EA916BEEB661E"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_BB65A28730FB491E80B0E740EC15A56E"
+        "MsmKey" = "8:_B8E6F0A6E096445C8FF6F284C3EE02ED"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_BBE3CF929F044B248DAAFA2732D7A6D9"
+        "MsmKey" = "8:_B99926F31B704E31AC088BF161CD042B"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_BA8A09247B8A4522B6181C8C2B20B555"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -1005,19 +1053,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_BEBD5DB2507F4AF390842AF847362D3F"
-        "OwnerKey" = "8:_A0E13CCB152340D09055FA836738B329"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_C090DC073B304A848C414BC854E8DF18"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_C4176CE6621547D595DD60DC5753726C"
+        "MsmKey" = "8:_C3ED6DE8C2294EA8A52CB67353657CD2"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -1071,7 +1113,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_C9056D1F28EB4512825ABF03C2FAEDC7"
+        "MsmKey" = "8:_C8B059DCD438485E85D06798E21513DF"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -1083,19 +1125,25 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_CDACAE43EEC0470097AB30AFFA48B7C0"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_CE7180F6021E4D748C02BF0969D10846"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_CEC97C9E34B14AA7BAAED60E6B4B3EE2"
+        "MsmKey" = "8:_CED7DE1BC1BC47FF9EF1E85B4F70F08D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_CED7DE1BC1BC47FF9EF1E85B4F70F08D"
+        "MsmKey" = "8:_D035DE84306E437686E7B8A658FF1435"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -1137,7 +1185,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_D60CE3FAA89C4B48AD606E5FA060DFD4"
+        "MsmKey" = "8:_D4CA29EEF85A456A85E87FBDBBE33A28"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -1227,7 +1275,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_E532EEB41E1543898A792E3BD11CCF3A"
+        "MsmKey" = "8:_E53F83BE1D8746A888C36240D5DE7074"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -1252,6 +1300,12 @@
         "Entry"
         {
         "MsmKey" = "8:_E8BE8426423E4A4E9B3E444D5F625ABA"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EB7A15CEEA5A4B1AA90E7055DB3DCCD6"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -1341,6 +1395,18 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_F6AFF1B833FE42CA89CE7806EA50E588"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_F6C24EEA6B5B4127BDE4568431857F35"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_F7CF23F6491A4D40B43C00B9E7A2525F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -1371,12 +1437,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_F93DB34B75144EDCADDCE682067AFB83"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_FBC5976FD10E45428FB7512C65D0CDA0"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -1390,12 +1450,6 @@
         "Entry"
         {
         "MsmKey" = "8:_FD13B5E9D79E470C8AE5A89C2A4C8AED"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_FD15FA5DB29649B997412437490E0118"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -1520,6 +1574,26 @@
         }
         "File"
         {
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0201BBB952A74C55AAB1CE6526F4C0F3"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\default\\nuked_hover.png"
+            "TargetName" = "8:nuked_hover.png"
+            "Tag" = "8:"
+            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_020C7A5E35B24294AB94ADF608E271C4"
             {
             "SourcePath" = "8:..\\Debug\\skins\\default\\tab_hover.png"
@@ -1580,30 +1654,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_04430245F87B4B5E9F8D27DF48B5FD0F"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_03D82C1597444E15A0514216CB0F0981"
             {
-            "SourcePath" = "8:..\\Debug\\skins\\default\\political_root.png"
-            "TargetName" = "8:political_root.png"
-            "Tag" = "8:"
-            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_046A1EAD662D45A58D0C32EC5E2CB3BF"
-            {
-            "SourcePath" = "8:..\\Debug\\skins\\default\\offtopic_root.png"
-            "TargetName" = "8:offtopic_root.png"
+            "SourcePath" = "8:..\\Debug\\skins\\default\\political_hover.png"
+            "TargetName" = "8:political_hover.png"
             "Tag" = "8:"
             "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
             "Condition" = "8:"
@@ -1680,32 +1734,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0972FDE8E8754329BF430A06433CA500"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0CCA9FEEFF044E9BAD6B367840C66823"
             {
-            "SourcePath" = "8:..\\Release\\skins\\roundshack\\inf_root.png"
-            "TargetName" = "8:inf_root.png"
+            "SourcePath" = "8:..\\Debug\\skins\\default\\inf_hover.png"
+            "TargetName" = "8:inf_hover.png"
             "Tag" = "8:"
-            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0CDE5A132B02409BA86931840CF1B865"
-            {
-            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\political_reply.png"
-            "TargetName" = "8:political_reply.png"
-            "Tag" = "8:"
-            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
+            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1800,6 +1834,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_11BB04754FDB4AA79285924A2A1A2E98"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\roundshack\\stupid.png"
+            "TargetName" = "8:stupid.png"
+            "Tag" = "8:"
+            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1216235100CE4FC3AFDED2127CF3F93D"
             {
             "SourcePath" = "8:..\\Debug\\skins\\default\\thumb_bottom_inactive.png"
@@ -1846,6 +1900,26 @@
             "TargetName" = "8:delete.png"
             "Tag" = "8:"
             "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_167CCFC2C1CA486EA9E46650E835CCDE"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\roundshack\\offtopic.png"
+            "TargetName" = "8:offtopic.png"
+            "Tag" = "8:"
+            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2000,26 +2074,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1DA171131E25400CA2DF4F2EAC8D70D9"
-            {
-            "SourcePath" = "8:..\\Release\\skins\\roundshack\\political_root.png"
-            "TargetName" = "8:political_root.png"
-            "Tag" = "8:"
-            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1DD29C0E9E72455995B84FC9D5D0F902"
             {
             "SourcePath" = "8:..\\Release\\skins\\roundshack\\close.png"
@@ -2140,26 +2194,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_23C41BC5618548AEA702D0B2757D59B9"
-            {
-            "SourcePath" = "8:..\\Debug\\skins\\default\\political_reply.png"
-            "TargetName" = "8:political_reply.png"
-            "Tag" = "8:"
-            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2544E2340A4C40FBA39FF201C035FB2C"
             {
             "SourcePath" = "8:..\\Release\\skins\\roundshack\\refresh_story.png"
@@ -2186,6 +2220,26 @@
             "TargetName" = "8:inf_star.png"
             "Tag" = "8:"
             "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_27955288E7924ACBBF6402923F3A02D2"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\default\\stupid.png"
+            "TargetName" = "8:stupid.png"
+            "Tag" = "8:"
+            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2300,26 +2354,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2D94C34CDCFA41F0A21FC60D730FB9F9"
-            {
-            "SourcePath" = "8:..\\Release\\skins\\roundshack\\stupid_root.png"
-            "TargetName" = "8:stupid_root.png"
-            "Tag" = "8:"
-            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2DADC5FDB1D04CB383987D358DB03BA1"
             {
             "SourcePath" = "8:..\\Debug\\skins\\default\\down_hover.png"
@@ -2420,12 +2454,52 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_326FE4D6357E6F297D731FBE3FEE84DE"
+            {
+            "SourcePath" = "8:MSIMG32.dll"
+            "TargetName" = "8:MSIMG32.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_6766E160BBE94EB68F10F66BFB9C32B1"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_333280A2CAC846C1A7C251B9D543C92F"
             {
             "SourcePath" = "8:..\\Release\\skins\\roundshack\\reply_hover.png"
             "TargetName" = "8:reply_hover.png"
             "Tag" = "8:"
             "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_340F1E814D254814AEA09BC96FA06BC9"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\inf.png"
+            "TargetName" = "8:inf.png"
+            "Tag" = "8:"
+            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2540,12 +2614,52 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_39C3AC2BF6BE40B19CCE1DA28EC6BFB5"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\roundshack\\stupid_hover.png"
+            "TargetName" = "8:stupid_hover.png"
+            "Tag" = "8:"
+            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3A1891763A5845F39B9C92DD9AFC40F2"
             {
             "SourcePath" = "8:..\\Debug\\skins\\worksafe\\lol_tags_hover.png"
             "TargetName" = "8:lol_tags_hover.png"
             "Tag" = "8:"
             "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3A57438185D24082BA925451F9CDCBCF"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\roundshack\\inf.png"
+            "TargetName" = "8:inf.png"
+            "Tag" = "8:"
+            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2580,12 +2694,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3AB03B8E3B5346B38D52512825CB1C70"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3AB96A79056C44ABBA8B55BFAD83A87A"
             {
-            "SourcePath" = "8:..\\Release\\skins\\roundshack\\political_reply.png"
-            "TargetName" = "8:political_reply.png"
+            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\post_hover.png"
+            "TargetName" = "8:post_hover.png"
             "Tag" = "8:"
-            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
+            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2600,12 +2714,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3AB96A79056C44ABBA8B55BFAD83A87A"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3ADBCC9C893D4EB493B70C6C8886FF3B"
             {
-            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\post_hover.png"
-            "TargetName" = "8:post_hover.png"
+            "SourcePath" = "8:..\\Debug\\skins\\roundshack\\political.png"
+            "TargetName" = "8:political.png"
             "Tag" = "8:"
-            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
+            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2700,26 +2814,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_41F1DEF6966C4782ABCEE3BD58F82DFA"
-            {
-            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\nws_reply.png"
-            "TargetName" = "8:nws_reply.png"
-            "Tag" = "8:"
-            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4332888A84FC44EDB36B770CF3006FF6"
             {
             "SourcePath" = "8:..\\Debug\\skins\\default\\post.png"
@@ -2746,26 +2840,6 @@
             "TargetName" = "8:refresh_anim_5.png"
             "Tag" = "8:"
             "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_43BA33800B51447B941683D3CEE07B3A"
-            {
-            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\political_star.png"
-            "TargetName" = "8:political_star.png"
-            "Tag" = "8:"
-            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2840,12 +2914,32 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_487E978744BD4FBAAEF7796E7E017859"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_48756F50580D4E13AC3EAA9E25B6AED6"
             {
-            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\stupid_root.png"
-            "TargetName" = "8:stupid_root.png"
+            "SourcePath" = "8:..\\Debug\\skins\\roundshack\\ontopic.png"
+            "TargetName" = "8:ontopic.png"
             "Tag" = "8:"
-            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
+            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_48B2446FDC764F1AB8A4A5A3D6C8BE14"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\roundshack\\nuked_hover.png"
+            "TargetName" = "8:nuked_hover.png"
+            "Tag" = "8:"
+            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2864,26 +2958,6 @@
             {
             "SourcePath" = "8:..\\Debug\\skins\\default\\nws_star.png"
             "TargetName" = "8:nws_star.png"
-            "Tag" = "8:"
-            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_48F81A8403D243DFA8F7973A0C07F73B"
-            {
-            "SourcePath" = "8:..\\Debug\\skins\\default\\nws_reply.png"
-            "TargetName" = "8:nws_reply.png"
             "Tag" = "8:"
             "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
             "Condition" = "8:"
@@ -3060,6 +3134,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5131B3E9EB24403EB19109FE136F4E6C"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\default\\nws_hover.png"
+            "TargetName" = "8:nws_hover.png"
+            "Tag" = "8:"
+            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_51F0F81BEDC94EBB8FE97E84EC5C5AEC"
             {
             "SourcePath" = "8:..\\Debug\\skins\\default\\reply_hover.png"
@@ -3100,12 +3194,72 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5311CC08938443E382687BD0CFE0A12B"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\offtopic_hover.png"
+            "TargetName" = "8:offtopic_hover.png"
+            "Tag" = "8:"
+            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5516BD1CA6FC49BCB49AC57C1B69EBFA"
             {
             "SourcePath" = "8:..\\Debug\\skins\\roundshack\\mb_pan.png"
             "TargetName" = "8:mb_pan.png"
             "Tag" = "8:"
             "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_55E60534972F41D0AEBA13F1F2593FC3"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\roundshack\\political_hover.png"
+            "TargetName" = "8:political_hover.png"
+            "Tag" = "8:"
+            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_56776B819F4143E0A40186934F3E4F81"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\ontopic.png"
+            "TargetName" = "8:ontopic.png"
+            "Tag" = "8:"
+            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -3280,6 +3434,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_625640E870C64290AB38FB5FA60EC10D"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\default\\ontopic_hover.png"
+            "TargetName" = "8:ontopic_hover.png"
+            "Tag" = "8:"
+            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_62AC745B0FC94283907D50CDA0C45065"
             {
             "SourcePath" = "8:..\\Debug\\skins\\default\\lol_tags_mine.png"
@@ -3360,10 +3534,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_65A9447110104FF1A2395E24A26FBB2A"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_67F441687E4B403E9A104C5A39127369"
             {
-            "SourcePath" = "8:..\\Debug\\skins\\default\\stupid_reply.png"
-            "TargetName" = "8:stupid_reply.png"
+            "SourcePath" = "8:..\\Debug\\skins\\default\\inf.png"
+            "TargetName" = "8:inf.png"
             "Tag" = "8:"
             "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
             "Condition" = "8:"
@@ -3420,6 +3594,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6A23E79F64DD4D96BAA5CD0DD9351766"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\nws_hover.png"
+            "TargetName" = "8:nws_hover.png"
+            "Tag" = "8:"
+            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6AD23881864643EA80DA621CBEAC1B04"
             {
             "SourcePath" = "8:..\\Debug\\skins\\default\\post_hover.png"
@@ -3444,26 +3638,6 @@
             {
             "SourcePath" = "8:..\\Release\\skins\\roundshack\\lol_tags.png"
             "TargetName" = "8:lol_tags.png"
-            "Tag" = "8:"
-            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6DC0184BDF07487FA51D342A8E3A0C63"
-            {
-            "SourcePath" = "8:..\\Release\\skins\\roundshack\\offtopic_reply.png"
-            "TargetName" = "8:offtopic_reply.png"
             "Tag" = "8:"
             "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
             "Condition" = "8:"
@@ -3540,26 +3714,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_72ABEA96622142D78AFC7E493C91BC4A"
-            {
-            "SourcePath" = "8:..\\Debug\\skins\\default\\stupid_root.png"
-            "TargetName" = "8:stupid_root.png"
-            "Tag" = "8:"
-            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_733B41AC00954528BB34ACA3E2D75ECC"
             {
             "SourcePath" = "8:..\\Release\\skins\\roundshack\\refresh_story_hover.png"
@@ -3586,6 +3740,26 @@
             "TargetName" = "8:pin_hover.png"
             "Tag" = "8:"
             "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_75C30608A3494C5490A2A845E78EAD94"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\political.png"
+            "TargetName" = "8:political.png"
+            "Tag" = "8:"
+            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -3660,6 +3834,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7B84F70214964DBDB23C92746B937508"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\default\\political.png"
+            "TargetName" = "8:political.png"
+            "Tag" = "8:"
+            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7E0182094DB94B57AD8EAAE53D1DBC90"
             {
             "SourcePath" = "8:..\\Release\\skins\\default\\refresh_anim_2.png"
@@ -3700,10 +3894,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7FDBC91BF1C944EB9C4E1738CE4A28F3"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7F7B5040240844A7A442D6D70F7700B0"
             {
-            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\inf_root.png"
-            "TargetName" = "8:inf_root.png"
+            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\ontopic_hover.png"
+            "TargetName" = "8:ontopic_hover.png"
             "Tag" = "8:"
             "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
             "Condition" = "8:"
@@ -3960,26 +4154,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_89ABBE9CC8E94F2580421428DE1B4B5F"
-            {
-            "SourcePath" = "8:..\\Release\\skins\\roundshack\\nws_reply.png"
-            "TargetName" = "8:nws_reply.png"
-            "Tag" = "8:"
-            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8ABA68D504B5417CA809638AD3FB9248"
             {
             "SourcePath" = "8:..\\Debug\\skins\\default\\thumb_active.png"
@@ -4020,46 +4194,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8E745A3872423B95B46B9A0B5780BCD1"
-            {
-            "SourcePath" = "8:MSIMG32.dll"
-            "TargetName" = "8:MSIMG32.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_6766E160BBE94EB68F10F66BFB9C32B1"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8F272B4583014BBFA21FF8EF50E19CEC"
-            {
-            "SourcePath" = "8:..\\Debug\\skins\\default\\political_star.png"
-            "TargetName" = "8:political_star.png"
-            "Tag" = "8:"
-            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_901F196BFC834A5B8712D126D95E8F65"
             {
             "SourcePath" = "8:..\\Debug\\skins\\default\\lol_tags.png"
@@ -4080,32 +4214,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_909E7CA32648426281A0CCEE61EECD04"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_91748034D8FF48A98A608DCDE0068FE0"
             {
-            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\inf_reply.png"
-            "TargetName" = "8:inf_reply.png"
+            "SourcePath" = "8:..\\Debug\\skins\\roundshack\\offtopic_hover.png"
+            "TargetName" = "8:offtopic_hover.png"
             "Tag" = "8:"
-            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9169B3BEFBF847189F573C323083961C"
-            {
-            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\nws_root.png"
-            "TargetName" = "8:nws_root.png"
-            "Tag" = "8:"
-            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
+            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -4146,26 +4260,6 @@
             "TargetName" = "8:close_hover.png"
             "Tag" = "8:"
             "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_950496044D2741D3B2E2763D70632975"
-            {
-            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\political_root.png"
-            "TargetName" = "8:political_root.png"
-            "Tag" = "8:"
-            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -4226,6 +4320,26 @@
             "TargetName" = "8:refresh_anim_7.png"
             "Tag" = "8:"
             "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_98EA3355F9C54EC8808CEA6154A9CE06"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\inf_hover.png"
+            "TargetName" = "8:inf_hover.png"
+            "Tag" = "8:"
+            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -4340,6 +4454,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9CC736DB122C46B1897CED3FBF17916E"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\roundshack\\ontopic_hover.png"
+            "TargetName" = "8:ontopic_hover.png"
+            "Tag" = "8:"
+            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9D159A1E0FD84DEA9874923D7A3B65B4"
             {
             "SourcePath" = "8:..\\Debug\\skins\\worksafe\\refresh_story.png"
@@ -4400,10 +4534,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A64DBDF9977E40EF8A965236B9D924E5"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A2672D1CF7804FEFAFB3D5744A37B69F"
             {
-            "SourcePath" = "8:..\\Release\\skins\\roundshack\\offtopic_root.png"
-            "TargetName" = "8:offtopic_root.png"
+            "SourcePath" = "8:..\\Debug\\skins\\roundshack\\nuked.png"
+            "TargetName" = "8:nuked.png"
             "Tag" = "8:"
             "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
             "Condition" = "8:"
@@ -4418,6 +4552,66 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A2B683443F0E5652C96594D7A0B50231"
+            {
+            "SourcePath" = "8:gdiplus.dll"
+            "TargetName" = "8:gdiplus.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_6766E160BBE94EB68F10F66BFB9C32B1"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A33F38ABA11D4B9DB939C8F4906C3BFC"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\roundshack\\nws.png"
+            "TargetName" = "8:nws.png"
+            "Tag" = "8:"
+            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A44F3A509B9F1549462B81D77B6E0FC4"
+            {
+            "SourcePath" = "8:COMDLG32.dll"
+            "TargetName" = "8:COMDLG32.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_6766E160BBE94EB68F10F66BFB9C32B1"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A7A0A0DD35E94F05947BD3F746B906A4"
@@ -4520,10 +4714,30 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_AD94AC4DE45945488514C3EEB4935231"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_ACD076B01B80746D7FFE3E060DFD150B"
             {
-            "SourcePath" = "8:..\\Debug\\skins\\default\\nws_root.png"
-            "TargetName" = "8:nws_root.png"
+            "SourcePath" = "8:oledlg.dll"
+            "TargetName" = "8:oledlg.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_6766E160BBE94EB68F10F66BFB9C32B1"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_AEDE1F7E0F3446A4A922B609A96980D6"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\default\\offtopic_hover.png"
+            "TargetName" = "8:offtopic_hover.png"
             "Tag" = "8:"
             "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
             "Condition" = "8:"
@@ -4620,6 +4834,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B2E336598E104CCE938530D8F42722F2"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\default\\ontopic.png"
+            "TargetName" = "8:ontopic.png"
+            "Tag" = "8:"
+            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B3541556B00141F6944FC7F51D2056B4"
             {
             "SourcePath" = "8:..\\Release\\skins\\roundshack\\refresh_anim_4.png"
@@ -4640,12 +4874,32 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BA019C752D0E44E5B050557CFA3FA0EA"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B70F8133B5E66FC1B7E660EBBC4F6BBE"
             {
-            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\offtopic_reply.png"
-            "TargetName" = "8:offtopic_reply.png"
+            "SourcePath" = "8:IMM32.dll"
+            "TargetName" = "8:IMM32.dll"
             "Tag" = "8:"
-            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
+            "Folder" = "8:_6766E160BBE94EB68F10F66BFB9C32B1"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B75320FE56F04E788E7EA916BEEB661E"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\roundshack\\inf_hover.png"
+            "TargetName" = "8:inf_hover.png"
+            "Tag" = "8:"
+            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -4660,12 +4914,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BB65A28730FB491E80B0E740EC15A56E"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B8E6F0A6E096445C8FF6F284C3EE02ED"
             {
-            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\offtopic_root.png"
-            "TargetName" = "8:offtopic_root.png"
+            "SourcePath" = "8:..\\Debug\\skins\\default\\stupid_hover.png"
+            "TargetName" = "8:stupid_hover.png"
             "Tag" = "8:"
-            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
+            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -4680,10 +4934,30 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BBE3CF929F044B248DAAFA2732D7A6D9"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B99926F31B704E31AC088BF161CD042B"
             {
-            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\stupid_reply.png"
-            "TargetName" = "8:stupid_reply.png"
+            "SourcePath" = "8:..\\Debug\\skins\\default\\nuked.png"
+            "TargetName" = "8:nuked.png"
+            "Tag" = "8:"
+            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BA8A09247B8A4522B6181C8C2B20B555"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\offtopic.png"
+            "TargetName" = "8:offtopic.png"
             "Tag" = "8:"
             "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
             "Condition" = "8:"
@@ -4760,12 +5034,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C4176CE6621547D595DD60DC5753726C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C3ED6DE8C2294EA8A52CB67353657CD2"
             {
-            "SourcePath" = "8:..\\Release\\skins\\roundshack\\political_star.png"
-            "TargetName" = "8:political_star.png"
+            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\political_hover.png"
+            "TargetName" = "8:political_hover.png"
             "Tag" = "8:"
-            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
+            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -4940,12 +5214,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C9056D1F28EB4512825ABF03C2FAEDC7"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C8B059DCD438485E85D06798E21513DF"
             {
-            "SourcePath" = "8:..\\Debug\\skins\\default\\inf_reply.png"
-            "TargetName" = "8:inf_reply.png"
+            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\stupid.png"
+            "TargetName" = "8:stupid.png"
             "Tag" = "8:"
-            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
+            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -4980,6 +5254,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CDACAE43EEC0470097AB30AFFA48B7C0"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\default\\nws.png"
+            "TargetName" = "8:nws.png"
+            "Tag" = "8:"
+            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CE7180F6021E4D748C02BF0969D10846"
             {
             "SourcePath" = "8:..\\Debug\\skins\\worksafe\\thumb_grip_inactive.png"
@@ -5000,12 +5294,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CEC97C9E34B14AA7BAAED60E6B4B3EE2"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CED7DE1BC1BC47FF9EF1E85B4F70F08D"
             {
-            "SourcePath" = "8:..\\Debug\\skins\\default\\inf_root.png"
-            "TargetName" = "8:inf_root.png"
+            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\stupid_star.png"
+            "TargetName" = "8:stupid_star.png"
             "Tag" = "8:"
-            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
+            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -5020,10 +5314,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CED7DE1BC1BC47FF9EF1E85B4F70F08D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D035DE84306E437686E7B8A658FF1435"
             {
-            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\stupid_star.png"
-            "TargetName" = "8:stupid_star.png"
+            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\nuked_hover.png"
+            "TargetName" = "8:nuked_hover.png"
             "Tag" = "8:"
             "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
             "Condition" = "8:"
@@ -5160,12 +5454,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D60CE3FAA89C4B48AD606E5FA060DFD4"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D4CA29EEF85A456A85E87FBDBBE33A28"
             {
-            "SourcePath" = "8:..\\Release\\skins\\roundshack\\stupid_reply.png"
-            "TargetName" = "8:stupid_reply.png"
+            "SourcePath" = "8:..\\Debug\\skins\\default\\offtopic.png"
+            "TargetName" = "8:offtopic.png"
             "Tag" = "8:"
-            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
+            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -5460,12 +5754,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E532EEB41E1543898A792E3BD11CCF3A"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E53F83BE1D8746A888C36240D5DE7074"
             {
-            "SourcePath" = "8:..\\Debug\\skins\\default\\offtopic_reply.png"
-            "TargetName" = "8:offtopic_reply.png"
+            "SourcePath" = "8:..\\Debug\\skins\\roundshack\\nws_hover.png"
+            "TargetName" = "8:nws_hover.png"
             "Tag" = "8:"
-            "Folder" = "8:_4B0C1802C3934EEFB086929C20FF7FBC"
+            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -5546,6 +5840,26 @@
             "TargetName" = "8:post_hover.png"
             "Tag" = "8:"
             "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EB7A15CEEA5A4B1AA90E7055DB3DCCD6"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\stupid_hover.png"
+            "TargetName" = "8:stupid_hover.png"
+            "Tag" = "8:"
+            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -5840,6 +6154,46 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F6AFF1B833FE42CA89CE7806EA50E588"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\nuked.png"
+            "TargetName" = "8:nuked.png"
+            "Tag" = "8:"
+            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F6C24EEA6B5B4127BDE4568431857F35"
+            {
+            "SourcePath" = "8:..\\Debug\\skins\\worksafe\\nws.png"
+            "TargetName" = "8:nws.png"
+            "Tag" = "8:"
+            "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F7CF23F6491A4D40B43C00B9E7A2525F"
             {
             "SourcePath" = "8:..\\Release\\skins\\default\\pin_off.png"
@@ -5940,26 +6294,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F93DB34B75144EDCADDCE682067AFB83"
-            {
-            "SourcePath" = "8:..\\Release\\skins\\roundshack\\inf_reply.png"
-            "TargetName" = "8:inf_reply.png"
-            "Tag" = "8:"
-            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FBC5976FD10E45428FB7512C65D0CDA0"
             {
             "SourcePath" = "8:..\\Debug\\skins\\default\\delete_hover.png"
@@ -6006,26 +6340,6 @@
             "TargetName" = "8:refresh_anim_4.png"
             "Tag" = "8:"
             "Folder" = "8:_F13ECB9043CC42FF912A2E5968A65199"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FD15FA5DB29649B997412437490E0118"
-            {
-            "SourcePath" = "8:..\\Release\\skins\\roundshack\\nws_root.png"
-            "TargetName" = "8:nws_root.png"
-            "Tag" = "8:"
-            "Folder" = "8:_FA2FBBBF8A8A4BFEB604BB7A2BA7B538"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -6254,7 +6568,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Lamp"
         "ProductCode" = "8:{4506BD2B-24BF-4963-976D-F6AFA80CD1D5}"
-        "PackageCode" = "8:{A8F6631C-83B0-408F-9878-CA7F5FA947E7}"
+        "PackageCode" = "8:{2CD56F80-739D-428F-9ECA-CCF09A42B6A4}"
         "UpgradeCode" = "8:{FB5A9863-370B-4B98-9F87-27960FA7136B}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
@@ -6797,62 +7111,6 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_0D81000F06FF4396932211CE33ECD4CE"
-            {
-            "UseDynamicProperties" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:microsoft_vc90_debugcrt_x86.msm"
-                "Properties"
-                {
-                }
-            "LanguageId" = "3:0"
-            "Exclude" = "11:FALSE"
-            "Folder" = "8:"
-            "Feature" = "8:"
-            "IsolateTo" = "8:"
-            }
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_2E81C3EB44B449A8B72886262C00EFC0"
-            {
-            "UseDynamicProperties" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:policy_9_0_Microsoft_VC90_DebugCRT_x86.msm"
-                "Properties"
-                {
-                }
-            "LanguageId" = "3:0"
-            "Exclude" = "11:FALSE"
-            "Folder" = "8:"
-            "Feature" = "8:"
-            "IsolateTo" = "8:"
-            }
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_A0E13CCB152340D09055FA836738B329"
-            {
-            "UseDynamicProperties" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:policy_9_0_Microsoft_VC90_DebugMFC_x86.msm"
-                "Properties"
-                {
-                }
-            "LanguageId" = "3:0"
-            "Exclude" = "11:FALSE"
-            "Folder" = "8:"
-            "Feature" = "8:"
-            "IsolateTo" = "8:"
-            }
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_BEBD5DB2507F4AF390842AF847362D3F"
-            {
-            "UseDynamicProperties" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:microsoft_vc90_debugmfc_x86.msm"
-                "Properties"
-                {
-                }
-            "LanguageId" = "3:0"
-            "Exclude" = "11:FALSE"
-            "Folder" = "8:"
-            "Feature" = "8:"
-            "IsolateTo" = "8:"
-            }
         }
         "ProjectOutput"
         {

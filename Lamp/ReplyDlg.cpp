@@ -109,6 +109,8 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
       case HST_PAGE:
       case HST_COLLAPSEPOST:
       case HST_REFRESHSTORY:
+      case HST_MOD_TOOL:
+      case HST_MOD_TOOL_ITEM:
          // dissallow these
          break;
       default:

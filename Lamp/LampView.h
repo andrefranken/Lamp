@@ -110,7 +110,6 @@ protected:
    
    void MakeCurrentPostLegal(bool bTopOnly = false, bool bKeepInSameLocation = false, int y = 0, bool bInstant = false);
    void MakePosLegal();
-   void GetDocHeight();
    CDCSurface *m_backbuffer;
    CDCSurface m_backbuffer1;
    CDCSurface m_backbuffer2;
@@ -195,6 +194,10 @@ protected:
    RECT m_ScrollRectangle;
 
    int m_banneroffset;
+
+   bool m_bModToolIsUp;
+   RECT m_ModToolRect;
+   unsigned int m_ModToolPostID;
 // Generated message map functions
 protected:
    

@@ -52,10 +52,11 @@ typedef enum
    DT_SHACK_SENDMSG = 20,
    DT_SHACK_DELETEMSG = 21,
    DT_SHACK_CHATTY_INFINATE_PAGE = 22,
+   DT_SHACK_MOD_CATEGORY_CHANGE = 23,
 
-   DT_SUBMIT_LOLVOTE = 23,
-   DT_GET_IMAGE = 24,
-   DT_GET_THUMB = 25
+   DT_SUBMIT_LOLVOTE = 24,
+   DT_GET_IMAGE = 25,
+   DT_GET_THUMB = 26
 } DownloadType;
 
 typedef enum 
@@ -122,7 +123,8 @@ public:
    CLampView *GetView(){return m_pView;}
 
    DocDataType GetDataType(void){return m_datatype;}
-   void Draw(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id);
+
+   void Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
 
    void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic, bool bold, bool sample, const UCChar *fontname);
    void DoBoldFont(HDC hDC){::SelectObject(hDC, m_boldfont);}
@@ -225,7 +227,8 @@ public:
    void DeleteShackMessage(unsigned int id);
 
    ShackMsgType GetShackMessageType(){return m_shackmsgtype;}
-     
+
+   void SetCategory_Mod(unsigned int id, postcategorytype type);
 
 // Operations
 public:
@@ -292,7 +295,7 @@ protected:
    void ReadLOL();
    void PerformSearch();
    bool ReadExistingThreadFromRoot(CXMLTree &xmldata, unsigned int id, bool bDoingNewFlags);
-   int DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly);
+   int DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
    int DrawMessages(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id);
    
    void CalcLineTags(std::vector<shacktagpos> &shacktags, std::vector<shacktagpos> &thislinetags, int beginpos, int endpos);
