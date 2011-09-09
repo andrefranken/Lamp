@@ -3715,8 +3715,8 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
       {
          if(PopTag(tagstack, ST_ITALIC))
          {
-            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
-            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+            shacktags.push_back(shacktagpos(ST_PURPLE,read - readstart));
+            shacktags.push_back(shacktagpos(ST_PURPLE_END,read - readstart + 2));
          }
          read+=2;
       }
@@ -3731,8 +3731,8 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
       {
          if(PopTag(tagstack, ST_BOLD))
          {
-            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
-            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+            shacktags.push_back(shacktagpos(ST_PURPLE,read - readstart));
+            shacktags.push_back(shacktagpos(ST_PURPLE_END,read - readstart + 2));
          }
          read+=2;
       }
@@ -3741,8 +3741,8 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
       {
          if(PopTag(tagstack, ST_RED))
          {
-            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
-            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+            shacktags.push_back(shacktagpos(ST_PURPLE,read - readstart));
+            shacktags.push_back(shacktagpos(ST_PURPLE_END,read - readstart + 2));
          }
          read+=2;
       }
@@ -3751,8 +3751,8 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
       {
          if(PopTag(tagstack, ST_GREEN))
          {
-            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
-            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+            shacktags.push_back(shacktagpos(ST_PURPLE,read - readstart));
+            shacktags.push_back(shacktagpos(ST_PURPLE_END,read - readstart + 2));
          }
          read+=2;
       }
@@ -3761,8 +3761,8 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
       {
          if(PopTag(tagstack, ST_BLUE))
          {
-            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
-            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+            shacktags.push_back(shacktagpos(ST_PURPLE,read - readstart));
+            shacktags.push_back(shacktagpos(ST_PURPLE_END,read - readstart + 2));
          }
          read+=2;
       }
@@ -3771,8 +3771,8 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
       {
          if(PopTag(tagstack, ST_YELLOW))
          {
-            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
-            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+            shacktags.push_back(shacktagpos(ST_PURPLE,read - readstart));
+            shacktags.push_back(shacktagpos(ST_PURPLE_END,read - readstart + 2));
          }
          read+=2;
       }
@@ -3780,8 +3780,8 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
       {
          if(PopTag(tagstack, ST_OLIVE))
          {
-            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
-            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+            shacktags.push_back(shacktagpos(ST_PURPLE,read - readstart));
+            shacktags.push_back(shacktagpos(ST_PURPLE_END,read - readstart + 2));
          }
          read+=2;
       }
@@ -3790,8 +3790,8 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
       {
          if(PopTag(tagstack, ST_LIME))
          {
-            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
-            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+            shacktags.push_back(shacktagpos(ST_PURPLE,read - readstart));
+            shacktags.push_back(shacktagpos(ST_PURPLE_END,read - readstart + 2));
          }
          read+=2;
       }
@@ -3799,8 +3799,8 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
       {
          if(PopTag(tagstack, ST_ORANGE))
          {
-            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
-            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+            shacktags.push_back(shacktagpos(ST_PURPLE,read - readstart));
+            shacktags.push_back(shacktagpos(ST_PURPLE_END,read - readstart + 2));
          }
          read+=2;
       }
@@ -3808,8 +3808,8 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
       {
          if(PopTag(tagstack, ST_PINK))
          {
-            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
-            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+            shacktags.push_back(shacktagpos(ST_PURPLE,read - readstart));
+            shacktags.push_back(shacktagpos(ST_PURPLE_END,read - readstart + 2));
          }
          read+=2;
       }
@@ -3817,8 +3817,8 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
       {
          if(PopTag(tagstack, ST_QUOTE))
          {
-            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
-            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+            shacktags.push_back(shacktagpos(ST_PURPLE,read - readstart));
+            shacktags.push_back(shacktagpos(ST_PURPLE_END,read - readstart + 2));
          }
          read+=2;
       }
@@ -3826,8 +3826,8 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
       {
          if(PopTag(tagstack, ST_SAMPLE))
          {
-            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
-            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+            shacktags.push_back(shacktagpos(ST_PURPLE,read - readstart));
+            shacktags.push_back(shacktagpos(ST_PURPLE_END,read - readstart + 2));
          }
          read+=2;
       }
@@ -3835,8 +3835,8 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
       {
          if(PopTag(tagstack, ST_STRIKE))
          {
-            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
-            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+            shacktags.push_back(shacktagpos(ST_PURPLE,read - readstart));
+            shacktags.push_back(shacktagpos(ST_PURPLE_END,read - readstart + 2));
          }
          read+=2;
       }
@@ -3844,8 +3844,8 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
       {
          if(PopTag(tagstack, ST_SPOILER))
          {
-            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
-            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+            shacktags.push_back(shacktagpos(ST_PURPLE,read - readstart));
+            shacktags.push_back(shacktagpos(ST_PURPLE_END,read - readstart + 2));
          }
          read+=2;
       }
@@ -3860,8 +3860,8 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
       {
          if(PopTag(tagstack, ST_UNDERLINE))
          {
-            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
-            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 2));
+            shacktags.push_back(shacktagpos(ST_PURPLE,read - readstart));
+            shacktags.push_back(shacktagpos(ST_PURPLE_END,read - readstart + 2));
          }
          read+=2;
       }
@@ -3879,8 +3879,8 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
       {
          if(PopTag(tagstack, ST_CODE))
          {
-            shacktags.push_back(shacktagpos(ST_GREEN,read - readstart));
-            shacktags.push_back(shacktagpos(ST_GREEN_END,read - readstart + 3));
+            shacktags.push_back(shacktagpos(ST_PURPLE,read - readstart));
+            shacktags.push_back(shacktagpos(ST_PURPLE_END,read - readstart + 3));
          }
          read+=3;
       }

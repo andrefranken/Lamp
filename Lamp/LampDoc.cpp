@@ -2976,8 +2976,11 @@ unsigned int CLampDoc::GetRootId(unsigned int id)
 
 bool CLampDoc::PostReply(const UCString &replytext, unsigned int to_id)
 {
+   theApp.SetLastPost(replytext);
+
    if(theApp.UseShack())
    {
+
       UCString story = L"/post_chatty.x";
 
       UCString postdata = L"parent_id=";
@@ -3037,7 +3040,6 @@ bool CLampDoc::PostReply(const UCString &replytext, unsigned int to_id)
          }
       }
 
-      theApp.SetLastPost(replytext);
       UCString path = L"/post/";
 
       UCString post_data = L"parent_id=";

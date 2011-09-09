@@ -3091,38 +3091,45 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               UpdateCurrentIdAsRoot(m_hotspots[i].m_id);
                               UCString link;
                               pPost->GetLink(m_mousepoint.x, m_mousepoint.y, link);
+
+                              const UCChar *work = NULL;
                                                                   
                               bool bIsLocal = false;
                               if(link.beginswith(L"http://www.shacknews.com/chatty?id="))// http://www.shacknews.com/chatty?id=25857324#itemanchor_25857324
                               {
-                                 const UCChar *work = link.Str() + 35;
-                                 if(work != NULL)
+                                 work = link.Str() + 35;
+                              }
+                              else if(link.beginswith(L"http://www.shacknews.com/laryn.x?id="))// http://www.shacknews.com/laryn.x?id=20919390#itemanchor_20919390
+                              {
+                                 work = link.Str() + 36;
+                              }
+
+                              if(work != NULL)
+                              {
+                                 UCString temp;
+                                 while(*work != 0 && iswdigit(*work))
                                  {
-                                    UCString temp;
-                                    while(*work != 0 && iswdigit(*work))
-                                    {
-                                       temp += *work;
-                                       work++;
-                                    }
+                                    temp += *work;
+                                    work++;
+                                 }
 
-                                    unsigned int id = temp;
+                                 unsigned int id = temp;
 
-                                    ChattyPost *post = GetDocument()->FindPost(id);
-                                    if(post != NULL)
-                                    {
-                                       SetCurrentId(id);
-                                       m_textselectionpost = 0;
-                                       m_selectionstart = 0;
-                                       m_selectionend = 0;
-                                       bIsLocal = true;
+                                 ChattyPost *post = GetDocument()->FindPost(id);
+                                 if(post != NULL)
+                                 {
+                                    SetCurrentId(id);
+                                    m_textselectionpost = 0;
+                                    m_selectionstart = 0;
+                                    m_selectionend = 0;
+                                    bIsLocal = true;
 
-                                       MakeCurrentPostLegal();
-                                       
-                                       CancelInertiaPanning();
-                                       m_brakes = false;
-                                       
-                                       InvalidateEverything();
-                                    }
+                                    MakeCurrentPostLegal();
+                                    
+                                    CancelInertiaPanning();
+                                    m_brakes = false;
+                                    
+                                    InvalidateEverything();
                                  }
                               }
                               
