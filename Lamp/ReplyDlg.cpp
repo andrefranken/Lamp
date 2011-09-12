@@ -1317,11 +1317,7 @@ bool CReplyDlg::OnLButtonDown(UINT nFlags, CPoint point, bool &bCloseReplyDlg)
                   {
                      if(message_to.IsEmpty())
                      {
-                        m_pView->MessageBox(L"Need a Recipient.");
-                     }
-                     else if(message_subject.IsEmpty())
-                     {
-                        m_pView->MessageBox(L"Need a Subject.");
+                        m_pView->MessageBox(L"Need a name to send it to.");
                      }
                      else if(m_replytext.IsEmpty())
                      {
@@ -1355,6 +1351,11 @@ bool CReplyDlg::OnLButtonDown(UINT nFlags, CPoint point, bool &bCloseReplyDlg)
                         {
                            message_to.TrimWhitespace();
                            recipients.push_back(message_to);
+                        }
+
+                        if(message_subject.IsEmpty())
+                        {
+                           message_subject = L"<no subject>";
                         }
 
                         m_replytext.Replace(L"\r",L"");
@@ -2632,7 +2633,7 @@ void CReplyDlg::SetupMessageInfo()
 
       if(message_to.IsEmpty())
       {
-         m_message_info_text += L"y{[empty]}y";
+         m_message_info_text += L"y{<no name>}y";
       }
       else if(message_to.Find(L",") != NULL ||
               message_to.Find(L";") != NULL)
@@ -2690,7 +2691,7 @@ void CReplyDlg::SetupMessageInfo()
       m_message_info_text += L"]b s[b{Subject:}b]s b[";
       if(message_subject.IsEmpty())
       {
-         m_message_info_text += L"y{[empty]}y";
+         m_message_info_text += L"y{<no subject>}y";
       }
       else
       {
