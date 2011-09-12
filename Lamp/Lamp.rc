@@ -222,11 +222,11 @@ BEGIN
         POPUP "Image stuff"
         BEGIN
             MENUITEM "Load images in Lamp",         ID_LOADIMAGESINLAMP
-            MENUITEM "Show thumbnails for loaded images",     ID_VIEW_SHOWIMAGETHUMBS
-            MENUITEM "Auto load thumbnails for chattypics images",     ID_AUTOLOADCHATTYPICSTHUMBS
-            MENUITEM "Don't auto load thumbnails in NWS posts",     ID_DONTAUTOLOADNWSTHUMBS
+            MENUITEM "Show thumbnails for loaded images", ID_VIEW_SHOWIMAGETHUMBS
+            MENUITEM "Auto load thumbnails for chattypics images", ID_AUTOLOADCHATTYPICSTHUMBS
+            MENUITEM "Don't auto load thumbnails in NWS posts", ID_DONTAUTOLOADNWSTHUMBS
             MENUITEM SEPARATOR
-            MENUITEM "Unload all images from memory",  ID_UNLOADALLIMAGES
+            MENUITEM "Unload all images from memory", ID_UNLOADALLIMAGES
         END
         MENUITEM "Smooth Scroll",               ID_VIEW_SMOOTHSCROLL
         MENUITEM "Allow Pinning",               ID_PINNING_MENUITEM
@@ -473,18 +473,17 @@ BEGIN
     EDITTEXT        IDC_BM_TITLE_EDIT,7,7,172,14,ES_AUTOHSCROLL
 END
 
-IDD_SENDMSG_DIALOG DIALOGEX 0, 0, 316, 183
+IDD_SENDMSG_DIALOG DIALOGEX 0, 0, 316, 74
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Send Message"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    EDITTEXT        IDC_SHACKMSG_EDIT,7,56,302,97,ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL
-    PUSHBUTTON      "OK",IDOK,205,162,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,259,162,50,14
     EDITTEXT        IDC_TO_EDIT,38,7,271,14,ES_AUTOHSCROLL
     EDITTEXT        IDC_SUBJECT_EDIT,38,31,271,14,ES_AUTOHSCROLL
     LTEXT           "To:",IDC_STATIC,7,9,12,8
     LTEXT           "Subject:",IDC_STATIC,7,33,28,8
+    PUSHBUTTON      "OK",IDOK,205,53,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,259,53,50,14
 END
 
 IDD_SETTINGS_DIALOG DIALOGEX 0, 0, 338, 224
@@ -618,7 +617,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 309
         TOPMARGIN, 7
-        BOTTOMMARGIN, 176
+        BOTTOMMARGIN, 67
     END
 
     IDD_SETTINGS_DIALOG, DIALOG

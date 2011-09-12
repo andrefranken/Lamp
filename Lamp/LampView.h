@@ -93,7 +93,8 @@ public:
                                RECT *pScrollRectangle = NULL,
                                bool bClearHotspots = true);
 
-   
+   void SendMessageDlg(CLampDoc *pDoc, const UCString &to, const UCString &subject, const UCString &shackmsg);
+      
 
 protected:
    void DrawHotSpots(HDC hDC);
@@ -115,12 +116,15 @@ protected:
    CDCSurface m_backbuffer2;
    CDCSurface m_whitebuffer;
    CDCSurface m_bannerbuffer;
+   CDCSurface m_replybuffer;
+   CDCSurface m_whitereplybuffer;
    RECT m_BannerRectangle;
    int m_pos;
    int m_gotopos;
    int m_lastdrawnpos;
    CPoint m_mousepoint;
    std::vector<CHotSpot> m_hotspots;
+   std::vector<CHotSpot> m_message_hotspots;
    RECT *m_hotspot;
    RECT *m_lasthotspot;
    hotspottype m_hotspottype;

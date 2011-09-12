@@ -16,7 +16,6 @@
 #include "html.h"
 #include "hunspell.hxx"
 #include "CustomSearchDlg.h"
-#include "SendMsgDlg.h"
 #include "comm.h"
 
 
@@ -2316,6 +2315,8 @@ void CLampApp::ReadSkinFiles()
    m_close_hover.Resize(0,0);
    m_post.Resize(0,0);
    m_post_hover.Resize(0,0);
+   m_send.Resize(0,0);
+   m_send_hover.Resize(0,0);
    m_tags.Resize(0,0);
    m_tags_hover.Resize(0,0);
    m_newthread.Resize(0,0);
@@ -2632,6 +2633,18 @@ void CLampApp::ReadSkinFiles()
    imagefilename += L"\\post_hover.png";
    imagepath.PathToMe(imagefilename);
    m_post_hover.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\send.png";
+   imagepath.PathToMe(imagefilename);
+   m_send.ReadPNG(imagepath);
+   
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\send_hover.png";
+   imagepath.PathToMe(imagefilename);
+   m_send_hover.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;
@@ -4639,17 +4652,6 @@ void CLampApp::ClearAllPinnedThreads()
       (*it)->ClearAllPinnedThreads();
       it++;
    }
-}
-
-void CLampApp::SendMessageDlg(CLampDoc *pDoc, const UCString &to, const UCString &subject, const UCString &shackmsg)
-{
-   SendMsgDlg dlg(GetMainWnd());
-
-   dlg.m_to = to;
-   dlg.m_subject = subject;
-   dlg.m_shackmsg = shackmsg;
-   dlg.m_pDoc = pDoc;
-   dlg.DoModal();
 }
 
 void CLampApp::SetNumMinutesCheckInbox(int value)

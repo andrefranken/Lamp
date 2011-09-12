@@ -507,6 +507,14 @@ void CLampView::OnDraw(CDC* pDC)
    {
       RECT DeviceRectangle;
       GetClientRect(&DeviceRectangle);
+      RECT OriginalDeviceRectangle = DeviceRectangle;
+
+      if(m_pReplyDlg != NULL &&
+         m_pReplyDlg->IsMessage())
+      {
+         DeviceRectangle.bottom -= m_pReplyDlg->GetHeight();
+      }
+
       int width = DeviceRectangle.right - DeviceRectangle.left;
       int height = DeviceRectangle.bottom - DeviceRectangle.top;
 
@@ -545,6 +553,14 @@ void CLampView::OnDraw(CDC* pDC)
                m_BannerRectangle.left = m_BannerRectangle.top = 0;
                m_BannerRectangle.right = width;
                m_BannerRectangle.bottom = bannerheight;
+
+               if(m_pReplyDlg != NULL &&
+                  m_pReplyDlg->IsMessage())
+               {
+                  m_replybuffer.Resize(width, m_pReplyDlg->GetHeight());
+                  m_whitereplybuffer.Resize(width, m_pReplyDlg->GetHeight());
+                  m_whitereplybuffer.Fill(GetRValue(theApp.GetHoverColor()),GetGValue(theApp.GetHoverColor()),GetBValue(theApp.GetHoverColor()));
+               }
                
                m_bPanOnly = false;
                theApp.UpdateTabSizes();
@@ -708,8 +724,28 @@ void CLampView::OnDraw(CDC* pDC)
                m_banneroffset = m_bannerbuffer.GetHeight();
                ScrollRectangle.top += m_bannerbuffer.GetHeight();
             }
+
+            if(m_pReplyDlg != NULL &&
+               m_pReplyDlg->IsMessage())
+            {
+               ::SetBrushOrgEx(m_replybuffer.GetDC(), 0, 0, NULL);
+               ::SetTextAlign(m_replybuffer.GetDC(),TA_LEFT|TA_BOTTOM);
+               ::SetBkMode(m_replybuffer.GetDC(),TRANSPARENT);
+               POINT oldorg;
+               SetWindowOrgEx(m_replybuffer.GetDC(),0,OriginalDeviceRectangle.bottom - m_pReplyDlg->GetHeight(),&oldorg);
+
+               m_pReplyDlg->Draw(m_replybuffer.GetDC(),OriginalDeviceRectangle, m_hotspots, m_mousepoint);
+
+               SetWindowOrgEx(m_replybuffer.GetDC(),oldorg.x,oldorg.y,NULL);
+            }
             
             DrawEverythingToBuffer(pSurface,&DocRectangle,&ScrollRectangle,false);
+
+            if(m_pReplyDlg != NULL &&
+               m_pReplyDlg->IsMessage())
+            {
+               m_replybuffer.Blit(hDC,m_pReplyDlg->GetDlgRect());
+            }
 
             if(m_pos != m_gotopos)
             {
@@ -888,11 +924,18 @@ void CLampView::DrawEverythingToBuffer(CDCSurface *pSurface/* = NULL*/,
 
    if(DeviceRectangle.bottom > DeviceRectangle.top)
    {
-      GetDocument()->Draw(pSurface->GetDC(), pSurface->GetHeight(),DeviceRectangle, m_pos, m_hotspots, GetCurrentId(), m_bModToolIsUp, m_ModToolRect, m_ModToolPostID);
-   
-      if(m_pReplyDlg != NULL)
+      int device_height = pSurface->GetHeight();
+      if(m_pReplyDlg != NULL &&
+         m_pReplyDlg->IsMessage())
       {
-         // this call may remove hotspots
+         device_height += m_pReplyDlg->GetHeight();
+      }
+
+      GetDocument()->Draw(pSurface->GetDC(), device_height,DeviceRectangle, m_pos, m_hotspots, GetCurrentId(), m_bModToolIsUp, m_ModToolRect, m_ModToolPostID);
+   
+      if(m_pReplyDlg != NULL &&
+         !m_pReplyDlg->IsMessage())
+      {
          m_pReplyDlg->Draw(pSurface->GetDC(),DeviceRectangle, m_hotspots, m_mousepoint);
       }
    }
@@ -913,6 +956,11 @@ void CLampView::DrawEverythingToBuffer(CDCSurface *pSurface/* = NULL*/,
    DrawScrollbar(pSurface->GetDC(), m_ScrollRectangle, m_hotspots);
 
    ::IntersectClipRect(pSurface->GetDC(),DeviceRectangle.left,DeviceRectangle.top,DeviceRectangle.right,DeviceRectangle.bottom);
+
+   if(m_pReplyDlg != NULL)
+   {
+      m_pReplyDlg->TweakHotspots(m_hotspots);
+   }
 
    DrawHotSpots(pSurface->GetDC());
 
@@ -1024,7 +1072,13 @@ void CLampView::DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<
    int trackheight = scrollbarheight - 16 - 16;
    int docheight = GetDocument()->GetHeight();
    int thumbtop = m_pos;
-   int thumbbottom = thumbtop + scrollbarheight + ScrollRectangle.top;//scrollbarheight is also screenheight
+   int screenheight = scrollbarheight;
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->IsMessage())
+   {
+      screenheight += m_pReplyDlg->GetHeight();
+   }
+   int thumbbottom = thumbtop + screenheight + ScrollRectangle.top;//scrollbarheight is also screenheight
 
    // now translate those to the range of the scrollbar's pixels
    m_scrollscale =  (float)trackheight / (float)docheight;
@@ -1208,6 +1262,17 @@ void CLampView::DrawTextSelection(HDC hDC, const RECT &DeviceRectangle)
 void CLampView::DrawHotSpots(HDC hDC)
 {
    m_bAnimating = false;
+
+   POINT oldorg;
+
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->IsMessage())
+   {
+      RECT OriginalDeviceRectangle;
+      GetClientRect(&OriginalDeviceRectangle);
+      SetWindowOrgEx(m_replybuffer.GetDC(),0,OriginalDeviceRectangle.bottom - m_pReplyDlg->GetHeight(),&oldorg);
+   }
+
    for(size_t i = 0; i < m_hotspots.size(); i++)
    {
       if(m_hotspots[i].m_bAnim)
@@ -1299,7 +1364,15 @@ void CLampView::DrawHotSpots(HDC hDC)
          break;
       case HST_CLOSEREPLYDLG:
          {
-            theApp.GetCloseImage(hover)->Blit(hDC,m_hotspots[i].m_spot);
+            if(m_pReplyDlg != NULL &&
+               m_pReplyDlg->IsMessage())
+            {
+               theApp.GetCloseImage(hover)->Blit(m_replybuffer.GetDC(),m_hotspots[i].m_spot);
+            }
+            else
+            {
+               theApp.GetCloseImage(hover)->Blit(hDC,m_hotspots[i].m_spot);
+            }
          }
          break;
       case HST_POST:
@@ -1313,17 +1386,48 @@ void CLampView::DrawHotSpots(HDC hDC)
             theApp.GetPostImage(hover)->Blit(hDC,m_hotspots[i].m_spot);
          }
          break;
+      case HST_SEND:
+         {
+            if(m_pReplyDlg != NULL &&
+               m_pReplyDlg->IsMessage())
+            {
+               theApp.GetSendImage(hover)->Blit(m_replybuffer.GetDC(),m_hotspots[i].m_spot);
+            }
+         }
+         break;
       case HST_PREVIEW:
          {
-            theApp.GetPreviewImage(hover)->Blit(hDC,m_hotspots[i].m_spot);
+            if(m_pReplyDlg != NULL &&
+               m_pReplyDlg->IsMessage())
+            {
+               theApp.GetPreviewImage(hover)->Blit(m_replybuffer.GetDC(),m_hotspots[i].m_spot);
+            }
+            else
+            {
+               theApp.GetPreviewImage(hover)->Blit(hDC,m_hotspots[i].m_spot);
+            }
          }
          break;
       case HST_UNPREVIEW:
          {
-            theApp.GetPreviewImage(!hover)->Blit(hDC,m_hotspots[i].m_spot);
+            if(m_pReplyDlg != NULL &&
+               m_pReplyDlg->IsMessage())
+            {
+               theApp.GetPreviewImage(!hover)->Blit(m_replybuffer.GetDC(),m_hotspots[i].m_spot);
+            }
+            else
+            {
+               theApp.GetPreviewImage(!hover)->Blit(hDC,m_hotspots[i].m_spot);
+            }
          }
          break;
       }
+   }
+
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->IsMessage())
+   {
+      SetWindowOrgEx(m_replybuffer.GetDC(),oldorg.x,oldorg.y,NULL);
    }
 }
 
@@ -1334,6 +1438,16 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
 
    ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
 
+   POINT oldorg;
+   /*
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->IsMessage())
+   {
+      RECT OriginalDeviceRectangle;
+      GetClientRect(&OriginalDeviceRectangle);
+      SetWindowOrgEx(m_replybuffer.GetDC(),0,OriginalDeviceRectangle.bottom - m_pReplyDlg->GetHeight(),&oldorg);
+   }
+   */
    bool bDrewNewMessagesTab = false;
    if(m_lasthotspot != NULL)
    {
@@ -1460,6 +1574,14 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                   m_backbuffer->Blit(hDC, m_hotspots[i].m_spot, false);
                }
                break;
+            case HST_MSG_INFO:
+               {
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_replybuffer.Blit(hDC, m_hotspots[i].m_spot, false, 0, -(DeviceRectangle.bottom - m_pReplyDlg->GetHeight()));
+                  }
+               }
+               break;
             case HST_PREV_PAGE:
             case HST_NEXT_PAGE:
             case HST_PAGE:
@@ -1512,6 +1634,11 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
             case HST_POST:
                {
                   theApp.GetPostImage(false)->Blit(hDC,m_hotspots[i].m_spot);
+               }
+               break;
+            case HST_SEND:
+               {
+                  theApp.GetSendImage(false)->Blit(hDC,m_hotspots[i].m_spot);
                }
                break;
             case HST_PREVIEW:
@@ -1629,7 +1756,7 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                   GetDocument()->DrawLOLField(hDC, LTT_WTF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
                }
                break;
-            case HST_BANNER_BACKGROUND:
+            case HST_NULL_BACKGROUND:
                {
                   /* 
                   do nothing.
@@ -1840,6 +1967,15 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                   m_whitebuffer.AlphaBlit(hDC, m_hotspots[i].m_spot, false, 32);
                }
                break;
+            case HST_MSG_INFO:
+               {
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_replybuffer.Blit(hDC, m_hotspots[i].m_spot, false, 0, -(DeviceRectangle.bottom - m_pReplyDlg->GetHeight()));
+                     m_whitereplybuffer.AlphaBlit(hDC, m_hotspots[i].m_spot, false, 32, 0, -(DeviceRectangle.bottom - m_pReplyDlg->GetHeight()));
+                  }
+               }
+               break;
             case HST_PREV_PAGE:
             case HST_NEXT_PAGE:
             case HST_PAGE:
@@ -1874,6 +2010,11 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
             case HST_POST:
                {
                   theApp.GetPostImage(true)->Blit(hDC,m_hotspots[i].m_spot);
+               }
+               break;
+            case HST_SEND:
+               {
+                  theApp.GetSendImage(true)->Blit(hDC,m_hotspots[i].m_spot);
                }
                break;
             case HST_PREVIEW:
@@ -1991,7 +2132,7 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                   GetDocument()->DrawLOLField(hDC, LTT_WTF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
                }
                break;
-            case HST_BANNER_BACKGROUND:
+            case HST_NULL_BACKGROUND:
                {
                   /* 
                   do nothing.
@@ -2020,7 +2161,13 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
    }
 
    ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
-
+   /*
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->IsMessage())
+   {
+      SetWindowOrgEx(m_replybuffer.GetDC(),oldorg.x,oldorg.y,NULL);
+   }
+   */
    return bDrewNewMessagesTab;
 }
 
@@ -2378,6 +2525,11 @@ void CLampView::UpdateHotspotPosition()
                theApp.SetStatusBarText(L"Change Login",this);
             }
             break;
+         case HST_MSG_INFO:
+            {
+               theApp.SetStatusBarText(L"Change Message Info",this);
+            }
+            break;
          case HST_PREVIEW:
             {
                theApp.SetStatusBarText(L"Preview Post with Shack Tags",this);
@@ -2412,6 +2564,11 @@ void CLampView::UpdateHotspotPosition()
          case HST_POST:
             {
                theApp.SetStatusBarText(L"Post",this);
+            }
+            break;
+         case HST_SEND:
+            {
+               theApp.SetStatusBarText(L"Send",this);
             }
             break;
          case HST_SPOILER:
@@ -2474,7 +2631,7 @@ void CLampView::UpdateHotspotPosition()
                }
             }
             break;
-          case HST_BANNER_BACKGROUND:
+          case HST_NULL_BACKGROUND:
             {
                /* 
                do nothing.
@@ -2827,9 +2984,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         break;
                      case HST_COMPOSE_MESSAGE:
                         {
-                           m_dlgup = true;
-                           theApp.SendMessageDlg(GetDocument(),UCString(),UCString(),UCString());
-                           m_dlgup = false;
+                           SendMessageDlg(GetDocument(),UCString(),UCString(),UCString());
                         }
                         break;
                      case HST_REFRESHSTORY:
@@ -2876,14 +3031,20 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               AuthorDlg adlg(this);
                               adlg.m_info = info;
                               adlg.m_author = author;
+                              if(m_pReplyDlg != NULL)
+                              {
+                                 adlg.m_bReplyIsUp = true;
+                              }
+                              else
+                              {
+                                 adlg.m_bReplyIsUp = false;
+                              }
                               m_dlgup = true;
                               adlg.DoModal();
                               m_dlgup = false;
                               if(adlg.m_bSendMessage)
                               {
-                                 m_dlgup = true;
-                                 theApp.SendMessageDlg(GetDocument(),author,UCString(),UCString());
-                                 m_dlgup = false;
+                                 SendMessageDlg(GetDocument(),author,UCString(),UCString());
                               }
                            }
                         }
@@ -2986,7 +3147,12 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               {
                                  UCString author = post->GetAuthor();
 
-                                 UCString subject = L"Re: ";
+                                 UCString subject;
+                                 const UCString &existingsubject = post->GetSubject();
+                                 if(existingsubject.beginswith(L"Re: ") == NULL)
+                                 {
+                                    subject = L"Re: ";
+                                 }
                                  subject += post->GetSubject();
 
                                  UCString shackmsg = L"\r\n/[On ";
@@ -3000,9 +3166,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                                  shackmsg += temp;
                                  shackmsg += L"]/";
 
-                                 m_dlgup = true;
-                                 theApp.SendMessageDlg(GetDocument(),author,subject,shackmsg);
-                                 m_dlgup = false;
+                                 SendMessageDlg(GetDocument(),author,subject,shackmsg);
                                  
                                  InvalidateEverything();
                               }
@@ -3016,7 +3180,12 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
                               if(post != NULL)
                               {
-                                 UCString subject = L"Fwd: ";
+                                 UCString subject;
+                                 const UCString &existingsubject = post->GetSubject();
+                                 if(existingsubject.beginswith(L"Fwd: ") == NULL)
+                                 {
+                                    subject = L"Fwd: ";
+                                 }
                                  subject += post->GetSubject();
 
                                  UCString shackmsg = L"\r\n/[On ";
@@ -3030,9 +3199,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                                  shackmsg += temp;
                                  shackmsg += L"]/";
 
-                                 m_dlgup = true;
-                                 theApp.SendMessageDlg(GetDocument(),UCString(),subject,shackmsg);
-                                 m_dlgup = false;
+                                 SendMessageDlg(GetDocument(),UCString(),subject,shackmsg);
                                  
                                  InvalidateEverything();
                               }
@@ -3281,7 +3448,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            }
                         }
                         break;
-                     case HST_BANNER_BACKGROUND:
+                     case HST_NULL_BACKGROUND:
                         {
                            /* 
                            do nothing.
@@ -4167,6 +4334,7 @@ BOOL CLampView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
             case HST_CLOSE_MESSAGE:
             case HST_CLOSEREPLY: 
             case HST_POST:
+            case HST_SEND:
             case HST_TAG_RED:
             case HST_TAG_GREEN:
             case HST_TAG_BLUE:
@@ -4184,6 +4352,7 @@ BOOL CLampView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
             case HST_TAG_SPOILER:
             case HST_TAG_CODE:
             case HST_POSTAS:
+            case HST_MSG_INFO:
             case HST_NEWTHREAD:
             case HST_COMPOSE_MESSAGE:
             case HST_REFRESHSTORY:
@@ -4223,7 +4392,7 @@ BOOL CLampView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
                   SetCursor(::LoadCursor(NULL, IDC_IBEAM));
                }
                break;
-            case HST_BANNER_BACKGROUND:
+            case HST_NULL_BACKGROUND:
             default:
                SetCursor(::LoadCursor(NULL, IDC_ARROW) );
                break;
@@ -5975,4 +6144,24 @@ void CLampView::OnUnloadAllImages()
 void CLampView::OnUpdateUnloadAllImages(CCmdUI *pCmdUI)
 {
    pCmdUI->Enable(TRUE);
+}
+
+void CLampView::SendMessageDlg(CLampDoc *pDoc, const UCString &to, const UCString &subject, const UCString &shackmsg)
+{
+   if(m_pReplyDlg == NULL &&
+      theApp.HaveLogin())
+   {
+      m_textselectionpost = 0;
+      m_selectionstart = 0;
+      m_selectionend = 0;
+      m_pReplyDlg = new CReplyDlg(this);
+      m_pReplyDlg->SetDoc(GetDocument());
+      m_pReplyDlg->SetReplyId(0);
+      m_pReplyDlg->SetIsMessage(true);
+      m_pReplyDlg->SetMessageTo(to);
+      m_pReplyDlg->SetMessageSubject(subject);
+      m_pReplyDlg->SetReplyText(shackmsg);
+
+      InvalidateEverything();
+   }   
 }

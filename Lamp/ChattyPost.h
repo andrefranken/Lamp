@@ -75,10 +75,12 @@ typedef enum
    HST_DELETE_MESSAGE,
    HST_COMPOSE_MESSAGE,
    HST_NEW_MESSAGES_NOTE,
-   HST_BANNER_BACKGROUND,
+   HST_NULL_BACKGROUND,
    HST_LIGHTNINGBOLT,
    HST_MOD_TOOL,
-   HST_MOD_TOOL_ITEM
+   HST_MOD_TOOL_ITEM,
+   HST_SEND,
+   HST_MSG_INFO
 
 }hotspottype;
 
@@ -461,7 +463,7 @@ public:
 
    void InvalidateSkin();
 
-   void DecodeShackTagsString(UCString &from);
+   void DecodeShackTagsString(UCString &from, bool bAllowCustomTags = false);
 
    void AddLolTag(loltagtype tag){m_mylols |= tag; UpdateLOLs();}
 
@@ -510,6 +512,9 @@ public:
    const UCString &GetSubject(){return m_subject;}
    const UCString &GetBodyText(){return m_bodytext;}
    const UCString &GetDateText(){return m_datetext;}
+
+   std::vector<shacktagpos> &GetShackTags(){return m_shacktags;}
+   int *GetMyCharWidths(){return m_pCharWidths;}
 
    void SetBodyText(const UCString &text){m_bodytext = text;}
 

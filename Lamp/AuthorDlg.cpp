@@ -46,6 +46,15 @@ BOOL AuthorDlg::OnInitDialog()
 
    SetWindowTextW(m_author);
 
+   if(m_bReplyIsUp)
+   {
+      CButton *pButton = (CButton*)GetDlgItem(ID_AUTHORDLG_MESSAGE_BUTTON);
+      if(pButton != NULL)
+      {
+         pButton->EnableWindow(0);
+      }
+   }
+
    CDialog::OnInitDialog();
 
    return TRUE;  // return TRUE unless you set the focus to a control

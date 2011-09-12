@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "ReplyDlg.h"
+#include "SendMsgDlg.h"
 
 
 // CReplyDlg dialog
@@ -41,6 +42,9 @@ CReplyDlg::CReplyDlg(CLampView *pView)
    m_widest_suggestion = 0;
    m_bPreviewMode = false;
    m_bDoubleClickDragging = false;
+   m_bIsMessage = false;
+   m_pmessage_info_charwidths = NULL;
+   m_message_info_dirty = true;
 
    if(theApp.GetPostBackground()->GetBitmap() != NULL)
    {
@@ -79,13 +83,19 @@ CReplyDlg::~CReplyDlg()
       m_pCharWidths = NULL;
    }
 
+   if(m_pmessage_info_charwidths != NULL)
+   {
+      free(m_pmessage_info_charwidths);
+      m_pmessage_info_charwidths = NULL;
+   }
+
    if(m_replyfont != NULL)
    {
       ::DeleteObject(m_replyfont);
    }
 }
 
-void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotspots, CPoint &mousepoint)
+void CReplyDlg::TweakHotspots(std::vector<CHotSpot> &hotspots)
 {
    // remove all hotspots that cannot be executed while the reply dialog is up
    std::vector<CHotSpot> newhotspots;
@@ -94,7 +104,7 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
       switch(hotspots[i].m_type)
       {
       case HST_CREATEREPLY:
-         if(hotspots[i].m_id == m_replytoid)
+         if(hotspots[i].m_id == m_replytoid || m_bIsMessage)
          {
             // don't keep it
          }
@@ -111,6 +121,10 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
       case HST_REFRESHSTORY:
       case HST_MOD_TOOL:
       case HST_MOD_TOOL_ITEM:
+      case HST_REPLY_TO_MESSAGE:
+      case HST_FORWARD_MESSAGE:
+      case HST_DELETE_MESSAGE:
+      case HST_COMPOSE_MESSAGE:
          // dissallow these
          break;
       default:
@@ -119,7 +133,10 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
       }
    }
    hotspots = newhotspots;
+}
 
+void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotspots, CPoint &mousepoint)
+{
    if(m_pos != m_gotopos)
    {
       if(theApp.GetSmoothScroll())
@@ -151,6 +168,14 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
       {
          m_pos = m_gotopos;
       }
+   }
+
+   if(m_bIsMessage)
+   {
+      m_replydlgrect.top = DeviceRectangle.bottom - m_height;
+      m_replydlgrect.bottom = DeviceRectangle.bottom;
+      m_replydlgrect.left = DeviceRectangle.left;
+      m_replydlgrect.right = DeviceRectangle.right;
    }
 
    if(m_replydlgrect.bottom < DeviceRectangle.top ||
@@ -186,28 +211,28 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
          temprect.left = m_replydlgrect.right - 20;
          m_pDoc->FillBackground(hDC,temprect);
 
-         ::RoundRect(hDC,m_replydlgrect.left, m_replydlgrect.top-1, m_replydlgrect.right, m_replydlgrect.bottom, 20, 20);
+         ::RoundRect(hDC,m_replydlgrect.left, m_replydlgrect.top, m_replydlgrect.right, m_replydlgrect.bottom, 20, 20);
          if(m_replytoid != 0)
          {
             HPEN newpen = ::CreatePen(PS_SOLID,0,theApp.GetPostNWSEdgeColor());
             HPEN oldpen = (HPEN)::SelectObject(hDC,newpen);
             // draw with a y-1 so that we overdraw teh post's bottom line with this one
-            ::MoveToEx(hDC,m_replydlgrect.left + 10,m_replydlgrect.top-1,NULL);
-            ::LineTo(hDC,m_replydlgrect.right - 10,m_replydlgrect.top-1);
+            ::MoveToEx(hDC,m_replydlgrect.left + 10,m_replydlgrect.top,NULL);
+            ::LineTo(hDC,m_replydlgrect.right - 10,m_replydlgrect.top);
             ::SelectObject(hDC,oldpen);
             ::DeleteObject(newpen);
          }
       }
       else
       {
-         ::Rectangle(hDC,m_replydlgrect.left, m_replydlgrect.top-1, m_replydlgrect.right, m_replydlgrect.bottom);
+         ::Rectangle(hDC,m_replydlgrect.left, m_replydlgrect.top, m_replydlgrect.right, m_replydlgrect.bottom);
          if(m_replytoid != 0)
          {
             HPEN newpen = ::CreatePen(PS_SOLID,0,theApp.GetPostNWSEdgeColor());
             HPEN oldpen = (HPEN)::SelectObject(hDC,newpen);
             // draw with a y-1 so that we overdraw teh post's bottom line with this one
-            ::MoveToEx(hDC,m_replydlgrect.left,m_replydlgrect.top-1,NULL);
-            ::LineTo(hDC,m_replydlgrect.right,m_replydlgrect.top-1);
+            ::MoveToEx(hDC,m_replydlgrect.left,m_replydlgrect.top,NULL);
+            ::LineTo(hDC,m_replydlgrect.right,m_replydlgrect.top);
             ::SelectObject(hDC,oldpen);
             ::DeleteObject(newpen);
          }
@@ -375,41 +400,71 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
          hotspots.push_back(hotspot);
       }
 
-      hotspot.m_type = HST_POST;
+      if(m_bIsMessage)
+      {
+         hotspot.m_type = HST_SEND;
+         hotspot.m_id = 0;
+      }
+      else
+      {
+         hotspot.m_type = HST_POST;
+         hotspot.m_id = m_replytoid;
+      }
+
       hotspot.m_spot.left = ((restrect.right + restrect.left) / 2) - 75;
       hotspot.m_spot.right = hotspot.m_spot.left + 150;
       hotspot.m_spot.top = restrect.bottom - 40 - 1;
       hotspot.m_spot.bottom = hotspot.m_spot.top + 30;
-      hotspot.m_id = m_replytoid;
       hotspots.push_back(hotspot);
 
-      hotspot.m_type = HST_POSTAS;
-      hotspot.m_spot.left = restrect.left + 20;
-      hotspot.m_spot.top = restrect.top + 12;
-      hotspot.m_spot.bottom = hotspot.m_spot.top + theApp.GetTextHeight();
-      hotspot.m_id = 0;
+      if(m_bIsMessage)
+      {
+         hotspot.m_type = HST_MSG_INFO;
+         hotspot.m_spot.left = restrect.left + 20;
+         hotspot.m_spot.top = restrect.top + 12;
+         hotspot.m_spot.bottom = hotspot.m_spot.top + theApp.GetTextHeight();
+         hotspot.m_id = 0;
+         hotspot.m_spot.right = (restrect.right - 20) + 1;
 
-      HFONT newfont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
-      HFONT oldfont = (HFONT)::SelectObject(hDC,newfont);
-      ::SetTextColor(hDC,theApp.GetMiscPostTextColor());
-      ::ExtTextOutW(hDC, restrect.left + 20, hotspot.m_spot.bottom, 0, NULL, L"As:", 3, NULL);
-      ::SelectObject(hDC,oldfont);
-      ::DeleteObject(newfont);
+         if(m_message_info_dirty)
+         {
+            SetupMessageInfo();
+         }
 
-      newfont = ::CreateFontW(theApp.GetFontHeight(),0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
-      oldfont = (HFONT)::SelectObject(hDC,newfont);
-      ::SetTextColor(hDC,theApp.GetMyPostColor());
-      ::ExtTextOutW(hDC, restrect.left + 20 + theApp.GetCellHeight(), hotspot.m_spot.bottom, 0, NULL, theApp.GetUsername(), theApp.GetUsername().Length(), NULL);
-      SIZE textsize;
-      ::GetTextExtentPoint32W(hDC,theApp.GetUsername(),theApp.GetUsername().Length(),&textsize);
-      ::SelectObject(hDC,oldfont);
-      ::DeleteObject(newfont);
-      
-      hotspot.m_spot.right = hotspot.m_spot.left + textsize.cx + theApp.GetCellHeight();
-      hotspots.push_back(hotspot);
+         bool clipped = false;
+         m_pDoc->DrawPreviewText(hDC,hotspot.m_spot,m_message_info_text,m_pmessage_info_charwidths,m_message_info_shacktags,10,clipped);
+
+         hotspots.push_back(hotspot);
+      }
+      else
+      {
+         hotspot.m_type = HST_POSTAS;
+         hotspot.m_spot.left = restrect.left + 20;
+         hotspot.m_spot.top = restrect.top + 12;
+         hotspot.m_spot.bottom = hotspot.m_spot.top + theApp.GetTextHeight();
+         hotspot.m_id = 0;
+
+         HFONT newfont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
+         HFONT oldfont = (HFONT)::SelectObject(hDC,newfont);
+         ::SetTextColor(hDC,theApp.GetMiscPostTextColor());
+         ::ExtTextOutW(hDC, restrect.left + 20, hotspot.m_spot.bottom, 0, NULL, L"As:", 3, NULL);
+         ::SelectObject(hDC,oldfont);
+         ::DeleteObject(newfont);
+
+         newfont = ::CreateFontW(theApp.GetFontHeight(),0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
+         oldfont = (HFONT)::SelectObject(hDC,newfont);
+         ::SetTextColor(hDC,theApp.GetMyPostColor());
+         ::ExtTextOutW(hDC, restrect.left + 20 + theApp.GetCellHeight(), hotspot.m_spot.bottom, 0, NULL, theApp.GetUsername(), theApp.GetUsername().Length(), NULL);
+         SIZE textsize;
+         ::GetTextExtentPoint32W(hDC,theApp.GetUsername(),theApp.GetUsername().Length(),&textsize);
+         ::SelectObject(hDC,oldfont);
+         ::DeleteObject(newfont);
+         
+         hotspot.m_spot.right = hotspot.m_spot.left + textsize.cx + theApp.GetCellHeight();
+         hotspots.push_back(hotspot);
+      }
 
       // finally, the text rect
-
       m_textrect.left = restrect.left + 20;
       m_textrect.right = (restrect.right - 20) + 1;
       m_textrect.top = restrect.top + 12 + theApp.GetCellHeight() + 8;
@@ -599,6 +654,16 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
             m_pView->InvalidateEverything();
          }
       }
+   }
+
+   if(m_bIsMessage)
+   {
+      CHotSpot hotspot;
+      hotspot.m_bAnim = false;
+      hotspot.m_type = HST_NULL_BACKGROUND;
+      hotspot.m_spot = m_replydlgrect;
+      hotspot.m_id = 0;
+      hotspots.push_back(hotspot);
    }
 
    if(m_pos != m_gotopos)
@@ -1248,6 +1313,64 @@ bool CReplyDlg::OnLButtonDown(UINT nFlags, CPoint point, bool &bCloseReplyDlg)
                      }
                   }
                   break;
+               case HST_SEND:
+                  {
+                     if(message_to.IsEmpty())
+                     {
+                        m_pView->MessageBox(L"Need a Recipient.");
+                     }
+                     else if(message_subject.IsEmpty())
+                     {
+                        m_pView->MessageBox(L"Need a Subject.");
+                     }
+                     else if(m_replytext.IsEmpty())
+                     {
+                        m_pView->MessageBox(L"Need a Message.");
+                     }
+                     else
+                     {
+                        std::vector<UCString> recipients;
+
+                        if(message_to.Find(L",") != NULL)
+                        {
+                           UCString recip;
+                           int tokenindex = 0;
+                           while(message_to.GetToken(recip,tokenindex,L','))
+                           {
+                              recipients.push_back(recip);
+                              tokenindex++;
+                           }
+                        }
+                        else if(message_to.Find(L";") != NULL)
+                        {
+                           UCString recip;
+                           int tokenindex = 0;
+                           while(message_to.GetToken(recip,tokenindex,L';'))
+                           {
+                              recipients.push_back(recip);
+                              tokenindex++;
+                           }
+                        }
+                        else
+                        {
+                           message_to.TrimWhitespace();
+                           recipients.push_back(message_to);
+                        }
+
+                        m_replytext.Replace(L"\r",L"");
+
+                        if(m_pDoc != NULL)
+                        {
+                           for(size_t i = 0; i < recipients.size(); i++)
+                           {
+                              m_pDoc->SendMessage(recipients[i], message_subject, m_replytext);
+                           }
+                        }
+
+                        bCloseReplyDlg = true;
+                     }
+                  }
+                  break;
                case HST_PREVIEW:
                   {
                      m_bPreviewMode = true;
@@ -1270,6 +1393,25 @@ bool CReplyDlg::OnLButtonDown(UINT nFlags, CPoint point, bool &bCloseReplyDlg)
                   {
                      theApp.Login();
                      m_pView->InvalidateEverything();
+                  }
+                  break;
+               case HST_MSG_INFO:
+                  {
+                     if(m_pView != NULL &&
+                        m_pDoc != NULL)
+                     {
+                        SendMsgDlg dlg(m_pView);
+
+                        dlg.m_to = message_to;
+                        dlg.m_subject = message_subject;
+                        dlg.m_pDoc = m_pDoc;
+                        if(dlg.DoModal() == IDOK)
+                        {
+                           message_to = dlg.m_to;
+                           message_subject = dlg.m_subject;
+                           m_message_info_dirty = true;
+                        }
+                     }
                   }
                   break;
                case HST_TAG_RED:
@@ -2469,3 +2611,115 @@ bool CReplyDlg::OnRButtonDown(UINT nFlags, CPoint point)
    }
    return bITookIt;
 }
+
+void CReplyDlg::SetupMessageInfo()
+{
+   if(m_message_info_dirty)
+   {
+      m_message_info_shacktags.clear();
+
+      if(m_pmessage_info_charwidths != NULL)
+      {
+         free(m_pmessage_info_charwidths);
+         m_pmessage_info_charwidths = NULL;
+      }
+
+      // s[b{To:}b]s b[n[watcherxp]n]b s[b{Subject:}b]s b[This is the subject.]b
+
+      // s[b{To:}b]s b[p[[empty]]p]b s[b{Subject:}b]s b[p[[empty]]p]b
+
+      m_message_info_text = L"s[b{To:}b]s b[";
+
+      if(message_to.IsEmpty())
+      {
+         m_message_info_text += L"y{[empty]}y";
+      }
+      else if(message_to.Find(L",") != NULL ||
+              message_to.Find(L";") != NULL)
+      {
+         // many to targets.
+         // use lime
+         m_message_info_text += L"l[";
+         m_message_info_text += message_to;
+         m_message_info_text += L"]l";
+      }
+      else
+      {
+         // individual
+         COLORREF color = theApp.GetUserColor(message_to);
+
+         if(message_to == theApp.GetUsername())
+         {
+            // blue, self
+            m_message_info_text += L"b{";
+            m_message_info_text += message_to;
+            m_message_info_text += L"}b";
+         }
+         else if(color == RGB(255,0,0))
+         {
+            // red, mod
+            m_message_info_text += L"r{";
+            m_message_info_text += message_to;
+            m_message_info_text += L"}r";
+         }
+         else if(color == RGB(0,255,0))
+         {
+            // green, shack employee
+            m_message_info_text += L"g{";
+            m_message_info_text += message_to;
+            m_message_info_text += L"}g";
+         }
+         else if(color == RGB(255,0,255))
+         {
+            // purple, game dev
+            m_message_info_text += L"p{";
+            m_message_info_text += message_to;
+            m_message_info_text += L"}p";
+         }
+         else
+         {
+            // orange, other
+            m_message_info_text += L"n[";
+            m_message_info_text += message_to;
+            m_message_info_text += L"]n";
+         }
+      }
+
+      //  s[b{Subject:}b]s b[This is the subject.]b
+
+      m_message_info_text += L"]b s[b{Subject:}b]s b[";
+      if(message_subject.IsEmpty())
+      {
+         m_message_info_text += L"y{[empty]}y";
+      }
+      else
+      {
+         m_message_info_text += message_subject;
+      }
+      m_message_info_text += L"]b";
+
+
+      // now get the tags
+      ChattyPost temppost;
+      temppost.SetDoc(m_pView->GetDocument());
+      temppost.DecodeShackTagsString(m_message_info_text,true);
+
+      m_message_info_text = temppost.GetBodyText();
+      m_message_info_shacktags = temppost.GetShackTags();
+
+      int numchars = m_message_info_text.Length();
+      if(numchars > 0)
+      {
+         int *pCharWidths = temppost.GetMyCharWidths();
+         m_pmessage_info_charwidths = (int*)malloc(sizeof(int) * numchars);
+         memcpy(m_pmessage_info_charwidths, pCharWidths, numchars * sizeof(int));
+      }
+
+      m_message_info_dirty = false;
+   }
+}
+
+
+
+
+

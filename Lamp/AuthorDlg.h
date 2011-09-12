@@ -14,6 +14,7 @@ public:
    UCString m_info;
    UCString m_author;
    bool m_bSendMessage;
+   bool m_bReplyIsUp;
 
 // Dialog Data
 	enum { IDD = IDD_AUTHOR_DIALOG };

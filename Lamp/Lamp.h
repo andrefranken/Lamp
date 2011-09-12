@@ -392,6 +392,18 @@ public:
       }
    }
 
+   CDCSurface *GetSendImage(bool bHover)
+   {
+      if(bHover)
+      {
+         return &m_send_hover;
+      }
+      else
+      {
+         return &m_send;
+      }
+   }
+
    CDCSurface *GetTagsImage(bool bHover)
    {
       if(bHover)
@@ -735,8 +747,6 @@ public:
    UCString &GetLastPost(){return m_lastpost;}
    void SetLastPost(const UCString &post){m_lastpost = post;}
 
-   void SendMessageDlg(CLampDoc *pDoc, const UCString &to, const UCString &subject, const UCString &shackmsg);
-
    void UpdateInbox();
 
    void CheckForUpdates();
@@ -968,6 +978,8 @@ protected:
    CDCSurface m_close_hover;
    CDCSurface m_post;
    CDCSurface m_post_hover;
+   CDCSurface m_send;
+   CDCSurface m_send_hover;
    CDCSurface m_tags;
    CDCSurface m_tags_hover;
    CDCSurface m_newthread;

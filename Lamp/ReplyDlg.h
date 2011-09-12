@@ -19,7 +19,17 @@ public:
 	CReplyDlg(CLampView *pView);
 	virtual ~CReplyDlg();
 
+   bool IsMessage(){return m_bIsMessage;}
+   void SetIsMessage(bool value){m_bIsMessage = value;}
+
+   UCString &GetMessageTo(){return message_to;}
+   void SetMessageTo(const UCString &value){message_to = value; m_message_info_dirty = true;}
+
+   UCString &GetMessageSubject(){return message_subject;}
+   void SetMessageSubject(const UCString &value){message_subject = value; m_message_info_dirty = true;}
+
    UCString &GetReplyText(){return m_replytext;}
+   void SetReplyText(const UCString &value){m_replytext = value;RecalcCharWidths();RecalcLines();}
    unsigned int GetReplyToId(){return m_replytoid;}
 
    void Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotspots, CPoint &mousepoint);
@@ -43,6 +53,7 @@ public:
    unsigned int GetReplyId(){return m_replytoid;}
 
    void SetDlgRect(RECT &dlgrect){m_replydlgrect = dlgrect;}
+   RECT &GetDlgRect(){return m_replydlgrect;}
 
    int GetHeight(){return m_height;}
 
@@ -144,6 +155,8 @@ public:
 
    bool LastCharWasTab(){return m_bLastCharWasTab;}
 
+   void TweakHotspots(std::vector<CHotSpot> &hotspots);
+
 protected:
    void RecalcCharWidths();
    void RecalcLines();
@@ -159,6 +172,8 @@ protected:
    }
 
    void CheckSpellingAndTags();
+
+   void SetupMessageInfo();
       
    CLampDoc *m_pDoc;
    unsigned int m_replytoid;
@@ -241,4 +256,14 @@ protected:
    bool m_bLastCharWasTab;
 
    ChattyPost m_previewhost;
+
+   bool m_bIsMessage;
+
+   UCString message_to;
+   UCString message_subject;
+
+   UCString                 m_message_info_text;
+   int                     *m_pmessage_info_charwidths;
+   std::vector<shacktagpos> m_message_info_shacktags;
+   bool                     m_message_info_dirty;
 };

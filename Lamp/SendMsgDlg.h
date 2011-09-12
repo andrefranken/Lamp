@@ -14,7 +14,6 @@ public:
 
    UCString m_to;
    UCString m_subject;
-   UCString m_shackmsg;
    CLampDoc *m_pDoc;
 
 // Dialog Data

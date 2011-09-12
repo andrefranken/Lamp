@@ -3892,7 +3892,7 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
 }
 
 
-void ChattyPost::DecodeShackTagsString(UCString &from)
+void ChattyPost::DecodeShackTagsString(UCString &from, bool bAllowCustomTags/* = false*/)
 {
    m_bodytext = L"";
    m_shacktags.clear();
@@ -3907,6 +3907,7 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
    int lime = 0;
    int orange = 0;
    int pink = 0;
+   int purple = 0;
    int quote = 0;
    int sample = 0;
    int strike = 0;
@@ -4021,6 +4022,16 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
          if(pink == 1)
          {
             m_shacktags.push_back(shacktagpos(ST_PINK,m_bodytext.Length()));
+         }
+         read+=2;
+      }
+      else if(bAllowCustomTags, _wcsnicmp(read,L"p{",2) == 0)
+      {
+         purple++;
+         tagstack.push_back(ST_PURPLE);
+         if(purple == 1)
+         {
+            m_shacktags.push_back(shacktagpos(ST_PURPLE,m_bodytext.Length()));
          }
          read+=2;
       }
@@ -4210,6 +4221,19 @@ void ChattyPost::DecodeShackTagsString(UCString &from)
          else if(pink == 0)
          {
             m_shacktags.push_back(shacktagpos(ST_PINK_END,m_bodytext.Length()));
+         }
+         read+=2;
+      }
+      else if(bAllowCustomTags, _wcsnicmp(read,L"}p",2) == 0)
+      {
+         purple--;
+         if(PopTag(tagstack, ST_PURPLE))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(purple == 0)
+         {
+            m_shacktags.push_back(shacktagpos(ST_PURPLE_END,m_bodytext.Length()));
          }
          read+=2;
       }

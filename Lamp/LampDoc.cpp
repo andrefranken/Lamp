@@ -3119,7 +3119,7 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
             //pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, true, false);
             pos += bannerheight;
 
-            if(m_pReplyDlg != NULL)
+            if(m_pReplyDlg != NULL && !m_pReplyDlg->IsMessage())
             {
                RECT replydlgrect;
                replydlgrect.left = DeviceRectangle.left + 20;
@@ -3466,7 +3466,7 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             }
          }
 
-         hotspot.m_type = HST_BANNER_BACKGROUND;
+         hotspot.m_type = HST_NULL_BACKGROUND;
          hotspot.m_spot = DeviceRectangle;
          hotspot.m_id = 0;
          hotspots.push_back(hotspot);
