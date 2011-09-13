@@ -266,7 +266,7 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
 
       bool bDrawTags = true;
 
-      if(restrect.right - restrect.left < 200)
+      if(m_bIsMessage || restrect.right - restrect.left < 200)
       {
          bDrawTags = false;
          restrect.right = m_replydlgrect.right;
@@ -1401,17 +1401,7 @@ bool CReplyDlg::OnLButtonDown(UINT nFlags, CPoint point, bool &bCloseReplyDlg)
                      if(m_pView != NULL &&
                         m_pDoc != NULL)
                      {
-                        SendMsgDlg dlg(m_pView);
-
-                        dlg.m_to = message_to;
-                        dlg.m_subject = message_subject;
-                        dlg.m_pDoc = m_pDoc;
-                        if(dlg.DoModal() == IDOK)
-                        {
-                           message_to = dlg.m_to;
-                           message_subject = dlg.m_subject;
-                           m_message_info_dirty = true;
-                        }
+                        PromptForMessageInfo();
                      }
                   }
                   break;
@@ -2722,5 +2712,17 @@ void CReplyDlg::SetupMessageInfo()
 
 
 
+void CReplyDlg::PromptForMessageInfo()
+{
+   SendMsgDlg dlg(m_pView);
 
-
+   dlg.m_to = message_to;
+   dlg.m_subject = message_subject;
+   dlg.m_pDoc = m_pDoc;
+   if(dlg.DoModal() == IDOK)
+   {
+      message_to = dlg.m_to;
+      message_subject = dlg.m_subject;
+      m_message_info_dirty = true;
+   }
+}

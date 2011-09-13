@@ -95,6 +95,7 @@ public:
 
    void SendMessageDlg(CLampDoc *pDoc, const UCString &to, const UCString &subject, const UCString &shackmsg);
       
+   void MakeCurrentPostLegal(bool bTopOnly = false, bool bKeepInSameLocation = false, int y = 0, bool bInstant = false);
 
 protected:
    void DrawHotSpots(HDC hDC);
@@ -108,8 +109,7 @@ protected:
    void CancelInertiaPanning();
    void TrackMouse(CPoint &point);
    void UpdateCurrentIdAsRoot(unsigned int id);
-   
-   void MakeCurrentPostLegal(bool bTopOnly = false, bool bKeepInSameLocation = false, int y = 0, bool bInstant = false);
+      
    void MakePosLegal();
    CDCSurface *m_backbuffer;
    CDCSurface m_backbuffer1;

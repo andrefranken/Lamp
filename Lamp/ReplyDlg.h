@@ -157,6 +157,8 @@ public:
 
    void TweakHotspots(std::vector<CHotSpot> &hotspots);
 
+   void PromptForMessageInfo();
+
 protected:
    void RecalcCharWidths();
    void RecalcLines();

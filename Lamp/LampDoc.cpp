@@ -734,6 +734,7 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                            m_pView != NULL)
                         {
                            m_pView->SetCurrentId(new_id);
+                           m_pView->MakeCurrentPostLegal();
                            bGotIt = true;
                         }
                      }

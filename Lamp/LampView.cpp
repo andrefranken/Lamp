@@ -1438,16 +1438,6 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
 
    ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
 
-   POINT oldorg;
-   /*
-   if(m_pReplyDlg != NULL &&
-      m_pReplyDlg->IsMessage())
-   {
-      RECT OriginalDeviceRectangle;
-      GetClientRect(&OriginalDeviceRectangle);
-      SetWindowOrgEx(m_replybuffer.GetDC(),0,OriginalDeviceRectangle.bottom - m_pReplyDlg->GetHeight(),&oldorg);
-   }
-   */
    bool bDrewNewMessagesTab = false;
    if(m_lasthotspot != NULL)
    {
@@ -2161,13 +2151,7 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
    }
 
    ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
-   /*
-   if(m_pReplyDlg != NULL &&
-      m_pReplyDlg->IsMessage())
-   {
-      SetWindowOrgEx(m_replybuffer.GetDC(),oldorg.x,oldorg.y,NULL);
-   }
-   */
+
    return bDrewNewMessagesTab;
 }
 
@@ -2242,7 +2226,7 @@ void CLampView::MakePosLegal()
       !GetDocument()->IsFetchingNextPage())
    {
       if(m_gotopos > 0 && 
-         GetDocument()->GetHeight() - m_gotopos < (2 * (DeviceRectangle.bottom - DeviceRectangle.top) ))
+         GetDocument()->GetHeight() - m_gotopos < (3 * (DeviceRectangle.bottom - DeviceRectangle.top) ))
       {
          GetDocument()->FetchNextPage();
          m_bTrackingThumb = false;
@@ -3202,6 +3186,11 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                                  SendMessageDlg(GetDocument(),UCString(),subject,shackmsg);
                                  
                                  InvalidateEverything();
+
+                                 if(m_pReplyDlg != NULL)
+                                 {
+                                    m_pReplyDlg->PromptForMessageInfo();
+                                 }
                               }
                            }
                         }
