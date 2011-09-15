@@ -266,6 +266,8 @@ public:
    afx_msg void OnUpdateHideCollapsedThreads(CCmdUI *pCmdUI);
    afx_msg void OnInfinatePaging();
    afx_msg void OnUpdateInfinatePaging(CCmdUI *pCmdUI);
+   afx_msg void OnGotoNewPost();
+   afx_msg void OnUpdateGotoNewPost(CCmdUI *pCmdUI);
    afx_msg void OnClearAllPinnings();
    afx_msg void OnUpdateClearAllPinnings(CCmdUI *pCmdUI);
    afx_msg void OnDoublePageStory();

@@ -824,6 +824,7 @@ CLampApp::CLampApp()
    m_bHideCollapsedPosts = false;
    m_bAlwaysOnTopWhenNotDocked = false;
    m_bInfinatePaging = false;
+   m_bGotoNewPost = true;
 
    m_normal_fontname = L"Arial";
    m_quoted_fontname = L"Times New Roman";
@@ -1566,10 +1567,14 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"HideCollapsedPosts");
    if(setting!=NULL) m_bHideCollapsedPosts = setting->GetValue();
    else m_bHideCollapsedPosts = false;
-
+   
    setting = hostxml.FindChildElement(L"InfinatePaging");
    if(setting!=NULL) m_bInfinatePaging = setting->GetValue();
    else m_bInfinatePaging = false;
+
+   setting = hostxml.FindChildElement(L"GotoNewPost");
+   if(setting!=NULL) m_bGotoNewPost = setting->GetValue();
+   else m_bGotoNewPost = true;
 
    setting = hostxml.FindChildElement(L"FlaredBranches");
    if(setting!=NULL) m_bFlaredBranches = setting->GetValue();
@@ -1960,6 +1965,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"SmallLOLButtons",UCString(m_bShowSmallLOL));
    settingsxml.AddChildElement(L"HideCollapsedPosts",UCString(m_bHideCollapsedPosts));
    settingsxml.AddChildElement(L"InfinatePaging",UCString(m_bInfinatePaging));
+   settingsxml.AddChildElement(L"GotoNewPost",UCString(m_bGotoNewPost));
    settingsxml.AddChildElement(L"FlaredBranches",UCString(m_bFlaredBranches));
    settingsxml.AddChildElement(L"AlternatePostKeys",UCString(m_bAlternatePostKeys));
    settingsxml.AddChildElement(L"LoadImagesInLamp",UCString(m_bLoadImagesInLamp));

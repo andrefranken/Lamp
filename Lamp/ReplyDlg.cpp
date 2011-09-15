@@ -1630,7 +1630,7 @@ bool CReplyDlg::OnLButtonDblClk(UINT nFlags, CPoint point)
    return bITookIt;
 }
 
-void CReplyDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+void CReplyDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags, bool &bCloseReplyDlg)
 {
    if(!m_bPreviewMode)
    {
@@ -1735,13 +1735,74 @@ void CReplyDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             {
                m_bLastCharWasTab = false;
 
-               if(m_replytext.Length() < 5)
+               if(m_bIsMessage)
                {
-                  m_pView->MessageBox(L"Please post something with more than 5 characters.");
+                  if(message_to.IsEmpty())
+                  {
+                     m_pView->MessageBox(L"Need a name to send it to.");
+                  }
+                  else if(m_replytext.IsEmpty())
+                  {
+                     m_pView->MessageBox(L"Need a Message.");
+                  }
+                  else
+                  {
+                     std::vector<UCString> recipients;
+
+                     if(message_to.Find(L",") != NULL)
+                     {
+                        UCString recip;
+                        int tokenindex = 0;
+                        while(message_to.GetToken(recip,tokenindex,L','))
+                        {
+                           recipients.push_back(recip);
+                           tokenindex++;
+                        }
+                     }
+                     else if(message_to.Find(L";") != NULL)
+                     {
+                        UCString recip;
+                        int tokenindex = 0;
+                        while(message_to.GetToken(recip,tokenindex,L';'))
+                        {
+                           recipients.push_back(recip);
+                           tokenindex++;
+                        }
+                     }
+                     else
+                     {
+                        message_to.TrimWhitespace();
+                        recipients.push_back(message_to);
+                     }
+
+                     if(message_subject.IsEmpty())
+                     {
+                        message_subject = L"<no subject>";
+                     }
+
+                     m_replytext.Replace(L"\r",L"");
+
+                     if(m_pDoc != NULL)
+                     {
+                        for(size_t i = 0; i < recipients.size(); i++)
+                        {
+                           m_pDoc->SendMessage(recipients[i], message_subject, m_replytext);
+                        }                                                     
+                     }
+
+                     bCloseReplyDlg = true;
+                  }
                }
                else
                {
-                  m_pView->GetDocument()->PostReply(m_replytext, m_replytoid);
+                  if(m_replytext.Length() < 5)
+                  {
+                     m_pView->MessageBox(L"Please post something with more than 5 characters.");
+                  }
+                  else
+                  {
+                     m_pView->GetDocument()->PostReply(m_replytext, m_replytoid);
+                  }
                }
             }
             else

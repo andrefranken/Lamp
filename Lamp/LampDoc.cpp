@@ -692,7 +692,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                }
             }
 
-            if(pDD->reply_to_id != 0)
+            if(pDD->reply_to_id != 0 &&
+               theApp.GotoNewPost())
             {
                bool bGotIt = false;
                // check to see if there is a new post by me on there.

@@ -43,7 +43,7 @@ public:
    bool OnLButtonDblClk(UINT nFlags, CPoint point);
    bool OnRButtonDown(UINT nFlags, CPoint point);
    bool OnMouseMove(UINT nFlags, CPoint point);
-   void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
+   void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags, bool &bCloseReplyDlg);
    void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 
    void SelectAll(){m_caretanchor = 0;m_caretpos = m_replytext.Length();}

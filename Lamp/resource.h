@@ -143,6 +143,7 @@
 #define ID_VIEW_SHOWIMAGETHUMBS         32860
 #define ID_DONTAUTOLOADNWSTHUMBS        32861
 #define ID_SKIN_WORKSAFE                32862
+#define ID_GOTONEWPOST                  32863
 
 #define ID_BOOKMARK_MENUITEM            32880
 
@@ -151,7 +152,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        328
-#define _APS_NEXT_COMMAND_VALUE         32863
+#define _APS_NEXT_COMMAND_VALUE         32864
 #define _APS_NEXT_CONTROL_VALUE         1020
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

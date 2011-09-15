@@ -83,6 +83,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_HIDE_COLLAPSED_POSTS, &CLampView::OnUpdateHideCollapsedThreads)
    ON_COMMAND(ID_INFINATE_PAGING, &CLampView::OnInfinatePaging)
    ON_UPDATE_COMMAND_UI(ID_INFINATE_PAGING, &CLampView::OnUpdateInfinatePaging)
+   ON_COMMAND(ID_GOTONEWPOST, &CLampView::OnGotoNewPost)
+   ON_UPDATE_COMMAND_UI(ID_GOTONEWPOST, &CLampView::OnUpdateGotoNewPost)
    ON_COMMAND(ID_CLEAR_ALL_PINNINGS_MENUITEM, &CLampView::OnClearAllPinnings)
    ON_UPDATE_COMMAND_UI(ID_CLEAR_ALL_PINNINGS_MENUITEM, &CLampView::OnUpdateClearAllPinnings)
    ON_COMMAND(ID_DOUBLE_PAGE_STORY_MENUITEM, &CLampView::OnDoublePageStory)
@@ -1391,6 +1393,11 @@ void CLampView::DrawHotSpots(HDC hDC)
             if(m_pReplyDlg != NULL &&
                m_pReplyDlg->IsMessage())
             {
+               if(m_pReplyDlg->GetHasFocus() &&
+                  m_pReplyDlg->LastCharWasTab())
+               {
+                  hover = true;
+               }
                theApp.GetSendImage(hover)->Blit(m_replybuffer.GetDC(),m_hotspots[i].m_spot);
             }
          }
@@ -4012,7 +4019,15 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
       else if(m_pReplyDlg != NULL &&
               m_pReplyDlg->GetHasFocus())
       {
-         m_pReplyDlg->OnKeyDown(nChar, nRepCnt, nFlags);
+         bool bCloseReplyDlg = false;
+         
+         m_pReplyDlg->OnKeyDown(nChar, nRepCnt, nFlags, bCloseReplyDlg);
+
+         if(bCloseReplyDlg)
+         {
+            CloseReplyDialog();
+         }
+
          InvalidateEverything();
       }
       else
@@ -5181,6 +5196,34 @@ void CLampView::OnUpdateInfinatePaging(CCmdUI *pCmdUI)
       pCmdUI->Enable(FALSE);
    }
 }
+
+void CLampView::OnGotoNewPost()
+{
+   theApp.SetGotoNewPost(!theApp.GotoNewPost());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateGotoNewPost(CCmdUI *pCmdUI)
+{
+   if(theApp.UseShack())
+   {
+      pCmdUI->Enable(TRUE);
+
+      if(theApp.GotoNewPost())
+      {
+         pCmdUI->SetCheck(TRUE);
+      }
+      else
+      {
+         pCmdUI->SetCheck(FALSE);
+      }
+   }
+   else
+   {
+      pCmdUI->Enable(FALSE);
+   }
+}
+
 
 void CLampView::OnClearAllPinnings()
 {
