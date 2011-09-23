@@ -342,8 +342,6 @@ void ChattyPost::ReadRootChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_itera
                if(body.length() > 0)
                {
                   body_temp.AppendEncodedString((const char *)body.data(),body.length(),CET_UTF8);
-                  body_temp.ReplaceAll(0x02C2,L'<');
-                  body_temp.ReplaceAll(0x02C3,L'>');
                }
             }
          }
@@ -408,6 +406,8 @@ void ChattyPost::ReadRootChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_itera
    m_bodytext = L"";
    m_shacktags.clear();
    DecodeString(body_temp,m_bodytext,m_shacktags);
+   m_bodytext.ReplaceAll(0x02C2,L'<');
+   m_bodytext.ReplaceAll(0x02C3,L'>');
    //m_bodytext.MakeNormal();
    SetupCharWidths();
    m_lines_of_text.clear();
@@ -479,8 +479,6 @@ void ChattyPost::ReadPostPreviewChattyFromHTML(tree<htmlcxx::HTML::Node>::siblin
                if(body_preview.length() > 0)
                {
                   body_temp.AppendEncodedString((const char *)body_preview.data(),body_preview.length(),CET_UTF8);
-                  body_temp.ReplaceAll(0x02C2,L'<');
-                  body_temp.ReplaceAll(0x02C3,L'>');
                   body_temp.Replace(L"\r\n",L" ");
                }
             }
@@ -567,6 +565,8 @@ void ChattyPost::ReadPostPreviewChattyFromHTML(tree<htmlcxx::HTML::Node>::siblin
       m_bodytext = L"";
       m_shacktags.clear();
       DecodeString(body_temp,m_bodytext,m_shacktags);
+      m_bodytext.ReplaceAll(0x02C2,L'<');
+      m_bodytext.ReplaceAll(0x02C3,L'>');
       //m_bodytext.MakeNormal();
       SetupCharWidths();
       m_lines_of_text.clear();
@@ -656,8 +656,6 @@ void ChattyPost::ReadKnownPostChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_
          if(body.length() > 0)
          {
             body_temp.AppendEncodedString((const char *)body.data(),body.length(),CET_UTF8);
-            body_temp.ReplaceAll(0x02C2,L'<');
-            body_temp.ReplaceAll(0x02C3,L'>');
          }
       }
    }
@@ -665,6 +663,8 @@ void ChattyPost::ReadKnownPostChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_
    m_bodytext = L"";
    m_shacktags.clear();
    DecodeString(body_temp,m_bodytext,m_shacktags);
+   m_bodytext.ReplaceAll(0x02C2,L'<');
+   m_bodytext.ReplaceAll(0x02C3,L'>');
 }
 
 void ChattyPost::ReadSearchResultFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &result_it, CLampDoc *pDoc)
@@ -674,26 +674,29 @@ void ChattyPost::ReadSearchResultFromHTML(tree<htmlcxx::HTML::Node>::sibling_ite
    UCString body;
 
    tree<htmlcxx::HTML::Node>::sibling_iterator it;
-   if(HTML_FindChild(result_it,it,"p"))
-   {
+   //if(HTML_FindChild(result_it,it,"p"))
+   //{
       tree<htmlcxx::HTML::Node>::sibling_iterator author_it;
-      if(HTML_FindChild_HasAttribute(it,author_it,"span","class","chatty-author"))
+      if(HTML_FindChild_HasAttribute(result_it,author_it,"span","class","chatty-author"))
       {
-         std::string value;
-         HTML_GetValue(author_it, value);
-         if(value.length() > 0)
+         if(HTML_FindChild_HasAttribute(author_it,author_it,"a","class","more"))
          {
-            m_author = (const char*)value.data();
-            m_author.TrimWhitespace();
-            if(m_author[m_author.Length()-1] == L':')
-               m_author.TrimEnd(1);
-            RemoveSomeTags(m_author);
-            UpdateAuthorColor();
+            std::string value;
+            HTML_GetValue(author_it, value);
+            if(value.length() > 0)
+            {
+               m_author = (const char*)value.data();
+               m_author.TrimWhitespace();
+               if(m_author[m_author.Length()-1] == L':')
+                  m_author.TrimEnd(1);
+               RemoveSomeTags(m_author);
+               UpdateAuthorColor();
+            }
          }
       }
 
       tree<htmlcxx::HTML::Node>::sibling_iterator body_it;
-      if(HTML_FindChild(it,body_it,"a"))
+      if(HTML_FindChild(result_it,body_it,"a"))
       {
          m_id = HTML_GetIDAttribute(body_it,"href");
 
@@ -711,15 +714,15 @@ void ChattyPost::ReadSearchResultFromHTML(tree<htmlcxx::HTML::Node>::sibling_ite
                body.Replace(L"&apos;",L"\'",false);
                body.Replace(L"&lt;",L"<",false);
                body.Replace(L"&gt;",L">",false);
-
-               body.ReplaceAll(0x02C2,L'<');
-               body.ReplaceAll(0x02C3,L'>');
             }
          }
       }
 
+      // <span class="postdate">Posted Sep 19, 2011 11:08am PDT</span>
+
       tree<htmlcxx::HTML::Node>::sibling_iterator date_it;
-      if(HTML_FindChild_HasAttribute(it,date_it,"span","class","chatty-posted"))
+      //if(HTML_FindChild_HasAttribute(result_it,date_it,"span","class","chatty-posted"))
+      if(HTML_FindChild_HasAttribute(result_it,date_it,"span","class","postdate"))
       {
          std::string value;
          HTML_GetValue(date_it, value);
@@ -736,11 +739,13 @@ void ChattyPost::ReadSearchResultFromHTML(tree<htmlcxx::HTML::Node>::sibling_ite
             UpdateDate();
          }
       }
-   }
+   //}
    
    m_bodytext = L"";
 
    DecodeShackTagsString(body);
+   m_bodytext.ReplaceAll(0x02C2,L'<');
+   m_bodytext.ReplaceAll(0x02C3,L'>');
 
    SetupCharWidths();
    m_lines_of_text.clear();
@@ -812,8 +817,6 @@ void ChattyPost::ReadMessageFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator
             body.Replace(L"<br>",L"\n");
             body.Replace(L"<p>",L"");
             body.Replace(L"</p>",L"");
-            body.ReplaceAll(0x02C2,L'<');
-            body.ReplaceAll(0x02C3,L'>');
 
             // find links and use the link shacktag l{...}l
             const UCChar *start = body.Str();
@@ -884,6 +887,8 @@ void ChattyPost::ReadMessageFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator
    m_shacktags.clear();
    //DecodeString(body,m_bodytext,m_shacktags);
    DecodeShackTagsString(body);
+   m_bodytext.ReplaceAll(0x02C2,L'<');
+   m_bodytext.ReplaceAll(0x02C3,L'>');
 
    //m_bodytext.MakeNormal();
    SetupCharWidths();
@@ -1051,11 +1056,11 @@ void ChattyPost::Read(CXMLElement *pElement, CLampDoc *pDoc, bool bDoingNewFlags
       if(pBody != NULL)
       {
          UCString &temp = pBody->GetValue();
-         temp.ReplaceAll(0x02C2,L'<');
-         temp.ReplaceAll(0x02C3,L'>');
          m_bodytext = L"";
          m_shacktags.clear();
          DecodeString(temp,m_bodytext,m_shacktags);
+         m_bodytext.ReplaceAll(0x02C2,L'<');
+         m_bodytext.ReplaceAll(0x02C3,L'>');
          //m_bodytext.MakeNormal();
          SetupCharWidths();
          m_lines_of_text.clear();
@@ -1268,12 +1273,12 @@ void ChattyPost::ReadShackMessage(CXMLElement *pElement, CLampDoc *pDoc, bool bI
       body.Replace(L"<br>",L"<br/>");
       body.Replace(L"<p>",L"");
       body.Replace(L"</p>",L"");
-      body.ReplaceAll(0x02C2,L'<');
-      body.ReplaceAll(0x02C3,L'>');
-      
+            
       m_bodytext = L"";
       m_shacktags.clear();
       DecodeString(body,m_bodytext,m_shacktags);
+      m_bodytext.ReplaceAll(0x02C2,L'<');
+      m_bodytext.ReplaceAll(0x02C3,L'>');
       //m_bodytext.MakeNormal();
       SetupCharWidths();
       m_lines_of_text.clear();

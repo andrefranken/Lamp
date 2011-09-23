@@ -2939,7 +2939,6 @@ void CLampApp::OpenShackLink(const UCString &shackpath)
                     NULL,
                     NULL,
                     SW_SHOW);
-   
    }
 }
 

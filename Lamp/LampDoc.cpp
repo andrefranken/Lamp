@@ -1077,8 +1077,11 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
 
                            while(sit != send)
                            {
+                              std::string attribute_value_remainder;
+
                               if(sit->tagName() == "li" &&
-                                 HTML_HasAttribute(sit, "class", "result chatty"))
+                                 //HTML_HasAttribute(sit, "class", "result chatty"))
+                                 HTML_StartsWithAttribute(sit, "class", "result chatty", &attribute_value_remainder))
                               {
                                  ChattyPost *post = new ChattyPost();
                                  if(post != NULL)
@@ -1770,6 +1773,16 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
          while(work < end && *work != L'&'){m_search_terms += *work;work++;}
          m_search_terms.ReplaceAll(L'+',L' ');
       }
+      else
+      {
+         work = wcsstr(start, L"q=");
+         if(work != NULL)
+         {
+            work += 2;
+            while(work < end && *work != L'&'){m_search_terms += *work;work++;}
+            m_search_terms.ReplaceAll(L'+',L' ');
+         }
+      }
 
       work = wcsstr(start, L"chatty_user=");
       if(work != NULL)
@@ -2307,6 +2320,7 @@ void CLampDoc::DeleteShackMessage(unsigned int id)
 {
    if(theApp.UseShack())
    {
+      /*
       UCString path = L"/messages/delete";
 
       UCString postdata = L"mid=";
@@ -2320,6 +2334,22 @@ void CLampDoc::DeleteShackMessage(unsigned int id)
       {
          postdata += L"&type=sent";
       }
+      */
+
+      // /messages/action?messages%5B%5D=1603104&page_type=inbox 
+
+      UCString path = L"/messages/action?messages%5B%5D=";
+
+      path += id;
+
+      if(m_shackmsgtype == SMT_INBOX)
+      {
+         path += L"&page_type=inbox";
+      }
+      else
+      {
+         path += L"&page_type=sent";
+      }
 
       StartDownload(L"www.shacknews.com",
                     path,
@@ -2327,7 +2357,7 @@ void CLampDoc::DeleteShackMessage(unsigned int id)
                     0,
                     0,
                     0,
-                    postdata,
+                    0,
                     theApp.GetUsername(),
                     theApp.GetPassword());
    }
