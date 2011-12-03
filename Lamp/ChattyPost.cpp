@@ -1910,7 +1910,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
 {
    if(m_pDoc != NULL)
    {
-      if(m_bPageBreak)
+      if(m_bJustText)
       {
          m_pos = pos;
          RECT myrect = DeviceRectangle;
@@ -6583,10 +6583,30 @@ void ChattyPost::EstablishTags(std::map<unsigned int,std::vector<shacktagpos>> &
    }
 }
 
+void ChattyPost::SetAsText(const UCChar *text)
+{
+   m_bJustText = true;
+   
+   m_subject = text;
+
+   if(!m_subject.IsEmpty())
+   {
+      m_pSubjectCharWidths = (int*)malloc(sizeof(int) * m_subject.Length());
+
+      GetCharWidths(m_subject, m_pSubjectCharWidths, m_subject.Length(), false, false, false, theApp.GetNormalFontName());
+
+      m_subjectwidth = 0;
+      for(int i = 0; i < m_subject.Length(); i++)
+      {
+         m_subjectwidth += m_pSubjectCharWidths[i];
+      }      
+   }
+}
+
 
 void ChattyPost::SetAsPageBreak(size_t page)
 {
-   m_bPageBreak = true;
+   m_bJustText = true;
    
    m_subject = (UCChar)0x02C5;
    m_subject += (UCChar)0x02C5;
@@ -6672,4 +6692,31 @@ bool ChattyPost::IsNWSPost()
    }
 
    return false;
+}
+
+CReplyDlg *ChattyPost::FindReplyDlgInPostRecurse(unsigned int &who_id)
+{
+   CReplyDlg *result = NULL;
+
+   if(m_pReplyDlg != NULL)
+   {
+      result = m_pReplyDlg;
+      who_id = m_id;
+   }
+
+   if(result == NULL)
+   {
+      std::list<ChattyPost*>::iterator it = m_children.begin();
+      std::list<ChattyPost*>::iterator end = m_children.end();
+      while(it != end && result == NULL)
+      {
+         if((*it) != NULL)
+         {
+            result = (*it)->FindReplyDlgInPostRecurse(who_id);
+         }
+         it++;
+      }
+   }
+
+   return result;
 }

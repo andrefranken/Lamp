@@ -353,7 +353,7 @@ public:
       m_bHaveLOLPreview = false;
       m_bIsMe = false;
       m_bIsPreview = false;
-      m_bPageBreak = false;
+      m_bJustText = false;
       m_subjectwidth = 0;
       memset(&m_tm_posttime,0,sizeof(tm));
       m_lightningbolt = false;
@@ -367,7 +367,7 @@ public:
 
    bool IsPreview(){return m_bIsPreview;}
 
-   bool IsPageBreak(){return m_bPageBreak;}
+   bool IsJustText(){return m_bJustText;}
 
    void SetNewness(newness value){m_Newness = value;}
    void BumpNewnessDown(){if(m_Newness == N_NEW)m_Newness = N_LAST;else if(m_Newness == N_LAST)m_Newness = N_OLD;}
@@ -528,9 +528,13 @@ public:
 
    void SetAsPageBreak(size_t page);
 
+   void SetAsText(const UCChar *text);
+
    void InvalidateContentLayout(){m_lasttextrectwidth = 0;}
 
    bool IsNWSPost();
+
+   CReplyDlg *FindReplyDlgInPostRecurse(unsigned int &who_id);
 
 protected:
    void SetupCharWidths();
@@ -625,7 +629,7 @@ protected:
 
    tm                      m_tm_posttime;
 
-   bool                    m_bPageBreak;
+   bool                    m_bJustText;
 
    int                     m_subjectwidth;
 

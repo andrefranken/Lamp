@@ -114,11 +114,11 @@ void CReplyDlg::TweakHotspots(std::vector<CHotSpot> &hotspots)
          }
          break;
       case HST_NEWTHREAD:
-      case HST_PREV_PAGE:
-      case HST_NEXT_PAGE:
-      case HST_PAGE:
+      //case HST_PREV_PAGE:
+      //case HST_NEXT_PAGE:
+      //case HST_PAGE:
       case HST_COLLAPSEPOST:
-      case HST_REFRESHSTORY:
+      //case HST_REFRESHSTORY:
       case HST_MOD_TOOL:
       case HST_MOD_TOOL_ITEM:
       case HST_REPLY_TO_MESSAGE:

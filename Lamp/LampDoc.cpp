@@ -653,12 +653,16 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
          break;
       case DT_SHACK_THREAD:
          {
+            unsigned int whohasreplydlg_id = 0;
+            CReplyDlg *pReplyDlg = NULL;
             std::vector<unsigned int> existing_threads;
 
             ChattyPost *post = FindRootPost(pDD->m_id);
             if(post != NULL)
             {
                existing_threads.push_back(pDD->m_id);
+
+               pReplyDlg = post->FindReplyDlgInPostRecurse(whohasreplydlg_id);
             }
 
             // scrape HTML
@@ -678,6 +682,16 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                }
 
                MySetTitle(m_title);
+            }
+
+            if(whohasreplydlg_id != 0 &&
+               pReplyDlg != NULL)
+            {
+               ChattyPost *post = FindPost(whohasreplydlg_id);
+               if(post != NULL)
+               {
+                  post->SetReplyDlg(pReplyDlg);
+               }
             }
             
             if(m_pView != NULL)
@@ -1069,6 +1083,19 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                   {
                      if(HTML_FindChild_HasAttribute(it,it, "div", "id", "main"))
                      {
+                        tree<htmlcxx::HTML::Node>::sibling_iterator count_it;
+                        if(HTML_FindChild_HasAttribute(it,count_it, "h2", "class", "search-num-found"))
+                        {
+                           std::string str;
+                           HTML_GetValue(count_it,str);
+
+                           ChattyPost *resultcountpost = new ChattyPost();
+                           resultcountpost->SetDoc(this);
+                           m_rootposts.push_back(resultcountpost);
+
+                           resultcountpost->SetAsText(UCString(str.data()));
+                        }
+
                         tree<htmlcxx::HTML::Node>::sibling_iterator results_it;
                         if(HTML_FindChild_HasAttribute(it,results_it, "ul", "class", "results"))
                         {
@@ -1083,11 +1110,27 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                                  //HTML_HasAttribute(sit, "class", "result chatty"))
                                  HTML_StartsWithAttribute(sit, "class", "result chatty", &attribute_value_remainder))
                               {
-                                 ChattyPost *post = new ChattyPost();
-                                 if(post != NULL)
+                                 bool bReal = true;
+                                 tree<htmlcxx::HTML::Node>::sibling_iterator dummy_it;
+                                 if(HTML_FindChild_HasAttribute(sit,dummy_it, "p", "class", "none"))
                                  {
-                                    m_rootposts.push_back(post);
-                                    post->ReadSearchResultFromHTML(sit,this);
+                                    std::string str;
+                                    HTML_GetValue(dummy_it,str);
+                                    if(str == "No chat messages found")
+                                    {
+                                       bReal = false;
+                                    }
+                                 }
+                                 //  <li class="result chatty"><p class="none">No chat messages found</p></li>    </ul>
+
+                                 if(bReal)
+                                 {
+                                    ChattyPost *post = new ChattyPost();
+                                    if(post != NULL)
+                                    {
+                                       m_rootposts.push_back(post);
+                                       post->ReadSearchResultFromHTML(sit,this);
+                                    }
                                  }
                               }
                               sit++;
@@ -2958,7 +3001,7 @@ void CLampDoc::RefreshAllRoots()
    while(it != end)
    {
       if(!(*it)->IsCollapsed() &&
-         !(*it)->IsPageBreak())
+         !(*it)->IsJustText())
       {
          RefreshThread((*it)->GetId(),(*it)->GetId(),true);
       }
@@ -3460,12 +3503,13 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   {
                      ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
                      ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, pagenum, pagenum.Length(), NULL);
-                     
-                     hotspot.m_type = HST_PAGE;
-                     hotspot.m_spot = pagebut;
-                     hotspot.m_id = i;
-                     hotspots.push_back(hotspot);
-                  }
+                  }   
+
+                  hotspot.m_type = HST_PAGE;
+                  hotspot.m_spot = pagebut;
+                  hotspot.m_id = i;
+                  hotspots.push_back(hotspot);
+                  
                   pagebut.left += 30;
                   pagebut.right += 30;
                   x += 30;
@@ -6439,7 +6483,7 @@ unsigned int CLampDoc::GetNextRoot(ChattyPost *pRootPost)
             while(it != end)
             {
                if(!(*it)->IsCollapsed() &&
-                  !(*it)->IsPageBreak())
+                  !(*it)->IsJustText())
                {
                   id = (*it)->GetId();
                   break;
@@ -6458,7 +6502,7 @@ unsigned int CLampDoc::GetNextRoot(ChattyPost *pRootPost)
                   while(it != end)
                   {
                      if(!(*it)->IsCollapsed() &&
-                        !(*it)->IsPageBreak())
+                        !(*it)->IsJustText())
                      {
                         id = (*it)->GetId();
                         break;
@@ -6497,7 +6541,7 @@ unsigned int CLampDoc::GetPrevRoot(ChattyPost *pRootPost)
             while(!done)
             {
                if(!(*it)->IsCollapsed() &&
-                  !(*it)->IsPageBreak())
+                  !(*it)->IsJustText())
                {
                   id = (*it)->GetId();
                   done = true;
@@ -6523,7 +6567,7 @@ unsigned int CLampDoc::GetPrevRoot(ChattyPost *pRootPost)
                   {
                      it--;
                      if(!(*it)->IsCollapsed() &&
-                        !(*it)->IsPageBreak())
+                        !(*it)->IsJustText())
                      {
                         id = (*it)->GetId();
                         break;

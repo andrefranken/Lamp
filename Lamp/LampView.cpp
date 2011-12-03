@@ -2980,6 +2980,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         break;
                      case HST_REFRESHSTORY:
                         {
+                           CloseReplyDialog();
                            OnEditRefresh();
                         }
                         break;
@@ -3042,6 +3043,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         break;
                      case HST_PREV_PAGE:
                         {
+                           CloseReplyDialog();
                            GetDocument()->SetPage(GetDocument()->GetPage() - 1);
                            GetDocument()->Refresh();
                            m_gotopos = 0;
@@ -3054,6 +3056,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         break;
                      case HST_NEXT_PAGE:
                         {
+                           CloseReplyDialog();
                            GetDocument()->SetPage(GetDocument()->GetPage() + 1);
                            GetDocument()->Refresh();
                            m_gotopos = 0;
@@ -3066,7 +3069,9 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         break;
                      case HST_PAGE:
                         {
-                           GetDocument()->SetPage((int)m_hotspots[i].m_id);
+                           int page = (int)m_hotspots[i].m_id;
+                           CloseReplyDialog();
+                           GetDocument()->SetPage(page);
                            GetDocument()->Refresh();
                            m_gotopos = 0;
                            SetCurrentId(0);
