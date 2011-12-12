@@ -14,7 +14,7 @@ UINT DownloadThreadProc( LPVOID pParam );
 
 bool GetXMLDataFromString(CXMLTree &xmldata, const char *data, int datasize);
 
-void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic, bool bold, bool sample, const UCChar *fontname);
+void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic, bool bold, bool sample, const UCChar *fontname, bool *pComplex = NULL);
 
 typedef enum 
 {
@@ -126,7 +126,6 @@ public:
 
    void Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
 
-   void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic, bool bold, bool sample, const UCChar *fontname);
    void DoBoldFont(HDC hDC){::SelectObject(hDC, m_boldfont);}
    void FillBackground(HDC hDC, RECT &rect){::FillRect(hDC, &rect, m_backgroundbrush);}
    void FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcategorytype posttype, bool bStrokeTopOnly);
@@ -141,7 +140,8 @@ public:
                      std::vector<RECT> &links,
                      std::vector<RECT> &imagelinks,
                      std::vector<RECT> &images,
-                     std::vector<RECT> &thumbs,
+                     std::vector<RECT> &thumbs, 
+                     bool bComplexShapeText,
                      const RECT *pClipRect = NULL);
    void DrawPreviewText(HDC hDC,
                         RECT &rect,
@@ -149,7 +149,8 @@ public:
                         int *charwidths,
                         std::vector<shacktagpos> &shacktags,
                         int shade,
-                        bool &clipped);
+                        bool &clipped, 
+                        bool bComplexShapeText);
    void CalcBodyText(RECT &rect,
                      const UCChar *text,
                      const int *widths,
@@ -277,6 +278,15 @@ public:
 
    int DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, bool bDrawNewThread, bool bDrawCompose);
 
+   HFONT MySelectFont(HDC hdc, HFONT hfont)
+   {
+      HFONT result = (HFONT)::SelectObject(hdc,hfont);
+      m_currentfont = hfont;
+      return result;
+   }
+
+   void GDIPLUS_TextOut( HDC hdc, int x, int y, UINT options, CONST RECT * lprect, const UCChar *lpString, UINT c, const INT* lpDx);
+
 // Implementation
 public:
 	virtual ~CLampDoc();
@@ -299,7 +309,7 @@ protected:
    int DrawMessages(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id);
    
    void CalcLineTags(std::vector<shacktagpos> &shacktags, std::vector<shacktagpos> &thislinetags, int beginpos, int endpos);
-   void MyTextOut(HDC hdc, int x, int y, const UCChar *text, UINT count, const INT *widths, const RECT *pClipRect);
+   void MyTextOut(HDC hdc, int x, int y, const UCChar *text, UINT count, const INT *widths, const RECT *pClipRect, bool bComplexShapeText);
 
    void GenerateRedirectedIDs();
      
@@ -337,6 +347,8 @@ protected:
    HFONT  m_miscboldfont;
    HFONT  m_normalunderlinefont;
    HFONT  m_miscunderlinefont;
+
+   HFONT  m_currentfont;
 
    UCString m_title;
    UCString m_actualtitle;

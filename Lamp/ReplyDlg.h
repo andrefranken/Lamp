@@ -268,4 +268,6 @@ protected:
    int                     *m_pmessage_info_charwidths;
    std::vector<shacktagpos> m_message_info_shacktags;
    bool                     m_message_info_dirty;
+
+   bool  m_bComplexShapeText;
 };

@@ -168,6 +168,22 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                         }
                      }                     
 
+                     int minutes = xmldata.GetElementValue(L"CheckLOLMinutes");
+
+                     if(minutes != 0 &&
+                        theApp.GetNumMinutesCheckLOL() != minutes)
+                     {
+                        theApp.SetNumMinutesCheckLOL(minutes);
+                        ((CMainFrame*)GetMainWnd())->UpdateLOLTimer();
+                     }
+
+                     UCString lolserver = xmldata.GetElementValue(L"ForceLOLServer");
+
+                     if(!lolserver.IsEmpty())
+                     {
+                        m_lolhostname = lolserver;
+                     }
+
                      CXMLElement *pMods = xmldata.FindChildElement(L"Mods");
                      CXMLElement *pEmps = xmldata.FindChildElement(L"ShackEmployees");
                      CXMLElement *pDevs = xmldata.FindChildElement(L"GameDevs");
@@ -774,7 +790,7 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
          if(pMainFrame != NULL)
          {
             CPoint point(pMsg->lParam);
-            pMainFrame->MBClick(point);
+            pMainFrame->MBClick(point,pMsg->hwnd);
          }
       }
    
@@ -831,6 +847,8 @@ CLampApp::CLampApp()
    m_code_fontname = L"Courier New";
 
    m_num_minutes_check_inbox = 3;
+
+   m_num_minutes_check_lol = 5;
 
    m_mb_pan_scale = 1.0f;
    m_inertia_friction = 0.01f;

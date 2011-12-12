@@ -35,11 +35,12 @@ public:
 
    CMDIClientAreaWnd *GetCA(){return &m_wndClientArea;}
 
-   void MBClick(CPoint &point);
+   void MBClick(CPoint &point, HWND hwnd);
 
    void CloseFindDlg();
 
    void UpdateInboxTimer();
+   void UpdateLOLTimer();
 
 // Attributes
 public:

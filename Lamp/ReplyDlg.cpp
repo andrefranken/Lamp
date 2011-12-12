@@ -45,6 +45,7 @@ CReplyDlg::CReplyDlg(CLampView *pView)
    m_bIsMessage = false;
    m_pmessage_info_charwidths = NULL;
    m_message_info_dirty = true;
+   m_bComplexShapeText = false;
 
    if(theApp.GetPostBackground()->GetBitmap() != NULL)
    {
@@ -432,7 +433,7 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
          }
 
          bool clipped = false;
-         m_pDoc->DrawPreviewText(hDC,hotspot.m_spot,m_message_info_text,m_pmessage_info_charwidths,m_message_info_shacktags,10,clipped);
+         m_pDoc->DrawPreviewText(hDC,hotspot.m_spot,m_message_info_text,m_pmessage_info_charwidths,m_message_info_shacktags,10,clipped, false);
 
          hotspots.push_back(hotspot);
       }
@@ -526,6 +527,7 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
                               filler,
                               filler,
                               filler,
+                              m_bComplexShapeText,
                               &m_textdrawrect);
       }
 
@@ -680,11 +682,13 @@ void CReplyDlg::RecalcCharWidths()
       m_pCharWidths = NULL;
    }
 
+   m_bComplexShapeText = false;
+
    if(!m_replytext.IsEmpty())
    {
       int numchars = m_replytext.Length();
       m_pCharWidths = (int*)malloc(sizeof(int) * numchars);
-      GetCharWidths(m_replytext, m_pCharWidths, m_replytext.Length(), false, false, false, theApp.GetNormalFontName());
+      GetCharWidths(m_replytext, m_pCharWidths, m_replytext.Length(), false, false, false, theApp.GetNormalFontName(), &m_bComplexShapeText);
 
       for(int i = 0; i < m_replytext.Length(); i++)
       {

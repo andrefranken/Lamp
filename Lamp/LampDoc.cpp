@@ -14,10 +14,9 @@
 #include "stack.h"
 #include "thread.h"
 
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
+#include <windows.h>
+#include <gdiplus.h>
+using namespace Gdiplus;
 
 extern CRITICAL_SECTION g_ThreadAccess;
 
@@ -85,8 +84,46 @@ UINT DownloadThreadProc( LPVOID pParam )
 }
 
 
-void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic, bool bold, bool sample, const UCChar *fontname)
+void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic, bool bold, bool sample, const UCChar *fontname, bool *pComplex/* = NULL*/)
 {
+   bool complex = false;
+   if(pComplex != NULL)
+   {
+      complex = *pComplex;
+      if(*pComplex == false)
+      {
+         // test to see if the text is complex.
+         const UCChar *work = text;
+         const UCChar *end = text + numchars;
+
+         while(work < end)
+         {
+            if((*work >= 0 && *work <= 255) ||
+               (*work >= 0x2012 && *work <= 0x2026) ||
+               (*work >= 0x2030 && *work <= 0x2044))
+            {
+               // ascii and some common unicode punctuation chars
+               // continue
+               work++;
+            }
+            else if((*work >= 0x0300 && *work <= 0x036F) ||
+                    (*work >= 0x0370 && *work <= 0x3FF) ||
+                    (*work >= 0x0400 && *work <= 0x04FF))
+            {
+               // zalgo
+               // continue
+               work++;
+            }
+            else
+            {
+               complex = true;
+               *pComplex = true;
+               break;
+            }
+         }
+      }
+   }
+
    memset(widths,0,sizeof(int) * numchars);
    GCP_RESULTS results;
    memset(&results,0,sizeof(GCP_RESULTS));
@@ -107,38 +144,106 @@ void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic
    if(italic) ditlc = 1;
    hCreatedFont = ::CreateFontW(fsize,0,0,0,weight,ditlc,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,fontname);
    HDC hTempDC = ::CreateCompatibleDC(NULL);
-   oldfont = (HFONT)::SelectObject(hTempDC,hCreatedFont);
 
-   DWORD info = ::GetFontLanguageInfo(hTempDC);
-
-   bool bGCP_DBCS         = (info & GCP_DBCS) ?true:false;
-   bool bGCP_DIACRITIC    = (info & GCP_DIACRITIC) ?true:false;
-   bool bFLI_GLYPHS       = (info & FLI_GLYPHS) ?true:false;
-   bool bGCP_GLYPHSHAPE   = (info & GCP_GLYPHSHAPE) ?true:false;
-   bool bGCP_KASHIDA      = (info & GCP_KASHIDA) ?true:false;
-   bool bGCP_LIGATE       = (info & GCP_LIGATE) ?true:false;
-   bool bGCP_USEKERNING   = (info & GCP_USEKERNING) ?true:false;
-   bool bGCP_REORDER      = (info & GCP_REORDER) ?true:false;
-
-   if(bFLI_GLYPHS)
+   /*
+   if(complex)
    {
-      for (size_t i = 0; i < numchars; i++)
+      Graphics graphics(hTempDC);
+
+      graphics.SetPageUnit(UnitPixel);
+      graphics.SetSmoothingMode(SmoothingModeHighQuality);
+      graphics.SetCompositingMode(CompositingModeSourceOver);
+      graphics.SetPixelOffsetMode(PixelOffsetModeHighQuality);
+      graphics.SetCompositingQuality(CompositingQualityHighQuality);
+
+      RectF rectf(0, 0, 1000000000, -fsize);
+
+      Gdiplus::Font font(hTempDC, hCreatedFont);
+
+      StringFormat format;
+      format.SetAlignment(StringAlignmentNear);
+
+      Region *regions = new Region[numchars];
+      CharacterRange *charRanges = new CharacterRange[numchars];
+      for(size_t i = 0; i < numchars; i++)
       {
-         SIZE temp_textSize;
-         int temp_dx;
-         int temp_nFit;
-         ::GetTextExtentExPointW(hTempDC, text + i, 1, 5000000, &temp_nFit, &temp_dx, &temp_textSize);
-         widths[i] = temp_dx;
+         charRanges[i].First = i;
+         charRanges[i].Length = 1;
+      }
+
+      const UCChar *work = text;
+      const UCChar *end = text + numchars;
+      const UCChar *endwork = __min(end, work + 32);
+      Region *workregions = regions;
+      size_t width_index = 0;
+      bool done = false;
+      while(!done)
+      {
+         Status result = format.SetMeasurableCharacterRanges(endwork - work, charRanges);
+         result = graphics.MeasureCharacterRanges(work, endwork - work, &font, rectf, &format, endwork - work, workregions);
+
+         int totalsize = 0;
+         for(size_t i = 0; i < endwork - work; i++)
+         {
+            Rect rect;
+            result = workregions[i].GetBounds(&rect,&graphics);
+            widths[width_index] = rect.GetRight() - totalsize;
+            
+            totalsize += widths[i];
+            width_index++;
+         }
+
+         if(endwork < end)
+         {
+            workregions += 32;
+            work += 32;
+            endwork = __min(end, work + 32);
+         }
+         else
+         {
+            done = true;
+         }
       }
    }
    else
    {
-      DWORD flags = 0;
-      if(bGCP_USEKERNING) flags |= GCP_USEKERNING;   
-      ::GetCharacterPlacementW(hTempDC,text,numchars,0,&results,flags);
-   }
+   */
+      oldfont = (HFONT)::SelectObject(hTempDC,hCreatedFont);
 
-   ::SelectObject(hTempDC,oldfont);
+      DWORD info = ::GetFontLanguageInfo(hTempDC);
+
+      bool bGCP_DBCS         = (info & GCP_DBCS) ?true:false;
+      bool bGCP_DIACRITIC    = (info & GCP_DIACRITIC) ?true:false;
+      bool bFLI_GLYPHS       = (info & FLI_GLYPHS) ?true:false;
+      bool bGCP_GLYPHSHAPE   = (info & GCP_GLYPHSHAPE) ?true:false;
+      bool bGCP_KASHIDA      = (info & GCP_KASHIDA) ?true:false;
+      bool bGCP_LIGATE       = (info & GCP_LIGATE) ?true:false;
+      bool bGCP_USEKERNING   = (info & GCP_USEKERNING) ?true:false;
+      bool bGCP_REORDER      = (info & GCP_REORDER) ?true:false;
+
+      if(bFLI_GLYPHS)
+      {
+         for (size_t i = 0; i < numchars; i++)
+         {
+            SIZE temp_textSize;
+            int temp_dx;
+            int temp_nFit;
+            ::GetTextExtentExPointW(hTempDC, text + i, 1, 5000000, &temp_nFit, &temp_dx, &temp_textSize);
+            widths[i] = temp_dx;
+
+            if(text[i] == 0xfe35)
+               widths[i] = theApp.GetTextHeight();
+         }
+      }
+      else
+      {
+         DWORD flags = 0;
+         if(bGCP_USEKERNING) flags |= GCP_USEKERNING;   
+         ::GetCharacterPlacementW(hTempDC,text,numchars,0,&results,flags);
+      }
+
+      ::SelectObject(hTempDC,oldfont);
+   //}
 
    if(hTempDC != NULL)
    {
@@ -3390,7 +3495,7 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          if(GetDataType() == DDT_STORY && theApp.InfinatePaging() && theApp.UseShack())
          {
             ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
-            ::SelectObject(hDC,m_pagefont);
+            MySelectFont(hDC,m_pagefont);
             ::SetTextColor(hDC,theApp.GetPostTextColor());
 
             UCString pagenote = L"Have ";
@@ -3452,7 +3557,7 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                int y = ((bannerrect.bottom + bannerrect.top) / 2) + 10;
 
                ::SetTextAlign(hDC,TA_CENTER|TA_BOTTOM);
-               ::SelectObject(hDC,m_pagefont);
+               MySelectFont(hDC,m_pagefont);
                HBRUSH oldbrush = (HBRUSH)::SelectObject(hDC,m_rootbackgroundbrush);
                HPEN oldpen = (HPEN)::SelectObject(hDC,m_roottoppen);
                HPEN nullpen = ::CreatePen(PS_NULL,0,0);
@@ -4610,11 +4715,11 @@ void CLampDoc::DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols
       // draw leading bracket
       if(theApp.ShowSmallLOL())
       {
-         oldfont = (HFONT)::SelectObject(hDC,m_miscfont);
+         oldfont = MySelectFont(hDC,m_miscfont);
       }
       else
       {
-         oldfont = (HFONT)::SelectObject(hDC,m_normalfont);
+         oldfont = MySelectFont(hDC,m_normalfont);
       }
 
       ::SetTextColor(hDC,bracketcolor);
@@ -4630,22 +4735,22 @@ void CLampDoc::DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols
          // underline variations
          if(theApp.ShowSmallLOL())
          {
-            ::SelectObject(hDC,m_miscunderlinefont);
+            MySelectFont(hDC,m_miscunderlinefont);
          }
          else
          {
-            ::SelectObject(hDC,m_normalunderlinefont);
+            MySelectFont(hDC,m_normalunderlinefont);
          }
       }
       else
       {
          if(theApp.ShowSmallLOL())
          {
-            ::SelectObject(hDC,m_miscfont);
+            MySelectFont(hDC,m_miscfont);
          }
          else
          {
-            ::SelectObject(hDC,m_normalfont);
+            MySelectFont(hDC,m_normalfont);
          }
       }
 
@@ -4679,7 +4784,7 @@ void CLampDoc::DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols
 
       ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
       
-      ::SelectObject(hDC,oldfont);
+      MySelectFont(hDC,oldfont);
    }
    else
    {
@@ -4689,22 +4794,22 @@ void CLampDoc::DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols
       {
          if(theApp.ShowSmallLOL())
          {
-            oldfont = (HFONT)::SelectObject(hDC,m_miscboldfont);
+            oldfont = MySelectFont(hDC,m_miscboldfont);
          }
          else
          {
-            oldfont = (HFONT)::SelectObject(hDC,m_boldfont);
+            oldfont = MySelectFont(hDC,m_boldfont);
          }
       }
       else
       {
          if(theApp.ShowSmallLOL())
          {
-            oldfont = (HFONT)::SelectObject(hDC,m_miscfont);
+            oldfont = MySelectFont(hDC,m_miscfont);
          }
          else
          {
-            oldfont = (HFONT)::SelectObject(hDC,m_normalfont);
+            oldfont = MySelectFont(hDC,m_normalfont);
          }
       }
 
@@ -4809,13 +4914,13 @@ void CLampDoc::DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols
 
       ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
       
-      ::SelectObject(hDC,oldfont);
+      MySelectFont(hDC,oldfont);
    }
 }
 
 void CLampDoc::DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipped, int shade, COLORREF AuthorColor, const UCString &rootauthor)
 {
-   HFONT oldfont = (HFONT)::SelectObject(hDC,m_normalfont);
+   HFONT oldfont = MySelectFont(hDC,m_normalfont);
 
    ::SetTextColor(hDC,theApp.GetPostTextColorShade(shade));
 
@@ -4860,10 +4965,10 @@ void CLampDoc::DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipp
 
    ::ExtTextOutW(hDC, rect.left + offset, rect.bottom, 0, NULL, text, text.Length(), NULL);
 
-   ::SelectObject(hDC,oldfont);
+   MySelectFont(hDC,oldfont);
 }
 
-void CLampDoc::MyTextOut(HDC hDC, int x, int y, const UCChar *text, UINT count, const INT *widths, const RECT *pClipRect)
+void CLampDoc::MyTextOut(HDC hDC, int x, int y, const UCChar *text, UINT count, const INT *widths, const RECT *pClipRect, bool bComplexShapeText)
 {
    const UCChar *start = text;
    const UCChar *work = text;
@@ -4882,7 +4987,14 @@ void CLampDoc::MyTextOut(HDC hDC, int x, int y, const UCChar *text, UINT count, 
       {
          //output what we have
          UINT thiscount = work - start;
-         ::ExtTextOutW(hDC, x, y, fupotions, pClipRect, start, thiscount, w);
+         if(bComplexShapeText)
+         {
+            GDIPLUS_TextOut(hDC, x, y, fupotions, pClipRect, start, thiscount, w);
+         }
+         else
+         {
+            ::ExtTextOutW(hDC, x, y, fupotions, pClipRect, start, thiscount, w);
+         }
          thiscount++;
          work++;
          start = work;
@@ -4901,8 +5013,60 @@ void CLampDoc::MyTextOut(HDC hDC, int x, int y, const UCChar *text, UINT count, 
    if(start < end)
    {
       //output the remainder
-      ::ExtTextOutW(hDC, x, y, fupotions, pClipRect, start, end - start, w);
+      if(bComplexShapeText)
+      {
+         GDIPLUS_TextOut(hDC, x, y, fupotions, pClipRect, start, end - start, w);
+      }
+      else
+      {
+         ::ExtTextOutW(hDC, x, y, fupotions, pClipRect, start, end - start, w);
+      }
    }
+}
+
+void CLampDoc::GDIPLUS_TextOut( HDC hdc, int x, int y, UINT options, CONST RECT * lprect, const UCChar *lpString, UINT c, const INT* lpDx)
+{
+   //::ExtTextOutW(hdc, x, y, options, lprect, lpString, c, lpDx);
+
+   Graphics graphics(hdc);
+
+   graphics.SetPageUnit(UnitPixel);
+   graphics.SetSmoothingMode(SmoothingModeHighQuality);
+   graphics.SetCompositingMode(CompositingModeSourceOver);
+   graphics.SetPixelOffsetMode(PixelOffsetModeHighQuality);
+   graphics.SetCompositingQuality(CompositingQualityHighQuality);
+
+   x = x - (theApp.GetTextHeight() / 7);
+   y = y + (theApp.GetTextHeight() / 12);
+
+   RectF rectf(x, y + theApp.GetFontHeight(), 100000.0f, theApp.GetTextHeight());
+   
+   Gdiplus::Font font(hdc, m_currentfont);
+
+   StringFormat format;
+   format.SetAlignment(StringAlignmentNear);
+      
+   COLORREF crf = ::GetTextColor(hdc);
+   SolidBrush textcolor(Color(GetRValue(crf), GetGValue(crf), GetBValue(crf)));
+   //SolidBrush textcolor(Color(255, 0, 255));
+   
+   if(lpDx != NULL)
+   {
+      while(c > 0)
+      {
+         graphics.DrawString(lpString, 1, &font, rectf, &format, &textcolor);
+         rectf.Offset(*lpDx,0);
+         lpDx++;
+         lpString++;
+         c--;
+      }
+   }
+   else
+   {
+      graphics.DrawString(lpString, c, &font, rectf, &format, &textcolor);
+   }
+   
+   graphics.Flush(FlushIntentionSync);
 }
 
 void CLampDoc::DrawPreviewText(HDC hDC,
@@ -4911,7 +5075,8 @@ void CLampDoc::DrawPreviewText(HDC hDC,
                                int *charwidths,
                                std::vector<shacktagpos> &shacktags,
                                int shade,
-                               bool &clipped)
+                               bool &clipped, 
+                               bool bComplexShapeText)
 {
    clipped = false;
    std::vector<COLORREF> colorstack;
@@ -4941,7 +5106,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
 
    // setup initial font stuff
    ::SetTextColor(hDC,normalcolor);
-   hPreviousFont = (HFONT)::SelectObject(hDC, m_normalfont);
+   hPreviousFont = MySelectFont(hDC, m_normalfont);
 
    int width = rect.right - rect.left;
    int numchars = 0;
@@ -4987,7 +5152,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
       }
       else
       {
-         MyTextOut(hDC, rect.left, rect.bottom - rise, text, numchars, charwidths, &rect);
+         MyTextOut(hDC, rect.left, rect.bottom - rise, text, numchars, charwidths, &rect, bComplexShapeText);
          //::ExtTextOutW(hDC, rect.left, rect.bottom, 0, NULL, text, numchars, charwidths);
       }
    }
@@ -5022,7 +5187,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
          }
          else
          {
-            MyTextOut(hDC, x, rect.bottom - rise, text, charsthisrun, charwidths, &rect);
+            MyTextOut(hDC, x, rect.bottom - rise, text, charsthisrun, charwidths, &rect, bComplexShapeText);
             //::ExtTextOutW(hDC, x, rect.bottom, 0, NULL, text, charsthisrun, charwidths);
          }
          
@@ -5166,7 +5331,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
          {
             if(hPreviousFont != NULL)
             {
-               ::SelectObject(hDC, hPreviousFont);
+               MySelectFont(hDC, hPreviousFont);
             }
             if(hCreatedFont != NULL)
             {
@@ -5190,7 +5355,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
                font = theApp.GetQuotedFontName();
             }
             hCreatedFont = ::CreateFontW(fsize,0,0,0,weight,italic,underline,strike,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,font);
-            hPreviousFont = (HFONT)::SelectObject(hDC, hCreatedFont);
+            hPreviousFont = MySelectFont(hDC, hCreatedFont);
             stylechange = false;
          }
 
@@ -5258,7 +5423,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
                   ::DeleteObject(newbrush);
                   ::SetTextColor(hDC,theApp.GetBackgroundColor());
                }
-               MyTextOut(hDC, x, rect.bottom - rise, text.Str() + start, finish - start, charwidths + start, &rect);
+               MyTextOut(hDC, x, rect.bottom - rise, text.Str() + start, finish - start, charwidths + start, &rect, bComplexShapeText);
                //::ExtTextOutW(hDC, x, rect.bottom, 0, NULL, text.Str() + start, finish - start, charwidths + start);
             }
          }
@@ -5279,7 +5444,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
 
    if(hPreviousFont != NULL)
    {
-      ::SelectObject(hDC, hPreviousFont);
+      MySelectFont(hDC, hPreviousFont);
    }
    if(hCreatedFont != NULL)
    {
@@ -5300,7 +5465,8 @@ void CLampDoc::DrawBodyText(HDC hDC,
                             std::vector<RECT> &links,
                             std::vector<RECT> &imagelinks,
                             std::vector<RECT> &images,
-                            std::vector<RECT> &thumbs,
+                            std::vector<RECT> &thumbs, 
+                            bool bComplexShapeText,
                             const RECT *pClipRect/*=NULL*/)
 {
    int y = rect.top + 4 + theApp.GetTextHeight();
@@ -5329,7 +5495,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
 
    // setup initial font stuff
    ::SetTextColor(hDC,normalcolor);
-   hPreviousFont = (HFONT)::SelectObject(hDC, m_normalfont);
+   hPreviousFont = MySelectFont(hDC, m_normalfont);
 
    // loop for every line
    for(size_t i=0; i < linesizes.size(); i++)
@@ -5394,7 +5560,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                   if(link)links.push_back(linkrect);
                   else imagelinks.push_back(linkrect);
                }
-               MyTextOut(hDC, x, y - rise, pLineText, numchars, pLineWidths,pClipRect);
+               MyTextOut(hDC, x, y - rise, pLineText, numchars, pLineWidths,pClipRect, bComplexShapeText);
                //::ExtTextOutW(hDC, x, y, 0, NULL, pLineText, numchars, pLineWidths);
             }
          }
@@ -5445,7 +5611,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                      if(link)links.push_back(linkrect);
                      else imagelinks.push_back(linkrect);
                   }
-                  MyTextOut(hDC, x, y - rise, pLineText, (*it).m_pos, pLineWidths,pClipRect);
+                  MyTextOut(hDC, x, y - rise, pLineText, (*it).m_pos, pLineWidths,pClipRect, bComplexShapeText);
                   //::ExtTextOutW(hDC, x, y, 0, NULL, pLineText, (*it).m_pos, pLineWidths);
                }
                
@@ -5595,7 +5761,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                {
                   if(hPreviousFont != NULL)
                   {
-                     ::SelectObject(hDC, hPreviousFont);
+                     MySelectFont(hDC, hPreviousFont);
                   }
                   if(hCreatedFont != NULL)
                   {
@@ -5619,7 +5785,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                      font = theApp.GetQuotedFontName();
                   }
                   hCreatedFont = ::CreateFontW(fsize,0,0,0,weight,italic,underline|link|imagelink,strike,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,font);
-                  hPreviousFont = (HFONT)::SelectObject(hDC, hCreatedFont);
+                  hPreviousFont = MySelectFont(hDC, hCreatedFont);
                   stylechange = false;
                }
 
@@ -5669,7 +5835,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                      if(link)links.push_back(linkrect);
                      else imagelinks.push_back(linkrect);
                   }
-                  MyTextOut(hDC, x, y - rise, pLineText + start, finish - start, pLineWidths + start,pClipRect);
+                  MyTextOut(hDC, x, y - rise, pLineText + start, finish - start, pLineWidths + start,pClipRect, bComplexShapeText);
                   //::ExtTextOutW(hDC, x, y, 0, NULL, pLineText + start, finish - start, pLineWidths + start);
                }
                
@@ -5734,7 +5900,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
 
    if(hPreviousFont != NULL)
    {
-      ::SelectObject(hDC, hPreviousFont);
+      MySelectFont(hDC, hPreviousFont);
    }
    if(hCreatedFont != NULL)
    {
@@ -5775,20 +5941,20 @@ void CLampDoc::DrawNewMessagesTab(HDC hDC, RECT &rect, const UCChar *pChar, int 
    ::SelectObject(hDC,oldbrush);
    ::SelectObject(hDC,oldpen);
 
-   HFONT oldfont = (HFONT)::SelectObject(hDC,m_normalfont);
+   HFONT oldfont = MySelectFont(hDC,m_normalfont);
    ::SetTextColor(hDC,theApp.GetPostTextColor());
    ::SetBkMode(hDC,TRANSPARENT);
    ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
 
    ::ExtTextOutW(hDC, rect.left + 5, rect.bottom, 0, NULL, pChar, numchars, widths);
    
-   ::SelectObject(hDC,m_boldfont);
+   MySelectFont(hDC,m_boldfont);
 }
 
 
 void CLampDoc::DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF AuthorColor, bool bFade/*= false*/, bool m_bIsInbox/*=true*/)
 {
-   HFONT oldfont = (HFONT)::SelectObject(hDC,m_miscfont);
+   HFONT oldfont = MySelectFont(hDC,m_miscfont);
    ::SetTextColor(hDC,theApp.GetMiscPostTextColor());
 
    if(m_bIsInbox)
@@ -5800,7 +5966,7 @@ void CLampDoc::DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF Aut
       ::ExtTextOutW(hDC, rect.left + 5, rect.bottom, 0, NULL, L"To:", 3, NULL);
    }
 
-   ::SelectObject(hDC,m_boldfont);
+   MySelectFont(hDC,m_boldfont);
 
    if(bFade)
    {
@@ -5817,12 +5983,12 @@ void CLampDoc::DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF Aut
 
    ::ExtTextOutW(hDC, rect.left + theApp.GetCellHeight() + 5, rect.bottom, 0, NULL, author, author.Length(), NULL);
 
-   ::SelectObject(hDC,oldfont);
+   MySelectFont(hDC,oldfont);
 }
 
 void CLampDoc::DrawDate(HDC hDC, RECT &rect, UCString &date, COLORREF ago_color, bool bGetExtents/*=false*/)
 {
-   HFONT oldfont = (HFONT)::SelectObject(hDC,m_miscfont);
+   HFONT oldfont = MySelectFont(hDC,m_miscfont);
    ::SetTextColor(hDC,ago_color);
    ::SetTextAlign(hDC,TA_RIGHT|TA_BOTTOM);
    ::ExtTextOutW(hDC, rect.right - 5, rect.bottom - 5, 0, NULL, date, date.Length(), NULL);
@@ -5835,38 +6001,38 @@ void CLampDoc::DrawDate(HDC hDC, RECT &rect, UCString &date, COLORREF ago_color,
    }
 
    ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
-   ::SelectObject(hDC,oldfont);
+   MySelectFont(hDC,oldfont);
 }
 
 void CLampDoc::DrawCollapseNote(HDC hDC, RECT &rect)
 {
-   HFONT oldfont = (HFONT)::SelectObject(hDC,m_miscfont);
+   HFONT oldfont = MySelectFont(hDC,m_miscfont);
    ::SetTextColor(hDC,theApp.GetMiscPostTextColor());
 
    ::ExtTextOutW(hDC, rect.left + 5, rect.bottom, 0, NULL, L"( Collapsed... )", 16, NULL);
 
-   ::SelectObject(hDC,oldfont);
+   MySelectFont(hDC,oldfont);
 }
 
 void CLampDoc::DrawRepliesHint(HDC hDC, RECT &rect, int m_reportedchildcount)
 {
-   HFONT oldfont = (HFONT)::SelectObject(hDC,m_miscfont);
+   HFONT oldfont = MySelectFont(hDC,m_miscfont);
    ::SetTextColor(hDC,theApp.GetMiscPostTextColor());
 
    ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM|TA_UPDATECP);
    ::MoveToEx(hDC, rect.left + 5, rect.bottom - 5, NULL); 
    ::ExtTextOutW(hDC, rect.left + 5, rect.bottom - 5, 0, NULL, L"Click to see all ", 17, NULL);
-   ::SelectObject(hDC,m_miscboldfont);
+   MySelectFont(hDC,m_miscboldfont);
    UCString text = m_reportedchildcount;
    ::SetTextColor(hDC,theApp.GetMyPostColor());
    ::ExtTextOutW(hDC, rect.left + 5 + (theApp.GetMiscFontHeight() * -7), rect.bottom - 5, 0, NULL, text, text.Length(), NULL);
-   ::SelectObject(hDC,m_miscfont);
+   MySelectFont(hDC,m_miscfont);
    ::SetTextColor(hDC,theApp.GetMiscPostTextColor());
    ::ExtTextOutW(hDC, rect.left + 5 + (theApp.GetMiscFontHeight() * -7) + ((theApp.GetFontHeight() / -2) * text.Length()), rect.bottom - 5, 0, NULL, L" replies", 8, NULL);
 
    ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
 
-   ::SelectObject(hDC,oldfont);
+   MySelectFont(hDC,oldfont);
 }
 
 void CLampDoc::DrawBranch(HDC hDC, RECT &rect, indenttype type, int shade, newness Newness)

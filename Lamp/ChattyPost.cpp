@@ -1640,7 +1640,7 @@ void ChattyPost::DrawTextOnly(HDC hDC, RECT &DeviceRectangle, int pos)
       std::vector<RECT> imagelinks;
       std::vector<RECT> images;
       std::vector<RECT> thumbs;
-      m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs,&DeviceRectangle);
+      m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs, m_bComplexShapeText,&DeviceRectangle);
    }
 }
 
@@ -1711,7 +1711,7 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
             if(m_bHaveRead) shade = 0;
             bool clipped = false;
             std::vector<shacktagpos> emptytags;
-            m_pDoc->DrawPreviewText(hDC,subjectrect,m_subject,m_pSubjectCharWidths,emptytags,shade,clipped);
+            m_pDoc->DrawPreviewText(hDC,subjectrect,m_subject,m_pSubjectCharWidths,emptytags,shade,clipped,false);
 
             CHotSpot hotspot;
             hotspot.m_bAnim = false;
@@ -1788,7 +1788,7 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
             std::vector<RECT> imagelinks;
             std::vector<RECT> images;
             std::vector<RECT> thumbs;
-            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs,&textrect);
+            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs, m_bComplexShapeText,&textrect);
             m_drewtextpos = textrect.top;
             m_drewtextedge = textrect.left;
             
@@ -1814,7 +1814,7 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
             subjectrect.bottom = authorrect.bottom;
             bool clipped = false;
             std::vector<shacktagpos> emptytags;
-            m_pDoc->DrawPreviewText(hDC,subjectrect,m_subject,m_pSubjectCharWidths,emptytags,0,clipped);
+            m_pDoc->DrawPreviewText(hDC,subjectrect,m_subject,m_pSubjectCharWidths,emptytags,0,clipped,false);
 
             hotspot.m_type = HST_CLOSE_MESSAGE;
             hotspot.m_spot = subjectrect;
@@ -1923,7 +1923,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          myrect.left = ((myrect.right - myrect.left) - m_subjectwidth) / 2;
 
          bool clipped = false;
-         m_pDoc->DrawPreviewText(hDC,myrect,m_subject, m_pSubjectCharWidths,m_shacktags,0,clipped);
+         m_pDoc->DrawPreviewText(hDC,myrect,m_subject, m_pSubjectCharWidths,m_shacktags,0,clipped,false);
 
       }
       else if(m_bCollapsed)
@@ -2065,7 +2065,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             std::vector<RECT> imagelinks;
             std::vector<RECT> images;
             std::vector<RECT> thumbs;
-            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs,&textrect);
+            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs, m_bComplexShapeText,&textrect);
             m_drewtextpos = textrect.top;
             m_drewtextedge = textrect.left;
 
@@ -2596,7 +2596,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                std::vector<RECT> imagelinks;
                std::vector<RECT> images;
                std::vector<RECT> thumbs;
-               m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs,&textrect);
+               m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs, m_bComplexShapeText,&textrect);
                m_drewtextpos = textrect.top;
                m_drewtextedge = textrect.left;
 
@@ -3105,10 +3105,10 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   RECT boldrect = textrect;
                   boldrect.left++;
                   boldrect.right++;
-                  m_pDoc->DrawPreviewText(hDC,boldrect,m_bodytext,m_pCharWidths,m_shacktags,0,clipped);
+                  m_pDoc->DrawPreviewText(hDC,boldrect,m_bodytext,m_pCharWidths,m_shacktags,0,clipped, m_bComplexShapeText);
                   clipped = false;
                }
-               m_pDoc->DrawPreviewText(hDC,textrect,m_bodytext,m_pCharWidths,m_shacktags,m_previewshade,clipped);
+               m_pDoc->DrawPreviewText(hDC,textrect,m_bodytext,m_pCharWidths,m_shacktags,m_previewshade,clipped, m_bComplexShapeText);
 
                m_drewtextpos = myrect.top;
                m_drewtextedge = myrect.left;
@@ -3172,7 +3172,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   lolpreviewrect.left = rightofauthor;
                   lolpreviewrect.right = lolpreviewrect.left + m_lol_preview_size;
 
-                  m_pDoc->DrawPreviewText(hDC,lolpreviewrect,m_lol_preview_text,m_plol_preview_charwidths,m_lol_preview_shacktags,10,clipped);
+                  m_pDoc->DrawPreviewText(hDC,lolpreviewrect,m_lol_preview_text,m_plol_preview_charwidths,m_lol_preview_shacktags,10,clipped,false);
                }
 
                // draw branches
@@ -3379,6 +3379,8 @@ void ChattyPost::SetupCharWidths()
       free(m_plol_preview_charwidths);
       m_plol_preview_charwidths = NULL;
    }
+
+   m_bComplexShapeText = false;
       
    if(!m_bodytext.IsEmpty() && 
       m_pDoc != NULL)
@@ -3424,7 +3426,7 @@ void ChattyPost::SetupCharWidths()
             if(quote) fontname = theApp.GetQuotedFontName();
             else if(code) fontname = theApp.GetCodeFontName();
 
-            GetCharWidths(m_bodytext.Str() + lastpos, m_pCharWidths + lastpos, thispos - lastpos, italic, bold, sample, fontname);
+            GetCharWidths(m_bodytext.Str() + lastpos, m_pCharWidths + lastpos, thispos - lastpos, italic, bold, sample, fontname, &m_bComplexShapeText);
             lastpos = thispos;
          }
 
@@ -3448,7 +3450,7 @@ void ChattyPost::SetupCharWidths()
          const UCChar *fontname = theApp.GetNormalFontName();
          if(quote) fontname = theApp.GetQuotedFontName();
          else if(code) fontname = theApp.GetCodeFontName();
-         GetCharWidths(m_bodytext.Str() + lastpos, m_pCharWidths + lastpos, numchars - lastpos, italic, bold, sample, fontname);
+         GetCharWidths(m_bodytext.Str() + lastpos, m_pCharWidths + lastpos, numchars - lastpos, italic, bold, sample, fontname, &m_bComplexShapeText);
       }
       
       for(int i = 0; i < numchars; i++)

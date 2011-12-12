@@ -357,6 +357,7 @@ public:
       m_subjectwidth = 0;
       memset(&m_tm_posttime,0,sizeof(tm));
       m_lightningbolt = false;
+      m_bComplexShapeText = false;
    }
    virtual ~ChattyPost();
 
@@ -634,4 +635,6 @@ protected:
    int                     m_subjectwidth;
 
    bool                    m_lightningbolt;
+
+   bool                    m_bComplexShapeText;
 };

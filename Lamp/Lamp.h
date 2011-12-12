@@ -618,6 +618,9 @@ public:
    float GetMouseWheelScale(){return m_mouse_wheel_scale;}
    int GetNumMinutesCheckInbox(){return m_num_minutes_check_inbox;}
    void SetNumMinutesCheckInbox(int value);
+   
+   int GetNumMinutesCheckLOL(){return m_num_minutes_check_lol;}
+   void SetNumMinutesCheckLOL(int value){m_num_minutes_check_lol = value;}
 
    void SetMouseWheelScale(float value){m_mouse_wheel_scale = value;}
 
@@ -1156,6 +1159,8 @@ protected:
    UCString m_lastpost;
 
    int m_num_minutes_check_inbox;
+
+   int m_num_minutes_check_lol;
 
    float m_mb_pan_scale;
 

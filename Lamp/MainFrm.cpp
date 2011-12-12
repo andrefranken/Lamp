@@ -139,7 +139,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
    m_bFirstUpdate = true;
    SetTimer(UPDATE_TIMER,(UINT)60000 * 1,NULL); // check for updates starting in 1 minutes
 
-   SetTimer(REFRESH_LOL_TIMER,(UINT)60000 * 5,NULL); // check for updates in 5 minutes
+   SetTimer(REFRESH_LOL_TIMER,(UINT)60000 * (UINT)theApp.GetNumMinutesCheckLOL(),NULL); // check for updates in 5 minutes
       
 	return 0;
 }
@@ -148,6 +148,13 @@ void CMainFrame::UpdateInboxTimer()
 {
    KillTimer(INBOX_TIMER);
    SetTimer(INBOX_TIMER,(UINT)60000 * (UINT)theApp.GetNumMinutesCheckInbox(),NULL);
+}
+
+
+void CMainFrame::UpdateLOLTimer()
+{
+   KillTimer(REFRESH_LOL_TIMER);
+   SetTimer(REFRESH_LOL_TIMER,(UINT)60000 * (UINT)theApp.GetNumMinutesCheckLOL(),NULL);
 }
 
 
@@ -471,10 +478,11 @@ void CMainFrame::OnTimer(UINT nIDEvent)
    }
 }
 
-void CMainFrame::MBClick(CPoint &point)
+void CMainFrame::MBClick(CPoint &point, HWND hwnd)
 {
    CHackedTabCtrl *tabctrl = (CHackedTabCtrl*)GetCA()->FindActiveTabWnd();
-   if(tabctrl != NULL)
+   if(tabctrl != NULL &&
+      tabctrl->GetSafeHwnd() == hwnd)
    {
       int tab = tabctrl->GetTabFromPoint(point);
       if(tab != -1)
