@@ -44,6 +44,7 @@ void CSettingsDlg::OnBnClickedOk()
    CButton *pUseSingleThreadStyle = (CButton*)GetDlgItem(ID_SINGLE_THREAD_STYLE);
    CEdit *pFilteredUsersEdit = (CEdit*)GetDlgItem(IDC_FILTERED_USERS_EDIT);
    CEdit *pFilteredPhrasesEdit = (CEdit*)GetDlgItem(IDC_FILTERED_PHRASES_EDIT);
+   CEdit *ptMSecondsPreviewTimer = (CEdit*)GetDlgItem(IDC_PREVIEW_TIMER);
 
    if(pMouseWheelSpeed != NULL &&
       pMBPanSpeed != NULL &&
@@ -54,7 +55,8 @@ void CSettingsDlg::OnBnClickedOk()
       pUseStoneDonkey != NULL &&
       pUseSingleThreadStyle != NULL &&
       pFilteredUsersEdit != NULL &&
-      pFilteredPhrasesEdit != NULL)
+      pFilteredPhrasesEdit != NULL &&
+      ptMSecondsPreviewTimer != NULL)
    {
       CString temp;
       UCString temp2;
@@ -81,6 +83,10 @@ void CSettingsDlg::OnBnClickedOk()
       pHoursExpire->GetWindowTextW(temp);
       temp2 = temp;
       theApp.SetHoursExpire(temp2);
+
+      ptMSecondsPreviewTimer->GetWindowTextW(temp);
+      temp2 = temp;
+      theApp.SetMSecondsPreviewTimer(temp2);
 
       if(pUseStoneDonkey->GetCheck() == BST_CHECKED)
       {
@@ -158,6 +164,7 @@ BOOL CSettingsDlg::OnInitDialog()
    CButton *pUseSingleThreadStyle = (CButton*)GetDlgItem(ID_SINGLE_THREAD_STYLE);
    CEdit *pFilteredUsersEdit = (CEdit*)GetDlgItem(IDC_FILTERED_USERS_EDIT);
    CEdit *pFilteredPhrasesEdit = (CEdit*)GetDlgItem(IDC_FILTERED_PHRASES_EDIT);
+   CEdit *ptMSecondsPreviewTimer = (CEdit*)GetDlgItem(IDC_PREVIEW_TIMER);
 
    if(pMouseWheelSpeed != NULL &&
       pMBPanSpeed != NULL &&
@@ -168,7 +175,8 @@ BOOL CSettingsDlg::OnInitDialog()
       pUseStoneDonkey != NULL &&
       pUseSingleThreadStyle != NULL &&
       pFilteredUsersEdit != NULL &&
-      pFilteredPhrasesEdit != NULL)
+      pFilteredPhrasesEdit != NULL &&
+      ptMSecondsPreviewTimer != NULL)
    {
       pMouseWheelSpeed->SetWindowTextW(UCString(theApp.GetMouseWheelScale()));
       pMBPanSpeed->SetWindowTextW(UCString(theApp.GetMBPanScale()));
@@ -176,6 +184,7 @@ BOOL CSettingsDlg::OnInitDialog()
       pNumMinsInbox->SetWindowTextW(UCString(theApp.GetNumMinutesCheckInbox()));
       pInertia->SetWindowTextW(UCString(theApp.GetInertiaFriction()));
       pHoursExpire->SetWindowTextW(UCString(theApp.GetHoursExpire()));
+      ptMSecondsPreviewTimer->SetWindowTextW(UCString(theApp.GetMSecondsPreviewTimer()));
 
       if(theApp.UseShack())
       {

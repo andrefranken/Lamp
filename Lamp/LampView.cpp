@@ -43,6 +43,7 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_WM_SETCURSOR()
    ON_WM_LBUTTONDBLCLK()
    ON_WM_TIMER()
+   ON_WM_MOUSELEAVE()
    ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
    ON_UPDATE_COMMAND_UI(ID_EDIT_UNDO, OnUpdateEditUndo)
    ON_COMMAND(ID_EDIT_CUT, OnEditCut)
@@ -180,6 +181,7 @@ CLampView::CLampView()
    m_bForceDrawAll = true;
    m_current_id = 0;
    m_back_id = 0;
+   m_hover_preview_id = 0;
    m_bDraggingTextSelection = false;
    m_textselectionpost = 0;
    m_selectionstart = 0;
@@ -204,6 +206,8 @@ CLampView::CLampView()
    m_bDoubleClickDragging = false;
    m_banneroffset = 0;
    m_bModToolIsUp = false;
+   m_PREVIEW_TIMER_id = 0;
+   m_mouseOverClientArea = false;
    
    m_pFindDlg = NULL;
 
@@ -265,6 +269,16 @@ void CLampView::SetCurrentId(unsigned int id)
       {
          GetDocument()->MakePostAvailable(id);
       }
+   }
+}
+
+void CLampView::SetHoverPreviewId(unsigned int id)
+{
+   if(id != m_hover_preview_id)
+   {
+      m_hover_preview_id = id;
+      GetDocument()->MakePostAvailable(id);
+      InvalidateEverything();
    }
 }
 
@@ -933,7 +947,7 @@ void CLampView::DrawEverythingToBuffer(CDCSurface *pSurface/* = NULL*/,
          device_height += m_pReplyDlg->GetHeight();
       }
 
-      GetDocument()->Draw(pSurface->GetDC(), device_height,DeviceRectangle, m_pos, m_hotspots, GetCurrentId(), m_bModToolIsUp, m_ModToolRect, m_ModToolPostID);
+      GetDocument()->Draw(pSurface->GetDC(), device_height,DeviceRectangle, m_pos, m_hotspots, GetCurrentId(), GetHoverPreviewId(), m_bModToolIsUp, m_ModToolRect, m_ModToolPostID);
    
       if(m_pReplyDlg != NULL &&
          !m_pReplyDlg->IsMessage())
@@ -1557,8 +1571,13 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                   ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
                }
                break;
-            case HST_REPLIESTOROOTPOSTHINT:
             case HST_REPLYPREVIEW:
+               {
+                  if(m_hotspots[i].m_id != m_hover_preview_id)
+                     m_backbuffer->Blit(hDC, m_hotspots[i].m_spot, false);
+               }
+               break;
+            case HST_REPLIESTOROOTPOSTHINT:
             case HST_POSTAS:
             case HST_AUTHOR:
             case HST_AUTHORPREVIEW:
@@ -1945,6 +1964,14 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                }
                break;
             case HST_REPLYPREVIEW:
+               {
+                  if(m_hotspots[i].m_id != m_hover_preview_id)
+                  {
+                     m_backbuffer->Blit(hDC, m_hotspots[i].m_spot, false);
+                     m_whitebuffer.AlphaBlit(hDC, m_hotspots[i].m_spot, false, 64);
+                  }
+               }
+               break;
             case HST_AUTHORPREVIEW:
                {
                   m_backbuffer->Blit(hDC, m_hotspots[i].m_spot, false);
@@ -3612,9 +3639,31 @@ void CLampView::OnLButtonUp(UINT nFlags, CPoint point)
    CView::OnLButtonUp(nFlags, point);
 }
 
+void CLampView::OnMouseLeave()
+{
+   m_mouseOverClientArea = false;
+
+   if(m_PREVIEW_TIMER_id != 0)
+   {
+      KillTimer(PREVIEW_TIMER);
+   }
+   m_PREVIEW_TIMER_id = 0;
+   SetHoverPreviewId(0);
+}
 
 void CLampView::OnMouseMove(UINT nFlags, CPoint point) 
 {
+   if(!m_mouseOverClientArea)
+   {
+      m_mouseOverClientArea = true;
+      TRACKMOUSEEVENT tme;
+      tme.cbSize = sizeof(tme);
+      tme.dwFlags = TME_LEAVE;
+      tme.dwHoverTime = HOVER_DEFAULT;
+      tme.hwndTrack = m_hWnd;
+      _TrackMouseEvent(&tme);
+   }
+
    TrackMouse(point);
 
    if(!m_brakes)
@@ -3793,6 +3842,63 @@ void CLampView::OnMouseMove(UINT nFlags, CPoint point)
             }   
             else
             {
+               if(GetDocument()->GetDataType() != DDT_THREAD &&
+                  m_mousepoint.x >= m_BannerRectangle.left &&
+                  m_mousepoint.x < m_BannerRectangle.right &&
+                  m_mousepoint.y >= m_BannerRectangle.top &&
+                  m_mousepoint.y < m_BannerRectangle.bottom)
+               {
+                  // mouse is over banner
+                  if(m_PREVIEW_TIMER_id != 0)
+                  {
+                     KillTimer(PREVIEW_TIMER);
+                  }
+                  m_PREVIEW_TIMER_id = 0;
+                  SetHoverPreviewId(0);
+               }
+               else
+               {
+                  bool bSameHoverReply = false;
+                  for(size_t i = 0; i < m_hotspots.size(); i++)
+                  {
+                     if(m_hotspots[i].m_type == HST_REPLYPREVIEW &&
+                        m_mousepoint.x >= m_hotspots[i].m_spot.left &&
+                        m_mousepoint.x < m_hotspots[i].m_spot.right &&
+                        m_mousepoint.y >= m_hotspots[i].m_spot.top &&
+                        m_mousepoint.y < m_hotspots[i].m_spot.bottom)
+                     {
+                        if(m_hotspots[i].m_id == m_hover_preview_id ||
+                           m_hotspots[i].m_id == m_PREVIEW_TIMER_id)
+                        {
+                           // just hovering over hte same guy.
+                           // do nothing
+                           bSameHoverReply = true;
+                           break;
+                        }
+                        else
+                        {
+                           // start hover timer on this guy
+                           if(m_PREVIEW_TIMER_id != 0)
+                           {
+                              KillTimer(PREVIEW_TIMER);
+                           }
+                           m_PREVIEW_TIMER_id = m_hotspots[i].m_id;
+                           SetTimer(PREVIEW_TIMER,theApp.GetMSecondsPreviewTimer(),NULL);
+                           break;
+                        }
+                     }
+                  }
+
+                  if(!bSameHoverReply &&
+                     m_hover_preview_id != 0)
+                  {
+                     // cancel the previous preview
+                     SetHoverPreviewId(0);
+                     DrawEverythingToBuffer();
+                     InvalidateEverything();
+                  }
+               }
+            
                UpdateHotspotPosition();
             }
          }
@@ -4882,6 +4988,25 @@ void CLampView::OnTimer(UINT nIDEvent)
             m_frame = 0;
          InvalidateHotspots();
       }
+   }
+   else if(nIDEvent == PREVIEW_TIMER)
+   {
+      for(size_t i = 0; i < m_hotspots.size(); i++)
+      {
+         if(m_hotspots[i].m_type == HST_REPLYPREVIEW &&
+            m_mousepoint.x >= m_hotspots[i].m_spot.left &&
+            m_mousepoint.x < m_hotspots[i].m_spot.right &&
+            m_mousepoint.y >= m_hotspots[i].m_spot.top &&
+            m_mousepoint.y < m_hotspots[i].m_spot.bottom)
+         {
+            SetHoverPreviewId(m_hotspots[i].m_id);
+            InvalidateEverything();
+            break;
+         }
+      }
+
+      KillTimer(PREVIEW_TIMER);
+      m_PREVIEW_TIMER_id = 0;
    }
    else
    {

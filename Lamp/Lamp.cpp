@@ -1497,6 +1497,10 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_hours_expire = setting->GetValue();
    else m_hours_expire = 18;
 
+   setting = hostxml.FindChildElement(L"mseconds_preview_timer");
+   if(setting!=NULL) m_mseconds_preview_timer = setting->GetValue();
+   else m_mseconds_preview_timer = 500;
+
    setting = hostxml.FindChildElement(L"skin_folder");
    if(setting!=NULL) m_skinname = setting->GetValue();
    else m_skinname = L"roundshack";
@@ -1964,6 +1968,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"tab_title_char_limit",UCString(m_tab_title_char_limit));
    settingsxml.AddChildElement(L"smooth_scroll_scale",UCString(m_smoothscrollscale));
    settingsxml.AddChildElement(L"hours_expire",UCString(m_hours_expire));
+   settingsxml.AddChildElement(L"mseconds_preview_timer",UCString(m_mseconds_preview_timer));
    settingsxml.AddChildElement(L"skin_folder",m_skinname);
    settingsxml.AddChildElement(L"mouse_wheel_scale",UCString(m_mouse_wheel_scale));
    settingsxml.AddChildElement(L"mb_pan_scale",UCString(m_mb_pan_scale));

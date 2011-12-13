@@ -53,6 +53,9 @@ public:
    unsigned int GetCurrentId(){return m_current_id;}
    void SetCurrentId(unsigned int id);
 
+   unsigned int GetHoverPreviewId(){return m_hover_preview_id;}
+   void SetHoverPreviewId(unsigned int id);
+
    void InvalidateSkin();
 
    int GetPos(){return m_pos;}
@@ -135,6 +138,7 @@ protected:
    bool m_bLButtonDownOnScrollArrow;
    unsigned int m_current_id;
    unsigned int m_back_id;
+   unsigned int m_hover_preview_id;
 
    bool m_bDraggingTextSelection;
    unsigned int m_textselectionpost;
@@ -202,6 +206,10 @@ protected:
    bool m_bModToolIsUp;
    RECT m_ModToolRect;
    unsigned int m_ModToolPostID;
+
+   unsigned int m_PREVIEW_TIMER_id;
+
+   bool m_mouseOverClientArea;
 // Generated message map functions
 protected:
    
@@ -346,6 +354,7 @@ public:
    afx_msg void OnUpdateBackId(CCmdUI *pCmdUI);
    afx_msg void OnUnloadAllImages();
    afx_msg void OnUpdateUnloadAllImages(CCmdUI *pCmdUI);
+   afx_msg void OnMouseLeave();
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp

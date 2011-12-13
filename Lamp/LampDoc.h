@@ -124,7 +124,7 @@ public:
 
    DocDataType GetDataType(void){return m_datatype;}
 
-   void Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
+   void Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, unsigned int hover_preview_id, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
 
    void DoBoldFont(HDC hDC){::SelectObject(hDC, m_boldfont);}
    void FillBackground(HDC hDC, RECT &rect){::FillRect(hDC, &rect, m_backgroundbrush);}
@@ -305,14 +305,16 @@ protected:
    void ReadLOL();
    void PerformSearch();
    bool ReadExistingThreadFromRoot(CXMLTree &xmldata, unsigned int id, bool bDoingNewFlags);
-   int DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
+   int DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, unsigned int hover_preview_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
    int DrawMessages(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id);
    
    void CalcLineTags(std::vector<shacktagpos> &shacktags, std::vector<shacktagpos> &thislinetags, int beginpos, int endpos);
    void MyTextOut(HDC hdc, int x, int y, const UCChar *text, UINT count, const INT *widths, const RECT *pClipRect, bool bComplexShapeText);
 
    void GenerateRedirectedIDs();
-     
+   
+   bool CheckForContentsRequest(unsigned int id);
+   void RemoveContentsRequest(unsigned int id);
 
    DocDataType            m_datatype;
    unsigned int           m_storyid;
@@ -381,6 +383,9 @@ protected:
    UCString                m_unf_text;
    UCString                m_tag_text;
    UCString                m_wtf_text;
+
+   std::map<unsigned int,DWORD> m_id_contents_requests;
+
 // Generated message map functions
 protected:
 	DECLARE_MESSAGE_MAP()

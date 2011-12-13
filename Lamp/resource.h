@@ -57,6 +57,7 @@
 #define IDC_NUM_HOURS_EXPIRE_EDIT       1017
 #define IDC_FILTERED_USERS_EDIT         1018
 #define IDC_FILTERED_PHRASES_EDIT       1019
+#define IDC_PREVIEW_TIMER               1020
 #define ID_FILE_OPENTHREAD              32771
 #define ID_EDIT_REFRESH                 32773
 #define ID_FILE_SETUPLOGININFO          32774
@@ -144,7 +145,6 @@
 #define ID_DONTAUTOLOADNWSTHUMBS        32861
 #define ID_SKIN_WORKSAFE                32862
 #define ID_GOTONEWPOST                  32863
-
 #define ID_BOOKMARK_MENUITEM            32880
 
 // Next default values for new objects
@@ -153,7 +153,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        328
 #define _APS_NEXT_COMMAND_VALUE         32864
-#define _APS_NEXT_CONTROL_VALUE         1020
+#define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

@@ -334,6 +334,7 @@ public:
       m_authorpreviewsize = 0;
       m_drewtextpos = 0;
       m_drewtextedge = 0;
+      m_largest_line_width = 0;
       m_bDrewTextBody = false;
       m_pos = 0;
       m_pReplyDlg = NULL;
@@ -416,8 +417,8 @@ public:
                 UCString &lolcount,
                 UCString &author,
                 UCString &body);
-   int DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
-   int DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, int indent, unsigned int current_id, int &trunkatingposts, const UCString &rootauthor, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
+   int DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, unsigned int hover_preview_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
+   int DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, int indent, unsigned int current_id, unsigned int hover_preview_id, int &trunkatingposts, const UCString &rootauthor, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
    int DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id);
    void DrawTextOnly(HDC hDC, RECT &DeviceRectangle, int pos);
    void SetupPreviewShades(bool bDoingNewFlags);
@@ -637,4 +638,6 @@ protected:
    bool                    m_lightningbolt;
 
    bool                    m_bComplexShapeText;
+
+   unsigned int            m_largest_line_width;
 };

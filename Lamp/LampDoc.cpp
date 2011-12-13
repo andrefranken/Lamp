@@ -1001,6 +1001,7 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                // whatever. move on
             }
             
+            RemoveContentsRequest(pDD->m_id);
 
             tree<htmlcxx::HTML::Node>::iterator it = dom.begin();
             tree<htmlcxx::HTML::Node>::iterator end = dom.end();
@@ -3274,7 +3275,7 @@ void CLampDoc::Dump(CDumpContext& dc) const
 
 
 // CLampDoc commands
-void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
+void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, unsigned int hover_preview_id, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
 {
    pos = -pos;
 
@@ -3333,7 +3334,7 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
                }
             }
 
-            pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, false, theApp.IsModMode(), bModToolIsUp, ModToolRect, ModToolPostID);
+            pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, hover_preview_id, false, theApp.IsModMode(), bModToolIsUp, ModToolRect, ModToolPostID);
 
             RECT backrect = DeviceRectangle;
             backrect.top = pos;
@@ -3353,7 +3354,7 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
          FillBackground(hDC,backrect);
          pos += 20;
          
-         pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, false, theApp.IsModMode(), bModToolIsUp, ModToolRect, ModToolPostID);
+         pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, hover_preview_id, false, theApp.IsModMode(), bModToolIsUp, ModToolRect, ModToolPostID);
 
          backrect.top = pos;
          backrect.bottom = pos + (device_height / 2);
@@ -3368,7 +3369,7 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
             //pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, false);
             pos += bannerheight;
             
-            pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, true, false, false, ModToolRect, 0);
+            pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, hover_preview_id, true, false, false, ModToolRect, 0);
 
             RECT backrect = DeviceRectangle;
             backrect.top = pos;
@@ -3383,7 +3384,7 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
          //pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, false);
          pos += bannerheight;
          
-         pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, true, false, false, ModToolRect, 0);
+         pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, hover_preview_id, true, false, false, ModToolRect, 0);
 
          RECT backrect = DeviceRectangle;
          backrect.top = pos;
@@ -3657,7 +3658,7 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
    return bannerrect.bottom;
 }
 
-int CLampDoc::DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
+int CLampDoc::DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, unsigned int hover_preview_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
 {
    std::list<ChattyPost*>::iterator begin = m_rootposts.begin();
    std::list<ChattyPost*>::iterator end = m_rootposts.end();
@@ -3665,7 +3666,7 @@ int CLampDoc::DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<
 
    while(it != end)
    {
-      pos = (*it)->DrawRoot(hDC,DeviceRectangle,pos,hotspots, current_id, bLinkOnly, bAllowModTools, bModToolIsUp, ModToolRect, ModToolPostID);
+      pos = (*it)->DrawRoot(hDC,DeviceRectangle,pos,hotspots, current_id, hover_preview_id, bLinkOnly, bAllowModTools, bModToolIsUp, ModToolRect, ModToolPostID);
       it++;
 
       if(it != end)
@@ -6760,7 +6761,8 @@ void CLampDoc::MakePostAvailable(unsigned int id)
 
       if(post != NULL)
       {
-         if(post->IsPreview())
+         if(post->IsPreview() &&
+            CheckForContentsRequest(id))
          {
             post->SetRefreshing(true);
             if(m_pView) 
@@ -6778,8 +6780,81 @@ void CLampDoc::MakePostAvailable(unsigned int id)
                           DT_SHACK_THREAD_CONTENTS,
                           rootpost->GetId(),
                           id);
+
+            //OutputDebugStringA("get thread contents\r");
          }
       }
+   }
+}
+
+bool CLampDoc::CheckForContentsRequest(unsigned int id)
+{
+   bool bPerformRequest = true;
+
+   DWORD thistime = ::GetTickCount();
+
+   // replace the id with the root post id
+
+   ChattyPost *post = FindPost(id);
+   if(post != NULL)
+   {
+      ChattyPost *root = post->GetRoot();
+      if(root != NULL)
+      {
+         id = root->GetId();
+      }
+   }
+
+   // see if he is in the map
+   std::map<unsigned int, DWORD>::iterator it = m_id_contents_requests.find(id);
+  
+   if(it != m_id_contents_requests.end())
+   {
+      // found it.
+
+      // see if it is older than 5 seconds ago
+      if(thistime - it->second > 5000)
+      {
+         // is old.  allow new request 
+      }
+      else
+      {
+         // is recent.  update time and don't allow new request
+         m_id_contents_requests[id] = thistime;
+         bPerformRequest = false;
+      }
+   }
+   else
+   {
+      // doesn't exist
+      // allow new request and add to map
+      m_id_contents_requests[id] = thistime;
+   }
+
+   return bPerformRequest;
+}
+
+void CLampDoc::RemoveContentsRequest(unsigned int id)
+{
+   // replace the id with the root post id
+   ChattyPost *post = FindPost(id);
+   if(post != NULL)
+   {
+      ChattyPost *root = post->GetRoot();
+      if(root != NULL)
+      {
+         id = root->GetId();
+      }
+   }
+
+   // see if he is in the map
+   std::map<unsigned int, DWORD>::iterator it = m_id_contents_requests.find(id);
+  
+   if(it != m_id_contents_requests.end())
+   {
+      // found it.  remove it
+
+      m_id_contents_requests.erase(it);
    }
 }
 

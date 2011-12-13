@@ -824,6 +824,10 @@ public:
 
    int GetHoursExpire(){return m_hours_expire;}
    void SetHoursExpire(int value){m_hours_expire = value;}
+
+   int GetMSecondsPreviewTimer(){return m_mseconds_preview_timer;}
+   void SetMSecondsPreviewTimer(int value){m_mseconds_preview_timer = value;}
+   
    DockTab *GetDockTab(){return m_pDockTab;}
 
    int GetDescent(){return m_descent;}
@@ -1199,6 +1203,8 @@ protected:
    bool m_auto_check_inbox;
 
    int m_hours_expire;
+
+   int m_mseconds_preview_timer;
 
    bool m_show_root_selected;
 
