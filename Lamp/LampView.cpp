@@ -5247,7 +5247,20 @@ void CLampView::MakeCurrentPosVisible()
          m_gotopos = m_pos = 0;
          DrawEverythingToBuffer();
          int top = post->GetPos();
-         m_gotopos = top - (height / 2);
+         int newpos;
+
+         // if near the bottom, then back up a bit
+         int threadheight = GetDocument()->GetHeight() - ((height / 8) * 3);
+         if(threadheight - top < (height / 2))
+         {
+            newpos = threadheight - height;
+         }
+         else
+         {
+            newpos = top - (height / 2);
+         }
+
+         m_gotopos = newpos;
       }
 
       MakePosLegal();
