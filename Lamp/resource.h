@@ -145,14 +145,18 @@
 #define ID_DONTAUTOLOADNWSTHUMBS        32861
 #define ID_SKIN_WORKSAFE                32862
 #define ID_GOTONEWPOST                  32863
+#define ID_EXPAND_PREVIEWS              32864
+#define ID_EXPAND_PREVIEWS_DOWN         32865
+
 #define ID_BOOKMARK_MENUITEM            32880
+
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        328
-#define _APS_NEXT_COMMAND_VALUE         32864
+#define _APS_NEXT_COMMAND_VALUE         32866
 #define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

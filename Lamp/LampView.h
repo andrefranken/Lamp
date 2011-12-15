@@ -100,6 +100,8 @@ public:
       
    void MakeCurrentPostLegal(bool bTopOnly = false, bool bKeepInSameLocation = false, int y = 0, bool bInstant = false);
 
+   void SetPos(int pos){m_gotopos = m_pos = pos;}
+
 protected:
    void DrawHotSpots(HDC hDC);
    bool DrawCurrentHotSpots(HDC hDC);
@@ -355,6 +357,10 @@ public:
    afx_msg void OnUnloadAllImages();
    afx_msg void OnUpdateUnloadAllImages(CCmdUI *pCmdUI);
    afx_msg void OnMouseLeave();
+   afx_msg void OnExpandPreviewsDown();
+   afx_msg void OnUpdateExpandPreviewsDown(CCmdUI *pCmdUI);
+   afx_msg void OnExpandPreviews();
+   afx_msg void OnUpdateExpandPreviews(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp

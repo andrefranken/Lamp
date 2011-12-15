@@ -789,6 +789,12 @@ public:
    bool ShowRootSelected(){return m_show_root_selected;}
    void SetShowRootSelected(bool value){m_show_root_selected = value;}
 
+   bool ExpandPreviewsDown(){return m_expand_previews_down;}
+   void SetExpandPreviewsDown(bool value){m_expand_previews_down = value;}
+
+   bool ExpandPreviews(){return m_expand_previews;}
+   void SetExpandPreviews(bool value){m_expand_previews = value;}
+
    bool ShowThomWLOLS(){return m_show_thomw_lols;}
    void SetShowThomWLOLS(bool value);
 
@@ -1207,6 +1213,10 @@ protected:
    int m_mseconds_preview_timer;
 
    bool m_show_root_selected;
+
+   bool m_expand_previews;
+
+   bool m_expand_previews_down;
 
    bool m_show_thomw_lols;
 

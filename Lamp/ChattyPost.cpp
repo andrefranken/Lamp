@@ -3135,7 +3135,21 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   hotspot.m_bAnim = false;
                   hotspot.m_type = HST_REPLYPREVIEW;
                   hotspot.m_spot = myrect;
-                  hotspot.m_spot.bottom = hotspot.m_spot.top + theApp.GetTextHeight();
+
+                  if(theApp.ExpandPreviewsDown())
+                  {
+                     hotspot.m_spot.bottom = hotspot.m_spot.top + theApp.GetTextHeight();
+                  }
+                  else
+                  {
+                     hotspot.m_spot.top = myrect.top + ((myrect.bottom - myrect.top - theApp.GetTextHeight()) >> 1);
+                     hotspot.m_spot.bottom = hotspot.m_spot.top + theApp.GetTextHeight();
+                  }
+                  if(m_lines_of_text.size() > 1)
+                  {
+                     hotspot.m_spot.right = DeviceRectangle.right;
+                  }
+
                   hotspot.m_id = m_id;
                   hotspots.push_back(hotspot);
                   

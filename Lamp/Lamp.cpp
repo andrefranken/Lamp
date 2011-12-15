@@ -1618,6 +1618,14 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_show_root_selected = setting->GetValue();
    else m_show_root_selected = true;
 
+   setting = hostxml.FindChildElement(L"expand_previews_down");
+   if(setting!=NULL) m_expand_previews_down = setting->GetValue();
+   else m_expand_previews_down = false;
+
+   setting = hostxml.FindChildElement(L"expand_previews");
+   if(setting!=NULL) m_expand_previews = setting->GetValue();
+   else m_expand_previews = true;
+
    setting = hostxml.FindChildElement(L"show_thomw_lols");
    if(setting!=NULL) m_show_thomw_lols = setting->GetValue();
    else m_show_thomw_lols = false;
@@ -1994,6 +2002,8 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"LoadImagesInLamp",UCString(m_bLoadImagesInLamp));
    settingsxml.AddChildElement(L"auto_check_inbox",UCString(m_auto_check_inbox));
    settingsxml.AddChildElement(L"show_root_selected",UCString(m_show_root_selected));
+   settingsxml.AddChildElement(L"expand_previews_down",UCString(m_expand_previews_down));
+   settingsxml.AddChildElement(L"expand_previews",UCString(m_expand_previews));
    settingsxml.AddChildElement(L"show_thomw_lols",UCString(m_show_thomw_lols));
    settingsxml.AddChildElement(L"verbose_lol_previews",UCString(m_verbose_lol_previews));
    settingsxml.AddChildElement(L"inverted_lol_previews",UCString(m_inverted_lol_previews));

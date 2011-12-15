@@ -1013,6 +1013,25 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
 
             if(it != end)
             {
+               int old_top = 0;
+               int old_bottom = 0;
+               int old_center = 0;
+
+               if(m_pView)
+               {
+                  unsigned int hoverpreviewid = m_pView->GetHoverPreviewId();
+                  if(hoverpreviewid != 0)
+                  {
+                     ChattyPost *hoverpost = FindPost(hoverpreviewid);
+                     if(hoverpost != NULL)
+                     {
+                        old_top = hoverpost->GetPos();
+                        old_bottom = old_top + hoverpost->GetHeight();
+                        old_center = (old_top + old_bottom) >> 1;
+                     }
+                  }
+               }
+
                tree<htmlcxx::HTML::Node>::sibling_iterator post_it = it.begin();
                tree<htmlcxx::HTML::Node>::sibling_iterator post_end = it.end();
                while(post_it != post_end)
@@ -1065,6 +1084,24 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                if(post != NULL)
                {
                   post->SetRefreshing(false);
+               }
+
+               if(m_pView)
+               {
+                  unsigned int hoverpreviewid = m_pView->GetHoverPreviewId();
+                  if(hoverpreviewid != 0 && old_center != 0)
+                  {
+                     ChattyPost *hoverpost = FindPost(hoverpreviewid);
+                     if(hoverpost != NULL)
+                     {
+                        m_pView->DrawEverythingToBuffer();
+                        int top = hoverpost->GetPos();
+                        int bottom = top + hoverpost->GetHeight();
+                        int center = (top + bottom) >> 1;
+
+                        m_pView->SetPos(m_pView->GetPos() + (center - old_center));
+                     }
+                  }
                }
 
                if(m_pView)

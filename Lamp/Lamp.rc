@@ -292,6 +292,9 @@ BEGIN
             MENUITEM "Custom",                      ID_SKIN_CUSTOM
         END
         MENUITEM SEPARATOR
+        MENUITEM "Expand Previews",                 ID_EXPAND_PREVIEWS
+        MENUITEM "Expand Previews Down",            ID_EXPAND_PREVIEWS_DOWN
+        MENUITEM SEPARATOR
         MENUITEM "Other Settings",              ID_SHOW_SETTINGS_DIALOG
     END
     POPUP "&Help"

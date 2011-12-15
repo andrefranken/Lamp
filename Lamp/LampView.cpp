@@ -162,6 +162,10 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_INVERTED_LOL_PREVIEWS, &CLampView::OnUpdateInvertedLOLPreviews)
    ON_COMMAND(ID_UNLOADALLIMAGES, &CLampView::OnUnloadAllImages)
    ON_UPDATE_COMMAND_UI(ID_UNLOADALLIMAGES, &CLampView::OnUpdateUnloadAllImages)
+   ON_COMMAND(ID_EXPAND_PREVIEWS_DOWN, &CLampView::OnExpandPreviewsDown)
+   ON_UPDATE_COMMAND_UI(ID_EXPAND_PREVIEWS_DOWN, &CLampView::OnUpdateExpandPreviewsDown)
+   ON_COMMAND(ID_EXPAND_PREVIEWS, &CLampView::OnExpandPreviews)
+   ON_UPDATE_COMMAND_UI(ID_EXPAND_PREVIEWS, &CLampView::OnUpdateExpandPreviews)
 
    ON_COMMAND(ID_BACK_ID, &CLampView::OnBackId)
    ON_UPDATE_COMMAND_UI(ID_BACK_ID, &CLampView::OnUpdateBackId)
@@ -274,11 +278,85 @@ void CLampView::SetCurrentId(unsigned int id)
 
 void CLampView::SetHoverPreviewId(unsigned int id)
 {
-   if(id != m_hover_preview_id)
+   if(theApp.ExpandPreviews())
    {
-      m_hover_preview_id = id;
-      GetDocument()->MakePostAvailable(id);
-      InvalidateEverything();
+      if(id != m_hover_preview_id)
+      {
+         if(id != 0)
+         {
+            ChattyPost *pPost = GetDocument()->FindPost(id);
+            if(pPost != NULL)
+            {            
+               if(theApp.ExpandPreviewsDown())
+               {
+                  m_hover_preview_id = id;
+               }
+               else
+               {
+                  int old_top = pPost->GetPos();
+                  int old_bottom = old_top + pPost->GetHeight();
+                  int old_center = (old_top + old_bottom) >> 1;
+
+                  m_hover_preview_id = id;
+                  DrawEverythingToBuffer();
+                  int top = pPost->GetPos();
+                  int bottom = top + pPost->GetHeight();
+                  int center = (top + bottom) >> 1;
+
+                  m_gotopos += (center - old_center);
+
+                  m_pos = m_gotopos;
+               }
+               
+               InvalidateEverything();
+            }
+         }
+         else if(m_hover_preview_id != 0)
+         {
+            ChattyPost *pPost = GetDocument()->FindPost(m_hover_preview_id);
+            if(pPost != NULL)
+            {            
+               if(theApp.ExpandPreviewsDown())
+               {
+                  m_hover_preview_id = id;
+               }
+               else
+               {
+                  int old_top = pPost->GetPos();
+                  int old_bottom = old_top + pPost->GetHeight();
+                  int old_center = (old_top + old_bottom) >> 1;
+
+                  m_hover_preview_id = id;
+                  DrawEverythingToBuffer();
+                  int top = pPost->GetPos();
+                  int bottom = top + pPost->GetHeight();
+                  int center = (top + bottom) >> 1;
+
+                  m_gotopos += (center - old_center);
+
+                  m_pos = m_gotopos;
+               }
+
+               InvalidateEverything();
+            }
+         }
+         else
+         {
+            m_hover_preview_id = id;
+            InvalidateEverything();
+         }
+               
+         GetDocument()->MakePostAvailable(id);
+         
+      }
+   }
+   else
+   {
+      if(m_hover_preview_id != 0)
+      {
+         m_hover_preview_id = 0;
+         InvalidateEverything();
+      }
    }
 }
 
@@ -3842,60 +3920,61 @@ void CLampView::OnMouseMove(UINT nFlags, CPoint point)
             }   
             else
             {
-               if(GetDocument()->GetDataType() != DDT_THREAD &&
-                  m_mousepoint.x >= m_BannerRectangle.left &&
-                  m_mousepoint.x < m_BannerRectangle.right &&
-                  m_mousepoint.y >= m_BannerRectangle.top &&
-                  m_mousepoint.y < m_BannerRectangle.bottom)
+               if(theApp.ExpandPreviews())
                {
-                  // mouse is over banner
-                  if(m_PREVIEW_TIMER_id != 0)
+                  if(GetDocument()->GetDataType() != DDT_THREAD &&
+                     m_mousepoint.x >= m_BannerRectangle.left &&
+                     m_mousepoint.x < m_BannerRectangle.right &&
+                     m_mousepoint.y >= m_BannerRectangle.top &&
+                     m_mousepoint.y < m_BannerRectangle.bottom)
                   {
-                     KillTimer(PREVIEW_TIMER);
-                  }
-                  m_PREVIEW_TIMER_id = 0;
-                  SetHoverPreviewId(0);
-               }
-               else
-               {
-                  bool bSameHoverReply = false;
-                  for(size_t i = 0; i < m_hotspots.size(); i++)
-                  {
-                     if(m_hotspots[i].m_type == HST_REPLYPREVIEW &&
-                        m_mousepoint.x >= m_hotspots[i].m_spot.left &&
-                        m_mousepoint.x < m_hotspots[i].m_spot.right &&
-                        m_mousepoint.y >= m_hotspots[i].m_spot.top &&
-                        m_mousepoint.y < m_hotspots[i].m_spot.bottom)
+                     // mouse is over banner
+                     if(m_PREVIEW_TIMER_id != 0)
                      {
-                        if(m_hotspots[i].m_id == m_hover_preview_id ||
-                           m_hotspots[i].m_id == m_PREVIEW_TIMER_id)
+                        KillTimer(PREVIEW_TIMER);
+                     }
+                     m_PREVIEW_TIMER_id = 0;
+                     SetHoverPreviewId(0);
+                  }
+                  else
+                  {
+                     bool bSameHoverReply = false;
+                     for(size_t i = 0; i < m_hotspots.size(); i++)
+                     {
+                        if(m_hotspots[i].m_type == HST_REPLYPREVIEW &&
+                           m_mousepoint.x >= m_hotspots[i].m_spot.left &&
+                           m_mousepoint.x < m_hotspots[i].m_spot.right &&
+                           m_mousepoint.y >= m_hotspots[i].m_spot.top &&
+                           m_mousepoint.y < m_hotspots[i].m_spot.bottom)
                         {
-                           // just hovering over hte same guy.
-                           // do nothing
-                           bSameHoverReply = true;
-                           break;
-                        }
-                        else
-                        {
-                           // start hover timer on this guy
-                           if(m_PREVIEW_TIMER_id != 0)
+                           if(m_hotspots[i].m_id == m_hover_preview_id ||
+                              m_hotspots[i].m_id == m_PREVIEW_TIMER_id)
                            {
-                              KillTimer(PREVIEW_TIMER);
+                              // just hovering over hte same guy.
+                              // do nothing
+                              bSameHoverReply = true;
+                              break;
                            }
-                           m_PREVIEW_TIMER_id = m_hotspots[i].m_id;
-                           SetTimer(PREVIEW_TIMER,theApp.GetMSecondsPreviewTimer(),NULL);
-                           break;
+                           else
+                           {
+                              // start hover timer on this guy
+                              if(m_PREVIEW_TIMER_id != 0)
+                              {
+                                 KillTimer(PREVIEW_TIMER);
+                              }
+                              m_PREVIEW_TIMER_id = m_hotspots[i].m_id;
+                              SetTimer(PREVIEW_TIMER,theApp.GetMSecondsPreviewTimer(),NULL);
+                              break;
+                           }
                         }
                      }
-                  }
 
-                  if(!bSameHoverReply &&
-                     m_hover_preview_id != 0)
-                  {
-                     // cancel the previous preview
-                     SetHoverPreviewId(0);
-                     DrawEverythingToBuffer();
-                     InvalidateEverything();
+                     if(!bSameHoverReply &&
+                        m_hover_preview_id != 0)
+                     {
+                        // cancel the previous preview
+                        SetHoverPreviewId(0);
+                     }
                   }
                }
             
@@ -5000,7 +5079,6 @@ void CLampView::OnTimer(UINT nIDEvent)
             m_mousepoint.y < m_hotspots[i].m_spot.bottom)
          {
             SetHoverPreviewId(m_hotspots[i].m_id);
-            InvalidateEverything();
             break;
          }
       }
@@ -6339,4 +6417,42 @@ void CLampView::SendMessageDlg(CLampDoc *pDoc, const UCString &to, const UCStrin
 
       InvalidateEverything();
    }   
+}
+
+void CLampView::OnExpandPreviewsDown()
+{
+   theApp.SetExpandPreviewsDown(!theApp.ExpandPreviewsDown());
+}
+
+void CLampView::OnUpdateExpandPreviewsDown(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.ExpandPreviewsDown())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+ 
+void CLampView::OnExpandPreviews()
+{
+   theApp.SetExpandPreviews(!theApp.ExpandPreviews());
+}
+
+void CLampView::OnUpdateExpandPreviews(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.ExpandPreviews())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
 }
