@@ -213,6 +213,7 @@ CLampView::CLampView()
    m_PREVIEW_TIMER_id = 0;
    m_mouseOverClientArea = false;
    m_hover_preview_percent = 1.0f;
+   m_indent_offset = 0;
    
    m_pFindDlg = NULL;
 
@@ -4339,6 +4340,17 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             m_gotopos -= 20;
             MakePosLegal();
             InvalidateEverythingPan();
+         }
+         else if(nChar == VK_LEFT)
+         {
+            if(m_indent_offset < 0)
+            m_indent_offset++;
+            InvalidateEverything();
+         }
+         else if(nChar == VK_RIGHT)
+         {
+            m_indent_offset--;
+            InvalidateEverything();
          }
          else if(nChar == VK_NEXT || 
                 (nChar == VK_SPACE &&
