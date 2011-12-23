@@ -292,8 +292,8 @@ BEGIN
             MENUITEM "Custom",                      ID_SKIN_CUSTOM
         END
         MENUITEM SEPARATOR
-        MENUITEM "Expand Previews",                 ID_EXPAND_PREVIEWS
-        MENUITEM "Expand Previews Down",            ID_EXPAND_PREVIEWS_DOWN
+        MENUITEM "Expand Previews",             ID_EXPAND_PREVIEWS
+        MENUITEM "Expand Previews Down",        ID_EXPAND_PREVIEWS_DOWN
         MENUITEM SEPARATOR
         MENUITEM "Other Settings",              ID_SHOW_SETTINGS_DIALOG
     END
@@ -490,13 +490,13 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,259,53,50,14
 END
 
-IDD_SETTINGS_DIALOG DIALOGEX 0, 0, 338, 256
+IDD_SETTINGS_DIALOG DIALOGEX 0, 0, 338, 259
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "More Settings"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,215,236,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,281,236,50,14
+    DEFPUSHBUTTON   "OK",IDOK,215,239,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,281,239,50,14
     EDITTEXT        IDC_MOUSE_WHEEL_SPEED_EDIT,184,15,40,14,ES_AUTOHSCROLL
     EDITTEXT        IDC_MB_PAN_SPEED_EDIT,184,39,40,14,ES_AUTOHSCROLL
     EDITTEXT        IDC_NUM_SHOW_TRUNC_EDIT,184,63,40,14,ES_AUTOHSCROLL | ES_NUMBER
@@ -510,15 +510,17 @@ BEGIN
     RTEXT           "Inertia Friction",IDC_STATIC,7,112,172,8
     RTEXT           "Number of hours in which threads expire",IDC_STATIC,7,135,172,8
     CONTROL         "Use stonedonkey, to get around the shack being blocked.",ID_USE_STONEDONKEY,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,182,201,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,205,201,10
     CONTROL         "Old 1.9.1 single thread style",ID_SINGLE_THREAD_STYLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,206,107,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,229,107,10
     EDITTEXT        IDC_FILTERED_USERS_EDIT,241,31,90,81,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
     EDITTEXT        IDC_FILTERED_PHRASES_EDIT,241,144,90,82,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
     LTEXT           "Usernames to filter out:",IDC_STATIC,243,17,88,8
     LTEXT           "Phrases to filter out:",IDC_STATIC,243,131,88,8
     EDITTEXT        IDC_PREVIEW_TIMER,183,156,40,14,ES_AUTOHSCROLL
     RTEXT           "Preview hover time.  In milliseconds",IDC_STATIC,7,158,172,8
+    EDITTEXT        IDC_PREVIEW_EXCPAND_PERCENT_EDIT,183,179,40,14,ES_AUTOHSCROLL
+    RTEXT           "Preview expansion percentage per frame",IDC_STATIC,7,181,172,8
 END
 
 
@@ -631,7 +633,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 331
         TOPMARGIN, 7
-        BOTTOMMARGIN, 250
+        BOTTOMMARGIN, 253
     END
 END
 #endif    // APSTUDIO_INVOKED

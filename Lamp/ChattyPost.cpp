@@ -1945,7 +1945,7 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
 }
 
 
-int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, unsigned int hover_preview_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
+int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
 {
    if(m_pDoc != NULL)
    {
@@ -2551,7 +2551,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                {
                   rootauthor = m_author;
                }                  
-               pos = (*it)->DrawReply(hDC, DeviceRectangle, pos, hotspots, indent, current_id, hover_preview_id, trunkatingposts, rootauthor, bAllowModTools, bModToolIsUp, ModToolRect, ModToolPostID);
+               pos = (*it)->DrawReply(hDC, DeviceRectangle, pos, hotspots, indent, current_id, trunkatingposts, rootauthor, bAllowModTools, bModToolIsUp, ModToolRect, ModToolPostID);
             }
             it++;
          }
@@ -2561,7 +2561,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
    return pos;
 }
 
-int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, int indent, unsigned int current_id, unsigned int hover_preview_id, int &trunkatingposts, const UCString &rootauthor, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
+int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, int indent, unsigned int current_id, int &trunkatingposts, const UCString &rootauthor, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
 {
    if(m_pDoc != NULL)
    {
@@ -3066,32 +3066,9 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
 
             RECT myrect = DeviceRectangle;
             myrect.top = pos;
+            
+            myrect.bottom = pos + theApp.GetTextHeight();
 
-            if(hover_preview_id == m_id)
-            {
-               RECT textrect = DeviceRectangle;
-               textrect.left += 20 + (indent * 20) - 5;
-               textrect.right -= author_info_size;
-               textrect.top = 0;
-               textrect.bottom = 0;
-               
-               if(textrect.right - textrect.left != m_lasttextrectwidth)
-               {
-                  m_lasttextrectwidth = textrect.right - textrect.left;
-                  SetupBodyText(textrect);
-                  m_textrectheight = textrect.bottom;
-               }
-               else
-               {
-                  textrect.bottom = m_textrectheight;
-               }
-
-               myrect.bottom = myrect.top + textrect.bottom - 8;
-            }
-            else
-            {
-               myrect.bottom = pos + theApp.GetTextHeight();
-            }
             pos = myrect.bottom;
             
             if(myrect.bottom < DeviceRectangle.top ||
@@ -3105,263 +3082,161 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
 
                myrect.left += 20 + (indent * 20);
 
-               if(hover_preview_id == m_id)
+               m_last_left = myrect.left;
+                             
+            
+               myrect.right -= 20;
+               myrect.right -= m_authorsize;
+               myrect.right -= (abs(theApp.GetCellHeight()) + 5);// "... : "
+               if(theApp.ShowLOLButtons() && m_bHaveLOLPreview)
                {
-                  RECT textrect = DeviceRectangle;
-                  textrect.left += 20 + (indent * 20) - 5;
-                  textrect.right -= author_info_size;
-                  textrect.top = 0;
-                  textrect.bottom = 0;
-                  
-                  if(textrect.right - textrect.left != m_lasttextrectwidth)
+                  myrect.right -= m_lol_preview_size;
+               }
+
+               if(m_lightningbolt)
+               {
+                  CDCSurface *pLImage = theApp.GetLightningBoltImage(false);
+                  if(pLImage != NULL)
                   {
-                     m_lasttextrectwidth = textrect.right - textrect.left;
-                     SetupBodyText(textrect);
-                     m_textrectheight = textrect.bottom;
+                     myrect.right -= pLImage->GetWidth();
                   }
-                  else
+               }
+
+               RECT textrect = myrect;
+
+               if(m_category == PCT_INF)
+               {
+                  CDCSurface *pINFIMage = theApp.GetINFStar();
+                  if(pINFIMage != NULL)
                   {
-                     textrect.bottom = m_textrectheight;
+                     RECT infrect = textrect;
+                     infrect.right = textrect.left + 16;
+                     pINFIMage->Blit(hDC, infrect);
                   }
-
-                  textrect.top = myrect.top - 4;
-                  textrect.bottom = myrect.top + textrect.bottom - 8;
-                  textrect.right = textrect.left + m_largest_line_width;
-                  myrect.right = myrect.left + m_largest_line_width;
-
-                  m_pDoc->FillExpandedBackground(hDC, myrect, true, m_category, false);
-
-                  CHotSpot hotspot;
-                  hotspot.m_bAnim = false;
-                  hotspot.m_type = HST_REPLYPREVIEW;
-                  hotspot.m_spot = myrect;
-
-                  if(theApp.ExpandPreviewsDown())
+                  textrect.left += 16;
+               }
+               else if(m_category == PCT_NWS)
+               {
+                  CDCSurface *pNWSIMage = theApp.GetNWSStar();
+                  if(pNWSIMage != NULL)
                   {
-                     hotspot.m_spot.bottom = hotspot.m_spot.top + theApp.GetTextHeight();
+                     RECT nwsrect = textrect;
+                     nwsrect.right = textrect.left + 16;
+                     pNWSIMage->Blit(hDC, nwsrect);
                   }
-                  else
+                  textrect.left += 16;
+               }
+               else if(m_category == PCT_OFFTOPIC)
+               {
+                  CDCSurface *pOTIMage = theApp.GetOffTopicStar();
+                  if(pOTIMage != NULL)
                   {
-                     hotspot.m_spot.top = myrect.top + ((myrect.bottom - myrect.top - theApp.GetTextHeight()) >> 1);
-                     hotspot.m_spot.bottom = hotspot.m_spot.top + theApp.GetTextHeight();
+                     RECT otrect = textrect;
+                     otrect.right = textrect.left + 16;
+                     pOTIMage->Blit(hDC, otrect);
                   }
-                  if(m_lines_of_text.size() > 1)
+                  textrect.left += 16;
+               }
+               else if(m_category == PCT_POLITICAL)
+               {
+                  CDCSurface *pPIMage = theApp.GetPoliticalStar();
+                  if(pPIMage != NULL)
                   {
-                     hotspot.m_spot.right = DeviceRectangle.right;
+                     RECT prect = textrect;
+                     prect.right = textrect.left + 16;
+                     pPIMage->Blit(hDC, prect);
                   }
-
-                  hotspot.m_id = m_id;
-                  hotspots.push_back(hotspot);
-                  
-                  std::vector<RECT> spoilers;
-                  std::vector<RECT> links;
-                  std::vector<RECT> imagelinks;
-                  std::vector<RECT> images;
-                  std::vector<RECT> thumbs;
-                  m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs, m_bComplexShapeText,&textrect);
-                  m_drewtextpos = textrect.top;
-                  m_drewtextedge = textrect.left;   
-
-                  myrect.right -= 5;
-
-                  RECT authorrect;
-                  
-                  authorrect.left = myrect.right;
-                  authorrect.right = authorrect.left + author_info_size;
-                  authorrect.bottom = myrect.bottom;
-                  authorrect.top = myrect.bottom - theApp.GetTextHeight();
-
-                  RECT authornamerect = authorrect;
-
-                  authornamerect.right = authornamerect.left + abs(theApp.GetCellHeight() / 3) + 5 + m_authorpreviewsize + 5;
-                  
-                  m_pDoc->DrawPreviewAuthor(hDC, authornamerect, m_author, false, m_previewshade, m_AuthorColor, rootauthor);
-
-                  int rightofauthor = authornamerect.right;
-
-                  if(m_lightningbolt)
+                  textrect.left += 16;
+               }
+               else if(m_category == PCT_STUPID)
+               {
+                  CDCSurface *pSIMage = theApp.GetStupidStar();
+                  if(pSIMage != NULL)
                   {
-                     CDCSurface *pLImage = theApp.GetLightningBoltImage(false);
-                     if(pLImage != NULL)
-                     {
-                        //pLImage->Blit(hDC, lightningrect);
-                        hotspot.m_type = HST_LIGHTNINGBOLT;
-                        hotspot.m_spot.left = authornamerect.right;
-                        hotspot.m_spot.top = authornamerect.top;
-                        hotspot.m_spot.right = hotspot.m_spot.left + pLImage->GetWidth();
-                        hotspot.m_spot.bottom = hotspot.m_spot.top + pLImage->GetHeight();
-                        hotspot.m_id = 0;
-                        hotspots.push_back(hotspot);
-
-                        rightofauthor = hotspot.m_spot.right;
-                     }
+                     RECT srect = textrect;
+                     srect.right = textrect.left + 16;
+                     pSIMage->Blit(hDC, srect);
                   }
+                  textrect.left += 16;
+               }
+               
+               bool clipped = false;
 
-                  //
-                  if(theApp.ShowLOLButtons() && m_bHaveLOLPreview)
-                  {
-                     RECT lolpreviewrect = authornamerect;
-                     lolpreviewrect.left = rightofauthor;
-                     lolpreviewrect.right = lolpreviewrect.left + m_lol_preview_size;
-                     bool clipped = false;
-                     m_pDoc->DrawPreviewText(hDC,lolpreviewrect,m_lol_preview_text,m_plol_preview_charwidths,m_lol_preview_shacktags,10,clipped,false);
-                  }
+               if(m_previewshade == 10)
+               {
+                  RECT boldrect = textrect;
+                  boldrect.left++;
+                  boldrect.right++;
+                  m_pDoc->DrawPreviewText(hDC,boldrect,m_bodytext,m_pCharWidths,m_shacktags,0,clipped, m_bComplexShapeText);
+                  clipped = false;
+               }
+               m_pDoc->DrawPreviewText(hDC,textrect,m_bodytext,m_pCharWidths,m_shacktags,m_previewshade,clipped, m_bComplexShapeText);
 
+               m_drewtextpos = myrect.top;
+               m_drewtextedge = myrect.left;
+
+               CHotSpot hotspot;
+               hotspot.m_bAnim = false;
+               hotspot.m_type = HST_REPLYPREVIEW;
+               hotspot.m_spot = textrect;
+               hotspot.m_id = m_id;
+               hotspots.push_back(hotspot);
+
+               RECT authorrect = textrect;
+               authorrect.left = textrect.right;
+               if(clipped)
+               {
+                  authorrect.right = authorrect.left + abs(theApp.GetCellHeight()) + 5 + m_authorpreviewsize + 5;
                }
                else
                {
-                  myrect.right -= 20;
-                  myrect.right -= m_authorsize;
-                  myrect.right -= (abs(theApp.GetCellHeight()) + 5);// "... : "
-                  if(theApp.ShowLOLButtons() && m_bHaveLOLPreview)
-                  {
-                     myrect.right -= m_lol_preview_size;
-                  }
+                  authorrect.right = authorrect.left + abs(theApp.GetCellHeight() / 3) + 5 + m_authorpreviewsize + 5;
+               }
+               m_pDoc->DrawPreviewAuthor(hDC, authorrect, m_author, clipped, m_previewshade, m_AuthorColor, rootauthor);
 
-                  if(m_lightningbolt)
-                  {
-                     CDCSurface *pLImage = theApp.GetLightningBoltImage(false);
-                     if(pLImage != NULL)
-                     {
-                        myrect.right -= pLImage->GetWidth();
-                     }
-                  }
+               if(clipped)
+               {
+                  authorrect.left += abs(theApp.GetCellHeight());
+               }
+               else
+               {
+                  authorrect.left += abs(theApp.GetCellHeight() / 3);
+               }
+               hotspot.m_type = HST_AUTHORPREVIEW;
+               hotspot.m_spot = authorrect;
+               hotspot.m_id = m_id;
+               hotspots.push_back(hotspot);
 
-                  RECT textrect = myrect;
+               int rightofauthor = authorrect.right;
 
-                  if(m_category == PCT_INF)
+               if(m_lightningbolt)
+               {
+                  CDCSurface *pLImage = theApp.GetLightningBoltImage(false);
+                  if(pLImage != NULL)
                   {
-                     CDCSurface *pINFIMage = theApp.GetINFStar();
-                     if(pINFIMage != NULL)
-                     {
-                        RECT infrect = textrect;
-                        infrect.right = textrect.left + 16;
-                        pINFIMage->Blit(hDC, infrect);
-                     }
-                     textrect.left += 16;
-                  }
-                  else if(m_category == PCT_NWS)
-                  {
-                     CDCSurface *pNWSIMage = theApp.GetNWSStar();
-                     if(pNWSIMage != NULL)
-                     {
-                        RECT nwsrect = textrect;
-                        nwsrect.right = textrect.left + 16;
-                        pNWSIMage->Blit(hDC, nwsrect);
-                     }
-                     textrect.left += 16;
-                  }
-                  else if(m_category == PCT_OFFTOPIC)
-                  {
-                     CDCSurface *pOTIMage = theApp.GetOffTopicStar();
-                     if(pOTIMage != NULL)
-                     {
-                        RECT otrect = textrect;
-                        otrect.right = textrect.left + 16;
-                        pOTIMage->Blit(hDC, otrect);
-                     }
-                     textrect.left += 16;
-                  }
-                  else if(m_category == PCT_POLITICAL)
-                  {
-                     CDCSurface *pPIMage = theApp.GetPoliticalStar();
-                     if(pPIMage != NULL)
-                     {
-                        RECT prect = textrect;
-                        prect.right = textrect.left + 16;
-                        pPIMage->Blit(hDC, prect);
-                     }
-                     textrect.left += 16;
-                  }
-                  else if(m_category == PCT_STUPID)
-                  {
-                     CDCSurface *pSIMage = theApp.GetStupidStar();
-                     if(pSIMage != NULL)
-                     {
-                        RECT srect = textrect;
-                        srect.right = textrect.left + 16;
-                        pSIMage->Blit(hDC, srect);
-                     }
-                     textrect.left += 16;
-                  }
-                  
-                  bool clipped = false;
+                     //pLImage->Blit(hDC, lightningrect);
+                     hotspot.m_type = HST_LIGHTNINGBOLT;
+                     hotspot.m_spot.left = authorrect.right;
+                     hotspot.m_spot.top = authorrect.top;
+                     hotspot.m_spot.right = hotspot.m_spot.left + pLImage->GetWidth();
+                     hotspot.m_spot.bottom = hotspot.m_spot.top + pLImage->GetHeight();
+                     hotspot.m_id = 0;
+                     hotspots.push_back(hotspot);
 
-                  if(m_previewshade == 10)
-                  {
-                     RECT boldrect = textrect;
-                     boldrect.left++;
-                     boldrect.right++;
-                     m_pDoc->DrawPreviewText(hDC,boldrect,m_bodytext,m_pCharWidths,m_shacktags,0,clipped, m_bComplexShapeText);
-                     clipped = false;
-                  }
-                  m_pDoc->DrawPreviewText(hDC,textrect,m_bodytext,m_pCharWidths,m_shacktags,m_previewshade,clipped, m_bComplexShapeText);
-
-                  m_drewtextpos = myrect.top;
-                  m_drewtextedge = myrect.left;
-
-                  CHotSpot hotspot;
-                  hotspot.m_bAnim = false;
-                  hotspot.m_type = HST_REPLYPREVIEW;
-                  hotspot.m_spot = textrect;
-                  hotspot.m_id = m_id;
-                  hotspots.push_back(hotspot);
-
-                  RECT authorrect = textrect;
-                  authorrect.left = textrect.right;
-                  if(clipped)
-                  {
-                     authorrect.right = authorrect.left + abs(theApp.GetCellHeight()) + 5 + m_authorpreviewsize + 5;
-                  }
-                  else
-                  {
-                     authorrect.right = authorrect.left + abs(theApp.GetCellHeight() / 3) + 5 + m_authorpreviewsize + 5;
-                  }
-                  m_pDoc->DrawPreviewAuthor(hDC, authorrect, m_author, clipped, m_previewshade, m_AuthorColor, rootauthor);
-
-                  if(clipped)
-                  {
-                     authorrect.left += abs(theApp.GetCellHeight());
-                  }
-                  else
-                  {
-                     authorrect.left += abs(theApp.GetCellHeight() / 3);
-                  }
-                  hotspot.m_type = HST_AUTHORPREVIEW;
-                  hotspot.m_spot = authorrect;
-                  hotspot.m_id = m_id;
-                  hotspots.push_back(hotspot);
-
-                  int rightofauthor = authorrect.right;
-
-                  if(m_lightningbolt)
-                  {
-                     CDCSurface *pLImage = theApp.GetLightningBoltImage(false);
-                     if(pLImage != NULL)
-                     {
-                        //pLImage->Blit(hDC, lightningrect);
-                        hotspot.m_type = HST_LIGHTNINGBOLT;
-                        hotspot.m_spot.left = authorrect.right;
-                        hotspot.m_spot.top = authorrect.top;
-                        hotspot.m_spot.right = hotspot.m_spot.left + pLImage->GetWidth();
-                        hotspot.m_spot.bottom = hotspot.m_spot.top + pLImage->GetHeight();
-                        hotspot.m_id = 0;
-                        hotspots.push_back(hotspot);
-
-                        rightofauthor = hotspot.m_spot.right;
-                     }
-                  }
-
-                  //
-                  if(theApp.ShowLOLButtons() && m_bHaveLOLPreview)
-                  {
-                     RECT lolpreviewrect = authorrect;
-                     lolpreviewrect.left = rightofauthor;
-                     lolpreviewrect.right = lolpreviewrect.left + m_lol_preview_size;
-
-                     m_pDoc->DrawPreviewText(hDC,lolpreviewrect,m_lol_preview_text,m_plol_preview_charwidths,m_lol_preview_shacktags,10,clipped,false);
+                     rightofauthor = hotspot.m_spot.right;
                   }
                }
+
+               //
+               if(theApp.ShowLOLButtons() && m_bHaveLOLPreview)
+               {
+                  RECT lolpreviewrect = authorrect;
+                  lolpreviewrect.left = rightofauthor;
+                  lolpreviewrect.right = lolpreviewrect.left + m_lol_preview_size;
+
+                  m_pDoc->DrawPreviewText(hDC,lolpreviewrect,m_lol_preview_text,m_plol_preview_charwidths,m_lol_preview_shacktags,10,clipped,false);
+               }
+
                // draw branches
                RECT branchrect;
                branchrect.top = myrect.top;
@@ -3476,7 +3351,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
       {
          if((*it) != NULL)
          {
-            pos = (*it)->DrawReply(hDC, DeviceRectangle, pos, hotspots, indent, current_id, hover_preview_id, trunkatingposts, rootauthor, bAllowModTools, bModToolIsUp, ModToolRect, ModToolPostID);
+            pos = (*it)->DrawReply(hDC, DeviceRectangle, pos, hotspots, indent, current_id, trunkatingposts, rootauthor, bAllowModTools, bModToolIsUp, ModToolRect, ModToolPostID);
          }
          it++;
       }
@@ -3484,6 +3359,154 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
 
    return pos;
 }
+
+int ChattyPost::GetReplyPreviewHeight(RECT &DeviceRectangle)
+{
+   if(m_pDoc != NULL)
+   {
+      int author_info_size = 20;
+      author_info_size += m_authorsize;
+      if(theApp.ShowLOLButtons() && m_bHaveLOLPreview)
+      {
+         author_info_size += m_lol_preview_size;
+      }
+
+      if(m_lightningbolt)
+      {
+         CDCSurface *pLImage = theApp.GetLightningBoltImage(false);
+         if(pLImage != NULL)
+         {
+            author_info_size += pLImage->GetWidth();
+         }
+      }
+
+      RECT myrect = DeviceRectangle;
+      myrect.top = 0;
+      myrect.bottom = 10000;
+      myrect.left = m_last_left;
+      myrect.right -= author_info_size;
+                  
+      RECT textrect = myrect;
+      textrect.left -= 5;
+      textrect.top = 0;
+      textrect.bottom = 0;
+      
+      if(textrect.right - textrect.left != m_lasttextrectwidth)
+      {
+         m_lasttextrectwidth = textrect.right - textrect.left;
+         SetupBodyText(textrect);
+         m_textrectheight = textrect.bottom - 8;
+         //m_textrectheight = theApp.GetTextHeight() * m_lines_of_text.size();
+      }
+   }
+
+   return m_textrectheight;
+}
+
+void ChattyPost::DrawReplyPreview(HDC hDC, RECT &DeviceRectangle, int top, int bottom, const UCString &rootauthor)
+{
+   if(m_pDoc != NULL)
+   {
+      // draw as an expanded preview
+      ::SetBkMode(hDC,TRANSPARENT);
+
+      int author_info_size = 20;
+      author_info_size += m_authorsize;
+      if(theApp.ShowLOLButtons() && m_bHaveLOLPreview)
+      {
+         author_info_size += m_lol_preview_size;
+      }
+
+      if(m_lightningbolt)
+      {
+         CDCSurface *pLImage = theApp.GetLightningBoltImage(false);
+         if(pLImage != NULL)
+         {
+            author_info_size += pLImage->GetWidth();
+         }
+      }
+
+      RECT myrect = DeviceRectangle;
+      myrect.top = top;
+      myrect.bottom = bottom;
+      myrect.left = m_last_left;
+
+      m_pDoc->FillBackground(hDC,myrect);
+
+      myrect.right = myrect.left + m_largest_line_width;
+
+      if(m_textrectheight > theApp.GetTextHeight())
+      {
+         m_pDoc->StrokeShapedRect(hDC, myrect, theApp.GetTextHeight() / 2);
+      }
+
+      m_pDoc->FillExpandedBackground(hDC, myrect, true, m_category, false);
+
+      RECT textrect = myrect;
+      textrect.left -= 5;
+      textrect.right = textrect.left + m_largest_line_width;
+      textrect.top = myrect.top - 4;
+      textrect.bottom = myrect.bottom;
+      
+      std::vector<RECT> spoilers;
+      std::vector<RECT> links;
+      std::vector<RECT> imagelinks;
+      std::vector<RECT> images;
+      std::vector<RECT> thumbs;
+
+
+      HRGN hCR = ::CreateRectRgn(myrect.left,myrect.top,myrect.right,myrect.bottom);
+      ::ExtSelectClipRgn(hDC, hCR, RGN_COPY);
+
+      m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs, m_bComplexShapeText,&textrect);
+
+      ::ExtSelectClipRgn(hDC, NULL, RGN_COPY);
+
+      myrect.right -= 5;
+
+      RECT authorrect;
+      
+      authorrect.left = myrect.right;
+      authorrect.right = authorrect.left + author_info_size;
+      authorrect.bottom = myrect.bottom;
+      authorrect.top = myrect.bottom - theApp.GetTextHeight();
+
+      RECT authornamerect = authorrect;
+
+      authornamerect.right = authornamerect.left + abs(theApp.GetCellHeight() / 3) + 5 + m_authorpreviewsize + 5;
+      
+      m_pDoc->DrawPreviewAuthor(hDC, authornamerect, m_author, false, m_previewshade, m_AuthorColor, rootauthor);
+
+      int rightofauthor = authornamerect.right;
+
+      if(m_lightningbolt)
+      {
+         CDCSurface *pLImage = theApp.GetLightningBoltImage(false);
+         if(pLImage != NULL)
+         {
+            RECT lightningrect = authorrect;
+            
+            lightningrect.left = authornamerect.right;
+            lightningrect.top = authornamerect.top;
+            lightningrect.right = lightningrect.left + pLImage->GetWidth();
+            lightningrect.bottom = lightningrect.top + pLImage->GetHeight();
+            pLImage->Blit(hDC, lightningrect);
+            rightofauthor = lightningrect.right;
+         }
+      }
+
+      //
+      if(theApp.ShowLOLButtons() && m_bHaveLOLPreview)
+      {
+         RECT lolpreviewrect = authornamerect;
+         lolpreviewrect.left = rightofauthor;
+         lolpreviewrect.right = lolpreviewrect.left + m_lol_preview_size;
+         bool clipped = false;
+         m_pDoc->DrawPreviewText(hDC,lolpreviewrect,m_lol_preview_text,m_plol_preview_charwidths,m_lol_preview_shacktags,10,clipped,false);
+      }
+   }
+}
+
 
 ChattyPost::~ChattyPost()
 {

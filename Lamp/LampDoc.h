@@ -124,11 +124,12 @@ public:
 
    DocDataType GetDataType(void){return m_datatype;}
 
-   void Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, unsigned int hover_preview_id, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
+   void Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
 
    void DoBoldFont(HDC hDC){::SelectObject(hDC, m_boldfont);}
    void FillBackground(HDC hDC, RECT &rect){::FillRect(hDC, &rect, m_backgroundbrush);}
    void FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcategorytype posttype, bool bStrokeTopOnly);
+   void StrokeShapedRect(HDC hDC, RECT &rect, int thickness);
    void DrawBodyText(HDC hDC,
                      RECT &rect,
                      std::vector<const UCChar*> &lines_of_text,
@@ -305,7 +306,7 @@ protected:
    void ReadLOL();
    void PerformSearch();
    bool ReadExistingThreadFromRoot(CXMLTree &xmldata, unsigned int id, bool bDoingNewFlags);
-   int DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, unsigned int hover_preview_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
+   int DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
    int DrawMessages(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id);
    
    void CalcLineTags(std::vector<shacktagpos> &shacktags, std::vector<shacktagpos> &thislinetags, int beginpos, int endpos);

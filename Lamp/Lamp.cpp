@@ -1500,6 +1500,14 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"mseconds_preview_timer");
    if(setting!=NULL) m_mseconds_preview_timer = setting->GetValue();
    else m_mseconds_preview_timer = 500;
+   if(m_mseconds_preview_timer == 0)
+      m_mseconds_preview_timer = 1;
+
+   setting = hostxml.FindChildElement(L"hover_preview_percent_stepsize");
+   if(setting!=NULL) m_hover_preview_percent_stepsize = setting->GetValue();
+   else m_hover_preview_percent_stepsize = 0.1f;
+   if(m_hover_preview_percent_stepsize == 0.0f)
+      m_hover_preview_percent_stepsize = 0.001f;
 
    setting = hostxml.FindChildElement(L"skin_folder");
    if(setting!=NULL) m_skinname = setting->GetValue();
@@ -1620,7 +1628,7 @@ void CLampApp::ReadSettingsFile()
 
    setting = hostxml.FindChildElement(L"expand_previews_down");
    if(setting!=NULL) m_expand_previews_down = setting->GetValue();
-   else m_expand_previews_down = false;
+   else m_expand_previews_down = true;
 
    setting = hostxml.FindChildElement(L"expand_previews");
    if(setting!=NULL) m_expand_previews = setting->GetValue();
@@ -1977,6 +1985,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"smooth_scroll_scale",UCString(m_smoothscrollscale));
    settingsxml.AddChildElement(L"hours_expire",UCString(m_hours_expire));
    settingsxml.AddChildElement(L"mseconds_preview_timer",UCString(m_mseconds_preview_timer));
+   settingsxml.AddChildElement(L"hover_preview_percent_stepsize",UCString(m_hover_preview_percent_stepsize));
    settingsxml.AddChildElement(L"skin_folder",m_skinname);
    settingsxml.AddChildElement(L"mouse_wheel_scale",UCString(m_mouse_wheel_scale));
    settingsxml.AddChildElement(L"mb_pan_scale",UCString(m_mb_pan_scale));

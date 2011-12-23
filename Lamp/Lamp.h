@@ -832,7 +832,10 @@ public:
    void SetHoursExpire(int value){m_hours_expire = value;}
 
    int GetMSecondsPreviewTimer(){return m_mseconds_preview_timer;}
-   void SetMSecondsPreviewTimer(int value){m_mseconds_preview_timer = value;}
+   void SetMSecondsPreviewTimer(int value){m_mseconds_preview_timer = __max(1,value);}
+
+   float GetHoverPreviewPercentStepsize(){return m_hover_preview_percent_stepsize;}
+   void SetHoverPreviewPercentStepsize(float value){m_hover_preview_percent_stepsize = __max(0.001f,value);}
    
    DockTab *GetDockTab(){return m_pDockTab;}
 
@@ -1233,6 +1236,8 @@ protected:
    CDocument *m_pDocWho;
 
    CDCSurface m_tempimage;
+
+   float m_hover_preview_percent_stepsize;
 
 public:
    afx_msg void OnFileSetuplogininfo();

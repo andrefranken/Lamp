@@ -147,16 +147,16 @@
 #define ID_GOTONEWPOST                  32863
 #define ID_EXPAND_PREVIEWS              32864
 #define ID_EXPAND_PREVIEWS_DOWN         32865
+#define IDC_PREVIEW_EXCPAND_PERCENT_EDIT 32866
 
 #define ID_BOOKMARK_MENUITEM            32880
-
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        328
-#define _APS_NEXT_COMMAND_VALUE         32866
+#define _APS_NEXT_COMMAND_VALUE         32867
 #define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

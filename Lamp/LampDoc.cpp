@@ -3312,7 +3312,7 @@ void CLampDoc::Dump(CDumpContext& dc) const
 
 
 // CLampDoc commands
-void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, unsigned int hover_preview_id, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
+void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
 {
    pos = -pos;
 
@@ -3371,7 +3371,7 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
                }
             }
 
-            pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, hover_preview_id, false, theApp.IsModMode(), bModToolIsUp, ModToolRect, ModToolPostID);
+            pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, false, theApp.IsModMode(), bModToolIsUp, ModToolRect, ModToolPostID);
 
             RECT backrect = DeviceRectangle;
             backrect.top = pos;
@@ -3391,7 +3391,7 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
          FillBackground(hDC,backrect);
          pos += 20;
          
-         pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, hover_preview_id, false, theApp.IsModMode(), bModToolIsUp, ModToolRect, ModToolPostID);
+         pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, false, theApp.IsModMode(), bModToolIsUp, ModToolRect, ModToolPostID);
 
          backrect.top = pos;
          backrect.bottom = pos + (device_height / 2);
@@ -3406,7 +3406,7 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
             //pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, false);
             pos += bannerheight;
             
-            pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, hover_preview_id, true, false, false, ModToolRect, 0);
+            pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, true, false, false, ModToolRect, 0);
 
             RECT backrect = DeviceRectangle;
             backrect.top = pos;
@@ -3421,7 +3421,7 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
          //pos = DrawBanner(hDC, DeviceRectangle, pos, hotspots, false, false);
          pos += bannerheight;
          
-         pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, hover_preview_id, true, false, false, ModToolRect, 0);
+         pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, true, false, false, ModToolRect, 0);
 
          RECT backrect = DeviceRectangle;
          backrect.top = pos;
@@ -3695,7 +3695,7 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
    return bannerrect.bottom;
 }
 
-int CLampDoc::DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, unsigned int hover_preview_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
+int CLampDoc::DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
 {
    std::list<ChattyPost*>::iterator begin = m_rootposts.begin();
    std::list<ChattyPost*>::iterator end = m_rootposts.end();
@@ -3703,7 +3703,7 @@ int CLampDoc::DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<
 
    while(it != end)
    {
-      pos = (*it)->DrawRoot(hDC,DeviceRectangle,pos,hotspots, current_id, hover_preview_id, bLinkOnly, bAllowModTools, bModToolIsUp, ModToolRect, ModToolPostID);
+      pos = (*it)->DrawRoot(hDC,DeviceRectangle,pos,hotspots, current_id, bLinkOnly, bAllowModTools, bModToolIsUp, ModToolRect, ModToolPostID);
       it++;
 
       if(it != end)
@@ -4622,24 +4622,44 @@ void CLampDoc::CalcBodyText(RECT &rect,
    rect.bottom = rectheight;
 }
 
+void CLampDoc::StrokeShapedRect(HDC hDC, RECT &rect, int thickness)
+{
+   HPEN hNewPen = ::CreatePen(PS_SOLID,thickness, theApp.GetBackgroundColor());
+   HPEN oldpen = (HPEN)::SelectObject(hDC,hNewPen);
+   HBRUSH oldbrush = (HBRUSH)::SelectObject(hDC,::GetStockObject(HOLLOW_BRUSH));
+
+   if(theApp.RoundedPosts())
+   {
+      ::RoundRect(hDC,rect.left, rect.top, rect.right, rect.bottom, 20, 20);
+   }
+   else
+   {
+      ::Rectangle(hDC,rect.left, rect.top, rect.right, rect.bottom);
+   }
+
+   ::SelectObject(hDC,oldbrush);
+   ::SelectObject(hDC,oldpen);
+   ::DeleteObject(hNewPen);
+}
+
 void CLampDoc::FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcategorytype posttype, bool bStrokeTopOnly)
 {
    RECT temprect = rect;
-   temprect.bottom = temprect.top + 20;
-   temprect.right = temprect.left + 20;
+   temprect.bottom = temprect.top + __min(rect.bottom - rect.top, 20);
+   temprect.right = temprect.left + __min(rect.right - rect.left, 20);
    ::FillRect(hDC,&temprect,m_backgroundbrush);
 
    temprect.right = rect.right;
-   temprect.left = rect.right - 20;
+   temprect.left = rect.right - __min(rect.right - rect.left, 20);
    ::FillRect(hDC,&temprect,m_backgroundbrush);
 
    temprect = rect;
-   temprect.top = temprect.bottom - 20;
-   temprect.right = temprect.left + 20;
+   temprect.top = temprect.bottom - __min(rect.bottom - rect.top, 20);
+   temprect.right = temprect.left + __min(rect.right - rect.left, 20);
    ::FillRect(hDC,&temprect,m_backgroundbrush);
 
    temprect.right = rect.right;
-   temprect.left = rect.right - 20;
+   temprect.left = rect.right - __min(rect.right - rect.left, 20);
    ::FillRect(hDC,&temprect,m_backgroundbrush);
 
    temprect = rect;

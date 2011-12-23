@@ -56,6 +56,9 @@ public:
    unsigned int GetHoverPreviewId(){return m_hover_preview_id;}
    void SetHoverPreviewId(unsigned int id);
 
+   float GetHoverPreviewPercent(){return m_hover_preview_percent;}
+   void SetHoverPreviewPercent(float id);
+
    void InvalidateSkin();
 
    int GetPos(){return m_pos;}
@@ -212,6 +215,8 @@ protected:
    unsigned int m_PREVIEW_TIMER_id;
 
    bool m_mouseOverClientArea;
+
+   float m_hover_preview_percent;
 // Generated message map functions
 protected:
    

@@ -45,6 +45,7 @@ void CSettingsDlg::OnBnClickedOk()
    CEdit *pFilteredUsersEdit = (CEdit*)GetDlgItem(IDC_FILTERED_USERS_EDIT);
    CEdit *pFilteredPhrasesEdit = (CEdit*)GetDlgItem(IDC_FILTERED_PHRASES_EDIT);
    CEdit *ptMSecondsPreviewTimer = (CEdit*)GetDlgItem(IDC_PREVIEW_TIMER);
+   CEdit *pPreviewExpandPercentEdit = (CEdit*)GetDlgItem(IDC_PREVIEW_EXCPAND_PERCENT_EDIT);
 
    if(pMouseWheelSpeed != NULL &&
       pMBPanSpeed != NULL &&
@@ -56,7 +57,8 @@ void CSettingsDlg::OnBnClickedOk()
       pUseSingleThreadStyle != NULL &&
       pFilteredUsersEdit != NULL &&
       pFilteredPhrasesEdit != NULL &&
-      ptMSecondsPreviewTimer != NULL)
+      ptMSecondsPreviewTimer != NULL &&
+      pPreviewExpandPercentEdit != NULL)
    {
       CString temp;
       UCString temp2;
@@ -87,6 +89,10 @@ void CSettingsDlg::OnBnClickedOk()
       ptMSecondsPreviewTimer->GetWindowTextW(temp);
       temp2 = temp;
       theApp.SetMSecondsPreviewTimer(temp2);
+
+      pPreviewExpandPercentEdit->GetWindowTextW(temp);
+      temp2 = temp;
+      theApp.SetHoverPreviewPercentStepsize(temp2);
 
       if(pUseStoneDonkey->GetCheck() == BST_CHECKED)
       {
@@ -165,6 +171,7 @@ BOOL CSettingsDlg::OnInitDialog()
    CEdit *pFilteredUsersEdit = (CEdit*)GetDlgItem(IDC_FILTERED_USERS_EDIT);
    CEdit *pFilteredPhrasesEdit = (CEdit*)GetDlgItem(IDC_FILTERED_PHRASES_EDIT);
    CEdit *ptMSecondsPreviewTimer = (CEdit*)GetDlgItem(IDC_PREVIEW_TIMER);
+   CEdit *pPreviewExpandPercentEdit = (CEdit*)GetDlgItem(IDC_PREVIEW_EXCPAND_PERCENT_EDIT);
 
    if(pMouseWheelSpeed != NULL &&
       pMBPanSpeed != NULL &&
@@ -176,7 +183,8 @@ BOOL CSettingsDlg::OnInitDialog()
       pUseSingleThreadStyle != NULL &&
       pFilteredUsersEdit != NULL &&
       pFilteredPhrasesEdit != NULL &&
-      ptMSecondsPreviewTimer != NULL)
+      ptMSecondsPreviewTimer != NULL &&
+      pPreviewExpandPercentEdit != NULL)
    {
       pMouseWheelSpeed->SetWindowTextW(UCString(theApp.GetMouseWheelScale()));
       pMBPanSpeed->SetWindowTextW(UCString(theApp.GetMBPanScale()));
@@ -185,6 +193,7 @@ BOOL CSettingsDlg::OnInitDialog()
       pInertia->SetWindowTextW(UCString(theApp.GetInertiaFriction()));
       pHoursExpire->SetWindowTextW(UCString(theApp.GetHoursExpire()));
       ptMSecondsPreviewTimer->SetWindowTextW(UCString(theApp.GetMSecondsPreviewTimer()));
+      pPreviewExpandPercentEdit->SetWindowTextW(UCString(theApp.GetHoverPreviewPercentStepsize()));
 
       if(theApp.UseShack())
       {
