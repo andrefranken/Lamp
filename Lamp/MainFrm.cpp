@@ -463,7 +463,7 @@ void CMainFrame::OnTimer(UINT nIDEvent)
          {
             m_bFirstUpdate = false;
             KillTimer(UPDATE_TIMER);
-            SetTimer(UPDATE_TIMER,(UINT)60000 * 30,NULL); // check for updates every 30 minutes
+            SetTimer(UPDATE_TIMER,(UINT)60000 * 1440,NULL); // check for updates once a day
          }
          theApp.CheckForUpdates();
       }

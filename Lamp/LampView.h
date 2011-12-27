@@ -105,9 +105,6 @@ public:
 
    void SetPos(int pos){m_gotopos = m_pos = pos;}
 
-   void SetIndentOffset(int value){m_indent_offset = value;}
-   int GetIndentOffset(){return m_indent_offset;}
-
 protected:
    void DrawHotSpots(HDC hDC);
    bool DrawCurrentHotSpots(HDC hDC);
@@ -220,8 +217,6 @@ protected:
    bool m_mouseOverClientArea;
 
    float m_hover_preview_percent;
-
-   int m_indent_offset;
 // Generated message map functions
 protected:
    
@@ -371,6 +366,8 @@ public:
    afx_msg void OnUpdateExpandPreviewsDown(CCmdUI *pCmdUI);
    afx_msg void OnExpandPreviews();
    afx_msg void OnUpdateExpandPreviews(CCmdUI *pCmdUI);
+   afx_msg void OnCheckUpdate();
+   afx_msg void OnUpdateCheckUpdate(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp

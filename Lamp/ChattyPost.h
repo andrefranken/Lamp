@@ -360,6 +360,7 @@ public:
       memset(&m_tm_posttime,0,sizeof(tm));
       m_lightningbolt = false;
       m_bComplexShapeText = false;
+      m_indent_offset = 0;
    }
    virtual ~ChattyPost();
 
@@ -541,6 +542,9 @@ public:
 
    CReplyDlg *FindReplyDlgInPostRecurse(unsigned int &who_id);
 
+   void SetIndentOffset(int value){m_indent_offset = value;}
+   int GetIndentOffset(){return m_indent_offset;}
+
 protected:
    void SetupCharWidths();
    void SetupBodyText(RECT &textrect);
@@ -645,4 +649,6 @@ protected:
    unsigned int            m_largest_line_width;
 
    unsigned int            m_last_left;
+
+   int                     m_indent_offset;
 };

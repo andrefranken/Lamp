@@ -166,6 +166,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_EXPAND_PREVIEWS_DOWN, &CLampView::OnUpdateExpandPreviewsDown)
    ON_COMMAND(ID_EXPAND_PREVIEWS, &CLampView::OnExpandPreviews)
    ON_UPDATE_COMMAND_UI(ID_EXPAND_PREVIEWS, &CLampView::OnUpdateExpandPreviews)
+   ON_COMMAND(ID_HELP_CHECK_UPDATE, &CLampView::OnCheckUpdate)
+   ON_UPDATE_COMMAND_UI(ID_HELP_CHECK_UPDATE, &CLampView::OnUpdateCheckUpdate)
 
    ON_COMMAND(ID_BACK_ID, &CLampView::OnBackId)
    ON_UPDATE_COMMAND_UI(ID_BACK_ID, &CLampView::OnUpdateBackId)
@@ -213,7 +215,6 @@ CLampView::CLampView()
    m_PREVIEW_TIMER_id = 0;
    m_mouseOverClientArea = false;
    m_hover_preview_percent = 1.0f;
-   m_indent_offset = 0;
    
    m_pFindDlg = NULL;
 
@@ -2926,11 +2927,47 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                 
             if(bContinue)
             {
-               m_textselectionpost = 0;
-
                bool bHandledByHotspot = false;
 
-               for(size_t i = 0; i < m_hotspots.size(); i++)
+               m_textselectionpost = 0;
+
+               if(m_hotspots.size() == 0 &&
+                  m_hover_preview_id != 0)
+               {
+                  // see if it is the reply preview
+                  ChattyPost *pPost = GetDocument()->FindPost(m_hover_preview_id);
+                  if(pPost != NULL)
+                  {            
+                     int top = pPost->GetPos();
+                     int bottom = top + theApp.GetTextHeight();
+
+                     if(m_mousepoint.y >= top &&
+                        m_mousepoint.y <= bottom)
+                     {
+                        ChattyPost *pParent = pPost->GetRoot();
+                        pParent->UnShowAsTruncated();
+
+                        SetCurrentId(m_hover_preview_id);
+                        m_textselectionpost = 0;
+                        m_selectionstart = 0;
+                        m_selectionend = 0;
+                        // force a draw so that positions are updated
+                        MakeCurrentPostLegal(false,true,m_mousepoint.y,true);
+                        bHandledByHotspot = true;
+                     }
+
+                     m_hover_preview_percent = 1.0f;
+                     m_hover_preview_id = 0;
+                  }
+               }
+
+               if(m_PREVIEW_TIMER_id != 0)
+               {
+                  KillTimer(PREVIEW_TIMER);
+               }
+               m_PREVIEW_TIMER_id = 0;
+
+               for(size_t i = 0; i < m_hotspots.size() && !bHandledByHotspot; i++)
                {
                   if(m_mousepoint.x >= m_hotspots[i].m_spot.left &&
                      m_mousepoint.x < m_hotspots[i].m_spot.right &&
@@ -3794,6 +3831,9 @@ void CLampView::OnMouseLeave()
 {
    m_mouseOverClientArea = false;
 
+   m_mousepoint.x = -1000;
+   m_mousepoint.y = -1000;
+
    if(m_PREVIEW_TIMER_id != 0)
    {
       KillTimer(PREVIEW_TIMER);
@@ -4343,14 +4383,30 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
          }
          else if(nChar == VK_LEFT)
          {
-            if(m_indent_offset < 0)
-            m_indent_offset++;
-            InvalidateEverything();
+            ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+            if(pPost != NULL)
+            {
+               ChattyPost *pRoot = pPost->GetRoot();
+               if(pRoot != NULL &&
+                  pRoot->GetIndentOffset() < 0)
+               {
+                  pRoot->SetIndentOffset( pRoot->GetIndentOffset() + 1);
+                  InvalidateEverything();
+               }
+            }
          }
          else if(nChar == VK_RIGHT)
          {
-            m_indent_offset--;
-            InvalidateEverything();
+            ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+            if(pPost != NULL)
+            {
+               ChattyPost *pRoot = pPost->GetRoot();
+               if(pRoot != NULL)
+               {
+                  pRoot->SetIndentOffset( pRoot->GetIndentOffset() - 1);
+                  InvalidateEverything();
+               }
+            }
          }
          else if(nChar == VK_NEXT || 
                 (nChar == VK_SPACE &&
@@ -6549,4 +6605,14 @@ void CLampView::OnUpdateExpandPreviews(CCmdUI *pCmdUI)
    {
       pCmdUI->SetCheck(FALSE);
    }
+}
+
+void CLampView::OnCheckUpdate()
+{
+   theApp.CheckForUpdates();
+}
+
+void CLampView::OnUpdateCheckUpdate(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
 }

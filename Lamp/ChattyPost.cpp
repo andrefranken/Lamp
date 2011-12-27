@@ -1949,11 +1949,6 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
 {
    if(m_pDoc != NULL)
    {
-      int indent_offset = 0;
-      
-      if(m_pDoc->GetView() != NULL)
-         indent_offset = m_pDoc->GetView()->GetIndentOffset();
-
       if(m_bJustText)
       {
          m_pos = pos;
@@ -2544,7 +2539,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          }
 
          // draw children
-         int indent = 1 + indent_offset;
+         int indent = 1 + m_indent_offset;
          std::list<ChattyPost*>::iterator it = m_children.begin();
          std::list<ChattyPost*>::iterator end = m_children.end();
          while(it != end)
@@ -3466,6 +3461,7 @@ void ChattyPost::DrawReplyPreview(HDC hDC, RECT &DeviceRectangle, int top, int b
       m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs, m_bComplexShapeText,&textrect);
 
       ::ExtSelectClipRgn(hDC, NULL, RGN_COPY);
+      ::DeleteObject(hCR);
 
       myrect.right -= 5;
 

@@ -22,7 +22,7 @@
 #define WM_WAKEUP (WM_USER + 102)
 
 #define LAMP_VERSION_MAJOR 2
-#define LAMP_VERSION_MINOR 2
+#define LAMP_VERSION_MINOR 3
 
 chattyerror download(const char* host, const char* path, char** out_response, int *psize=NULL);
 

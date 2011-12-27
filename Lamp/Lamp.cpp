@@ -159,12 +159,16 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                         msg += majorversion;
                         msg += L'.';
                         msg += minorversion;
-                        msg += L") available.\r\nWould you like to download it?";
+                        msg += L") available.\r\nWould you like to update?";
                         int ret = GetMainWnd()->MessageBox(msg,L"Lamp",MB_YESNO);
                         if(ret == IDYES)
                         {
-                           UCString link(L"http://shackwiki.com/wiki/Lamp#-_Download");
-                           OpenShackLink(link);
+                           //UCString link(L"http://shackwiki.com/wiki/Lamp#-_Download");
+                           //OpenShackLink(link);
+                           UCString update_filename;
+                           update_filename.PathToMe(L"LampUpdate.exe");
+
+                           ShellExecuteW(NULL,L"open",update_filename, NULL, NULL, SW_SHOW);
                         }
                      }                     
 
@@ -3023,10 +3027,10 @@ void CLampApp::CheckForUpdates()
 {
    CDownloadData *pDD = new CDownloadData();
 
-   // http://shacklamp.omgninja.com/update.xml"
+   // http://shacklamp.omgninja.com/LampUpdate.xml"
 
    pDD->m_host = L"shacklamp.omgninja.com";
-   pDD->m_path = L"/update.xml";
+   pDD->m_path = L"/LampUpdate.xml";
    pDD->m_WhoWants = this;
    pDD->m_dt = DT_CHECK_UPDATE;
    pDD->m_id = 0;
