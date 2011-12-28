@@ -465,7 +465,7 @@ void CMainFrame::OnTimer(UINT nIDEvent)
             KillTimer(UPDATE_TIMER);
             SetTimer(UPDATE_TIMER,(UINT)60000 * 1440,NULL); // check for updates once a day
          }
-         theApp.CheckForUpdates();
+         theApp.CheckForUpdates(false);
       }
       else if(nIDEvent == IMAGE_EXPIRE_TIMER)
       {

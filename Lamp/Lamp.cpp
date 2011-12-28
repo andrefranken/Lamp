@@ -171,6 +171,10 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                            ShellExecuteW(NULL,L"open",update_filename, NULL, NULL, SW_SHOW);
                         }
                      }                     
+                     else if(pDD->m_postrootid == 1)
+                     {
+                        GetMainWnd()->MessageBox(L"Your version is up-to-date.",L"Lamp",MB_OK);
+                     }
 
                      int minutes = xmldata.GetElementValue(L"CheckLOLMinutes");
 
@@ -1636,7 +1640,7 @@ void CLampApp::ReadSettingsFile()
 
    setting = hostxml.FindChildElement(L"expand_previews");
    if(setting!=NULL) m_expand_previews = setting->GetValue();
-   else m_expand_previews = true;
+   else m_expand_previews = false;
 
    setting = hostxml.FindChildElement(L"show_thomw_lols");
    if(setting!=NULL) m_show_thomw_lols = setting->GetValue();
@@ -3023,7 +3027,7 @@ bool CLampApp::Login()
    return have;
 }
 
-void CLampApp::CheckForUpdates()
+void CLampApp::CheckForUpdates(bool bManual)
 {
    CDownloadData *pDD = new CDownloadData();
 
@@ -3036,7 +3040,14 @@ void CLampApp::CheckForUpdates()
    pDD->m_id = 0;
    pDD->m_refreshid = 0;
    pDD->reply_to_id = 0;
-   pDD->m_postrootid = 0;
+   if(bManual)
+   {
+      pDD->m_postrootid = 1;
+   }
+   else
+   {
+      pDD->m_postrootid = 0;
+   }
 
    AfxBeginThread(DownloadThreadProc, pDD);
 }

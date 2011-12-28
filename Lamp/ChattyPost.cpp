@@ -3102,6 +3102,11 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   }
                }
 
+               if(myrect.right - myrect.left > DeviceRectangle.right - DeviceRectangle.left)
+               {
+                  myrect.right = myrect.left + DeviceRectangle.right - DeviceRectangle.left;
+               }
+
                RECT textrect = myrect;
 
                if(m_category == PCT_INF)

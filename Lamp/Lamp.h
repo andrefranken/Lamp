@@ -755,7 +755,7 @@ public:
 
    void UpdateInbox();
 
-   void CheckForUpdates();
+   void CheckForUpdates(bool bManual);
 
    void RefreshLOLs();
 

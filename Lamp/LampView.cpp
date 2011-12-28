@@ -6609,7 +6609,7 @@ void CLampView::OnUpdateExpandPreviews(CCmdUI *pCmdUI)
 
 void CLampView::OnCheckUpdate()
 {
-   theApp.CheckForUpdates();
+   theApp.CheckForUpdates(true);
 }
 
 void CLampView::OnUpdateCheckUpdate(CCmdUI *pCmdUI)
