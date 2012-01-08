@@ -5026,7 +5026,7 @@ void CLampDoc::DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipp
    MySelectFont(hDC,oldfont);
 }
 
-void CLampDoc::MyTextOut(HDC hDC, int x, int y, const UCChar *text, UINT count, const INT *widths, const RECT *pClipRect, bool bComplexShapeText)
+void CLampDoc::MyTextOut(HDC hDC, int x, int y, bool bSampleText, const UCChar *text, UINT count, const INT *widths, const RECT *pClipRect, bool bComplexShapeText)
 {
    const UCChar *start = text;
    const UCChar *work = text;
@@ -5047,7 +5047,7 @@ void CLampDoc::MyTextOut(HDC hDC, int x, int y, const UCChar *text, UINT count, 
          UINT thiscount = work - start;
          if(bComplexShapeText)
          {
-            GDIPLUS_TextOut(hDC, x, y, fupotions, pClipRect, start, thiscount, w);
+            GDIPLUS_TextOut(hDC, x, y, bSampleText, fupotions, pClipRect, start, thiscount, w);
          }
          else
          {
@@ -5073,7 +5073,7 @@ void CLampDoc::MyTextOut(HDC hDC, int x, int y, const UCChar *text, UINT count, 
       //output the remainder
       if(bComplexShapeText)
       {
-         GDIPLUS_TextOut(hDC, x, y, fupotions, pClipRect, start, end - start, w);
+         GDIPLUS_TextOut(hDC, x, y, bSampleText, fupotions, pClipRect, start, end - start, w);
       }
       else
       {
@@ -5082,7 +5082,7 @@ void CLampDoc::MyTextOut(HDC hDC, int x, int y, const UCChar *text, UINT count, 
    }
 }
 
-void CLampDoc::GDIPLUS_TextOut( HDC hdc, int x, int y, UINT options, CONST RECT * lprect, const UCChar *lpString, UINT c, const INT* lpDx)
+void CLampDoc::GDIPLUS_TextOut( HDC hdc, int x, int y, bool bSampleText, UINT options, CONST RECT * lprect, const UCChar *lpString, UINT c, const INT* lpDx)
 {
    //::ExtTextOutW(hdc, x, y, options, lprect, lpString, c, lpDx);
 
@@ -5097,7 +5097,20 @@ void CLampDoc::GDIPLUS_TextOut( HDC hdc, int x, int y, UINT options, CONST RECT 
    x = x - (theApp.GetTextHeight() / 7);
    y = y + (theApp.GetTextHeight() / 12);
 
-   RectF rectf(x, y + theApp.GetFontHeight(), 100000.0f, theApp.GetTextHeight());
+   int height;
+   
+   if(bSampleText)
+   {
+      int sample_offset = abs(theApp.GetFontHeight() - theApp.GetSampleFontHeight());
+      y += sample_offset;
+      height = theApp.GetTextHeight() - sample_offset;
+   }
+   else
+   {
+      height = theApp.GetTextHeight();
+   }
+
+   RectF rectf(x, y + theApp.GetFontHeight(), 100000.0f, height);
    
    Gdiplus::Font font(hdc, m_currentfont);
 
@@ -5210,7 +5223,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
       }
       else
       {
-         MyTextOut(hDC, rect.left, rect.bottom - rise, text, numchars, charwidths, &rect, bComplexShapeText);
+         MyTextOut(hDC, rect.left, rect.bottom - rise, sample, text, numchars, charwidths, &rect, bComplexShapeText);
          //::ExtTextOutW(hDC, rect.left, rect.bottom, 0, NULL, text, numchars, charwidths);
       }
    }
@@ -5245,7 +5258,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
          }
          else
          {
-            MyTextOut(hDC, x, rect.bottom - rise, text, charsthisrun, charwidths, &rect, bComplexShapeText);
+            MyTextOut(hDC, x, rect.bottom - rise, sample, text, charsthisrun, charwidths, &rect, bComplexShapeText);
             //::ExtTextOutW(hDC, x, rect.bottom, 0, NULL, text, charsthisrun, charwidths);
          }
          
@@ -5481,7 +5494,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
                   ::DeleteObject(newbrush);
                   ::SetTextColor(hDC,theApp.GetBackgroundColor());
                }
-               MyTextOut(hDC, x, rect.bottom - rise, text.Str() + start, finish - start, charwidths + start, &rect, bComplexShapeText);
+               MyTextOut(hDC, x, rect.bottom - rise, sample, text.Str() + start, finish - start, charwidths + start, &rect, bComplexShapeText);
                //::ExtTextOutW(hDC, x, rect.bottom, 0, NULL, text.Str() + start, finish - start, charwidths + start);
             }
          }
@@ -5618,7 +5631,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                   if(link)links.push_back(linkrect);
                   else imagelinks.push_back(linkrect);
                }
-               MyTextOut(hDC, x, y - rise, pLineText, numchars, pLineWidths,pClipRect, bComplexShapeText);
+               MyTextOut(hDC, x, y - rise, sample, pLineText, numchars, pLineWidths,pClipRect, bComplexShapeText);
                //::ExtTextOutW(hDC, x, y, 0, NULL, pLineText, numchars, pLineWidths);
             }
          }
@@ -5669,7 +5682,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                      if(link)links.push_back(linkrect);
                      else imagelinks.push_back(linkrect);
                   }
-                  MyTextOut(hDC, x, y - rise, pLineText, (*it).m_pos, pLineWidths,pClipRect, bComplexShapeText);
+                  MyTextOut(hDC, x, y - rise, sample, pLineText, (*it).m_pos, pLineWidths,pClipRect, bComplexShapeText);
                   //::ExtTextOutW(hDC, x, y, 0, NULL, pLineText, (*it).m_pos, pLineWidths);
                }
                
@@ -5893,7 +5906,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                      if(link)links.push_back(linkrect);
                      else imagelinks.push_back(linkrect);
                   }
-                  MyTextOut(hDC, x, y - rise, pLineText + start, finish - start, pLineWidths + start,pClipRect, bComplexShapeText);
+                  MyTextOut(hDC, x, y - rise, sample, pLineText + start, finish - start, pLineWidths + start,pClipRect, bComplexShapeText);
                   //::ExtTextOutW(hDC, x, y, 0, NULL, pLineText + start, finish - start, pLineWidths + start);
                }
                

@@ -105,6 +105,8 @@ public:
 
    void SetPos(int pos){m_gotopos = m_pos = pos;}
 
+   void MakeMousePointInvalid(){m_mousepoint.x = -1000; m_mousepoint.y = -1000;}
+
 protected:
    void DrawHotSpots(HDC hDC);
    bool DrawCurrentHotSpots(HDC hDC);

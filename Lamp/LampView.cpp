@@ -2826,6 +2826,7 @@ BOOL CLampView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
       m_gotopos -= (int)((float)zDelta * theApp.GetMouseWheelScale());
       MakePosLegal();
       InvalidateEverythingPan();
+      MakeMousePointInvalid();
    }
    
    return CView::OnMouseWheel(nFlags, zDelta, pt);
@@ -3831,8 +3832,8 @@ void CLampView::OnMouseLeave()
 {
    m_mouseOverClientArea = false;
 
-   m_mousepoint.x = -1000;
-   m_mousepoint.y = -1000;
+   MakeMousePointInvalid();
+   InvalidateEverything();
 
    if(m_PREVIEW_TIMER_id != 0)
    {
@@ -4372,6 +4373,7 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             m_gotopos += 20;
             MakePosLegal();
             InvalidateEverythingPan();
+            MakeMousePointInvalid();
          }
          else if(nChar == VK_UP)
          {
@@ -4380,6 +4382,7 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             m_gotopos -= 20;
             MakePosLegal();
             InvalidateEverythingPan();
+            MakeMousePointInvalid();
          }
          else if(nChar == VK_LEFT)
          {
@@ -4419,6 +4422,7 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             m_gotopos += ((DeviceRectangle.bottom - DeviceRectangle.top) - 20 - m_banneroffset);
             MakePosLegal();
             InvalidateEverythingPan();
+            MakeMousePointInvalid();
          }
          else if(nChar == VK_PRIOR ||
                 (nChar == VK_SPACE &&
@@ -4431,6 +4435,7 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             m_gotopos -= ((DeviceRectangle.bottom - DeviceRectangle.top) - 20 - m_banneroffset);
             MakePosLegal();
             InvalidateEverythingPan();
+            MakeMousePointInvalid();
          }
          else if(nChar == VK_HOME)
          {
@@ -4438,6 +4443,7 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             m_brakes = false;
             m_gotopos = 0;
             InvalidateEverythingPan();
+            MakeMousePointInvalid();
          }
          else if(nChar == VK_END)
          {
@@ -4448,6 +4454,7 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             m_gotopos = GetDocument()->GetHeight() - (DeviceRectangle.bottom - DeviceRectangle.top);
             MakePosLegal();
             InvalidateEverythingPan();
+            MakeMousePointInvalid();
          }
       }
    }

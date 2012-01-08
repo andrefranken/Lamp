@@ -286,7 +286,7 @@ public:
       return result;
    }
 
-   void GDIPLUS_TextOut( HDC hdc, int x, int y, UINT options, CONST RECT * lprect, const UCChar *lpString, UINT c, const INT* lpDx);
+   void GDIPLUS_TextOut( HDC hdc, int x, int y, bool bSampleText, UINT options, CONST RECT * lprect, const UCChar *lpString, UINT c, const INT* lpDx);
 
 // Implementation
 public:
@@ -310,7 +310,7 @@ protected:
    int DrawMessages(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id);
    
    void CalcLineTags(std::vector<shacktagpos> &shacktags, std::vector<shacktagpos> &thislinetags, int beginpos, int endpos);
-   void MyTextOut(HDC hdc, int x, int y, const UCChar *text, UINT count, const INT *widths, const RECT *pClipRect, bool bComplexShapeText);
+   void MyTextOut(HDC hdc, int x, int y, bool bSampleText, const UCChar *text, UINT count, const INT *widths, const RECT *pClipRect, bool bComplexShapeText);
 
    void GenerateRedirectedIDs();
    
