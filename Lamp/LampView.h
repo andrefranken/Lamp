@@ -144,7 +144,8 @@ protected:
    bool m_bForceDrawAll;
    bool m_bLButtonDownOnScrollArrow;
    unsigned int m_current_id;
-   unsigned int m_back_id;
+   std::list<unsigned int> m_history_list;
+   std::list<unsigned int>::iterator m_history_it;
    unsigned int m_hover_preview_id;
 
    bool m_bDraggingTextSelection;
@@ -361,6 +362,8 @@ public:
    afx_msg void OnUpdateInvertedLOLPreviews(CCmdUI *pCmdUI);
    afx_msg void OnBackId();
    afx_msg void OnUpdateBackId(CCmdUI *pCmdUI);
+   afx_msg void OnForeId();
+   afx_msg void OnUpdateForeId(CCmdUI *pCmdUI);
    afx_msg void OnUnloadAllImages();
    afx_msg void OnUpdateUnloadAllImages(CCmdUI *pCmdUI);
    afx_msg void OnMouseLeave();

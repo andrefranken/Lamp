@@ -171,6 +171,7 @@ BEGIN
         MENUITEM "&Find Text\tCtrl+F",          ID_EDIT_FIND
         MENUITEM SEPARATOR
         MENUITEM "Previous Post\tAlt+LeftArrow", ID_BACK_ID
+        MENUITEM "Next Post\tAlt+RightArrow",   ID_FORE_ID
         MENUITEM SEPARATOR
         MENUITEM "&Refresh\tF5",                ID_EDIT_REFRESH
         MENUITEM SEPARATOR
@@ -328,6 +329,7 @@ BEGIN
         MENUITEM "&Find Text\tCtrl+F",          ID_EDIT_FIND
         MENUITEM SEPARATOR
         MENUITEM "Previous Post\tAlt+LeftArrow", ID_BACK_ID
+        MENUITEM "Next Post\tAlt+RightArrow",   ID_FORE_ID
         MENUITEM SEPARATOR
         MENUITEM "&Refresh\tF5",                ID_EDIT_REFRESH
         MENUITEM SEPARATOR
@@ -389,6 +391,7 @@ BEGIN
     VK_OEM_PLUS,    ID_VIEW_INCREASEFONTSIZE, VIRTKEY, CONTROL, NOINVERT
     "0",            ID_VIEW_RESETFONTSIZE,  VIRTKEY, CONTROL, NOINVERT
     VK_LEFT,        ID_BACK_ID,             VIRTKEY, ALT, NOINVERT
+    VK_RIGHT,       ID_FORE_ID,             VIRTKEY, ALT, NOINVERT
 END
 
 

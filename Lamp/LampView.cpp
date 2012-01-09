@@ -171,6 +171,10 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
 
    ON_COMMAND(ID_BACK_ID, &CLampView::OnBackId)
    ON_UPDATE_COMMAND_UI(ID_BACK_ID, &CLampView::OnUpdateBackId)
+
+   ON_COMMAND(ID_FORE_ID, &CLampView::OnForeId)
+   ON_UPDATE_COMMAND_UI(ID_FORE_ID, &CLampView::OnUpdateForeId)
+
    END_MESSAGE_MAP()
 
 // CLampView construction/destruction
@@ -186,7 +190,6 @@ CLampView::CLampView()
    m_bPanOnly = false;
    m_bForceDrawAll = true;
    m_current_id = 0;
-   m_back_id = 0;
    m_hover_preview_id = 0;
    m_bDraggingTextSelection = false;
    m_textselectionpost = 0;
@@ -215,6 +218,7 @@ CLampView::CLampView()
    m_PREVIEW_TIMER_id = 0;
    m_mouseOverClientArea = false;
    m_hover_preview_percent = 1.0f;
+   m_history_it = m_history_list.end();
    
    m_pFindDlg = NULL;
 
@@ -270,8 +274,49 @@ void CLampView::SetCurrentId(unsigned int id)
 {
    if(id != m_current_id)
    {
-      m_back_id = m_current_id;
+      // erase front of history up to the current id
+      if(m_history_list.size() > 0 &&
+         m_history_it != m_history_list.end())
+      {
+         std::list<unsigned int>::iterator it = m_history_list.begin();
+         while(m_history_list.size() > 0 &&
+               it != m_history_it)
+         {
+            it++;
+            m_history_list.pop_front();
+         }
+      }
+
+      if(m_history_list.size() == 0 &&
+         m_current_id != 0)
+      {
+         // history is empty and current is valid.
+         // add it
+         m_history_list.push_front(m_current_id);
+      }
+
+      if(m_history_list.size() > 0 ||
+         id != 0)
+      {
+         m_history_list.push_front(id);
+      }
+
+      if(m_history_list.size() > 0)
+      {
+         m_history_it = m_history_list.begin();
+      }
+      else
+      {
+         m_history_it = m_history_list.end();
+      }
+
+      while(m_history_list.size() > 2000)
+      {
+         m_history_list.pop_back();
+      }
+
       m_current_id = id;
+      
       if(m_current_id != 0)
       {
          GetDocument()->MakePostAvailable(id);
@@ -3182,7 +3227,9 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         break;
                      case HST_NEWTHREAD:
                         {
-                           SetCurrentId(0);
+                           m_history_list.clear();
+                           m_history_it = m_history_list.end();
+                           m_current_id = 0;
                            m_textselectionpost = 0;
                            m_selectionstart = 0;
                            m_selectionend = 0;
@@ -3263,7 +3310,9 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            GetDocument()->SetPage(GetDocument()->GetPage() - 1);
                            GetDocument()->Refresh();
                            m_gotopos = 0;
-                           SetCurrentId(0);
+                           m_history_list.clear();
+                           m_history_it = m_history_list.end();
+                           m_current_id = 0;
                            m_textselectionpost = 0;
                            m_selectionstart = 0;
                            m_selectionend = 0;
@@ -3276,7 +3325,9 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            GetDocument()->SetPage(GetDocument()->GetPage() + 1);
                            GetDocument()->Refresh();
                            m_gotopos = 0;
-                           SetCurrentId(0);
+                           m_history_list.clear();
+                           m_history_it = m_history_list.end();
+                           m_current_id = 0;
                            m_textselectionpost = 0;
                            m_selectionstart = 0;
                            m_selectionend = 0;
@@ -3290,7 +3341,9 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            GetDocument()->SetPage(page);
                            GetDocument()->Refresh();
                            m_gotopos = 0;
-                           SetCurrentId(0);
+                           m_history_list.clear();
+                           m_history_it = m_history_list.end();
+                           m_current_id = 0;
                            m_textselectionpost = 0;
                            m_selectionstart = 0;
                            m_selectionend = 0;
@@ -4974,7 +5027,9 @@ void CLampView::OnEditRefresh()
       {
          if(GetDocument()->GetDataType() != DDT_THREAD)
          {
-            SetCurrentId(0);
+            m_history_list.clear();
+            m_history_it = m_history_list.end();
+            m_current_id = 0;
             m_gotopos = 0;
             m_textselectionpost = 0;
             m_selectionstart = 0;
@@ -6516,26 +6571,121 @@ void CLampView::OnUpdateInvertedLOLPreviews(CCmdUI *pCmdUI)
 
 void CLampView::OnBackId()
 {
-   if(m_back_id != m_current_id &&
-      m_back_id != 0)
+   bool bFound = false;
+   unsigned int back_id = 0;
+
+   if(m_history_list.size() > 0 &&
+      m_history_it != m_history_list.end())
    {
-      ChattyPost *post = GetDocument()->FindPost(m_back_id);
-      if(post != NULL)
+      std::list<unsigned int>::iterator it = m_history_it;
+      it++;
+
+      if(it != m_history_list.end())
       {
-         SetCurrentId(m_back_id);
-         m_textselectionpost = 0;
-         m_selectionstart = 0;
-         m_selectionend = 0;
-         
-         MakeCurrentPostLegal();
+         back_id = (*it);
+         bFound = true;
+         m_history_it = it;
       }
+   }
+
+   if(bFound)
+   {
+      m_current_id = back_id;
+      m_textselectionpost = 0;
+      m_selectionstart = 0;
+      m_selectionend = 0;
+
+      if(back_id != 0)
+      {
+         ChattyPost *post = GetDocument()->FindPost(back_id);
+         if(post != NULL)
+         {         
+            GetDocument()->MakePostAvailable(back_id);
+            MakeCurrentPostLegal();
+         }
+      }
+
+      InvalidateEverything();
    }
 }
 
 void CLampView::OnUpdateBackId(CCmdUI *pCmdUI)
 {
-   if(m_back_id != m_current_id &&
-      m_back_id != 0)
+   bool bFound = false;
+
+   if(m_history_list.size() > 0 &&
+      m_history_it != m_history_list.end())
+   {
+      std::list<unsigned int>::iterator it = m_history_it;
+      it++;
+      if(it != m_history_list.end())
+      {
+         bFound = true;
+      }
+   }
+
+   if(bFound)
+   {
+      pCmdUI->Enable(TRUE);
+   }
+   else
+   {
+      pCmdUI->Enable(FALSE);
+   }
+}
+
+void CLampView::OnForeId()
+{
+   bool bFound = false;
+   unsigned int fore_id = 0;
+
+   if(m_history_list.size() > 0 &&
+      m_history_it != m_history_list.end() &&
+      m_history_it != m_history_list.begin())
+   {
+      std::list<unsigned int>::iterator it = m_history_it;
+      it--;
+            
+      fore_id = (*it);
+      bFound = true;
+      m_history_it = it;
+   }
+
+   if(bFound)
+   {
+      m_current_id = fore_id;
+      m_textselectionpost = 0;
+      m_selectionstart = 0;
+      m_selectionend = 0;
+
+      if(fore_id != 0)
+      {
+         ChattyPost *post = GetDocument()->FindPost(fore_id);
+         if(post != NULL)
+         {         
+            GetDocument()->MakePostAvailable(fore_id);
+            MakeCurrentPostLegal();
+         }
+      }
+
+      InvalidateEverything();
+   }
+}
+
+void CLampView::OnUpdateForeId(CCmdUI *pCmdUI)
+{
+   bool bFound = false;
+
+   if(m_history_list.size() > 0 &&
+      m_history_it != m_history_list.end() &&
+      m_history_it != m_history_list.begin())
+   {
+      std::list<unsigned int>::iterator it = m_history_it;
+      it--;
+      bFound = true;
+   }
+
+   if(bFound)
    {
       pCmdUI->Enable(TRUE);
    }
