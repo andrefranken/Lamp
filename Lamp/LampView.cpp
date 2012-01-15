@@ -5334,7 +5334,7 @@ void CLampView::OnKillFocus(CWnd* pNewWnd)
          
          theApp.GetMainWnd()->ShowWindow(SW_HIDE);
       }
-
+      
       if(pNewWnd != NULL)
       {
          HWND hWnd = pNewWnd->GetSafeHwnd();

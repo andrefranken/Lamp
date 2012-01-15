@@ -201,16 +201,40 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                      {
                         m_namelist.clear();
                         m_mod_list.clear();
+                     
+                        // the update doesn't have colors, so preserve them
+                        UCString existingcolor = m_GameDevs.GetAttributeValue(L"color");
+                        UCString existingenable = m_GameDevs.GetAttributeValue(L"enable");
+                        m_GameDevs = *pDevs;
+                        m_GameDevs.AddAttribute(L"color",existingcolor);
+                        m_GameDevs.AddAttribute(L"enable",existingenable);
+
+                        COLORREF color = m_GameDevs.GetAttributeValue(L"color");
+                        bool enabled = m_GameDevs.GetAttributeValue(L"enable");
+                        if(enabled)
+                        {
+                           int count = pDevs->CountChildren();
+                           for(int i = 0; i < count; i++)
+                           {
+                              CXMLElement *name = pDevs->GetChildElement(i);
+                              if(name != NULL && name->GetTag() == L"name")
+                              {
+                                 UCString temp = name->GetValue();
+                                 temp.MakeLower();
+                                 m_namelist[temp] = color;
+                              }
+                           }
+                        }
 
                         // the update doesn't have colors, so preserve them
-                        UCString existingcolor = m_Mods.GetAttributeValue(L"color");
-                        UCString existingenable = m_Mods.GetAttributeValue(L"enable");
+                        existingcolor = m_Mods.GetAttributeValue(L"color");
+                        existingenable = m_Mods.GetAttributeValue(L"enable");
                         m_Mods = *pMods;
                         m_Mods.AddAttribute(L"color",existingcolor);
                         m_Mods.AddAttribute(L"enable",existingenable);
 
-                        COLORREF color = m_Mods.GetAttributeValue(L"color");
-                        bool enabled = m_Mods.GetAttributeValue(L"enable");
+                        color = m_Mods.GetAttributeValue(L"color");
+                        enabled = m_Mods.GetAttributeValue(L"enable");
                         if(enabled)
                         {
                            int count = pMods->CountChildren();
@@ -230,7 +254,7 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                               }
                            }
                         }
-                     
+
                         // the update doesn't have colors, so preserve them
                         existingcolor = m_ShackEmployees.GetAttributeValue(L"color");
                         existingenable = m_ShackEmployees.GetAttributeValue(L"enable");
@@ -246,30 +270,6 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                            for(int i = 0; i < count; i++)
                            {
                               CXMLElement *name = pEmps->GetChildElement(i);
-                              if(name != NULL && name->GetTag() == L"name")
-                              {
-                                 UCString temp = name->GetValue();
-                                 temp.MakeLower();
-                                 m_namelist[temp] = color;
-                              }
-                           }
-                        }
-                     
-                        // the update doesn't have colors, so preserve them
-                        existingcolor = m_GameDevs.GetAttributeValue(L"color");
-                        existingenable = m_GameDevs.GetAttributeValue(L"enable");
-                        m_GameDevs = *pDevs;
-                        m_GameDevs.AddAttribute(L"color",existingcolor);
-                        m_GameDevs.AddAttribute(L"enable",existingenable);
-
-                        color = m_GameDevs.GetAttributeValue(L"color");
-                        enabled = m_GameDevs.GetAttributeValue(L"enable");
-                        if(enabled)
-                        {
-                           int count = pDevs->CountChildren();
-                           for(int i = 0; i < count; i++)
-                           {
-                              CXMLElement *name = pDevs->GetChildElement(i);
                               if(name != NULL && name->GetTag() == L"name")
                               {
                                  UCString temp = name->GetValue();
@@ -1742,6 +1742,48 @@ void CLampApp::ReadSettingsFile()
    m_namelist.clear();
    m_mod_list.clear();
 
+   setting = hostxml.FindChildElement(L"GameDevs");
+   if(setting != NULL)
+   {
+      m_GameDevs = *setting;
+      COLORREF color;
+      bool enabled;
+      UCString attr = setting->GetAttributeValue(L"color");
+
+      if(attr.IsEmpty())
+      {
+         color = RGB(255,0,255);
+         enabled = true;
+         m_GameDevs.SetAttributeValue(L"color",L"255,0,255");
+         m_GameDevs.SetAttributeValue(L"enable",L"true");
+      }
+      else
+      {
+         color = attr;
+         enabled = setting->GetAttributeValue(L"enable");
+      }
+      if(enabled)
+      {
+         int count = setting->CountChildren();
+         for(int i = 0; i < count; i++)
+         {
+            CXMLElement *name = setting->GetChildElement(i);
+            if(name != NULL && name->GetTag() == L"name")
+            {
+               UCString temp = name->GetValue();
+               temp.MakeLower();
+               m_namelist[temp] = color;
+            }
+         }
+      }
+   }
+   else
+   {
+      m_GameDevs.SetTag(L"GameDevs");
+      m_GameDevs.SetAttributeValue(L"color",L"255,0,255");
+      m_GameDevs.SetAttributeValue(L"enable",L"true");
+   }
+
    setting = hostxml.FindChildElement(L"Mods");
    if(setting != NULL)
    {
@@ -1832,49 +1874,7 @@ void CLampApp::ReadSettingsFile()
       m_ShackEmployees.SetAttributeValue(L"color",L"0,255,0");
       m_ShackEmployees.SetAttributeValue(L"enable",L"true");
    }
-
-   setting = hostxml.FindChildElement(L"GameDevs");
-   if(setting != NULL)
-   {
-      m_GameDevs = *setting;
-      COLORREF color;
-      bool enabled;
-      UCString attr = setting->GetAttributeValue(L"color");
-
-      if(attr.IsEmpty())
-      {
-         color = RGB(255,0,255);
-         enabled = true;
-         m_GameDevs.SetAttributeValue(L"color",L"255,0,255");
-         m_GameDevs.SetAttributeValue(L"enable",L"true");
-      }
-      else
-      {
-         color = attr;
-         enabled = setting->GetAttributeValue(L"enable");
-      }
-      if(enabled)
-      {
-         int count = setting->CountChildren();
-         for(int i = 0; i < count; i++)
-         {
-            CXMLElement *name = setting->GetChildElement(i);
-            if(name != NULL && name->GetTag() == L"name")
-            {
-               UCString temp = name->GetValue();
-               temp.MakeLower();
-               m_namelist[temp] = color;
-            }
-         }
-      }
-   }
-   else
-   {
-      m_GameDevs.SetTag(L"GameDevs");
-      m_GameDevs.SetAttributeValue(L"color",L"255,0,255");
-      m_GameDevs.SetAttributeValue(L"enable",L"true");
-   }
-
+   
    // cheat sheet
    setting = hostxml.FindChildElement(L"CheatSheet");
    if(setting != NULL)
