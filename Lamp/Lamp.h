@@ -33,6 +33,39 @@ typedef enum
    SBT_HOVER
 }scrollbitype;
 
+typedef enum 
+{
+   DT_THREAD       = 0,
+   DT_STORY        = 1,
+   DT_SEARCH       = 2,
+   DT_THREAD_START = 3,
+   DT_LOL          = 4,
+   DT_AUTHOR       = 5,
+   DT_POST         = 6,
+   DT_STORY_2      = 7,
+   DT_SHACKMSG     = 8,
+   DT_READMSG      = 9,
+   DT_SENDMSG      = 10,
+   DT_CHECK_UPDATE = 11,
+   DT_REFRESH_LOLS = 12,
+
+   DT_SHACK_CHATTY = 13,
+   DT_SHACK_THREAD = 14,
+   DT_SHACK_THREAD_CONTENTS = 15,
+   DT_SHACK_POST   = 16,
+   DT_SHACK_SEARCH = 17,
+   DT_SHACK_SHACKMSG = 18,
+   DT_SHACK_READMSG = 19,
+   DT_SHACK_SENDMSG = 20,
+   DT_SHACK_DELETEMSG = 21,
+   DT_SHACK_CHATTY_INFINATE_PAGE = 22,
+   DT_SHACK_MOD_CATEGORY_CHANGE = 23,
+
+   DT_SUBMIT_LOLVOTE = 24,
+   DT_GET_IMAGE = 25,
+   DT_GET_THUMB = 26
+} DownloadType;
+
 class CLampView;
 class DockTab;
 
@@ -51,6 +84,20 @@ public:
    UCString display;
    UCString value;
 };
+
+class CDownloadHistoryItem
+{
+public:
+   UCString m_host;
+   UCString m_path;
+   UCString m_errmsg;
+   UCString m_post_data;
+   DownloadType m_dt;
+   DWORD m_start_time;
+   DWORD m_recieve_time;
+   DWORD m_end_time;
+};
+
 
 class CShackBookmark
 {
@@ -900,6 +947,17 @@ public:
    bool IsModMode(){return m_modmode;}
 
    void SetModMode(bool value){m_modmode = value;}
+
+   void AddDownloadHistoryItem(CDownloadHistoryItem &item)
+   {
+      m_downloadhistory.push_back(item);
+      while(m_downloadhistory.size() > 200)
+      {
+         m_downloadhistory.pop_front();
+      }
+   }
+
+   void DisplayDownload();
       
 // Overrides
 public:
@@ -1238,6 +1296,8 @@ protected:
    CDCSurface m_tempimage;
 
    float m_hover_preview_percent_stepsize;
+
+   std::list<CDownloadHistoryItem> m_downloadhistory;
 
 public:
    afx_msg void OnFileSetuplogininfo();

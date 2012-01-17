@@ -39,7 +39,8 @@ error_t comm_download(const char*     host,
                       const char*     path, 
                       std::string*    stdstring,
                       const char*     post_data,
-                      const char*     cookie)
+                      const char*     cookie,
+                      DWORD*          recieve_time)
 {
    error_t result = OK;
 
@@ -55,6 +56,11 @@ error_t comm_download(const char*     host,
               
       client c(io_service, host, path, bPost, stdstring, cookie, post_data);
       io_service.run();
+
+      if(recieve_time != NULL)
+      {
+         *recieve_time = c.m_recieve_time;
+      }
    }
    catch (std::exception& e)
    {
@@ -76,6 +82,7 @@ client::client(boost::asio::io_service& io_service,
                socket_(io_service),
                m_stlstring(stlstring)
 {
+   m_recieve_time = 0;
    m_data = NULL;
    m_datasize = 0;
    m_mallocsize = 0;
@@ -208,6 +215,12 @@ void client::handle_read_status_line(const boost::system::error_code& err)
       response_stream >> http_version;
       unsigned int status_code;
       response_stream >> status_code;
+
+      if(m_recieve_time == 0)
+      {
+         m_recieve_time = ::GetTickCount();
+      }
+
       std::string status_message;
       std::getline(response_stream, status_message);
       if (!response_stream || http_version.substr(0, 5) != "HTTP/")

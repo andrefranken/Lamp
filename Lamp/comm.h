@@ -24,7 +24,8 @@ error_t comm_init     (const char* host);
 error_t comm_download (const char* host, const char* path, 
                        std::string *stdstring,
                        const char* post_data,
-                       const char* cookie);
+                       const char* cookie,
+                       DWORD *recieve_time);
 void    comm_cleanup  (void);
 
 using boost::asio::ip::tcp;
@@ -45,6 +46,7 @@ public:
       if(m_data != NULL)
          free(m_data);
   }
+  DWORD m_recieve_time;
 private:
   void handle_resolve(const boost::system::error_code& err,
                       tcp::resolver::iterator endpoint_iterator);

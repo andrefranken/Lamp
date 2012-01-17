@@ -28,39 +28,6 @@ typedef enum
 
 typedef enum 
 {
-   DT_THREAD       = 0,
-   DT_STORY        = 1,
-   DT_SEARCH       = 2,
-   DT_THREAD_START = 3,
-   DT_LOL          = 4,
-   DT_AUTHOR       = 5,
-   DT_POST         = 6,
-   DT_STORY_2      = 7,
-   DT_SHACKMSG     = 8,
-   DT_READMSG      = 9,
-   DT_SENDMSG      = 10,
-   DT_CHECK_UPDATE = 11,
-   DT_REFRESH_LOLS = 12,
-
-   DT_SHACK_CHATTY = 13,
-   DT_SHACK_THREAD = 14,
-   DT_SHACK_THREAD_CONTENTS = 15,
-   DT_SHACK_POST   = 16,
-   DT_SHACK_SEARCH = 17,
-   DT_SHACK_SHACKMSG = 18,
-   DT_SHACK_READMSG = 19,
-   DT_SHACK_SENDMSG = 20,
-   DT_SHACK_DELETEMSG = 21,
-   DT_SHACK_CHATTY_INFINATE_PAGE = 22,
-   DT_SHACK_MOD_CATEGORY_CHANGE = 23,
-
-   DT_SUBMIT_LOLVOTE = 24,
-   DT_GET_IMAGE = 25,
-   DT_GET_THUMB = 26
-} DownloadType;
-
-typedef enum 
-{
    SMT_INBOX      = 0,
    SMT_OUTBOX     = 1,
    SMT_ARCHIVE    = 2
@@ -81,6 +48,9 @@ public:
       m_postrootid = 0;
       reply_to_id = 0;
       m_refreshid = 0;
+      m_start_time = 0;
+      m_recieve_time = 0;
+      m_end_time = 0;
    }
 
    void download(int numtries);
@@ -106,6 +76,10 @@ public:
    unsigned int m_refreshid;
    unsigned int m_postrootid;
    unsigned int reply_to_id;
+
+   DWORD m_start_time;
+   DWORD m_recieve_time;
+   DWORD m_end_time;
 };
 
 class CLampDoc : public CDocument

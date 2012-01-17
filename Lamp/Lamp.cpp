@@ -597,6 +597,10 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
 
                                     ici.m_image.EnableCachedStretchImage(true);
 
+                                    // now that we have the real image, invalidate the thumbnail image.
+                                    // so that it can be recreated from the real thing.
+                                    ici.m_imagethumb.Resize(0,0);
+
                                     _wunlink(suspect);
 
                                     bGotImage = true;
@@ -1365,10 +1369,16 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
+   DECLARE_MESSAGE_MAP()
 // Implementation
 protected:
 public:
+   afx_msg void OnBnClickedTraffic();
 };
+
+BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
+   ON_BN_CLICKED(ID_NETWORK_TRAFFIC_ID, &CAboutDlg::OnBnClickedTraffic)
+END_MESSAGE_MAP()
 
 CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 {
@@ -1377,6 +1387,12 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
+}
+
+void CAboutDlg::OnBnClickedTraffic()
+{
+   theApp.DisplayDownload();
+   OnOK();
 }
 
 // App command to run the dialog
@@ -4726,6 +4742,98 @@ void CLampApp::SetNumMinutesCheckInbox(int value)
    }
 }
 
+void CLampApp::DisplayDownload()
+{
+   UCString text;
+   UCString number;
+
+   std::list<CDownloadHistoryItem>::iterator it = m_downloadhistory.begin();
+   
+   while(it != m_downloadhistory.end())
+   {
+      float totaltime = ((float)(it->m_end_time - it->m_start_time)) / 1000.0f;
+
+      text += L"time=";
+      number = totaltime;
+      while(number.Length() < 5) number += L"0";
+      text += number;
+      text += L" seconds ";
+
+      float respondtime = ((float)(it->m_recieve_time - it->m_start_time)) / 1000.0f;
+
+      text += L"respond=";
+      number = respondtime;
+      while(number.Length() < 5) number += L"0";
+      text += number;
+      text += L" seconds ";
+
+      text += L"type=";
+      text += (int)it->m_dt;
+      text += L"\r\n";
+      
+      if(!it->m_host.IsEmpty())
+      {
+         text += L"host=";
+         text += it->m_host;
+         text += L"\r\n";
+      }
+
+      if(!it->m_path.IsEmpty())
+      {
+         text += L"path=";
+         text += it->m_path;
+         text += L"\r\n";
+      }
+
+      if(!it->m_post_data.IsEmpty())
+      {
+         text += L"data=";
+         text += it->m_post_data;
+         text += L"\r\n";
+      }
+
+      if(!it->m_errmsg.IsEmpty())
+      {
+         text += L"error=";
+         text += it->m_errmsg;
+         text += L"\r\n";
+      }
+
+      text += L"\r\n";
+
+      it++;
+   }
+
+   if(!text.IsEmpty())
+   {
+      wchar_t path[MAX_PATH+1]={0};
+      if(GetTempPath(MAX_PATH, path) != 0)
+      {
+         if(path[wcslen(path)-1] != L'\\')
+         {
+            wcscat_s(path,MAX_PATH,L"\\");
+         }
+            
+         UCString temp_file = path;
+         temp_file += L"LampTraffic.txt";
+
+         void *data = (void*)text.str8(false,CET_UTF8,true);
+         size_t charsize = 1;
+         size_t numchars = strlen((char*)data);
+
+         FILE *stream = NULL;
+         _wfopen_s(&stream, temp_file, L"wb");
+         if(stream != NULL)
+         {
+            fwrite(data, charsize, numchars, stream );      
+            fclose(stream);
+         }   
+
+         ShellExecuteW(NULL,L"open",temp_file, NULL, NULL, SW_SHOW);
+      }
+   }
+}
+
 CLOLFlags &CLampApp::GetKnownLOLFlags(unsigned int post_id)
 {
    return m_cachedLOLposts[post_id];
@@ -4878,7 +4986,7 @@ unsigned int CLampApp::GetUserID()
 
       std::string stdstring;
 
-      comm_download("www.shacknews.com","/login_laryn.x", &stdstring,loginstr.str8(false,CET_UTF8),"");
+      comm_download("www.shacknews.com","/login_laryn.x", &stdstring,loginstr.str8(false,CET_UTF8),"",NULL);
 
       // Set-Cookie: login=209981%2Clatestchatty%2Cf6356e3a49aedb4ba8a5442102b9810b; expires=Tue, 03-May-2011 18:27:44 GMT
       if(stdstring.length() > 0 && strncmp(stdstring.data()," OK",3) == 0)
@@ -4897,7 +5005,7 @@ unsigned int CLampApp::GetUserID()
 
       stdstring = "";
 
-      comm_download("www.shacknews.com","/messages", &stdstring,UserShackLoginCookie,false);
+      comm_download("www.shacknews.com","/messages", &stdstring,UserShackLoginCookie,false,NULL);
 
       if(stdstring.length() > 0)
       {

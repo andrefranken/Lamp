@@ -150,6 +150,7 @@
 #define IDC_PREVIEW_EXCPAND_PERCENT_EDIT 32866
 #define ID_HELP_CHECK_UPDATE            32867
 #define ID_FORE_ID                      32868
+#define ID_NETWORK_TRAFFIC_ID           32869
 
 #define ID_BOOKMARK_MENUITEM            32880
 
@@ -158,7 +159,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        328
-#define _APS_NEXT_COMMAND_VALUE         32869
+#define _APS_NEXT_COMMAND_VALUE         32870
 #define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

@@ -260,7 +260,7 @@ void CDownloadData::setupshacklogin()
 {
    std::string stdstring;
 
-   error_t result = comm_download("www.shacknews.com","/login_laryn.x", &stdstring, "username=latestchatty&password=8675309&type=login","");
+   error_t result = comm_download("www.shacknews.com","/login_laryn.x", &stdstring, "username=latestchatty&password=8675309&type=login","", NULL);
 
    // Set-Cookie: login=209981%2Clatestchatty%2Cf6356e3a49aedb4ba8a5442102b9810b; expires=Tue, 03-May-2011 18:27:44 GMT
    if(stdstring.length() > 0 && strncmp(stdstring.data()," OK",3) == 0)
@@ -306,7 +306,7 @@ void CDownloadData::setupusershacklogin()
 
    loginstr += L"&type=login";
 
-   error_t result = comm_download("www.shacknews.com","/login_laryn.x", &stdstring, loginstr.str8(false,CET_UTF8),"");
+   error_t result = comm_download("www.shacknews.com","/login_laryn.x", &stdstring, loginstr.str8(false,CET_UTF8),"",NULL);
 
    // Set-Cookie: login=209981%2Clatestchatty%2Cf6356e3a49aedb4ba8a5442102b9810b; expires=Tue, 03-May-2011 18:27:44 GMT
    if(stdstring.length() > 0 && strncmp(stdstring.data()," OK",3) == 0)
@@ -335,6 +335,8 @@ void CDownloadData::setupusershacklogin()
 
 void CDownloadData::getchatty(int numtries)
 {
+   m_start_time = ::GetTickCount();
+
    std::string usercookie;
    if(!m_username.IsEmpty())
    {
@@ -382,7 +384,7 @@ void CDownloadData::getchatty(int numtries)
       if(!m_post_data.IsEmpty())
          postdata = m_post_data.str8(false,CET_UTF8);
 
-      error_t result = comm_download(enc_host,path,&m_stdstring,postdata,usercookie.data());
+      error_t result = comm_download(enc_host,path,&m_stdstring,postdata,usercookie.data(),&m_recieve_time);
       DWORD endtime = ::GetTickCount();
 
       if(m_stdstring.length() > 0)
@@ -439,6 +441,8 @@ void CDownloadData::getchatty(int numtries)
          numtries = 0;
       }      
    }
+
+   m_end_time = ::GetTickCount();
 }
 
 
@@ -629,6 +633,18 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
 {
    if(pDD != NULL)
    {
+      CDownloadHistoryItem item;
+      item.m_host         = pDD->m_host;
+      item.m_path         = pDD->m_path;
+      item.m_errmsg       = pDD->m_errmsg;
+      item.m_post_data    = pDD->m_post_data;
+      item.m_dt           = pDD->m_dt;
+      item.m_start_time   = pDD->m_start_time;
+      item.m_recieve_time = pDD->m_recieve_time;
+      item.m_end_time     = pDD->m_end_time;
+      theApp.AddDownloadHistoryItem(item);
+
+
       bool bDoingNewFlags = true;
       switch(pDD->m_dt)
       {

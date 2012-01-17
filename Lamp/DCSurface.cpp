@@ -143,6 +143,12 @@ bool CDCSurface::Resize( int pixelwidth, int pixelheight )
       // Do this instead:
       m_ScanlineByteLength = m_ImageByteSize / pixelheight;
    }   
+   else
+   {
+      m_PixelWidth = 0;
+      m_PixelHeight = 0;
+      m_pBits = NULL;
+   }
 
    return bDidResize;
 }
