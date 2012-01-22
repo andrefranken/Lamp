@@ -63,7 +63,8 @@ typedef enum
 
    DT_SUBMIT_LOLVOTE = 24,
    DT_GET_IMAGE = 25,
-   DT_GET_THUMB = 26
+   DT_GET_THUMB = 26,
+   DT_GET_PROFILE = 27
 } DownloadType;
 
 class CLampView;
@@ -572,6 +573,7 @@ public:
 
    UCString &GetUserHostName(){return m_userhostname;}
    UCString &GetLolHostName(){return m_lolhostname;}
+   UCString &GetProfileHost(){return m_profilehostname;}
    
    COLORREF GetBackgroundColor(){return m_background_color;}
    COLORREF GetRootPostBackgroundColor(){return m_rootpost_background_color;}
@@ -1093,6 +1095,7 @@ protected:
 
    UCString m_userhostname;
    UCString m_lolhostname;
+   UCString m_profilehostname;
 
    UCString m_username;
    UCString m_password;
@@ -1298,6 +1301,8 @@ protected:
    float m_hover_preview_percent_stepsize;
 
    std::list<CDownloadHistoryItem> m_downloadhistory;
+
+   
 
 public:
    afx_msg void OnFileSetuplogininfo();

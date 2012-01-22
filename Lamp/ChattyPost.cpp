@@ -761,6 +761,71 @@ void ChattyPost::ReadSearchResultFromHTML(tree<htmlcxx::HTML::Node>::sibling_ite
    InitImageLinks();
 }
 
+void FindLinksInStringAndTagThem(UCString &body)
+{
+   // find links and use the link shacktag l{...}l
+   const UCChar *start = body.Str();
+   const UCChar *end = start + body.Length();
+   const UCChar *current = start;
+
+   bool bContinue = true;
+
+   while(bContinue && current < end)
+   {
+      const UCChar *suspect = NULL;
+      const UCChar *suspecta = wcsstr(current, L"http://");
+      const UCChar *suspectb = wcsstr(current, L"https://");
+      if(suspecta != NULL &&
+         suspectb != NULL)
+      {
+         suspect = __min(suspecta,suspectb);
+      }
+      else if(suspecta != NULL)
+      {
+         suspect = suspecta;
+      }
+      else if(suspectb != NULL)
+      {
+         suspect = suspectb;
+      }
+
+      if(suspect != NULL)
+      {
+         // find the end of it
+         const UCChar *work = suspect;
+
+         while(work < end &&
+               iswspace(*work) == 0)
+         {
+            work++;
+         }
+
+         if(work > suspect)
+         {
+            int position = suspect - start;
+            int suspectlen = work - suspect;
+            body.InsertChar(L'l', position);
+            position++;
+            body.InsertChar(L'{', position);
+            position++;
+            position += suspectlen;
+            body.InsertChar(L'}', position);
+            position++;
+            body.InsertChar(L'l', position);
+            position++;
+
+            start = body.Str();
+            end = start + body.Length();
+            current = start + position;
+         }
+      }
+      else
+      {
+         bContinue = false;
+      }
+   }
+}
+
 void ChattyPost::ReadMessageFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &it, 
                                      CLampDoc *pDoc, 
                                      bool bIsInbox, 
@@ -821,67 +886,7 @@ void ChattyPost::ReadMessageFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator
             body.Replace(L"<p>",L"");
             body.Replace(L"</p>",L"");
 
-            // find links and use the link shacktag l{...}l
-            const UCChar *start = body.Str();
-            const UCChar *end = start + body.Length();
-            const UCChar *current = start;
-
-            bool bContinue = true;
-
-            while(bContinue && current < end)
-            {
-               const UCChar *suspect = NULL;
-               const UCChar *suspecta = wcsstr(current, L"http://");
-               const UCChar *suspectb = wcsstr(current, L"https://");
-               if(suspecta != NULL &&
-                  suspectb != NULL)
-               {
-                  suspect = __min(suspecta,suspectb);
-               }
-               else if(suspecta != NULL)
-               {
-                  suspect = suspecta;
-               }
-               else if(suspectb != NULL)
-               {
-                  suspect = suspectb;
-               }
-
-               if(suspect != NULL)
-               {
-                  // find the end of it
-                  const UCChar *work = suspect;
-
-                  while(work < end &&
-                        iswspace(*work) == 0)
-                  {
-                     work++;
-                  }
-
-                  if(work > suspect)
-                  {
-                     int position = suspect - start;
-                     int suspectlen = work - suspect;
-                     body.InsertChar(L'l', position);
-                     position++;
-                     body.InsertChar(L'{', position);
-                     position++;
-                     position += suspectlen;
-                     body.InsertChar(L'}', position);
-                     position++;
-                     body.InsertChar(L'l', position);
-                     position++;
-
-                     start = body.Str();
-                     end = start + body.Length();
-                     current = start + position;
-                  }
-               }
-               else
-               {
-                  bContinue = false;
-               }
-            }
+            FindLinksInStringAndTagThem(body);
          }
       }
    }
@@ -889,7 +894,7 @@ void ChattyPost::ReadMessageFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator
    m_bodytext = L"";
    m_shacktags.clear();
    //DecodeString(body,m_bodytext,m_shacktags);
-   DecodeShackTagsString(body);
+   DecodeShackTagsString(body,false,true);
    m_bodytext.ReplaceAll(0x02C2,L'<');
    m_bodytext.ReplaceAll(0x02C3,L'>');
 
@@ -905,6 +910,7 @@ void ChattyPost::ReadMessageFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator
    m_largest_line_width = 0;
    InitImageLinks();
 }
+
 
 void ChattyPost::ReadLOL(CLampDoc *pDoc,
                          UCString &id,
@@ -1616,6 +1622,7 @@ void ChattyPost::CloseAllImageLinks()
    m_lasttextrectwidth = 0;
 }
 
+
 void ChattyPost::SetupBodyText(RECT &textrect)
 {
    m_pDoc->CalcBodyText(textrect,m_bodytext,m_pCharWidths,m_shacktags,m_bodytext.Length(),m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes);
@@ -1651,6 +1658,105 @@ void ChattyPost::SetupBodyText(RECT &textrect)
    }
 }
 
+
+int ChattyPost::DrawProfile(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots)
+{
+   if(m_pDoc != NULL)
+   {
+      RECT textrect = DeviceRectangle;
+      textrect.left += 30;
+      textrect.right -= 30;
+      textrect.top = 0;
+      textrect.bottom = 0;
+      
+      if(textrect.right - textrect.left != m_lasttextrectwidth)
+      {
+         m_lasttextrectwidth = textrect.right - textrect.left;
+         SetupBodyText(textrect);
+         m_textrectheight = textrect.bottom;
+      }
+      else
+      {
+         textrect.bottom = m_textrectheight;
+      }
+
+      RECT myrect = DeviceRectangle;
+      myrect.top = pos;
+      myrect.bottom = pos + textrect.bottom + theApp.GetCellHeight() + theApp.GetCellHeight();
+
+      textrect.top += pos + theApp.GetCellHeight();
+      textrect.bottom += pos + theApp.GetCellHeight();
+      pos = myrect.bottom;
+
+      myrect.left += 10;
+      myrect.right -= 10;
+
+      m_pDoc->FillExpandedBackground(hDC,myrect,false,PCT_OFFTOPIC,false);
+
+      std::vector<RECT> spoilers;
+      std::vector<RECT> links;
+      std::vector<RECT> imagelinks;
+      std::vector<RECT> images;
+      std::vector<RECT> thumbs;
+      m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs, m_bComplexShapeText,&DeviceRectangle);
+
+      if(m_lines_of_text.size() > 2)
+      {
+         HPEN hPen = ::CreatePen(PS_SOLID,1, RGB(255,0,0));
+         HPEN hOldPen = (HPEN)::SelectObject(hDC,hPen);
+         int y = textrect.top + theApp.GetTextHeight() + (theApp.GetTextHeight() / 3);
+         ::MoveToEx(hDC, textrect.left, y,NULL);
+         ::LineTo(hDC, textrect.right, y);
+         
+         ::SelectObject(hDC,hOldPen);
+         ::DeleteObject(hPen);
+      }
+
+      CHotSpot hotspot;
+
+      for(size_t s = 0; s < links.size(); s++)
+      {
+         hotspot.m_type = HST_LINK;
+         hotspot.m_spot = links[s];
+         hotspot.m_id = m_id;
+         hotspots.push_back(hotspot);
+      }
+
+      for(size_t s = 0; s < imagelinks.size(); s++)
+      {
+         hotspot.m_type = HST_IMAGE_LINK;
+         hotspot.m_spot = imagelinks[s];
+         hotspot.m_id = m_id;
+         hotspots.push_back(hotspot);
+      }
+
+      for(size_t s = 0; s < images.size(); s++)
+      {
+         hotspot.m_type = HST_IMAGE;
+         hotspot.m_spot = images[s];
+         hotspot.m_id = m_id;
+         hotspots.push_back(hotspot);
+      }
+
+      for(size_t s = 0; s < thumbs.size(); s++)
+      {
+         hotspot.m_type = HST_THUMB;
+         hotspot.m_spot = thumbs[s];
+         hotspot.m_id = m_id;
+         hotspots.push_back(hotspot);
+      }
+
+      m_drewtextpos = textrect.top;
+      m_drewtextedge = textrect.left;
+
+      hotspot.m_type = HST_TEXT;
+      hotspot.m_spot = textrect;
+      hotspot.m_id = m_id;
+      hotspots.push_back(hotspot);
+   }
+
+   return pos;
+}
 
 void ChattyPost::DrawTextOnly(HDC hDC, RECT &DeviceRectangle, int pos)
 {
@@ -4115,12 +4221,12 @@ void FindBadShackTagsString(UCString &from, std::vector<shacktagpos> &shacktags)
 }
 
 
-void ChattyPost::DecodeShackTagsString(UCString &from, bool bAllowCustomTags/* = false*/)
+void ChattyPost::DecodeShackTagsString(UCString &from, bool bAllowCustomTags/* = false*/, bool bAllowLinks/* = false*/)
 {
    m_bodytext = L"";
    m_shacktags.clear();
    m_lasttextrectwidth = 0;
-   from.Replace(L"\t",L"");// ?
+   //from.Replace(L"\t",L"");// ?
    
    int red = 0;
    int green = 0;
@@ -4140,6 +4246,7 @@ void ChattyPost::DecodeShackTagsString(UCString &from, bool bAllowCustomTags/* =
    int spoiler = 0;
    int code = 0;
    int link = 0;
+   int fade = 0;
 
    std::vector<shacktag> tagstack;
 
@@ -4245,6 +4352,16 @@ void ChattyPost::DecodeShackTagsString(UCString &from, bool bAllowCustomTags/* =
          if(pink == 1)
          {
             m_shacktags.push_back(shacktagpos(ST_PINK,m_bodytext.Length()));
+         }
+         read+=2;
+      }
+      else if(bAllowCustomTags, _wcsnicmp(read,L"f{",2) == 0)
+      {
+         fade++;
+         tagstack.push_back(ST_FADE);
+         if(fade == 1)
+         {
+            m_shacktags.push_back(shacktagpos(ST_FADE,m_bodytext.Length()));
          }
          read+=2;
       }
@@ -4447,6 +4564,19 @@ void ChattyPost::DecodeShackTagsString(UCString &from, bool bAllowCustomTags/* =
          }
          read+=2;
       }
+      else if(bAllowCustomTags, _wcsnicmp(read,L"}f",2) == 0)
+      {
+         fade--;
+         if(PopTag(tagstack, ST_FADE))
+         {
+            m_bodytext.AppendUnicodeString(read, 2);
+         }
+         else if(fade == 0)
+         {
+            m_shacktags.push_back(shacktagpos(ST_FADE_END,m_bodytext.Length()));
+         }
+         read+=2;
+      }
       else if(bAllowCustomTags, _wcsnicmp(read,L"}p",2) == 0)
       {
          purple--;
@@ -4547,18 +4677,39 @@ void ChattyPost::DecodeShackTagsString(UCString &from, bool bAllowCustomTags/* =
          }
          read+=2;
       }
-      else if(_wcsnicmp(read,L"l{",2) == 0)
+      else if(bAllowLinks && _wcsnicmp(read,L"l{",2) == 0)
       {
-         link++;
-         tagstack.push_back(ST_LINK);
-         if(link == 1)
+         if(link > 0)
          {
-            m_shacktags.push_back(shacktagpos(ST_LINK,m_bodytext.Length()));
-            linkstart = read + 2;
+            // this must be the actual link, while the other is just a label
+
+            // find the end of it and store it as the href
+            read+=2;
+            linkstart = read;
+            while(read < readend && *read != L'}')
+            {
+               m_shacktags[m_shacktags.size() - 1].m_href += *read;
+               read++;
+            }
+
+            if(readend - read > 1 && *(read+1) == L'l')
+            {
+               read+=2;
+            }            
          }
-         read+=2;
+         else
+         {
+            link++;
+            tagstack.push_back(ST_LINK);
+            if(link == 1)
+            {
+               m_shacktags.push_back(shacktagpos(ST_LINK,m_bodytext.Length()));
+               linkstart = read + 2;
+            }
+            read+=2;
+         }
       }
-      else if(_wcsnicmp(read,L"}l", 2) == 0)
+      else if(bAllowLinks && _wcsnicmp(read,L"}l", 2) == 0)
       {
          link--;
          if(PopTag(tagstack, ST_LINK))
@@ -4567,11 +4718,14 @@ void ChattyPost::DecodeShackTagsString(UCString &from, bool bAllowCustomTags/* =
          }
          else if(link == 0)
          {
-            UCString linktext;
-            if(m_shacktags[m_shacktags.size() - 1].m_tag == ST_LINK)
+            if(m_shacktags[m_shacktags.size() - 1].m_href.IsEmpty())
             {
-               linktext.AppendUnicodeString(linkstart, read - linkstart);
-               m_shacktags[m_shacktags.size() - 1].m_href = linktext;
+               UCString linktext;
+               if(m_shacktags[m_shacktags.size() - 1].m_tag == ST_LINK)
+               {
+                  linktext.AppendUnicodeString(linkstart, read - linkstart);
+                  m_shacktags[m_shacktags.size() - 1].m_href = linktext;
+               }
             }
             m_shacktags.push_back(shacktagpos(ST_LINK_END,m_bodytext.Length()));
          }

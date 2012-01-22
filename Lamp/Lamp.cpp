@@ -1415,6 +1415,10 @@ void CLampApp::PreLoadState()
    bNameValid = strName.LoadString(IDS_COPYLINK_MENU);
 	ASSERT(bNameValid);
    GetContextMenuManager()->AddMenu(strName, IDR_POPUP_COPYLINK_MENU);
+
+   bNameValid = strName.LoadString(IDS_USERLINK_MENU);
+	ASSERT(bNameValid);
+   GetContextMenuManager()->AddMenu(strName, IDR_POPUP_USERLINK_MENU);
 }
 
 void CLampApp::LoadCustomState()
@@ -1468,6 +1472,10 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"lolhost");
    if(setting!=NULL) m_lolhostname = setting->GetValue();
    else m_lolhostname = L"lmnopc.com";
+
+   setting = hostxml.FindChildElement(L"profilehost");
+   if(setting!=NULL) m_profilehostname = setting->GetValue();
+   else m_profilehostname = L"chattyprofil.es";
 
    setting = hostxml.FindChildElement(L"username");
    if(setting!=NULL) m_username = setting->GetValue();
@@ -1973,6 +1981,9 @@ void CLampApp::WriteSettingsFile()
 
    settingsxml.AddChildComment(L"host for sending lol votes");
    settingsxml.AddChildElement(L"lolhost",m_lolhostname);
+
+   settingsxml.AddChildComment(L"host for getting profiles");
+   settingsxml.AddChildElement(L"profilehost",m_profilehostname);
 
    settingsxml.AddChildComment(L"login stuff");
    settingsxml.AddChildElement(L"username",m_username);
@@ -2969,6 +2980,16 @@ void CLampApp::OpenShackLink(const UCString &shackpath)
             }
          }
       }
+   }
+   else if(_wcsnicmp(shackpath,L"http://chattyprofil.es/p/",25) == 0 &&
+           shackpath.Length() > 25)
+   {
+      bIsMine = true;
+   }
+   else if(_wcsnicmp(shackpath,L"LOLTHEYWROTE",12) == 0 &&
+           shackpath.Length() > 12)
+   {
+      bIsMine = true;
    }
    else
    {
@@ -4669,7 +4690,8 @@ void CLampApp::InvalidateContentLayout(unsigned int id)
       if(ddt == DDT_STORY ||
          ddt == DDT_THREAD ||
          ddt == DDT_LOLS ||
-         ddt == DDT_SHACKMSG)
+         ddt == DDT_SHACKMSG ||
+         ddt == DDT_PROFILE)
       {
          ChattyPost *thispost = (*it)->FindPost(id);
          if(thispost != NULL)

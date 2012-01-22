@@ -18,6 +18,11 @@
 #include <gdiplus.h>
 using namespace Gdiplus;
 
+#define NDEBUG
+#include "JSONOptions.h"
+#include "libjson.h"
+#include "JSONNode.h"
+
 extern CRITICAL_SECTION g_ThreadAccess;
 
 DWORD g_LastPostTime = 0;
@@ -55,7 +60,8 @@ UINT DownloadThreadProc( LPVOID pParam )
          pDD->m_dt == DT_SHACK_SENDMSG ||
          pDD->m_dt == DT_SHACK_DELETEMSG ||
          pDD->m_dt == DT_SHACK_MOD_CATEGORY_CHANGE ||
-         pDD->m_dt == DT_LOL)
+         pDD->m_dt == DT_LOL ||
+         pDD->m_dt == DT_GET_PROFILE)
       {
          pDD->getchatty(3);
       }
@@ -648,6 +654,24 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
       bool bDoingNewFlags = true;
       switch(pDD->m_dt)
       {
+      case DT_GET_PROFILE:
+         {
+            if(pDD->m_stdstring.length() > 0 != NULL)
+            {
+               const char *text = (const char *)pDD->m_stdstring.data();
+               text = strstr(text, "Content-Type: application/json");
+               if(text != NULL)
+               {
+                  text = strstr(text, "{");
+               }
+
+               if(text != NULL)
+               {
+                  ReadProfile(text, pDD->m_stdstring.length() - (text - pDD->m_stdstring.data()));
+               }
+            }
+         }
+         break;
       case DT_THREAD_START:
          {
             ChattyPost *post = FindRootPost(pDD->m_id);
@@ -1690,6 +1714,7 @@ CLampDoc::CLampDoc()
    m_lastpage = 0;
    m_ThingsILOLD = false;
    m_ThingsIWrote = false;
+   m_ThingsUserWrote = false;
    m_bScramblePath = false;
    m_bBusy = false;
    m_shackmsgtype = SMT_INBOX;
@@ -1700,6 +1725,11 @@ CLampDoc::CLampDoc()
    m_unf_text = L"unf";
    m_tag_text = L"tag";
    m_wtf_text = L"wtf";
+
+   m_widthofaverageprofilegroup = 0;
+
+   COLORREF m_link_color = RGB(174,174,155);
+   COLORREF m_image_link_color = RGB(154,154,195);
 
    m_spoilerbrush = ::CreateSolidBrush(theApp.GetSpoilerColor());
 
@@ -1940,6 +1970,7 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
    bool islol = false;
    bool issearch = false;
    bool isshackmsg = false;
+   bool isprofile = false;
 
    bool bAllowPreLoadingOfThread = true;
 
@@ -2053,6 +2084,38 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
       m_lastpage = 1;
       isstory = true;
    }
+   else if(_wcsnicmp(start,L"PROFILE:",8) == 0)
+   {
+      m_profile_user = start + 8;
+      m_profile_user.Replace(L"%20",L" ");
+      m_storyid = 0;
+      m_page = 1;
+      m_lastpage = 1;
+      isprofile = true;
+
+      m_title = m_profile_user;
+      m_title += L"'s Profile";
+      MySetTitle(m_title);
+
+      m_link_color = RGB(255,0,0);
+      m_image_link_color = RGB(192,0,64);
+   }
+   else if(_wcsnicmp(start,L"http://chattyprofil.es/p/",25) == 0)
+   {
+      m_profile_user = start + 25;
+      m_profile_user.Replace(L"%20",L" ");
+      m_storyid = 0;
+      m_page = 1;
+      m_lastpage = 1;
+      isprofile = true;
+
+      m_title = m_profile_user;
+      m_title += L"'s Profile";
+      MySetTitle(m_title);
+
+      m_link_color = RGB(255,0,0);
+      m_image_link_color = RGB(192,0,64);
+   }
    else if(_wcsnicmp(start,L"LATESTCHATTY",12) == 0)
    {
       m_storyid = 0;
@@ -2117,6 +2180,14 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
          m_loltag = L"";
          m_ThingsIWrote = true;
       }   
+      else if(end - pCmd >= 6 &&
+        _wcsnicmp(pCmd,L"THEYWROTE",9) == 0)
+      {
+         pCmd += 9;
+         m_loltag = L"";
+         m_ThingsUserWrote = true;
+         m_profile_user = pCmd;
+      }
    }
    else if(_wcsnicmp(start,L"MYCOMMENTS",10) == 0)
    {
@@ -2276,6 +2347,11 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
       SetDataType(DDT_LOLS);
       ReadLOL();
    }
+   else if(isprofile)
+   {
+      SetDataType(DDT_PROFILE);
+      GetProfile();
+   }
    else if(issearch)
    {
       SetDataType(DDT_SEARCH);
@@ -2333,6 +2409,33 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
    }
    
    return result;
+}
+
+void CLampDoc::GetProfile()
+{
+   std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+   std::list<ChattyPost*>::iterator end = m_rootposts.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         delete (*it);
+         (*it) = NULL;
+      }
+      it++;
+   }
+   m_rootposts.clear();
+
+   // http://chattyprofil.es/api/profile/crasterimage
+
+   UCString path = L"/api/profile/";
+   path += m_profile_user;
+   path.Replace(L" ",L"%20");
+
+   StartDownload(theApp.GetProfileHost(),
+                 path,
+                 DT_GET_PROFILE,
+                 0);
 }
 
 void CLampDoc::PerformSearch()
@@ -2737,6 +2840,17 @@ void CLampDoc::ReadLOL()
       path += L"&sort_by=date&page=";
       path += m_page;
    }
+   else if(m_ThingsUserWrote)
+   {
+      m_title = L"Things ";
+      m_title += m_profile_user;
+      m_title += L" Wrote";
+      // http://lmnopc.com/greasemonkey/shacklol/user.php?authoredby=[username]&sort_by=date&page=1
+      path += L"user.php?authoredby=";
+      path += m_profile_user;
+      path += L"&sort_by=date&page=";
+      path += m_page;
+   }
    else
    {
       m_title = L"Popular ";
@@ -2967,7 +3081,8 @@ void CLampDoc::ProcessLOLData(char *data, int datasize)
    }
 
    if(m_ThingsILOLD ||
-      m_ThingsIWrote)
+      m_ThingsIWrote ||
+      m_ThingsUserWrote)
    {
       // find the last page
       work = strstr(start,"\">&raquo;</a> </p></div>");
@@ -3092,6 +3207,24 @@ bool CLampDoc::Refresh()
          }
          m_rootposts.clear();
          ReadLOL();
+         bResetPos = true;
+      }
+      break;
+   case DDT_PROFILE:
+      {
+         std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+         std::list<ChattyPost*>::iterator end = m_rootposts.end();
+         while(it != end)
+         {
+            if((*it) != NULL)
+            {
+               delete (*it);
+               (*it) = NULL;
+            }
+            it++;
+         }
+         m_rootposts.clear();
+         GetProfile();
          bResetPos = true;
       }
       break;
@@ -3345,6 +3478,104 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
    {
    case DDT_EPICFAILD:
       ::FillRect(hDC,&DeviceRectangle,m_backgroundbrush);
+      break;
+   case DDT_PROFILE:
+      {
+         FillBackground(hDC,DeviceRectangle);
+
+         if(m_rootposts.size() > 0)
+         {
+            RECT backrect = DeviceRectangle;
+            backrect.top = pos;
+            backrect.bottom = pos + 20;
+            FillBackground(hDC,backrect);
+            pos += 20;
+
+            int textheight = theApp.GetTextHeight();
+            int devwidth = DeviceRectangle.right - DeviceRectangle.left - 20;
+
+            if(m_widthofaverageprofilegroup == 0)
+            {
+               CalcWidthOfAverageProfileGroup();
+            }
+            // todo
+            int numcolumns = 4;
+            int itemwidth = devwidth / numcolumns;
+
+            while(itemwidth < m_widthofaverageprofilegroup && numcolumns > 1)
+            {
+               numcolumns--;
+               itemwidth = devwidth / numcolumns;
+            }
+
+            int rowdone = 0;
+            int rowpos = pos;
+
+            std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+            std::list<ChattyPost*>::iterator end = m_rootposts.end();
+            while(it != end)
+            {
+               RECT thisrect;
+
+               if((*it)->GetIsProfileGroup())
+               {
+                  if(rowdone == numcolumns)
+                  {
+                     rowdone = 0;
+                     pos = rowpos;
+                     pos += 20;
+                  }
+                  thisrect.left = 10 + itemwidth * rowdone;
+                  thisrect.right = thisrect.left + itemwidth;
+
+                  int thispos = (*it)->DrawProfile(hDC, thisrect, pos, hotspots);
+                  if(thispos > rowpos)
+                     rowpos = thispos;
+
+                  rowdone++;
+               }
+               else
+               {
+                  if(rowdone == numcolumns)
+                  {
+                     rowdone = 0;
+                     pos = rowpos;
+                     pos += 20;
+                     thisrect.left = DeviceRectangle.left + 10;
+                  }
+                  else
+                  {
+                     thisrect = DeviceRectangle;
+                     thisrect.left = 10 + itemwidth * rowdone;
+                  }
+                  thisrect.right = DeviceRectangle.right - 10;
+
+                  int thispos = (*it)->DrawProfile(hDC, thisrect, pos, hotspots);
+                  if(rowdone > 0)
+                  {
+                     if(thispos > rowpos)
+                        rowpos = thispos;
+                     pos = rowpos;
+                  }
+                  else
+                  {
+                     pos = thispos;
+                  }
+
+                  rowdone = 0;
+                  pos += 20;
+               }
+               
+               it++;
+            }
+
+            backrect = DeviceRectangle;
+            backrect.top = pos;
+            backrect.bottom = pos + (device_height / 2);
+            FillBackground(hDC,backrect);
+            pos += (device_height / 2);
+         }
+      }
       break;
    case DDT_STORY:
       {
@@ -4390,7 +4621,7 @@ ChattyPost *CLampDoc::FindPost(unsigned int id)
 
 void CLampDoc::CalcBodyText(RECT &rect, 
                             const UCChar *text, 
-                            const int *widths, 
+                            int *widths, 
                             std::vector<shacktagpos> &shacktags,
                             int numchars, 
                             std::vector<const UCChar*> &lines_of_text, 
@@ -4605,6 +4836,15 @@ void CLampDoc::CalcBodyText(RECT &rect,
          thisi = i;
          thislength = 0;
          spacei = 0;
+      }
+      
+      if(text[i] == L'\t')
+      {
+         if((textwidth / 2) - thislength > 0)
+         {
+            widths[i] = (textwidth / 2) - thislength;
+         }
+         spacei = i;
       }
       
       // append char
@@ -5573,8 +5813,14 @@ void CLampDoc::DrawBodyText(HDC hDC,
    bool code = false;
    bool link = false;
    bool imagelink = false;
+   bool fade = false;
    COLORREF color;
    COLORREF normalcolor = theApp.GetPostTextColor();
+   COLORREF backcolor = theApp.GetBackgroundColor();
+   COLORREF fadecolor = RGB((GetRValue(normalcolor) + GetRValue(backcolor)) / 2,
+                            (GetGValue(normalcolor) + GetGValue(backcolor)) / 2,
+                            (GetBValue(normalcolor) + GetBValue(backcolor)) / 2);
+
    bool colorchange = false;
    bool stylechange = false;
    HFONT hCreatedFont = NULL;
@@ -5723,6 +5969,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                case ST_ORANGE: color = theApp.GetOrange(); colorstack.push_back(color); colorchange = true; break;
                case ST_PURPLE: color = theApp.GetPurple(); colorstack.push_back(color); colorchange = true; break;
                case ST_PINK: color = theApp.GetPink(); colorstack.push_back(color); colorchange = true; break;
+               case ST_FADE: color = fadecolor; colorstack.push_back(color); colorchange = true; break;
 
                case ST_RED_END:
                case ST_GREEN_END:
@@ -5733,6 +5980,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                case ST_ORANGE_END:
                case ST_PURPLE_END:
                case ST_PINK_END: 
+               case ST_FADE_END: 
                {
                   if(colorstack.size() > 0)
                   {
@@ -5776,8 +6024,9 @@ void CLampDoc::DrawBodyText(HDC hDC,
                      stylechange = true;
                   }
                   break;
-               case ST_LINK: link = true;stylechange = true; color = RGB(174,174,155); colorstack.push_back(color); colorchange = true; break;
-               case ST_IMAGE_LINK: imagelink = true;stylechange = true; color = RGB(154,154,195); colorstack.push_back(color); colorchange = true; break;
+
+               case ST_LINK: link = true;stylechange = true; color = m_link_color; colorstack.push_back(color); colorchange = true; break;
+               case ST_IMAGE_LINK: imagelink = true;stylechange = true; color = m_image_link_color; colorstack.push_back(color); colorchange = true; break;
 
                case ST_QUOTE_END: quote = false;stylechange = true;break;
                case ST_SAMPLE_END: sample = false;stylechange = true;break;
@@ -6474,6 +6723,8 @@ void CLampDoc::InvalidateSkin()
       m_replyexpandedbackgroundbrush = ::CreateSolidBrush(theApp.GetPostBackgroundColor());
    }
 
+   m_widthofaverageprofilegroup = 0;
+
    m_roottoppen = ::CreatePen(PS_SOLID,0,theApp.GetPostEdgeColor());
 
    m_infpen = ::CreatePen(PS_SOLID,0,theApp.GetPostINFEdgeColor());
@@ -6647,6 +6898,10 @@ void CLampDoc::GetLaunchString(UCString &launch, unsigned int current_id)
    case DDT_EPICFAILD:
       // do nothing
       break;
+   case DDT_PROFILE:
+      launch = L"PROFILE:";
+      launch += m_profile_user;
+      break;
    case DDT_STORY:
       launch = L"LATESTCHATTY";
       break;
@@ -6663,6 +6918,11 @@ void CLampDoc::GetLaunchString(UCString &launch, unsigned int current_id)
       else if(m_ThingsIWrote)
       {
          launch += L"IWROTE";
+      }
+      else if(m_ThingsUserWrote)
+      {
+         launch += L"THEYWROTE";
+         launch += m_profile_user;
       }
       else
       {
@@ -6960,4 +7220,377 @@ void CLampDoc::FetchNextPage()
                     DT_SHACK_CHATTY_INFINATE_PAGE,
                     0);
    }
+}
+
+void FindValue(UCString &value, JSONNode::json_iterator &i, const UCChar *name)
+{
+   value = L"";
+   JSONNode::json_iterator j = (*i).begin();
+   while (j != (*i).end())
+   {
+      json_string jname = (*j).name();
+
+      if(jname == name)
+      {
+         value = (*j).as_string().data();
+         break;
+      }
+
+      j++;
+   }
+}
+
+void CLampDoc::ReadProfile(const char *pText, int datasize)
+{
+   ChattyPost *titleblock_group = new ChattyPost();
+   titleblock_group->SetDoc(this);
+   titleblock_group->SetId(1);
+   m_rootposts.push_back(titleblock_group);
+
+   ChattyPost *profile_group = new ChattyPost();
+   profile_group->SetDoc(this);
+   profile_group->SetId(2);
+   profile_group->SetIsProfileGroup(true);
+   m_rootposts.push_back(profile_group);
+
+   ChattyPost *biodata_group = new ChattyPost();
+   biodata_group->SetDoc(this);
+   biodata_group->SetId(3);
+   biodata_group->SetIsProfileGroup(true);
+   m_rootposts.push_back(biodata_group);
+
+   ChattyPost *contactinfo_group = new ChattyPost();
+   contactinfo_group->SetDoc(this);
+   contactinfo_group->SetId(4);
+   contactinfo_group->SetIsProfileGroup(true);
+   m_rootposts.push_back(contactinfo_group);
+
+   ChattyPost *gaminghandles_group = new ChattyPost();
+   gaminghandles_group->SetDoc(this);
+   gaminghandles_group->SetId(5);
+   gaminghandles_group->SetIsProfileGroup(true);
+   m_rootposts.push_back(gaminghandles_group);
+
+   ChattyPost *userbio_group = new ChattyPost();
+   userbio_group->SetDoc(this);
+   userbio_group->SetId(6);
+   m_rootposts.push_back(userbio_group);
+   
+   UCString temp;
+   temp.AppendEncodedString(pText,datasize);
+
+   json_string jsondata = temp;
+
+   JSONNode n;
+
+   try
+   {
+      n = libjson::parse(jsondata);
+   }
+   catch(std::invalid_argument)
+   {
+      // whatever. move on
+   }
+   
+   JSONNode::json_iterator i = n.begin();
+   if(i != n.end())
+   {
+      UCString text;
+      UCString data;
+
+      int reg_days = 1;
+      UCString reg_date;
+      FindValue(reg_date, i, L"join_date");
+      if(!reg_date.IsEmpty())
+      {
+         COleDateTime foo;
+
+         bool bTrimmed = false;
+         UCChar *datetext = (UCChar*)reg_date.Str();
+         UCChar *end = datetext + reg_date.Length() - 4;
+         if(end > datetext &&
+            end[0] == L' ' &&
+            iswalpha(end[1]) &&
+            iswalpha(end[2]) &&
+            iswalpha(end[3]))
+         {
+            *end = 0;
+            bTrimmed = false;
+         }
+
+         foo.ParseDateTime(datetext,0,MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT));
+
+         if(bTrimmed) *end = L' ';
+         
+         tm regtime;
+         regtime.tm_year = foo.GetYear() - 1900;
+         regtime.tm_mon  = foo.GetMonth() - 1;
+         regtime.tm_mday = foo.GetDay();
+         regtime.tm_yday = foo.GetDayOfYear() - 1;
+         regtime.tm_wday = foo.GetDayOfWeek() - 1;
+         regtime.tm_hour = foo.GetHour();
+         regtime.tm_min  = foo.GetMinute();
+         regtime.tm_sec  = foo.GetSecond();
+
+         time_t bar;
+         time(&bar);
+
+         tm tm_now;
+         localtime_s(&tm_now,&bar);
+
+         int now_seconds = tm_now.tm_sec;
+         now_seconds += (tm_now.tm_min * 60);
+         now_seconds += (tm_now.tm_hour * 60 * 60);
+         now_seconds += (tm_now.tm_yday * 60 * 60 * 24);
+         now_seconds += (tm_now.tm_year * 60 * 60 * 24 * 365);
+
+         int reg_seconds = regtime.tm_sec;
+         reg_seconds += (regtime.tm_min * 60);
+         reg_seconds += (regtime.tm_hour * 60 * 60);
+         reg_seconds += (regtime.tm_yday * 60 * 60 * 24);
+         reg_seconds += (regtime.tm_year * 60 * 60 * 24 * 365);
+
+         int ago_seconds = now_seconds - reg_seconds;
+         double diff = (double)ago_seconds;
+
+         data = L"";
+
+         double day_diff = diff / (60.0 * 60.0 * 24.0);
+         if(day_diff >= 1.0)
+         {
+            reg_days = (int)day_diff;
+         }
+      }
+
+      int age = 0;
+      FindValue(data, i, L"birthdate");
+      if(!data.IsEmpty())
+      {
+         COleDateTime foo;
+
+         bool bTrimmed = false;
+         UCChar *datetext = (UCChar*)data.Str();
+         UCChar *end = datetext + data.Length() - 4;
+         if(end > datetext &&
+            end[0] == L' ' &&
+            iswalpha(end[1]) &&
+            iswalpha(end[2]) &&
+            iswalpha(end[3]))
+         {
+            *end = 0;
+            bTrimmed = false;
+         }
+
+         foo.ParseDateTime(datetext,0,MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT));
+
+         if(bTrimmed) *end = L' ';
+         
+         tm birthtime;
+         birthtime.tm_year = foo.GetYear() - 1900;
+         birthtime.tm_mon  = foo.GetMonth() - 1;
+         birthtime.tm_mday = foo.GetDay();
+         birthtime.tm_yday = foo.GetDayOfYear() - 1;
+         birthtime.tm_wday = foo.GetDayOfWeek() - 1;
+         birthtime.tm_hour = foo.GetHour();
+         birthtime.tm_min  = foo.GetMinute();
+         birthtime.tm_sec  = foo.GetSecond();
+
+         time_t bar;
+         time(&bar);
+
+         tm tm_now;
+         localtime_s(&tm_now,&bar);
+
+         int now_seconds = tm_now.tm_sec;
+         now_seconds += (tm_now.tm_min * 60);
+         now_seconds += (tm_now.tm_hour * 60 * 60);
+         now_seconds += (tm_now.tm_yday * 60 * 60 * 24);
+         now_seconds += (tm_now.tm_year * 60 * 60 * 24 * 365);
+
+         int birth_seconds = birthtime.tm_sec;
+         birth_seconds += (birthtime.tm_min * 60);
+         birth_seconds += (birthtime.tm_hour * 60 * 60);
+         birth_seconds += (birthtime.tm_yday * 60 * 60 * 24);
+         birth_seconds += (birthtime.tm_year * 60 * 60 * 24 * 365);
+
+         int ago_seconds = now_seconds - birth_seconds;
+         double diff = (double)ago_seconds;
+
+         data = L"";
+
+         double year_diff = diff / (60.0 * 60.0 * 24.0 * 365.0);
+         if(year_diff > 1.0)
+         {
+            age = (int)year_diff;
+         }
+      }
+
+      text = L"b[";
+      text += m_profile_user;
+      text += L"]b\t";
+
+      text += L"l{ShackMessagel{sendmessage:";
+      text += m_profile_user;
+      text += L"}l}l - ";
+
+      text += L"l{Commentsl{http://www.shacknews.com/search?chatty=1&type=4&chatty_term=&chatty_user=";
+      text += m_profile_user;
+      text += L"&chatty_author=&chatty_filter=all&result_sort=postdate_desc}l}l - ";
+
+      text += L"l{LOL'dl{LOLTHEYWROTE";
+      text += m_profile_user;
+      text += L"}l}l ";
+
+      titleblock_group->DecodeShackTagsString(text, true, true);
+
+      text = L"b[Chatty Profile]b s[(autogenerated)]s\n\n";
+
+      text += L"f{Registered}f\t";
+      text += reg_date;
+      text += L"\n";
+
+      text += L"f{First Post}f\t";
+      FindValue(data, i, L"firstpost_date");
+      text += data;
+      text += L"\n";
+
+      text += L"f{Total Posts}f\t";
+      FindValue(data, i, L"postcount");
+      int postcount = data;
+      text += data;
+      text += L"\n";
+
+      text += L"f{Last Post}f\t";
+      FindValue(data, i, L"mostrecentpost_date");
+      text += data;
+
+      if(age != 0)
+      {
+         text += L"\n";
+
+         text += L"f{Posts per day}f\t";
+         //FindValue(data, i, L"postsperday");
+         data = ((float)postcount / (float)reg_days);
+         text += data;
+         /*      
+         text += L" (";
+         FindValue(data, i, L"class");
+         text += data;
+         text += L")\n";
+         */
+      }
+      
+      profile_group->DecodeShackTagsString(text, true, true);
+
+      text = L"b[Bio Data]b\n\n";
+
+      text += L"f{Age}f\t";
+      if(age != 0)
+         text += age;
+      text += L"\n";
+
+      text += L"f{Sex}f\t";
+      FindValue(data, i, L"sex");
+      text += data;
+      text += L"\n";
+
+      text += L"f{Location}f\t";
+      FindValue(data, i, L"location");
+      text += data;
+      text += L"\n";
+
+      text += L"f{Homepage}f\t";
+      FindValue(data, i, L"homepage");
+      if(!data.IsEmpty())
+      {
+         if(data == L"none")
+         {
+            text += data;
+         }
+         else
+         {
+            text += L"l{";
+            text += data;
+            text += L"}l";
+         }
+      }
+
+      biodata_group->DecodeShackTagsString(text, true, true);
+
+      text = L"b[Contact Info]b\n\n";
+
+      text += L"f{AIM}f\t";
+      FindValue(data, i, L"aim");
+      text += data;
+      text += L"\n";
+
+      text += L"f{Yahoo!}f\t";
+      FindValue(data, i, L"yahoo");
+      text += data;
+      text += L"\n";
+
+      text += L"f{MSN}f\t";
+      FindValue(data, i, L"msn");
+      text += data;
+      text += L"\n";
+
+      text += L"f{GTalk}f\t";
+      FindValue(data, i, L"gtalk");
+      text += data;
+
+      contactinfo_group->DecodeShackTagsString(text, true, true);
+
+      text = L"b[Gaming Handles]b\n\n";
+
+      text += L"f{Steam}f\t";
+      FindValue(data, i, L"steam");
+      text += data;
+      text += L"\n";
+
+      text += L"f{XBox Live}f\t";
+      FindValue(data, i, L"xboxlive");
+      text += data;
+      text += L"\n";
+
+      text += L"f{psn}f\t";
+      FindValue(data, i, L"playstation_network");
+      text += data;
+      text += L"\n";
+
+      text += L"f{Wii}f\t";
+      FindValue(data, i, L"wii");
+      text += data;
+      text += L"\n";
+
+      text += L"f{XFire}f\t";
+      FindValue(data, i, L"xfire");
+      text += data;
+
+      gaminghandles_group->DecodeShackTagsString(text, true, true);
+
+      text = L"b[User Bio]b\n\n";
+
+      FindValue(data, i, L"user_bio");
+
+      FindLinksInStringAndTagThem(data);
+
+      text += data;
+      userbio_group->DecodeShackTagsString(text, true, true);
+
+      userbio_group->InitImageLinks();
+   }
+
+}
+
+void CLampDoc::CalcWidthOfAverageProfileGroup()
+{
+   UCChar sampletext[2];
+   sampletext[0] = L'0';
+   sampletext[1] = 0;
+
+   int widths[2];
+
+   GetCharWidths(sampletext, widths, 1, false, false, false, theApp.GetNormalFontName());
+
+   m_widthofaverageprofilegroup = 60 + (widths[0] * 36);
 }

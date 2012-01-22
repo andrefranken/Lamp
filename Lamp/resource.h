@@ -18,6 +18,7 @@
 #define IDR_THEME_MENU                  200
 #define ID_SET_STYLE                    201
 #define IDR_POPUP_COPYLINK_MENU         202
+#define IDR_POPUP_USERLINK_MENU         203
 #define ID_VIEW_APPLOOK_WIN_2000        210
 #define ID_VIEW_APPLOOK_OFF_XP          211
 #define ID_VIEW_APPLOOK_WIN_XP          212
@@ -151,6 +152,10 @@
 #define ID_HELP_CHECK_UPDATE            32867
 #define ID_FORE_ID                      32868
 #define ID_NETWORK_TRAFFIC_ID           32869
+#define ID_VIEWPROFILE                  32870
+#define ID_SENDMESSAGE                  32871
+#define ID_VIEWCOMMENTS                 32872
+#define IDS_USERLINK_MENU               32873
 
 #define ID_BOOKMARK_MENUITEM            32880
 
@@ -159,7 +164,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        328
-#define _APS_NEXT_COMMAND_VALUE         32870
+#define _APS_NEXT_COMMAND_VALUE         32874
 #define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

@@ -220,6 +220,9 @@ protected:
    bool m_mouseOverClientArea;
 
    float m_hover_preview_percent;
+
+   UCString m_authorname_clicked;
+
 // Generated message map functions
 protected:
    
@@ -373,6 +376,13 @@ public:
    afx_msg void OnUpdateExpandPreviews(CCmdUI *pCmdUI);
    afx_msg void OnCheckUpdate();
    afx_msg void OnUpdateCheckUpdate(CCmdUI *pCmdUI);
+   afx_msg void OnViewProfile();
+   afx_msg void OnUpdateViewProfile(CCmdUI *pCmdUI);
+   afx_msg void OnSendMessage();
+   afx_msg void OnUpdateSendMessage(CCmdUI *pCmdUI);
+   afx_msg void OnViewComments();
+   afx_msg void OnUpdateViewComments(CCmdUI *pCmdUI);
+
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp

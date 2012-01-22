@@ -168,13 +168,20 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_EXPAND_PREVIEWS, &CLampView::OnUpdateExpandPreviews)
    ON_COMMAND(ID_HELP_CHECK_UPDATE, &CLampView::OnCheckUpdate)
    ON_UPDATE_COMMAND_UI(ID_HELP_CHECK_UPDATE, &CLampView::OnUpdateCheckUpdate)
-
    ON_COMMAND(ID_BACK_ID, &CLampView::OnBackId)
    ON_UPDATE_COMMAND_UI(ID_BACK_ID, &CLampView::OnUpdateBackId)
-
    ON_COMMAND(ID_FORE_ID, &CLampView::OnForeId)
    ON_UPDATE_COMMAND_UI(ID_FORE_ID, &CLampView::OnUpdateForeId)
 
+   ON_COMMAND(ID_VIEWPROFILE, &CLampView::OnViewProfile)
+   ON_UPDATE_COMMAND_UI(ID_VIEWPROFILE, &CLampView::OnUpdateViewProfile)
+
+   ON_COMMAND(ID_SENDMESSAGE, &CLampView::OnSendMessage)
+   ON_UPDATE_COMMAND_UI(ID_SENDMESSAGE, &CLampView::OnUpdateSendMessage)
+
+   ON_COMMAND(ID_VIEWCOMMENTS, &CLampView::OnViewComments)
+   ON_UPDATE_COMMAND_UI(ID_VIEWCOMMENTS, &CLampView::OnUpdateViewComments)
+   
    END_MESSAGE_MAP()
 
 // CLampView construction/destruction
@@ -3274,8 +3281,18 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                      case HST_AUTHOR:
                      case HST_AUTHORPREVIEW:
                         {
-                           //GetDocument()->GetAuthorInfo(m_hotspots[i].m_id);
+                           ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(post != NULL)
+                           {
+                              CPoint worldpoint = m_mousepoint;
+                              //ScreenToClient(&worldpoint);
+                              ClientToScreen(&worldpoint);
+                              m_authorname_clicked = post->GetAuthor();
+                              theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_USERLINK_MENU, worldpoint.x, worldpoint.y, this, TRUE);
+                           }
                            
+                           /*
+                           //GetDocument()->GetAuthorInfo(m_hotspots[i].m_id);                           
                            ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
                            if(post != NULL)
                            {
@@ -3302,6 +3319,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                                  SendMessageDlg(GetDocument(),author,UCString(),UCString());
                               }
                            }
+                           */
                         }
                         break;
                      case HST_PREV_PAGE:
@@ -3529,50 +3547,58 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               UCString link;
                               pPost->GetLink(m_mousepoint.x, m_mousepoint.y, link);
 
-                              const UCChar *work = NULL;
-                                                                  
-                              bool bIsLocal = false;
-                              if(link.beginswith(L"http://www.shacknews.com/chatty?id="))// http://www.shacknews.com/chatty?id=25857324#itemanchor_25857324
+                              if(link.beginswith(L"sendmessage:"))
                               {
-                                 work = link.Str() + 35;
+                                 m_authorname_clicked = link.Str() + 12;
+                                 OnSendMessage();
                               }
-                              else if(link.beginswith(L"http://www.shacknews.com/laryn.x?id="))// http://www.shacknews.com/laryn.x?id=20919390#itemanchor_20919390
+                              else
                               {
-                                 work = link.Str() + 36;
-                              }
-
-                              if(work != NULL)
-                              {
-                                 UCString temp;
-                                 while(*work != 0 && iswdigit(*work))
+                                 const UCChar *work = NULL;
+                                                                     
+                                 bool bIsLocal = false;
+                                 if(link.beginswith(L"http://www.shacknews.com/chatty?id="))// http://www.shacknews.com/chatty?id=25857324#itemanchor_25857324
                                  {
-                                    temp += *work;
-                                    work++;
+                                    work = link.Str() + 35;
+                                 }
+                                 else if(link.beginswith(L"http://www.shacknews.com/laryn.x?id="))// http://www.shacknews.com/laryn.x?id=20919390#itemanchor_20919390
+                                 {
+                                    work = link.Str() + 36;
                                  }
 
-                                 unsigned int id = temp;
-
-                                 ChattyPost *post = GetDocument()->FindPost(id);
-                                 if(post != NULL)
+                                 if(work != NULL)
                                  {
-                                    SetCurrentId(id);
-                                    m_textselectionpost = 0;
-                                    m_selectionstart = 0;
-                                    m_selectionend = 0;
-                                    bIsLocal = true;
+                                    UCString temp;
+                                    while(*work != 0 && iswdigit(*work))
+                                    {
+                                       temp += *work;
+                                       work++;
+                                    }
 
-                                    MakeCurrentPostLegal();
-                                    
-                                    CancelInertiaPanning();
-                                    m_brakes = false;
-                                    
-                                    InvalidateEverything();
+                                    unsigned int id = temp;
+
+                                    ChattyPost *post = GetDocument()->FindPost(id);
+                                    if(post != NULL)
+                                    {
+                                       SetCurrentId(id);
+                                       m_textselectionpost = 0;
+                                       m_selectionstart = 0;
+                                       m_selectionend = 0;
+                                       bIsLocal = true;
+
+                                       MakeCurrentPostLegal();
+                                       
+                                       CancelInertiaPanning();
+                                       m_brakes = false;
+                                       
+                                       InvalidateEverything();
+                                    }
                                  }
-                              }
-                              
-                              if(!bIsLocal)
-                              {
-                                 theApp.OpenShackLink(link);
+                                 
+                                 if(!bIsLocal)
+                                 {
+                                    theApp.OpenShackLink(link);
+                                 }
                               }
                            }
                         }
@@ -6773,3 +6799,61 @@ void CLampView::OnUpdateCheckUpdate(CCmdUI *pCmdUI)
 {
    pCmdUI->Enable(TRUE);
 }
+
+void CLampView::OnViewProfile()
+{
+   if(!m_authorname_clicked.IsEmpty())
+   {
+      theApp.SetLastSearchParms(m_authorname_clicked, UCString(), UCString());
+
+      UCString path = L"PROFILE:";
+      path += m_authorname_clicked;
+
+      theApp.OpenDocumentFile(path);
+   }
+}
+
+void CLampView::OnUpdateViewProfile(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+}
+
+void CLampView::OnSendMessage()
+{
+   if(!m_authorname_clicked.IsEmpty())
+   {
+      SendMessageDlg(GetDocument(),m_authorname_clicked,UCString(),UCString());
+   }
+}
+
+void CLampView::OnUpdateSendMessage(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+}
+
+void CLampView::OnViewComments()
+{
+   if(!m_authorname_clicked.IsEmpty())
+   {
+      theApp.SetLastSearchParms(m_authorname_clicked, UCString(), UCString());
+
+      UCString path = L"CUSTOMSEARCH:";
+      char *enc = url_encode(m_authorname_clicked.str8());
+      path += enc;
+      free(enc);
+      path += L"::";
+
+      theApp.OpenDocumentFile(path);
+   }
+}
+
+void CLampView::OnUpdateViewComments(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+}
+
+
+
+
+
+

@@ -23,7 +23,8 @@ typedef enum
    DDT_THREAD        = 2,
    DDT_LOLS          = 3,
    DDT_SEARCH        = 4,
-   DDT_SHACKMSG      = 5
+   DDT_SHACKMSG      = 5,
+   DDT_PROFILE       = 6
 } DocDataType;
 
 typedef enum 
@@ -128,7 +129,7 @@ public:
                         bool bComplexShapeText);
    void CalcBodyText(RECT &rect,
                      const UCChar *text,
-                     const int *widths,
+                     int *widths,
                      std::vector<shacktagpos> &shacktags,
                      int numchars,
                      std::vector<const UCChar*> &lines_of_text,
@@ -262,6 +263,9 @@ public:
 
    void GDIPLUS_TextOut( HDC hdc, int x, int y, bool bSampleText, UINT options, CONST RECT * lprect, const UCChar *lpString, UINT c, const INT* lpDx);
 
+   void SetLinkColor(COLORREF value){m_link_color = value;}
+   void SetImageLinkColor(COLORREF value){m_image_link_color = value;}
+
 // Implementation
 public:
 	virtual ~CLampDoc();
@@ -278,7 +282,9 @@ protected:
    void ReadLatestChatty();
    void ReadLatestChattyPart2();   
    void ReadLOL();
+   void ReadProfile(const char *pText, int datasize);
    void PerformSearch();
+   void GetProfile();
    bool ReadExistingThreadFromRoot(CXMLTree &xmldata, unsigned int id, bool bDoingNewFlags);
    int DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
    int DrawMessages(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id);
@@ -290,6 +296,8 @@ protected:
    
    bool CheckForContentsRequest(unsigned int id);
    void RemoveContentsRequest(unsigned int id);
+
+   void CalcWidthOfAverageProfileGroup();
 
    DocDataType            m_datatype;
    unsigned int           m_storyid;
@@ -336,10 +344,13 @@ protected:
    UCString m_loltag;
    bool m_ThingsILOLD;
    bool m_ThingsIWrote;
+   bool m_ThingsUserWrote;
 
    UCString m_search_author;
    UCString m_search_parent_author;
    UCString m_search_terms;
+
+   UCString m_profile_user;
 
    bool m_bScramblePath;
 
@@ -360,6 +371,11 @@ protected:
    UCString                m_wtf_text;
 
    std::map<unsigned int,DWORD> m_id_contents_requests;
+
+   int         m_widthofaverageprofilegroup;
+
+   COLORREF m_link_color;
+   COLORREF m_image_link_color;
 
 // Generated message map functions
 protected:

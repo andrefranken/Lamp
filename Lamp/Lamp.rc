@@ -369,6 +369,16 @@ BEGIN
     END
 END
 
+IDR_POPUP_USERLINK_MENU MENU 
+BEGIN
+    POPUP "User"
+    BEGIN
+        MENUITEM "View Profile",                ID_VIEWPROFILE
+        MENUITEM "Send Message",                ID_SENDMESSAGE
+        MENUITEM "View Comments",               ID_VIEWCOMMENTS
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -785,6 +795,7 @@ BEGIN
     ID_EDIT_REFRESH         "Refresh\nRefresh"
     ID_EDIT_NEWTHREAD       "Post a new thread in this story\nNewThread"
     IDS_COPYLINK_MENU       "CopyLink"
+    IDS_USERLINK_MENU       "User"
 END
 
 #endif    // English (U.S.) resources

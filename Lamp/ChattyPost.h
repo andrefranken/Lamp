@@ -110,7 +110,6 @@ public:
    unsigned int m_WTFd;
 };
 
-
 typedef enum 
 {
    ST_RED = 0,
@@ -136,6 +135,7 @@ typedef enum
    ST_IMAGE,
    ST_IMAGE_LINK,
    ST_THUMB,
+   ST_FADE,
 
    ST_RED_END = 30,
    ST_GREEN_END,
@@ -160,7 +160,7 @@ typedef enum
    ST_IMAGE_END,
    ST_IMAGE_LINK_END,
    ST_THUMB_END,
-
+   ST_FADE_END
 }shacktag;
 
 class shacktagpos
@@ -260,6 +260,8 @@ typedef enum
    LTT_TAG = 8,
    LTT_WTF = 16
 }loltagtype;
+
+void FindLinksInStringAndTagThem(UCString &body);
 
 size_t HTML_GetIDAttribute(tree<htmlcxx::HTML::Node>::sibling_iterator &it, const char *attr_name = NULL);
 
@@ -361,6 +363,7 @@ public:
       m_lightningbolt = false;
       m_bComplexShapeText = false;
       m_indent_offset = 0;
+      m_bIsProfileGroup = false;
    }
    virtual ~ChattyPost();
 
@@ -419,10 +422,12 @@ public:
                 UCString &lolcount,
                 UCString &author,
                 UCString &body);
+
    int DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
    int DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, int indent, unsigned int current_id, int &trunkatingposts, const UCString &rootauthor, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
    int DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id);
    void DrawTextOnly(HDC hDC, RECT &DeviceRectangle, int pos);
+   int DrawProfile(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots);
    void SetupPreviewShades(bool bDoingNewFlags);
    void DrawReplyPreview(HDC hDC, RECT &DeviceRectangle, int top, int bottom, const UCString &rootauthor);
    int GetReplyPreviewHeight(RECT &DeviceRectangle);
@@ -434,6 +439,10 @@ public:
    void ReadFromKnown(CLampDoc *pDoc);
 
    void GetTitle(UCString &title);
+
+   void SetIsProfileGroup(bool value){m_bIsProfileGroup = value;}
+
+   bool GetIsProfileGroup(){return m_bIsProfileGroup;}
 
    postcategorytype GetCategory(){return m_category;}
    void SetCategory(postcategorytype category){m_category = category;}
@@ -469,7 +478,7 @@ public:
 
    void InvalidateSkin();
 
-   void DecodeShackTagsString(UCString &from, bool bAllowCustomTags = false);
+   void DecodeShackTagsString(UCString &from, bool bAllowCustomTags = false, bool bAllowLinks = false);
 
    void AddLolTag(loltagtype tag){m_mylols |= tag; UpdateLOLs();}
 
@@ -545,10 +554,11 @@ public:
    void SetIndentOffset(int value){m_indent_offset = value;}
    int GetIndentOffset(){return m_indent_offset;}
 
+   void InitImageLinks();
 protected:
    void SetupCharWidths();
    void SetupBodyText(RECT &textrect);
-   void InitImageLinks();
+   void SetupProfileText(RECT &textrect);
    void DecodeString(UCString &from, UCString &to, std::vector<shacktagpos> &shacktags);
    void GatherIds(std::list<unsigned int> &ids);
    void RemoveSomeTags(UCString &str);
@@ -651,4 +661,6 @@ protected:
    unsigned int            m_last_left;
 
    int                     m_indent_offset;
+
+   bool                    m_bIsProfileGroup;
 };
