@@ -297,6 +297,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_326FE4D6357E6F297D731FBE3FEE84DE"
+        "OwnerKey" = "8:_6DBC85EB2AF24FF38300E7FB9216DC70"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_333280A2CAC846C1A7C251B9D543C92F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -663,6 +669,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_6DBC85EB2AF24FF38300E7FB9216DC70"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_704AC7BDE0DA4791BE1682DB855E787C"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -939,6 +951,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_A2B683443F0E5652C96594D7A0B50231"
+        "OwnerKey" = "8:_6DBC85EB2AF24FF38300E7FB9216DC70"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_A33F38ABA11D4B9DB939C8F4906C3BFC"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -947,6 +965,12 @@
         {
         "MsmKey" = "8:_A44F3A509B9F1549462B81D77B6E0FC4"
         "OwnerKey" = "8:_50008E36A76240C3A2B3EEE67AF703BC"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_A44F3A509B9F1549462B81D77B6E0FC4"
+        "OwnerKey" = "8:_6DBC85EB2AF24FF38300E7FB9216DC70"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -983,6 +1007,12 @@
         {
         "MsmKey" = "8:_ACD076B01B80746D7FFE3E060DFD150B"
         "OwnerKey" = "8:_50008E36A76240C3A2B3EEE67AF703BC"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ACD076B01B80746D7FFE3E060DFD150B"
+        "OwnerKey" = "8:_6DBC85EB2AF24FF38300E7FB9216DC70"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1031,6 +1061,12 @@
         {
         "MsmKey" = "8:_B70F8133B5E66FC1B7E660EBBC4F6BBE"
         "OwnerKey" = "8:_50008E36A76240C3A2B3EEE67AF703BC"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_B70F8133B5E66FC1B7E660EBBC4F6BBE"
+        "OwnerKey" = "8:_6DBC85EB2AF24FF38300E7FB9216DC70"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1415,6 +1451,12 @@
         {
         "MsmKey" = "8:_F54189DC60DB40C9ADE752D8C5541E44"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_F6578D071BAC8D9D4666AF76C095B3C6"
+        "OwnerKey" = "8:_6DBC85EB2AF24FF38300E7FB9216DC70"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -6270,6 +6312,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F6578D071BAC8D9D4666AF76C095B3C6"
+            {
+            "SourcePath" = "8:VERSION.dll"
+            "TargetName" = "8:VERSION.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_6766E160BBE94EB68F10F66BFB9C32B1"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F6678DC392A0439F83F3FB005FE70C8F"
             {
             "SourcePath" = "8:..\\Debug\\skins\\default\\send.png"
@@ -6724,7 +6786,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Lamp"
         "ProductCode" = "8:{4506BD2B-24BF-4963-976D-F6AFA80CD1D5}"
-        "PackageCode" = "8:{84DD45CA-B216-4EA4-BF2B-43F19E9A8070}"
+        "PackageCode" = "8:{A298B082-8EB0-4586-B234-B0A14F6A8DB0}"
         "UpgradeCode" = "8:{FB5A9863-370B-4B98-9F87-27960FA7136B}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
@@ -7293,6 +7355,34 @@
             "OutputConfiguration" = "8:"
             "OutputGroupCanonicalName" = "8:Built"
             "OutputProjectGuid" = "8:{0D560134-0978-4D07-8A64-FA1982A68738}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_6DBC85EB2AF24FF38300E7FB9216DC70"
+            {
+            "SourcePath" = "8:..\\Release\\LampUpdate.exe"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_6766E160BBE94EB68F10F66BFB9C32B1"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:Built"
+            "OutputProjectGuid" = "8:{1660E14E-E050-4F59-A3E2-9F9C83FC6E3F}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
