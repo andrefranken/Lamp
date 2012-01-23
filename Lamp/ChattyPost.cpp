@@ -1664,8 +1664,8 @@ int ChattyPost::DrawProfile(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
    if(m_pDoc != NULL)
    {
       RECT textrect = DeviceRectangle;
-      textrect.left += 30;
-      textrect.right -= 30;
+      textrect.left += 20;
+      textrect.right -= 20;
       textrect.top = 0;
       textrect.bottom = 0;
       
@@ -1682,10 +1682,10 @@ int ChattyPost::DrawProfile(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
 
       RECT myrect = DeviceRectangle;
       myrect.top = pos;
-      myrect.bottom = pos + textrect.bottom + theApp.GetCellHeight() + theApp.GetCellHeight();
+      myrect.bottom = pos + textrect.bottom + theApp.GetCellHeight();
 
-      textrect.top += pos + theApp.GetCellHeight();
-      textrect.bottom += pos + theApp.GetCellHeight();
+      textrect.top += pos + (theApp.GetCellHeight() / 2);
+      textrect.bottom += pos + (theApp.GetCellHeight() / 2);
       pos = myrect.bottom;
 
       myrect.left += 10;
@@ -5697,7 +5697,7 @@ void ChattyPost::GetCharPosesForWord(int x, int y, int &selectionstart, int &sel
       here = work;
    }
 
-   if(iswspace(*work) == 0 &&
+   if(*work != L' ' &&
       iswalnum(*work) == 0)
    {
       // must be punctuation;
@@ -5709,7 +5709,7 @@ void ChattyPost::GetCharPosesForWord(int x, int y, int &selectionstart, int &sel
 
    // look left
    while(work >= begin && 
-         iswspace(*work))
+         *work == L' ')
    {
       selectionstart = work - begin;
       work--;
@@ -5732,8 +5732,7 @@ void ChattyPost::GetCharPosesForWord(int x, int y, int &selectionstart, int &sel
    }
 
    if(work < end && 
-      //*work == L' ')
-      iswspace(*work))
+      *work == L' ')
    {
       selectionend = work - begin + 1;
    }
