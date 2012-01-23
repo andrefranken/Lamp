@@ -35,6 +35,11 @@ bool g_bIsXP = false;
 
 bool g_bSingleThreadStyle = false;
 
+#include <gdiplus.h>
+using namespace Gdiplus;
+GdiplusStartupInput g_gdiplusStartupInput;
+ULONG_PTR g_gdiplusToken;
+
 chattyerror download(const char* host, const char* path, char** out_response, int *psize/*=NULL*/)
 {
    chattyerror err = ERR_NOT_IMPLEMENTED;
@@ -1006,6 +1011,11 @@ BOOL CLampApp::InitInstance()
       }
    }
 
+   //if(!g_bIsXP)
+   {
+      GdiplusStartup(&g_gdiplusToken, &g_gdiplusStartupInput, NULL);
+   }
+
    ReadBookmarks();
    ReadSettingsFile();
    ReadSkinFiles();
@@ -1218,6 +1228,11 @@ int CLampApp::ExitInstance()
    if(!g_bSingleThreadStyle)
    {
       ::DeleteCriticalSection(&g_ThreadAccess);
+   }
+
+   //if(!g_bIsXP)
+   {
+      GdiplusShutdown(g_gdiplusToken);
    }
 
    return CWinApp::ExitInstance();

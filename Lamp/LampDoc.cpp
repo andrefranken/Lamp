@@ -25,6 +25,8 @@ using namespace Gdiplus;
 
 extern CRITICAL_SECTION g_ThreadAccess;
 
+extern bool g_bIsXP;
+
 DWORD g_LastPostTime = 0;
 
 DWORD g_LastShackLoginTime = 0;
@@ -2689,16 +2691,16 @@ void CLampDoc::SendMessage(const UCString &to, const UCString &subject, const UC
 
       post_data += L"&subject=";
       UCString temp = subject;
-      temp.ReplaceAll(L'<',0x02C2);
-      temp.ReplaceAll(L'>',0x02C3);
+      //temp.ReplaceAll(L'<',0x02C2);
+      //temp.ReplaceAll(L'>',0x02C3);
       char *enc_subject = url_encode((char*)temp.str8(false,CET_UTF8));
       post_data += enc_subject;
       free(enc_subject);
 
       post_data += L"&message=";
       temp = shackmsg;
-      temp.ReplaceAll(L'<',0x02C2);
-      temp.ReplaceAll(L'>',0x02C3);
+      //temp.ReplaceAll(L'<',0x02C2);
+      //temp.ReplaceAll(L'>',0x02C3);
       char *enc_shackmsg = url_encode((char*)temp.str8(false,CET_UTF8));
       post_data += enc_shackmsg;
       free(enc_shackmsg);
@@ -2733,8 +2735,8 @@ void CLampDoc::SendMessage(const UCString &to, const UCString &subject, const UC
       post_data += L"&subject=";
 
       UCString temp = subject;
-      temp.ReplaceAll(L'<',0x02C2);
-      temp.ReplaceAll(L'>',0x02C3);
+      //temp.ReplaceAll(L'<',0x02C2);
+      //temp.ReplaceAll(L'>',0x02C3);
 
       char *enc_subject = url_encode((char*)temp.str8(false,CET_UTF8));
       post_data += enc_subject;
@@ -2746,8 +2748,8 @@ void CLampDoc::SendMessage(const UCString &to, const UCString &subject, const UC
       post_data += L"&body=";
 
       temp = shackmsg;
-      temp.ReplaceAll(L'<',0x02C2);
-      temp.ReplaceAll(L'>',0x02C3);
+      //temp.ReplaceAll(L'<',0x02C2);
+      //temp.ReplaceAll(L'>',0x02C3);
 
       char *enc_shackmsg = url_encode((char*)temp.str8(false,CET_UTF8));
       post_data += enc_shackmsg;
@@ -3376,8 +3378,8 @@ bool CLampDoc::PostReply(const UCString &replytext, unsigned int to_id)
       postdata += L"&content_id=17&page=&parent_url=/chatty&body=";
 
       UCString temp = replytext;
-      temp.ReplaceAll(L'<',0x02C2);
-      temp.ReplaceAll(L'>',0x02C3);
+      //temp.ReplaceAll(L'<',0x02C2);
+      //temp.ReplaceAll(L'>',0x02C3);
       temp.Replace(L"\n",L"\r\n");
 
       char *enc_reply = url_encode((char*)temp.str8(false,CET_UTF8));
@@ -3424,8 +3426,8 @@ bool CLampDoc::PostReply(const UCString &replytext, unsigned int to_id)
       post_data += L"&body=";
 
       UCString temp = replytext;
-      temp.ReplaceAll(L'<',0x02C2);
-      temp.ReplaceAll(L'>',0x02C3);
+      //temp.ReplaceAll(L'<',0x02C2);
+      //temp.ReplaceAll(L'>',0x02C3);
 
       char *enc_reply = url_encode((char*)temp.str8(false,CET_UTF8));
       post_data += enc_reply;
@@ -5301,7 +5303,7 @@ void CLampDoc::MyTextOut(HDC hDC, int x, int y, bool bSampleText, const UCChar *
       {
          //output what we have
          UINT thiscount = work - start;
-         if(bComplexShapeText)
+         if(bComplexShapeText/* && !g_bIsXP*/)
          {
             GDIPLUS_TextOut(hDC, x, y, bSampleText, fupotions, pClipRect, start, thiscount, w);
          }
@@ -5327,7 +5329,7 @@ void CLampDoc::MyTextOut(HDC hDC, int x, int y, bool bSampleText, const UCChar *
    if(start < end)
    {
       //output the remainder
-      if(bComplexShapeText)
+      if(bComplexShapeText/* && !g_bIsXP*/)
       {
          GDIPLUS_TextOut(hDC, x, y, bSampleText, fupotions, pClipRect, start, end - start, w);
       }
