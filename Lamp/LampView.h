@@ -382,6 +382,18 @@ public:
    afx_msg void OnUpdateSendMessage(CCmdUI *pCmdUI);
    afx_msg void OnViewComments();
    afx_msg void OnUpdateViewComments(CCmdUI *pCmdUI);
+   afx_msg void OnStrokePreviewEdges();
+   afx_msg void OnUpdateStrokePreviewEdges(CCmdUI *pCmdUI);
+   afx_msg void OnLineThickness1();
+   afx_msg void OnUpdateLineThickness1(CCmdUI *pCmdUI);
+   afx_msg void OnLineThickness2();
+   afx_msg void OnUpdateLineThickness2(CCmdUI *pCmdUI);
+   afx_msg void OnLineThickness3();
+   afx_msg void OnUpdateLineThickness3(CCmdUI *pCmdUI);
+   afx_msg void OnUseAuthorColor();
+   afx_msg void OnUpdateUseAuthorColor(CCmdUI *pCmdUI);
+   afx_msg void OnUsersLOLs();
+   afx_msg void OnUpdateUsersLOLs(CCmdUI *pCmdUI);
 
 };
 

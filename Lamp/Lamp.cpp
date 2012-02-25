@@ -850,6 +850,8 @@ CLampApp::CLampApp()
 
    m_numshow_truncated = 10;
 
+   m_line_thickness = 1;
+
    m_bPinningInStories = true;
    m_bDoublePageStory = false;
    m_bStartInDockedMode = true;
@@ -1588,9 +1590,17 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_numshow_truncated = setting->GetValue();
    else m_numshow_truncated = 10;
 
+   setting = hostxml.FindChildElement(L"line_thickness");
+   if(setting!=NULL) m_line_thickness = setting->GetValue();
+   else m_line_thickness = 1;
+
    setting = hostxml.FindChildElement(L"smooth_scroll");
    if(setting!=NULL) m_smooth_scroll = setting->GetValue();
    else m_smooth_scroll = true;
+
+   setting = hostxml.FindChildElement(L"stroke_preview_edges");
+   if(setting!=NULL) m_stroke_preview_edges = setting->GetValue();
+   else m_stroke_preview_edges = false;
 
    setting = hostxml.FindChildElement(L"ShowImageThumbs");
    if(setting!=NULL) m_bShowImageThumbs = setting->GetValue();
@@ -1692,6 +1702,10 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"inverted_lol_previews");
    if(setting!=NULL) m_inverted_lol_previews = setting->GetValue();
    else m_inverted_lol_previews = true;
+
+   setting = hostxml.FindChildElement(L"UseAuthorColorForPreview");
+   if(setting!=NULL) m_bUseAuthorColorForPreview = setting->GetValue();
+   else m_bUseAuthorColorForPreview = false;
    
    setting = hostxml.FindChildElement(L"AlwaysOnTopWhenNotDocked");
    if(setting!=NULL) m_bAlwaysOnTopWhenNotDocked = setting->GetValue();
@@ -2033,6 +2047,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"tab_title_word_limit",UCString(m_tab_title_word_limit));
    settingsxml.AddChildElement(L"tab_title_char_limit",UCString(m_tab_title_char_limit));
    settingsxml.AddChildElement(L"smooth_scroll_scale",UCString(m_smoothscrollscale));
+   settingsxml.AddChildElement(L"stroke_preview_edges",UCString(m_stroke_preview_edges));
    settingsxml.AddChildElement(L"hours_expire",UCString(m_hours_expire));
    settingsxml.AddChildElement(L"mseconds_preview_timer",UCString(m_mseconds_preview_timer));
    settingsxml.AddChildElement(L"hover_preview_percent_stepsize",UCString(m_hover_preview_percent_stepsize));
@@ -2042,6 +2057,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"inertia_friction",UCString(m_inertia_friction));
    settingsxml.AddChildElement(L"lang",m_lang);
    settingsxml.AddChildElement(L"numshow_truncated",UCString(m_numshow_truncated));
+   settingsxml.AddChildElement(L"line_thickness",UCString(m_line_thickness));
    settingsxml.AddChildElement(L"smooth_scroll",UCString(m_smooth_scroll));
    settingsxml.AddChildElement(L"ShowImageThumbs",UCString(m_bShowImageThumbs));
    settingsxml.AddChildElement(L"AutoLoadChattypicsThumbs",UCString(m_bAutoLoadChattypicsThumbs));
@@ -2066,6 +2082,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"show_thomw_lols",UCString(m_show_thomw_lols));
    settingsxml.AddChildElement(L"verbose_lol_previews",UCString(m_verbose_lol_previews));
    settingsxml.AddChildElement(L"inverted_lol_previews",UCString(m_inverted_lol_previews));
+   settingsxml.AddChildElement(L"UseAuthorColorForPreview",UCString(m_bUseAuthorColorForPreview));
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
    settingsxml.AddChildElement(L"num_minutes_check_inbox",UCString(m_num_minutes_check_inbox));
    settingsxml.AddChildElement(L"enable_spell_checker",UCString(m_enable_spell_checker));
@@ -2213,6 +2230,9 @@ void CLampApp::ReadSkinFiles()
    setting = settings.FindChildElement(L"background_color");
    if(setting!=NULL) m_background_color = setting->GetValue();
    else m_background_color = RGB(0,0,0);
+
+   m_bBackgroundIsDark = true;
+   if((GetRValue(m_background_color) + GetGValue(m_background_color) + GetBValue(m_background_color)) > 382)m_bBackgroundIsDark = false;
 
    setting = settings.FindChildElement(L"rootpost_background_color");
    if(setting!=NULL) m_rootpost_background_color = setting->GetValue();
@@ -2363,8 +2383,7 @@ void CLampApp::ReadSkinFiles()
    setting = settings.FindChildElement(L"rounded_posts");
    if(setting!=NULL) m_rounded_posts = setting->GetValue();
    else m_rounded_posts = false;
-
-
+   
    m_refresh_buffer.Resize(0,0);
    m_refresh_hover_buffer.Resize(0,0);
    m_tab_buffer.Resize(0,0);
@@ -2972,75 +2991,88 @@ void CLampApp::OpenShackLink(const UCString &shackpath)
 {
    bool bIsMine = false;
 
-   if(_wcsnicmp(shackpath,L"http://www.shacknews.com/",25) == 0)
+   if(_wcsnicmp(shackpath,L"forceout:",9) == 0 &&
+      shackpath.Length() > 9)
    {
-      const UCChar *work = wcsstr(shackpath,L"?id=");
-      if(work != NULL)
+      ShellExecuteW(NULL,
+                    L"open",
+                    shackpath.Str() + 9,
+                    NULL,
+                    NULL,
+                    SW_SHOW);
+   }
+   else
+   {   
+      if(_wcsnicmp(shackpath,L"http://www.shacknews.com/",25) == 0)
       {
-         bIsMine = true;
-      }
-      else
-      {
-         work = wcsstr(shackpath,L"/chatty/");
+         const UCChar *work = wcsstr(shackpath,L"?id=");
          if(work != NULL)
          {
             bIsMine = true;
          }
          else
          {
-            work = wcsstr(shackpath,L"/search?");
+            work = wcsstr(shackpath,L"/chatty/");
             if(work != NULL)
             {
                bIsMine = true;
             }
+            else
+            {
+               work = wcsstr(shackpath,L"/search?");
+               if(work != NULL)
+               {
+                  bIsMine = true;
+               }
+            }
          }
       }
-   }
-   else if(_wcsnicmp(shackpath,L"http://chattyprofil.es/p/",25) == 0 &&
-           shackpath.Length() > 25)
-   {
-      bIsMine = true;
-   }
-   else if(_wcsnicmp(shackpath,L"LOLTHEYWROTE",12) == 0 &&
-           shackpath.Length() > 12)
-   {
-      bIsMine = true;
-   }
-   else
-   {
-      // see if it is all digits
-      const UCChar *work = shackpath;
-      const UCChar *end = work + shackpath.Length();
-      bool bIsAllDigits = true;
-      while(work < end)
-      {
-         if(iswdigit(*work) == 0)
-         {
-            bIsAllDigits = false;
-            break;
-         }
-         work++;
-      }
-      
-      if(bIsAllDigits)
+      else if(_wcsnicmp(shackpath,L"http://chattyprofil.es/p/",25) == 0 &&
+              shackpath.Length() > 25)
       {
          bIsMine = true;
       }
-   }
+      else if(_wcsnicmp(shackpath,L"LOLTHEYWROTE",12) == 0 &&
+              shackpath.Length() > 12)
+      {
+         bIsMine = true;
+      }
+      else
+      {
+         // see if it is all digits
+         const UCChar *work = shackpath;
+         const UCChar *end = work + shackpath.Length();
+         bool bIsAllDigits = true;
+         while(work < end)
+         {
+            if(iswdigit(*work) == 0)
+            {
+               bIsAllDigits = false;
+               break;
+            }
+            work++;
+         }
+         
+         if(bIsAllDigits)
+         {
+            bIsMine = true;
+         }
+      }
 
-   if(bIsMine)
-   {
-      OpenDocumentFile(shackpath);
-   }
-   else
-   {
-      // must be an html link
-      ShellExecuteW(NULL,
-                    L"open",
-                    shackpath,
-                    NULL,
-                    NULL,
-                    SW_SHOW);
+      if(bIsMine)
+      {
+         OpenDocumentFile(shackpath);
+      }
+      else
+      {
+         // must be an html link
+         ShellExecuteW(NULL,
+                       L"open",
+                       shackpath,
+                       NULL,
+                       NULL,
+                       SW_SHOW);
+      }
    }
 }
 

@@ -164,6 +164,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_UNLOADALLIMAGES, &CLampView::OnUpdateUnloadAllImages)
    ON_COMMAND(ID_EXPAND_PREVIEWS_DOWN, &CLampView::OnExpandPreviewsDown)
    ON_UPDATE_COMMAND_UI(ID_EXPAND_PREVIEWS_DOWN, &CLampView::OnUpdateExpandPreviewsDown)
+   ON_COMMAND(ID_STROKE_PREVIEW_EDGES, &CLampView::OnStrokePreviewEdges)
+   ON_UPDATE_COMMAND_UI(ID_STROKE_PREVIEW_EDGES, &CLampView::OnUpdateStrokePreviewEdges)
    ON_COMMAND(ID_EXPAND_PREVIEWS, &CLampView::OnExpandPreviews)
    ON_UPDATE_COMMAND_UI(ID_EXPAND_PREVIEWS, &CLampView::OnUpdateExpandPreviews)
    ON_COMMAND(ID_HELP_CHECK_UPDATE, &CLampView::OnCheckUpdate)
@@ -172,16 +174,23 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_BACK_ID, &CLampView::OnUpdateBackId)
    ON_COMMAND(ID_FORE_ID, &CLampView::OnForeId)
    ON_UPDATE_COMMAND_UI(ID_FORE_ID, &CLampView::OnUpdateForeId)
-
    ON_COMMAND(ID_VIEWPROFILE, &CLampView::OnViewProfile)
    ON_UPDATE_COMMAND_UI(ID_VIEWPROFILE, &CLampView::OnUpdateViewProfile)
-
    ON_COMMAND(ID_SENDMESSAGE, &CLampView::OnSendMessage)
    ON_UPDATE_COMMAND_UI(ID_SENDMESSAGE, &CLampView::OnUpdateSendMessage)
-
    ON_COMMAND(ID_VIEWCOMMENTS, &CLampView::OnViewComments)
    ON_UPDATE_COMMAND_UI(ID_VIEWCOMMENTS, &CLampView::OnUpdateViewComments)
-   
+   ON_COMMAND(ID_LINE_THICKNESS_1, &CLampView::OnLineThickness1)
+   ON_UPDATE_COMMAND_UI(ID_LINE_THICKNESS_1, &CLampView::OnUpdateLineThickness1)
+   ON_COMMAND(ID_LINE_THICKNESS_2, &CLampView::OnLineThickness2)
+   ON_UPDATE_COMMAND_UI(ID_LINE_THICKNESS_2, &CLampView::OnUpdateLineThickness2)
+   ON_COMMAND(ID_LINE_THICKNESS_3, &CLampView::OnLineThickness3)
+   ON_UPDATE_COMMAND_UI(ID_LINE_THICKNESS_3, &CLampView::OnUpdateLineThickness3)
+   ON_COMMAND(ID_USE_AUTHOR_COLOR_PREVIEW, &CLampView::OnUseAuthorColor)
+   ON_UPDATE_COMMAND_UI(ID_USE_AUTHOR_COLOR_PREVIEW, &CLampView::OnUpdateUseAuthorColor)
+   ON_COMMAND(ID_USERS_LOLS, &CLampView::OnUsersLOLs)
+   ON_UPDATE_COMMAND_UI(ID_USERS_LOLS, &CLampView::OnUpdateUsersLOLs)
+
    END_MESSAGE_MAP()
 
 // CLampView construction/destruction
@@ -6759,7 +6768,14 @@ void CLampView::OnExpandPreviewsDown()
 
 void CLampView::OnUpdateExpandPreviewsDown(CCmdUI *pCmdUI)
 {
-   pCmdUI->Enable(TRUE);
+   if(theApp.ExpandPreviews())
+   {
+      pCmdUI->Enable(TRUE);
+   }
+   else
+   {
+      pCmdUI->Enable(FALSE);
+   }
 
    if(theApp.ExpandPreviewsDown())
    {
@@ -6852,8 +6868,128 @@ void CLampView::OnUpdateViewComments(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 }
 
+void CLampView::OnStrokePreviewEdges()
+{
+   theApp.SetStrokePreviewEdges(!theApp.StrokePreviewEdges());
+}
+
+void CLampView::OnUpdateStrokePreviewEdges(CCmdUI *pCmdUI)
+{
+   if(theApp.ExpandPreviews())
+   {
+      pCmdUI->Enable(TRUE);
+   }
+   else
+   {
+      pCmdUI->Enable(FALSE);
+   }
+
+   if(theApp.StrokePreviewEdges())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
 
 
+void CLampView::OnLineThickness1()
+{
+   theApp.SetLineThickness(1);
+}
 
+void CLampView::OnUpdateLineThickness1(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
 
+   if(theApp.GetLineThickness() == 1)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
 
+void CLampView::OnLineThickness2()
+{
+   theApp.SetLineThickness(2);
+}
+
+void CLampView::OnUpdateLineThickness2(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.GetLineThickness() == 2)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnLineThickness3()
+{
+   theApp.SetLineThickness(3);
+}
+
+void CLampView::OnUpdateLineThickness3(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.GetLineThickness() == 3)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnUseAuthorColor()
+{
+   theApp.UseAuthorColorForPreview(!theApp.UseAuthorColorForPreview());
+}
+
+void CLampView::OnUpdateUseAuthorColor(CCmdUI *pCmdUI)
+{
+   if(theApp.ExpandPreviews() && theApp.StrokePreviewEdges())
+   {
+      pCmdUI->Enable(TRUE);
+   }
+   else
+   {
+      pCmdUI->Enable(FALSE);
+   }
+
+   if(theApp.UseAuthorColorForPreview())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnUsersLOLs()
+{
+   if(!m_authorname_clicked.IsEmpty())
+   {
+      UCString path = L"LOLTHEYWROTE";
+      path += m_authorname_clicked;
+
+      theApp.OpenDocumentFile(path);
+   }
+}
+
+void CLampView::OnUpdateUsersLOLs(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+}

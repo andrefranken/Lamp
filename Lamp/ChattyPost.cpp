@@ -1702,7 +1702,7 @@ int ChattyPost::DrawProfile(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
 
       if(m_lines_of_text.size() > 2)
       {
-         HPEN hPen = ::CreatePen(PS_SOLID,1, RGB(255,0,0));
+         HPEN hPen = ::CreatePen(PS_SOLID,theApp.GetLineThickness(), RGB(255,0,0));
          HPEN hOldPen = (HPEN)::SelectObject(hDC,hPen);
          int y = textrect.top + theApp.GetTextHeight() + (theApp.GetTextHeight() / 3);
          ::MoveToEx(hDC, textrect.left, y,NULL);
@@ -3540,21 +3540,21 @@ void ChattyPost::DrawReplyPreview(HDC hDC, RECT &DeviceRectangle, int top, int b
       RECT myrect = DeviceRectangle;
       myrect.top = top;
       myrect.bottom = bottom;
-      myrect.left = m_last_left;
+      myrect.left = m_last_left - 5;
 
       m_pDoc->FillBackground(hDC,myrect);
 
-      myrect.right = myrect.left + m_largest_line_width;
+      myrect.right = myrect.left + m_largest_line_width + 5;
 
       if(m_textrectheight > theApp.GetTextHeight())
       {
          m_pDoc->StrokeShapedRect(hDC, myrect, theApp.GetTextHeight() / 2);
       }
 
-      m_pDoc->FillExpandedBackground(hDC, myrect, true, m_category, false);
+      m_pDoc->FillExpandedBackground(hDC, myrect, !theApp.StrokePreviewEdges(), m_category, false, theApp.UseAuthorColorForPreview(), m_AuthorColor);
 
       RECT textrect = myrect;
-      textrect.left -= 5;
+      //textrect.left -= 5;
       textrect.right = textrect.left + m_largest_line_width;
       textrect.top = myrect.top - 4;
       textrect.bottom = myrect.bottom;

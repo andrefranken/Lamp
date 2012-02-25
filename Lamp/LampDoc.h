@@ -103,7 +103,7 @@ public:
 
    void DoBoldFont(HDC hDC){::SelectObject(hDC, m_boldfont);}
    void FillBackground(HDC hDC, RECT &rect){::FillRect(hDC, &rect, m_backgroundbrush);}
-   void FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcategorytype posttype, bool bStrokeTopOnly);
+   void FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcategorytype posttype, bool bStrokeTopOnly, bool bUseCustomStrokeColor = false, COLORREF customcolor = 0);
    void StrokeShapedRect(HDC hDC, RECT &rect, int thickness);
    void DrawBodyText(HDC hDC,
                      RECT &rect,

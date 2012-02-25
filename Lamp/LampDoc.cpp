@@ -1762,18 +1762,20 @@ CLampDoc::CLampDoc()
       m_replyexpandedbackgroundbrush = ::CreateSolidBrush(theApp.GetPostBackgroundColor());
    }
 
-   m_roottoppen = ::CreatePen(PS_SOLID,0,theApp.GetPostEdgeColor());
+   int line_thickness = theApp.GetLineThickness();
 
-   m_infpen = ::CreatePen(PS_SOLID,0,theApp.GetPostINFEdgeColor());
-   m_nwspen = ::CreatePen(PS_SOLID,0,theApp.GetPostNWSEdgeColor());
-   m_stupidpen = ::CreatePen(PS_SOLID,0,theApp.GetPostStupidEdgeColor());
-   m_offtopicpen = ::CreatePen(PS_SOLID,0,theApp.GetPostOffTopicEdgeColor());
-   m_politicalpen = ::CreatePen(PS_SOLID,0,theApp.GetPostPoliticalEdgeColor());
+   m_roottoppen = ::CreatePen(PS_SOLID,line_thickness,theApp.GetPostEdgeColor());
+
+   m_infpen = ::CreatePen(PS_SOLID,line_thickness,theApp.GetPostINFEdgeColor());
+   m_nwspen = ::CreatePen(PS_SOLID,line_thickness,theApp.GetPostNWSEdgeColor());
+   m_stupidpen = ::CreatePen(PS_SOLID,line_thickness,theApp.GetPostStupidEdgeColor());
+   m_offtopicpen = ::CreatePen(PS_SOLID,line_thickness,theApp.GetPostOffTopicEdgeColor());
+   m_politicalpen = ::CreatePen(PS_SOLID,line_thickness,theApp.GetPostPoliticalEdgeColor());
    m_nullpen = ::CreatePen(PS_NULL,0,0);
 
-   m_branchpen = ::CreatePen(PS_SOLID,0,theApp.GetBranchColorShade(0,N_OLD));
-   m_branchpenisnew = ::CreatePen(PS_SOLID,0,theApp.GetBranchColorShade(0,N_NEW));
-   m_branchpenislast = ::CreatePen(PS_SOLID,0,theApp.GetBranchColorShade(0,N_LAST));
+   m_branchpen = ::CreatePen(PS_SOLID,line_thickness,theApp.GetBranchColorShade(0,N_OLD));
+   m_branchpenisnew = ::CreatePen(PS_SOLID,line_thickness,theApp.GetBranchColorShade(0,N_NEW));
+   m_branchpenislast = ::CreatePen(PS_SOLID,line_thickness,theApp.GetBranchColorShade(0,N_LAST));
    m_normalfont = ::CreateFontW(theApp.GetFontHeight(),0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
       
    m_miscfont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
@@ -2432,6 +2434,7 @@ void CLampDoc::GetProfile()
 
    UCString path = L"/api/profile/";
    path += m_profile_user;
+   path += L"/3";
    path.Replace(L" ",L"%20");
 
    StartDownload(theApp.GetProfileHost(),
@@ -2864,6 +2867,8 @@ void CLampDoc::ReadLOL()
       path += L"&sort_by=lols";
    }
    MySetTitle(m_title);
+
+   path.ReplaceAll(L' ',L'+');
 
    StartDownload(theApp.GetLolHostName(),
                  path,
@@ -3512,6 +3517,7 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
 
             int rowdone = 0;
             int rowpos = pos;
+            int finalpos = pos;
 
             std::list<ChattyPost*>::iterator it = m_rootposts.begin();
             std::list<ChattyPost*>::iterator end = m_rootposts.end();
@@ -3534,10 +3540,14 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
                   if(thispos > rowpos)
                      rowpos = thispos;
 
+                  finalpos = thispos;
+
                   rowdone++;
                }
                else
                {
+                  finalpos = 0;
+
                   if(rowdone == numcolumns)
                   {
                      rowdone = 0;
@@ -3570,6 +3580,8 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
                
                it++;
             }
+
+            pos += finalpos;
 
             backrect = DeviceRectangle;
             backrect.top = pos;
@@ -4900,7 +4912,7 @@ void CLampDoc::StrokeShapedRect(HDC hDC, RECT &rect, int thickness)
    ::DeleteObject(hNewPen);
 }
 
-void CLampDoc::FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcategorytype posttype, bool bStrokeTopOnly)
+void CLampDoc::FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcategorytype posttype, bool bStrokeTopOnly, bool bUseCustomStrokeColor /*= false*/, COLORREF customcolor /*= 0*/)
 {
    RECT temprect = rect;
    temprect.bottom = temprect.top + __min(rect.bottom - rect.top, 20);
@@ -4927,6 +4939,9 @@ void CLampDoc::FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcat
       bStrokeTopOnly = false;
    }
 
+   HPEN hNewPen = NULL;
+   HPEN hOldPen = NULL;
+
    if(bStrokeTopOnly)
    {
       ::SelectObject(hDC,m_nullpen);
@@ -4935,25 +4950,33 @@ void CLampDoc::FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcat
    }
    else
    {
-      switch(posttype)
+      if(bUseCustomStrokeColor && !bAsRoot)
       {
-      case PCT_NORMAL:     
-         if(bAsRoot)
-         {  
-            ::SelectObject(hDC,m_nullpen); 
-            temprect.right++;
-            temprect.bottom++;
-         }
-         else
+         hNewPen = ::CreatePen(PS_SOLID,theApp.GetLineThickness(),customcolor);
+         hOldPen = (HPEN)::SelectObject(hDC,hNewPen);
+      }
+      else
+      {
+         switch(posttype)
          {
-            ::SelectObject(hDC,m_roottoppen); 
+         case PCT_NORMAL:     
+            if(bAsRoot)
+            {  
+               ::SelectObject(hDC,m_nullpen); 
+               temprect.right++;
+               temprect.bottom++;
+            }
+            else
+            {
+               ::SelectObject(hDC,m_roottoppen); 
+            }
+            break;
+         case PCT_INF:        ::SelectObject(hDC,m_infpen); break;
+         case PCT_NWS:        ::SelectObject(hDC,m_nwspen); break;
+         case PCT_STUPID:     ::SelectObject(hDC,m_stupidpen); break;
+         case PCT_OFFTOPIC:   ::SelectObject(hDC,m_offtopicpen); break;
+         case PCT_POLITICAL:  ::SelectObject(hDC,m_politicalpen); break;
          }
-         break;
-      case PCT_INF:        ::SelectObject(hDC,m_infpen); break;
-      case PCT_NWS:        ::SelectObject(hDC,m_nwspen); break;
-      case PCT_STUPID:     ::SelectObject(hDC,m_stupidpen); break;
-      case PCT_OFFTOPIC:   ::SelectObject(hDC,m_offtopicpen); break;
-      case PCT_POLITICAL:  ::SelectObject(hDC,m_politicalpen); break;
       }
    }
 
@@ -4992,6 +5015,12 @@ void CLampDoc::FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcat
    }
 
    ::SelectObject(hDC,oldbrush);
+
+   if(hNewPen != NULL)
+   {
+      ::SelectObject(hDC,hOldPen);
+      ::DeleteObject(hNewPen);      
+   }
 }
 
 void CLampDoc::DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols, bool bHover, bool bVoted, bool bRoot, bool bHasLols)
@@ -5845,7 +5874,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
 
          if(code)
          {
-            HPEN newpen = ::CreatePen(PS_SOLID,0,theApp.GetBranchColor());
+            HPEN newpen = ::CreatePen(PS_SOLID,theApp.GetLineThickness(),theApp.GetBranchColor());
             HPEN oldpen = (HPEN)::SelectObject(hDC,newpen);
             ::MoveToEx(hDC, codeline, y - theApp.GetTextHeight(),NULL);
             ::LineTo(hDC, codeline, y);
@@ -6015,7 +6044,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                   {
                      if(!code)
                      {
-                        HPEN newpen = ::CreatePen(PS_SOLID,0,theApp.GetBranchColor());
+                        HPEN newpen = ::CreatePen(PS_SOLID,theApp.GetLineThickness(),theApp.GetBranchColor());
                         HPEN oldpen = (HPEN)::SelectObject(hDC,newpen);
                         ::MoveToEx(hDC, codeline, y - theApp.GetTextHeight(),NULL);
                         ::LineTo(hDC, codeline, y);
@@ -6417,7 +6446,7 @@ void CLampDoc::DrawBranch(HDC hDC, RECT &rect, indenttype type, int shade, newne
             while(shade > 0)
             {
                ::SelectObject(hDC,oldpen);
-               HPEN newpen = ::CreatePen(PS_SOLID,0,theApp.GetBranchColorShade(shade, Newness));
+               HPEN newpen = ::CreatePen(PS_SOLID,theApp.GetLineThickness(),theApp.GetBranchColorShade(shade, Newness));
                oldpen = (HPEN)::SelectObject(hDC,newpen);
 
                ::MoveToEx(hDC,rect.left + 8, rect.top + stem,NULL);
@@ -6448,7 +6477,7 @@ void CLampDoc::DrawBranch(HDC hDC, RECT &rect, indenttype type, int shade, newne
             while(shade > 0)
             {
                ::SelectObject(hDC,oldpen);
-               HPEN newpen = ::CreatePen(PS_SOLID,0,theApp.GetBranchColorShade(shade, Newness));
+               HPEN newpen = ::CreatePen(PS_SOLID,theApp.GetLineThickness(),theApp.GetBranchColorShade(shade, Newness));
                oldpen = (HPEN)::SelectObject(hDC,newpen);
 
                ::MoveToEx(hDC,rect.left + 8, rect.top + stem,NULL);
@@ -6727,18 +6756,20 @@ void CLampDoc::InvalidateSkin()
 
    m_widthofaverageprofilegroup = 0;
 
-   m_roottoppen = ::CreatePen(PS_SOLID,0,theApp.GetPostEdgeColor());
+   int line_thickness = theApp.GetLineThickness();
 
-   m_infpen = ::CreatePen(PS_SOLID,0,theApp.GetPostINFEdgeColor());
-   m_nwspen = ::CreatePen(PS_SOLID,0,theApp.GetPostNWSEdgeColor());
-   m_stupidpen = ::CreatePen(PS_SOLID,0,theApp.GetPostStupidEdgeColor());
-   m_offtopicpen = ::CreatePen(PS_SOLID,0,theApp.GetPostOffTopicEdgeColor());
-   m_politicalpen = ::CreatePen(PS_SOLID,0,theApp.GetPostPoliticalEdgeColor());
+   m_roottoppen = ::CreatePen(PS_SOLID,line_thickness,theApp.GetPostEdgeColor());
+
+   m_infpen = ::CreatePen(PS_SOLID,line_thickness,theApp.GetPostINFEdgeColor());
+   m_nwspen = ::CreatePen(PS_SOLID,line_thickness,theApp.GetPostNWSEdgeColor());
+   m_stupidpen = ::CreatePen(PS_SOLID,line_thickness,theApp.GetPostStupidEdgeColor());
+   m_offtopicpen = ::CreatePen(PS_SOLID,line_thickness,theApp.GetPostOffTopicEdgeColor());
+   m_politicalpen = ::CreatePen(PS_SOLID,line_thickness,theApp.GetPostPoliticalEdgeColor());
    m_nullpen = ::CreatePen(PS_NULL,0,0);
 
-   m_branchpen = ::CreatePen(PS_SOLID,0,theApp.GetBranchColorShade(0,N_OLD));
-   m_branchpenisnew = ::CreatePen(PS_SOLID,0,theApp.GetBranchColorShade(0,N_NEW));
-   m_branchpenislast = ::CreatePen(PS_SOLID,0,theApp.GetBranchColorShade(0,N_LAST));
+   m_branchpen = ::CreatePen(PS_SOLID,line_thickness,theApp.GetBranchColorShade(0,N_OLD));
+   m_branchpenisnew = ::CreatePen(PS_SOLID,line_thickness,theApp.GetBranchColorShade(0,N_NEW));
+   m_branchpenislast = ::CreatePen(PS_SOLID,line_thickness,theApp.GetBranchColorShade(0,N_LAST));
    m_normalfont = ::CreateFontW(theApp.GetFontHeight(),0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
       
    m_miscfont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
@@ -7277,6 +7308,12 @@ void CLampDoc::ReadProfile(const char *pText, int datasize)
    userbio_group->SetDoc(this);
    userbio_group->SetId(6);
    m_rootposts.push_back(userbio_group);
+
+   ChattyPost *quicklinks_group = new ChattyPost();
+   quicklinks_group->SetDoc(this);
+   quicklinks_group->SetId(7);
+   quicklinks_group->SetIsProfileGroup(true);
+   m_rootposts.push_back(quicklinks_group);
    
    UCString temp;
    temp.AppendEncodedString(pText,datasize);
@@ -7299,137 +7336,15 @@ void CLampDoc::ReadProfile(const char *pText, int datasize)
    {
       UCString text;
       UCString data;
-      /*
-      int reg_days = 1;
-      UCString reg_date;
-      FindValue(reg_date, i, L"join_date");
-      if(!reg_date.IsEmpty())
-      {
-         COleDateTime foo;
-
-         bool bTrimmed = false;
-         UCChar *datetext = (UCChar*)reg_date.Str();
-         UCChar *end = datetext + reg_date.Length() - 4;
-         if(end > datetext &&
-            end[0] == L' ' &&
-            iswalpha(end[1]) &&
-            iswalpha(end[2]) &&
-            iswalpha(end[3]))
-         {
-            *end = 0;
-            bTrimmed = false;
-         }
-
-         foo.ParseDateTime(datetext,0,MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT));
-
-         if(bTrimmed) *end = L' ';
-         
-         tm regtime;
-         regtime.tm_year = foo.GetYear() - 1900;
-         regtime.tm_mon  = foo.GetMonth() - 1;
-         regtime.tm_mday = foo.GetDay();
-         regtime.tm_yday = foo.GetDayOfYear() - 1;
-         regtime.tm_wday = foo.GetDayOfWeek() - 1;
-         regtime.tm_hour = foo.GetHour();
-         regtime.tm_min  = foo.GetMinute();
-         regtime.tm_sec  = foo.GetSecond();
-
-         time_t bar;
-         time(&bar);
-
-         tm tm_now;
-         localtime_s(&tm_now,&bar);
-
-         int now_seconds = tm_now.tm_sec;
-         now_seconds += (tm_now.tm_min * 60);
-         now_seconds += (tm_now.tm_hour * 60 * 60);
-         now_seconds += (tm_now.tm_yday * 60 * 60 * 24);
-         now_seconds += (tm_now.tm_year * 60 * 60 * 24 * 365);
-
-         int reg_seconds = regtime.tm_sec;
-         reg_seconds += (regtime.tm_min * 60);
-         reg_seconds += (regtime.tm_hour * 60 * 60);
-         reg_seconds += (regtime.tm_yday * 60 * 60 * 24);
-         reg_seconds += (regtime.tm_year * 60 * 60 * 24 * 365);
-
-         int ago_seconds = now_seconds - reg_seconds;
-         double diff = (double)ago_seconds;
-
-         data = L"";
-
-         double day_diff = diff / (60.0 * 60.0 * 24.0);
-         if(day_diff >= 1.0)
-         {
-            reg_days = (int)day_diff;
-         }
-      }
-
-      int age = 0;
-      FindValue(data, i, L"birthdate");
-      if(!data.IsEmpty())
-      {
-         COleDateTime foo;
-
-         bool bTrimmed = false;
-         UCChar *datetext = (UCChar*)data.Str();
-         UCChar *end = datetext + data.Length() - 4;
-         if(end > datetext &&
-            end[0] == L' ' &&
-            iswalpha(end[1]) &&
-            iswalpha(end[2]) &&
-            iswalpha(end[3]))
-         {
-            *end = 0;
-            bTrimmed = false;
-         }
-
-         foo.ParseDateTime(datetext,0,MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT));
-
-         if(bTrimmed) *end = L' ';
-         
-         tm birthtime;
-         birthtime.tm_year = foo.GetYear() - 1900;
-         birthtime.tm_mon  = foo.GetMonth() - 1;
-         birthtime.tm_mday = foo.GetDay();
-         birthtime.tm_yday = foo.GetDayOfYear() - 1;
-         birthtime.tm_wday = foo.GetDayOfWeek() - 1;
-         birthtime.tm_hour = foo.GetHour();
-         birthtime.tm_min  = foo.GetMinute();
-         birthtime.tm_sec  = foo.GetSecond();
-
-         time_t bar;
-         time(&bar);
-
-         tm tm_now;
-         localtime_s(&tm_now,&bar);
-
-         int now_seconds = tm_now.tm_sec;
-         now_seconds += (tm_now.tm_min * 60);
-         now_seconds += (tm_now.tm_hour * 60 * 60);
-         now_seconds += (tm_now.tm_yday * 60 * 60 * 24);
-         now_seconds += (tm_now.tm_year * 60 * 60 * 24 * 365);
-
-         int birth_seconds = birthtime.tm_sec;
-         birth_seconds += (birthtime.tm_min * 60);
-         birth_seconds += (birthtime.tm_hour * 60 * 60);
-         birth_seconds += (birthtime.tm_yday * 60 * 60 * 24);
-         birth_seconds += (birthtime.tm_year * 60 * 60 * 24 * 365);
-
-         int ago_seconds = now_seconds - birth_seconds;
-         double diff = (double)ago_seconds;
-
-         data = L"";
-
-         double year_diff = diff / (60.0 * 60.0 * 24.0 * 365.0);
-         if(year_diff > 1.0)
-         {
-            age = (int)year_diff;
-         }
-      }
-      */
+      UCString data2;
+      
       text = L"b[";
       text += m_profile_user;
-      text += L"]b\t";
+      text += L"]b";
+
+      text += L" s[l{Web Page Versionl{forceout:http://chattyprofil.es/p/";
+      text += m_profile_user;
+      text += L"}l}l]s\t";
 
       text += L"l{ShackMessagel{sendmessage:";
       text += m_profile_user;
@@ -7558,12 +7473,37 @@ void CLampDoc::ReadProfile(const char *pText, int datasize)
 
       text += L"f{Steam}f\t";
       FindValue(data, i, L"steam");
-      text += data;
+      FindValue(data2, i, L"url_steam");
+
+      if(!data2.IsEmpty())
+      {
+         text += L"l{";
+         text += data;
+         text += L"l{";
+         text += data2;
+         text += L"}l}l";
+      }
+      else
+      {
+         text += data;
+      }
       text += L"\n";
 
       text += L"f{XBox Live}f\t";
       FindValue(data, i, L"xboxlive");
-      text += data;
+      FindValue(data2, i, L"url_xboxlive");
+      if(!data2.IsEmpty())
+      {
+         text += L"l{";
+         text += data;
+         text += L"l{";
+         text += data2;
+         text += L"}l}l";
+      }
+      else
+      {
+         text += data;
+      }
       text += L"\n";
 
       text += L"f{psn}f\t";
@@ -7592,6 +7532,18 @@ void CLampDoc::ReadProfile(const char *pText, int datasize)
       userbio_group->DecodeShackTagsString(text, true, true);
 
       userbio_group->InitImageLinks();
+
+      text = L"b[Quick Links]b s[(autogenerated)]s\n\n";
+
+      text += L"l{ShackWordCloudl{http://c0bra.net/shackclouds/viewcloud/";
+      text += m_profile_user;
+      text += L"}l}l\n";
+
+      text += L"l{ChattyPics Galleryl{http://chattypics.com/users.php?act=user_gallery&gal=";
+      text += m_profile_user;
+      text += L"}l}l\n";
+
+      quicklinks_group->DecodeShackTagsString(text, true, true);
    }
 
 }

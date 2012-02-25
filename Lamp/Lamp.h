@@ -574,6 +574,8 @@ public:
    UCString &GetUserHostName(){return m_userhostname;}
    UCString &GetLolHostName(){return m_lolhostname;}
    UCString &GetProfileHost(){return m_profilehostname;}
+
+   bool BackgroundIsDark(){return m_bBackgroundIsDark;}
    
    COLORREF GetBackgroundColor(){return m_background_color;}
    COLORREF GetRootPostBackgroundColor(){return m_rootpost_background_color;}
@@ -642,6 +644,9 @@ public:
    int GetNumToShowWhenTruncated(){return m_numshow_truncated;}
    void SetNumToShowWhenTruncated(int value){m_numshow_truncated = value;}
 
+   int GetLineThickness(){return m_line_thickness;}
+   void SetLineThickness(int value){m_line_thickness = value;InvalidateSkinAllViews();}
+
    COLORREF GetUserColor(UCString &name);
 
    const UCChar *GetNormalFontName(){return m_normal_fontname;}
@@ -653,8 +658,12 @@ public:
    void SetCodeFontName(const UCChar *value){m_code_fontname = value;InvalidateSkinAllViews();}
 
    bool RoundedPosts(){return m_rounded_posts;}
+   bool UseAuthorColorForPreview(){return m_bUseAuthorColorForPreview;}
+   void UseAuthorColorForPreview(bool value){m_bUseAuthorColorForPreview = value;}
 
    bool StrokeRootEdges(){return m_stroke_root_edges;}
+   bool StrokePreviewEdges(){return m_stroke_preview_edges;}
+   void SetStrokePreviewEdges(bool value){m_stroke_preview_edges = value;}
 
    bool SingleThreadStyle();
    void SetSingleThreadStyle(bool value);
@@ -1103,11 +1112,14 @@ protected:
    bool m_rounded_posts;
 
    bool m_stroke_root_edges;
+   bool m_stroke_preview_edges;
 
    UCString m_lang;
 
    int m_tab_title_word_limit;
    int m_tab_title_char_limit;
+
+   bool m_bBackgroundIsDark;
 
    COLORREF m_background_color;
    COLORREF m_rootpost_background_color;
@@ -1178,6 +1190,8 @@ protected:
    float m_textscaler;
 
    int m_numshow_truncated;
+
+   int m_line_thickness;
 
    bool m_bPinningInStories;
    bool m_bDoublePageStory;
@@ -1302,7 +1316,7 @@ protected:
 
    std::list<CDownloadHistoryItem> m_downloadhistory;
 
-   
+   bool m_bUseAuthorColorForPreview;   
 
 public:
    afx_msg void OnFileSetuplogininfo();

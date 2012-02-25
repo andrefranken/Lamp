@@ -189,7 +189,7 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
    else
    {
       HBRUSH oldbrush = (HBRUSH)::SelectObject(hDC,m_backgroundbrush);
-      HPEN newpen = ::CreatePen(PS_SOLID,0,theApp.GetPostEdgeColor());
+      HPEN newpen = ::CreatePen(PS_SOLID,theApp.GetLineThickness(),theApp.GetPostEdgeColor());
       HPEN oldpen = (HPEN)::SelectObject(hDC,newpen);
 
       if(theApp.RoundedPosts())
@@ -215,7 +215,7 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
          ::RoundRect(hDC,m_replydlgrect.left, m_replydlgrect.top, m_replydlgrect.right, m_replydlgrect.bottom, 20, 20);
          if(m_replytoid != 0)
          {
-            HPEN newpen = ::CreatePen(PS_SOLID,0,theApp.GetPostNWSEdgeColor());
+            HPEN newpen = ::CreatePen(PS_SOLID,theApp.GetLineThickness(),theApp.GetPostNWSEdgeColor());
             HPEN oldpen = (HPEN)::SelectObject(hDC,newpen);
             // draw with a y-1 so that we overdraw teh post's bottom line with this one
             ::MoveToEx(hDC,m_replydlgrect.left + 10,m_replydlgrect.top,NULL);
@@ -229,7 +229,7 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
          ::Rectangle(hDC,m_replydlgrect.left, m_replydlgrect.top, m_replydlgrect.right, m_replydlgrect.bottom);
          if(m_replytoid != 0)
          {
-            HPEN newpen = ::CreatePen(PS_SOLID,0,theApp.GetPostNWSEdgeColor());
+            HPEN newpen = ::CreatePen(PS_SOLID,theApp.GetLineThickness(),theApp.GetPostNWSEdgeColor());
             HPEN oldpen = (HPEN)::SelectObject(hDC,newpen);
             // draw with a y-1 so that we overdraw teh post's bottom line with this one
             ::MoveToEx(hDC,m_replydlgrect.left,m_replydlgrect.top,NULL);
@@ -562,7 +562,7 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
          y += (theApp.GetTextHeight() / 2);
          y -= m_pos;
 
-         HPEN newpen = ::CreatePen(PS_SOLID,0,theApp.GetMyPostColor());
+         HPEN newpen = ::CreatePen(PS_SOLID,theApp.GetLineThickness(),theApp.GetMyPostColor());
          HPEN oldpen = (HPEN)::SelectObject(hDC,newpen);
          ::MoveToEx(hDC, x, y,NULL);
          ::LineTo(hDC, x, y - theApp.GetTextHeight());

@@ -156,15 +156,21 @@
 #define ID_SENDMESSAGE                  32871
 #define ID_VIEWCOMMENTS                 32872
 #define IDS_USERLINK_MENU               32873
+#define ID_STROKE_PREVIEW_EDGES         32874
+#define ID_LINE_THICKNESS_1             32875
+#define ID_LINE_THICKNESS_2             32876
+#define ID_LINE_THICKNESS_3             32877
+#define ID_USE_AUTHOR_COLOR_PREVIEW     32878
+#define ID_USERS_LOLS                   32879
 
-#define ID_BOOKMARK_MENUITEM            32880
+#define ID_BOOKMARK_MENUITEM            32890
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        328
-#define _APS_NEXT_COMMAND_VALUE         32874
+#define _APS_NEXT_COMMAND_VALUE         32879
 #define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

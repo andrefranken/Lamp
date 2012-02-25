@@ -224,12 +224,12 @@ BEGIN
         END
         POPUP "Image stuff"
         BEGIN
-            MENUITEM "Load images in Lamp",         ID_LOADIMAGESINLAMP
-            MENUITEM "Show thumbnails for loaded images", ID_VIEW_SHOWIMAGETHUMBS
+            MENUITEM "Load images in Lamp",                        ID_LOADIMAGESINLAMP
+            MENUITEM "Show thumbnails for loaded images",          ID_VIEW_SHOWIMAGETHUMBS
             MENUITEM "Auto load thumbnails for chattypics images", ID_AUTOLOADCHATTYPICSTHUMBS
-            MENUITEM "Don't auto load thumbnails in NWS posts", ID_DONTAUTOLOADNWSTHUMBS
+            MENUITEM "Don't auto load thumbnails in NWS posts",    ID_DONTAUTOLOADNWSTHUMBS
             MENUITEM SEPARATOR
-            MENUITEM "Unload all images from memory", ID_UNLOADALLIMAGES
+            MENUITEM "Unload all images from memory",              ID_UNLOADALLIMAGES
         END
         MENUITEM "Smooth Scroll",               ID_VIEW_SMOOTHSCROLL
         MENUITEM "Allow Pinning",               ID_PINNING_MENUITEM
@@ -259,11 +259,18 @@ BEGIN
             MENUITEM "Font for Quoted Text",        ID_QUOTE_FONT
             MENUITEM "Font for Code Text",          ID_CODE_FONT
         END
-        POPUP "Font size"
+        POPUP "Font Size"
         BEGIN
-            MENUITEM "Increase Font Size\tCtrl+Plus", ID_VIEW_INCREASEFONTSIZE
+            MENUITEM "Increase Font Size\tCtrl+Plus",  ID_VIEW_INCREASEFONTSIZE
             MENUITEM "Decrease Font Size\tCtrl+Minus", ID_VIEW_DECREASEFONTSIZE
-            MENUITEM "Reset Font Size\tCtrl+0",     ID_VIEW_RESETFONTSIZE
+            MENUITEM "Reset Font Size\tCtrl+0",        ID_VIEW_RESETFONTSIZE
+        END
+        MENUITEM SEPARATOR
+        POPUP "Line Size"
+        BEGIN
+            MENUITEM "1 Pixel",                     ID_LINE_THICKNESS_1
+            MENUITEM "2 Pixels",                    ID_LINE_THICKNESS_2
+            MENUITEM "3 Pixels",                    ID_LINE_THICKNESS_3
         END
         MENUITEM SEPARATOR
         POPUP "Text Select Color"
@@ -297,6 +304,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Expand Previews",             ID_EXPAND_PREVIEWS
         MENUITEM "Expand Previews Down",        ID_EXPAND_PREVIEWS_DOWN
+        MENUITEM "Stroke Preview Edges",        ID_STROKE_PREVIEW_EDGES
+        MENUITEM "Use Author Color",            ID_USE_AUTHOR_COLOR_PREVIEW
         MENUITEM SEPARATOR
         MENUITEM "Other Settings",              ID_SHOW_SETTINGS_DIALOG
     END
@@ -376,6 +385,7 @@ BEGIN
         MENUITEM "View Profile",                ID_VIEWPROFILE
         MENUITEM "Send Message",                ID_SENDMESSAGE
         MENUITEM "View Comments",               ID_VIEWCOMMENTS
+        MENUITEM "View LOLs",                   ID_USERS_LOLS
     END
 END
 
