@@ -3546,13 +3546,25 @@ void ChattyPost::DrawReplyPreview(HDC hDC, RECT &DeviceRectangle, int top, int b
 
       myrect.right = myrect.left + m_largest_line_width + 5;
 
+      int line_thickness = theApp.GetLineThickness();
+      
+      myrect.left -= line_thickness;
+      myrect.right += line_thickness;
+      myrect.top -= line_thickness;
+      myrect.bottom += line_thickness;
+      
       if(m_textrectheight > theApp.GetTextHeight())
       {
          m_pDoc->StrokeShapedRect(hDC, myrect, theApp.GetTextHeight() / 2);
       }
 
       m_pDoc->FillExpandedBackground(hDC, myrect, !theApp.StrokePreviewEdges(), m_category, false, theApp.UseAuthorColorForPreview(), m_AuthorColor);
-
+            
+      myrect.left += line_thickness;
+      myrect.right -= line_thickness;
+      myrect.top += line_thickness;
+      myrect.bottom -= line_thickness;
+      
       RECT textrect = myrect;
       //textrect.left -= 5;
       textrect.right = textrect.left + m_largest_line_width;

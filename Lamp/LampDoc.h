@@ -250,7 +250,7 @@ public:
 
    bool IsFetchingNextPage(){return m_bFetchingNextPage;}
 
-   void FetchNextPage();
+   bool FetchNextPage();
 
    int DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, bool bDrawNewThread, bool bDrawCompose);
 

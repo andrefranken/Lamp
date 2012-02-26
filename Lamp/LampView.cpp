@@ -2475,8 +2475,10 @@ void CLampView::MakePosLegal()
       if(m_gotopos > 0 && 
          GetDocument()->GetHeight() - m_gotopos < (3 * (DeviceRectangle.bottom - DeviceRectangle.top) ))
       {
-         GetDocument()->FetchNextPage();
-         m_bTrackingThumb = false;
+         if(GetDocument()->FetchNextPage())
+         {
+            m_bTrackingThumb = false;
+         }
       }
    }
 }
