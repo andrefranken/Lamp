@@ -2694,16 +2694,16 @@ void CLampDoc::SendMessage(const UCString &to, const UCString &subject, const UC
 
       post_data += L"&subject=";
       UCString temp = subject;
-      //temp.ReplaceAll(L'<',0x02C2);
-      //temp.ReplaceAll(L'>',0x02C3);
+      temp.ReplaceAll(L'<',0x02C2);
+      temp.ReplaceAll(L'>',0x02C3);
       char *enc_subject = url_encode((char*)temp.str8(false,CET_UTF8));
       post_data += enc_subject;
       free(enc_subject);
 
       post_data += L"&message=";
       temp = shackmsg;
-      //temp.ReplaceAll(L'<',0x02C2);
-      //temp.ReplaceAll(L'>',0x02C3);
+      temp.ReplaceAll(L'<',0x02C2);
+      temp.ReplaceAll(L'>',0x02C3);
       char *enc_shackmsg = url_encode((char*)temp.str8(false,CET_UTF8));
       post_data += enc_shackmsg;
       free(enc_shackmsg);

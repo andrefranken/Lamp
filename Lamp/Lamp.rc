@@ -426,7 +426,7 @@ CAPTION "About Lamp"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
-    LTEXT           "Lamp, Version 2.5",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Lamp, Version 2.6",IDC_STATIC,42,14,114,8,SS_NOPREFIX
     LTEXT           "Copyright (C) 2011",IDC_STATIC,42,26,114,8
     DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
     PUSHBUTTON      "Traffic",ID_NETWORK_TRAFFIC_ID,10,41,50,14
@@ -558,8 +558,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,5,0,0
- PRODUCTVERSION 2,5,0,0
+ FILEVERSION 2,6,0,0
+ PRODUCTVERSION 2,6,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -577,12 +577,12 @@ BEGIN
             VALUE "Comments", "Why are you reading this?"
             VALUE "CompanyName", "FooBar INC."
             VALUE "FileDescription", "Lamp"
-            VALUE "FileVersion", "2.5"
+            VALUE "FileVersion", "2.6"
             VALUE "InternalName", "Lamp.exe"
             VALUE "LegalCopyright", "Whatever"
             VALUE "OriginalFilename", "Lamp.exe"
             VALUE "ProductName", "Lamp"
-            VALUE "ProductVersion", "2.5"
+            VALUE "ProductVersion", "2.6"
         END
     END
     BLOCK "VarFileInfo"
