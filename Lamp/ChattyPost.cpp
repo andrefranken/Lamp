@@ -2480,7 +2480,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   hotspot.m_lolvoted = (m_mylols & LTT_LOL)?true:false;
                   hotspot.m_lolroot = bAsRoot;
                   hotspot.m_haslols = m_lolflags.m_LOLd > 0?true:false;
-                  if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
+                  if(!hotspot.m_lolvoted && !m_bIsMe)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_LOL, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot, hotspot.m_haslols);
                   
                   if(theApp.ShowThomWLOLS())
@@ -2500,7 +2500,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   hotspot.m_lolvoted = (m_mylols & LTT_INF)?true:false;
                   hotspot.m_lolroot = bAsRoot;
                   hotspot.m_haslols = m_lolflags.m_INFd > 0?true:false;
-                  if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
+                  if(!hotspot.m_lolvoted && !m_bIsMe)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_INF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot, hotspot.m_haslols);
                                                                                 
                   if(theApp.ShowThomWLOLS())
@@ -2520,7 +2520,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   hotspot.m_lolvoted = (m_mylols & LTT_UNF)?true:false;
                   hotspot.m_lolroot = bAsRoot;
                   hotspot.m_haslols = m_lolflags.m_UNFd > 0?true:false;
-                  if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
+                  if(!hotspot.m_lolvoted && !m_bIsMe)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_UNF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot, hotspot.m_haslols);
                                                                                 
                   if(theApp.ShowThomWLOLS())
@@ -2540,7 +2540,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   hotspot.m_lolvoted = (m_mylols & LTT_TAG)?true:false;
                   hotspot.m_lolroot = bAsRoot;
                   hotspot.m_haslols = m_lolflags.m_TAGd > 0?true:false;
-                  if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
+                  if(!hotspot.m_lolvoted && !m_bIsMe)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_TAG, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot, hotspot.m_haslols);
                                                                                 
                   if(theApp.ShowThomWLOLS())
@@ -2560,7 +2560,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   hotspot.m_lolvoted = (m_mylols & LTT_WTF)?true:false;
                   hotspot.m_lolroot = bAsRoot;
                   hotspot.m_haslols = m_lolflags.m_WTFd > 0?true:false;
-                  if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
+                  if(!hotspot.m_lolvoted && !m_bIsMe)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_WTF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, bAsRoot, hotspot.m_haslols);
 
                   hotspot.m_loltext = L"";
@@ -2981,7 +2981,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   hotspot.m_lolvoted = (m_mylols & LTT_LOL)?true:false;
                   hotspot.m_lolroot = false;
                   hotspot.m_haslols = m_lolflags.m_LOLd > 0?true:false;
-                  if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
+                  if(!hotspot.m_lolvoted && !m_bIsMe)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_LOL, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false, hotspot.m_haslols);
                                                                                 
                   if(theApp.ShowThomWLOLS())
@@ -3001,7 +3001,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   hotspot.m_lolvoted = (m_mylols & LTT_INF)?true:false;
                   hotspot.m_lolroot = false;
                   hotspot.m_haslols = m_lolflags.m_INFd > 0?true:false;
-                  if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
+                  if(!hotspot.m_lolvoted && !m_bIsMe)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_INF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false, hotspot.m_haslols);
                                                                                 
                   if(theApp.ShowThomWLOLS())
@@ -3021,7 +3021,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   hotspot.m_lolvoted = (m_mylols & LTT_UNF)?true:false;
                   hotspot.m_lolroot = false;
                   hotspot.m_haslols = m_lolflags.m_UNFd > 0?true:false;
-                  if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
+                  if(!hotspot.m_lolvoted && !m_bIsMe)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_UNF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false, hotspot.m_haslols);
                                                                                 
                   if(theApp.ShowThomWLOLS())
@@ -3041,7 +3041,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   hotspot.m_lolvoted = (m_mylols & LTT_TAG)?true:false;
                   hotspot.m_lolroot = false;
                   hotspot.m_haslols = m_lolflags.m_TAGd > 0?true:false;
-                  if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
+                  if(!hotspot.m_lolvoted && !m_bIsMe)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_TAG, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false, hotspot.m_haslols);
                                                                                 
                   if(theApp.ShowThomWLOLS())
@@ -3061,7 +3061,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                   hotspot.m_lolvoted = (m_mylols & LTT_WTF)?true:false;
                   hotspot.m_lolroot = false;
                   hotspot.m_haslols = m_lolflags.m_WTFd > 0?true:false;
-                  if(!hotspot.m_lolvoted)hotspots.push_back(hotspot);
+                  if(!hotspot.m_lolvoted && !m_bIsMe)hotspots.push_back(hotspot);
                   m_pDoc->DrawLOLField(hDC, LTT_WTF, lolrect, hotspot.m_loltext,false,hotspot.m_lolvoted, false, hotspot.m_haslols);
 
                   hotspot.m_loltext = L"";
