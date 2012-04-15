@@ -224,12 +224,12 @@ BEGIN
         END
         POPUP "Image stuff"
         BEGIN
-            MENUITEM "Load images in Lamp",                        ID_LOADIMAGESINLAMP
-            MENUITEM "Show thumbnails for loaded images",          ID_VIEW_SHOWIMAGETHUMBS
+            MENUITEM "Load images in Lamp",         ID_LOADIMAGESINLAMP
+            MENUITEM "Show thumbnails for loaded images", ID_VIEW_SHOWIMAGETHUMBS
             MENUITEM "Auto load thumbnails for chattypics images", ID_AUTOLOADCHATTYPICSTHUMBS
-            MENUITEM "Don't auto load thumbnails in NWS posts",    ID_DONTAUTOLOADNWSTHUMBS
+            MENUITEM "Don't auto load thumbnails in NWS posts", ID_DONTAUTOLOADNWSTHUMBS
             MENUITEM SEPARATOR
-            MENUITEM "Unload all images from memory",              ID_UNLOADALLIMAGES
+            MENUITEM "Unload all images from memory", ID_UNLOADALLIMAGES
         END
         MENUITEM "Smooth Scroll",               ID_VIEW_SMOOTHSCROLL
         MENUITEM "Allow Pinning",               ID_PINNING_MENUITEM
@@ -261,9 +261,9 @@ BEGIN
         END
         POPUP "Font Size"
         BEGIN
-            MENUITEM "Increase Font Size\tCtrl+Plus",  ID_VIEW_INCREASEFONTSIZE
+            MENUITEM "Increase Font Size\tCtrl+Plus", ID_VIEW_INCREASEFONTSIZE
             MENUITEM "Decrease Font Size\tCtrl+Minus", ID_VIEW_DECREASEFONTSIZE
-            MENUITEM "Reset Font Size\tCtrl+0",        ID_VIEW_RESETFONTSIZE
+            MENUITEM "Reset Font Size\tCtrl+0",     ID_VIEW_RESETFONTSIZE
         END
         MENUITEM SEPARATOR
         POPUP "Line Size"
@@ -317,7 +317,6 @@ BEGIN
         MENUITEM "Check for Updates",           ID_HELP_CHECK_UPDATE
     END
 END
-
 
 IDR_POPUP_EDIT MENU 
 BEGIN
@@ -378,12 +377,12 @@ BEGIN
         MENUITEM "&Open Link in Browser",       ID_LAUNCHLINK
         POPUP "Open Link in..."
         BEGIN
-            MENUITEM "Chrome",                        ID_CHROME_OLI
-            MENUITEM "Chrome - Incognito",            ID_CHROME_INCOGNITO_OLI
-            MENUITEM "Firefox",                       ID_FIREFOX_OLI
-            MENUITEM "Internet Explorer",             ID_IE_OLI
-            MENUITEM "Internet Explorer - private",   ID_IE_PRIVATE_OLI
-            MENUITEM "Safari",                        ID_SAFARI_OLI
+            MENUITEM "Chrome",                      ID_CHROME_OLI
+            MENUITEM "Chrome - Incognito",          ID_CHROME_INCOGNITO_OLI
+            MENUITEM "Firefox",                     ID_FIREFOX_OLI
+            MENUITEM "Internet Explorer",           ID_IE_OLI
+            MENUITEM "Internet Explorer - private", ID_IE_PRIVATE_OLI
+            MENUITEM "Safari",                      ID_SAFARI_OLI
         END
         MENUITEM "Open in &Tab",                ID_OPENINTAB
     END
@@ -437,7 +436,7 @@ CAPTION "About Lamp"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
-    LTEXT           "Lamp, Version 2.6",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Lamp, Version 2.7",IDC_STATIC,42,14,114,8,SS_NOPREFIX
     LTEXT           "Copyright (C) 2011",IDC_STATIC,42,26,114,8
     DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
     PUSHBUTTON      "Traffic",ID_NETWORK_TRAFFIC_ID,10,41,50,14
@@ -496,14 +495,18 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "Custom Search"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    LTEXT           "Search For:",IDC_STATIC,7,7,38,8
-    EDITTEXT        IDC_SEARCH_TERMS_EDIT,7,20,201,14,ES_AUTOHSCROLL
-    LTEXT           "By User:",IDC_STATIC,7,43,28,8
-    EDITTEXT        IDC_SEARCH_USER_EDIT,7,57,201,14,ES_AUTOHSCROLL
-    LTEXT           "Parent User:",IDC_STATIC,7,81,42,8
-    EDITTEXT        IDC_SEARCH_PARENT_EDIT,7,94,201,14,ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,7,116,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,158,116,50,14
+    EDITTEXT        IDC_SEARCH_TERMS_EDIT,7,17,201,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SEARCH_USER_EDIT,7,54,90,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SEARCH_PARENT_EDIT,118,54,90,14,ES_AUTOHSCROLL
+    COMBOBOX        IDC_SEARCH_FILTER_COMBO,7,86,90,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_SEARCH_SORT_COMBO,118,86,90,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,78,116,61,14
+    PUSHBUTTON      "Cancel",IDCANCEL,147,116,61,14
+    LTEXT           "Search For:",IDC_STATIC,14,7,38,8
+    LTEXT           "By User:",IDC_STATIC,14,43,28,8
+    LTEXT           "Parent User:",IDC_STATIC,125,43,42,8
+    LTEXT           "Filter:",IDC_STATIC,14,75,20,8
+    LTEXT           "Sort:",IDC_STATIC,126,75,17,8
 END
 
 IDD_BOOKMARK_DIALOG DIALOGEX 0, 0, 186, 53
@@ -569,8 +572,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,6,0,0
- PRODUCTVERSION 2,6,0,0
+ FILEVERSION 2,7,0,0
+ PRODUCTVERSION 2,7,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -588,12 +591,12 @@ BEGIN
             VALUE "Comments", "Why are you reading this?"
             VALUE "CompanyName", "FooBar INC."
             VALUE "FileDescription", "Lamp"
-            VALUE "FileVersion", "2.6"
+            VALUE "FileVersion", "2.7"
             VALUE "InternalName", "Lamp.exe"
             VALUE "LegalCopyright", "Whatever"
             VALUE "OriginalFilename", "Lamp.exe"
             VALUE "ProductName", "Lamp"
-            VALUE "ProductVersion", "2.6"
+            VALUE "ProductVersion", "2.7"
         END
     END
     BLOCK "VarFileInfo"
@@ -676,6 +679,31 @@ BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_SEARCH_DIALOG DLGINIT
+BEGIN
+    IDC_SEARCH_FILTER_COMBO, 0x403, 10, 0
+0x6c41, 0x206c, 0x6f50, 0x7473, 0x0073, 
+    IDC_SEARCH_FILTER_COMBO, 0x403, 12, 0
+0x6e49, 0x6f66, 0x6d72, 0x7461, 0x7669, 0x0065, 
+    IDC_SEARCH_FILTER_COMBO, 0x403, 15, 0
+0x6f4e, 0x2074, 0x6f57, 0x6b72, 0x5320, 0x6661, 0x2065, "\000" 
+    IDC_SEARCH_SORT_COMBO, 0x403, 16, 0
+0x6144, 0x6574, 0x4420, 0x7365, 0x6563, 0x646e, 0x6e69, 0x0067, 
+    IDC_SEARCH_SORT_COMBO, 0x403, 15, 0
+0x6144, 0x6574, 0x4120, 0x6373, 0x6e65, 0x6964, 0x676e, "\000" 
+    IDC_SEARCH_SORT_COMBO, 0x403, 10, 0
+0x6552, 0x656c, 0x6176, 0x636e, 0x0065, 
+    IDC_SEARCH_SORT_COMBO, 0x403, 7, 0
+0x7541, 0x6874, 0x726f, "\000" 
+    0
+END
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -816,6 +844,10 @@ BEGIN
     ID_EDIT_REFRESH         "Refresh\nRefresh"
     ID_EDIT_NEWTHREAD       "Post a new thread in this story\nNewThread"
     IDS_COPYLINK_MENU       "CopyLink"
+END
+
+STRINGTABLE 
+BEGIN
     IDS_USERLINK_MENU       "User"
 END
 

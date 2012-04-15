@@ -22,7 +22,7 @@
 #define WM_WAKEUP (WM_USER + 102)
 
 #define LAMP_VERSION_MAJOR 2
-#define LAMP_VERSION_MINOR 6
+#define LAMP_VERSION_MINOR 7
 
 chattyerror download(const char* host, const char* path, char** out_response, int *psize=NULL);
 
@@ -533,6 +533,18 @@ public:
       }
    }
 
+   CDCSurface *GetSearchImage(bool bHover)
+   {
+      if(bHover)
+      {
+         return &m_search_hover;
+      }
+      else
+      {
+         return &m_search;
+      }
+   }
+
    CDCSurface *GetForwardImage(bool bHover)
    {
       if(bHover)
@@ -727,18 +739,13 @@ public:
    void RemoveMyCollapse(unsigned int post_id);
    bool GetMyCollapse(unsigned int post_id);
 
-   void GetLastSearchParms(UCString &author, UCString &parent_author, UCString &terms)
-   {
-      author = m_last_search_author;
-      parent_author = m_last_search_parent_author;
-      terms = m_last_search_terms;
-   }
-
-   void SetLastSearchParms(const UCString &author, const UCString &parent_author, const UCString &terms)
+   void SetLastSearchParms(const UCString &author, const UCString &parent_author, const UCString &terms, const UCString &search_filter, const UCString &search_sort)
    {
       m_last_search_author = author;
       m_last_search_parent_author = parent_author;
       m_last_search_terms = terms;
+      m_last_search_filter = search_filter;
+      m_last_search_sort = search_sort;
    }
 
    bool ShowImageThumbs(){return m_bShowImageThumbs;}
@@ -1091,6 +1098,8 @@ protected:
 
    CDCSurface m_compose;
    CDCSurface m_compose_hover;
+   CDCSurface m_search;
+   CDCSurface m_search_hover;
    CDCSurface m_forward;
    CDCSurface m_forward_hover;
    CDCSurface m_delete;
@@ -1219,6 +1228,8 @@ protected:
    UCString m_last_search_author;
    UCString m_last_search_parent_author;
    UCString m_last_search_terms;
+   UCString m_last_search_filter;
+   UCString m_last_search_sort;
 
    std::map<unsigned int,CImageCacheItem> m_imagecache;
    unsigned int m_nextimagecacheindex;

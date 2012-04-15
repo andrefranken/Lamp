@@ -65,13 +65,13 @@ void AuthorDlg::OnBnClickedSearchButton()
 {
    if(!m_author.IsEmpty())
    {
-      theApp.SetLastSearchParms(m_author, UCString(), UCString());
+      theApp.SetLastSearchParms(m_author, UCString(), UCString(), UCString(), UCString());
 
       UCString path = L"CUSTOMSEARCH:";
       char *enc = url_encode(m_author.str8());
       path += enc;
       free(enc);
-      path += L"::";
+      path += L":::all:postdate_desc";
 
       theApp.OpenDocumentFile(path);
       PostMessageW(WM_CLOSE);

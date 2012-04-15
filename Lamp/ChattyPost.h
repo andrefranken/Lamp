@@ -81,7 +81,8 @@ typedef enum
    HST_MOD_TOOL_ITEM,
    HST_SEND,
    HST_MSG_INFO,
-   HST_POST_AREA
+   HST_POST_AREA,
+   HST_SEARCH_DLG
 
 }hotspottype;
 

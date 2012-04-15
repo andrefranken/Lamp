@@ -15,6 +15,7 @@
 #include "BookmarkDlg.h"
 #include "AuthorDlg.h"
 #include "ChildFrm.h"
+#include "CustomSearchDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -840,19 +841,19 @@ void CLampView::OnDraw(CDC* pDC)
             switch(pDoc->GetDataType())
             {
             case DDT_STORY:
-               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, true, false);
+               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, true, false, false);
                bDrewBanner = true;
                break;
             case DDT_LOLS:
-               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, false);
+               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, false, false);
                bDrewBanner = true;
                break;
             case DDT_SEARCH:
-               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, false);
+               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, false, true);
                bDrewBanner = true;
                break;
             case DDT_SHACKMSG:
-               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, true);
+               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, true, false);
                bDrewBanner = true;
                break;
             }            
@@ -1766,6 +1767,13 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                   ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
                }
                break;
+            case HST_SEARCH_DLG:
+               {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
+                  theApp.GetSearchImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,20,20);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
+               }
+               break;
             case HST_REFRESHSTORY:
                {
                   ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
@@ -2135,6 +2143,13 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                {
                   ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
                   theApp.GetComposeImage(true)->Blit(hDC,m_hotspots[i].m_spot);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
+               }
+               break;
+            case HST_SEARCH_DLG:
+               {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
+                  theApp.GetSearchImage(true)->Blit(hDC,m_hotspots[i].m_spot);
                   ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
                }
                break;
@@ -2736,6 +2751,11 @@ void CLampView::UpdateHotspotPosition()
                theApp.SetStatusBarText(L"Compose New Message",this);
             }
             break;
+         case HST_SEARCH_DLG:
+            {
+               theApp.SetStatusBarText(L"Change Search Conditions",this);
+            }
+            break;
          case HST_REFRESHSTORY:
             {
                theApp.SetStatusBarText(L"Refresh",this);
@@ -3276,6 +3296,37 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                      case HST_COMPOSE_MESSAGE:
                         {
                            SendMessageDlg(GetDocument(),UCString(),UCString(),UCString());
+                        }
+                        break;
+                     case HST_SEARCH_DLG:
+                        {
+                           if(GetDocument()->GetDataType() == DDT_SEARCH)
+                           {
+                              CCustomSearchDlg csdlg(this);
+
+                              UCString search_author, search_parent_author, search_terms, search_filter, search_sort;
+
+                              GetDocument()->GetSearchConditions(search_author, search_parent_author, search_terms, search_filter, search_sort);
+
+                              csdlg.m_user = search_author;
+                              csdlg.m_parent = search_parent_author;
+                              csdlg.m_terms = search_terms;
+                              csdlg.m_filter = search_filter;
+                              csdlg.m_sort = search_sort;
+
+                              if(csdlg.DoModal() == IDOK)
+                              {
+                                 search_author = csdlg.m_user;
+                                 search_parent_author = csdlg.m_parent;
+                                 search_terms = csdlg.m_terms;
+                                 search_filter = csdlg.m_filter;
+                                 search_sort = csdlg.m_sort;
+
+                                 GetDocument()->SetSearchConditions(search_author, search_parent_author, search_terms, search_filter, search_sort);
+                                 GetDocument()->SetPage(0);
+                                 GetDocument()->Refresh();
+                              }
+                           }
                         }
                         break;
                      case HST_REFRESHSTORY:
@@ -4819,6 +4870,7 @@ BOOL CLampView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
             case HST_MSG_INFO:
             case HST_NEWTHREAD:
             case HST_COMPOSE_MESSAGE:
+            case HST_SEARCH_DLG:
             case HST_REFRESHSTORY:
             case HST_LINK:
             case HST_IMAGE_LINK:
@@ -6992,7 +7044,7 @@ void CLampView::OnViewProfile()
 {
    if(!m_authorname_clicked.IsEmpty())
    {
-      theApp.SetLastSearchParms(m_authorname_clicked, UCString(), UCString());
+      theApp.SetLastSearchParms(m_authorname_clicked, UCString(), UCString(), UCString(), UCString());
 
       UCString path = L"PROFILE:";
       path += m_authorname_clicked;
@@ -7023,13 +7075,13 @@ void CLampView::OnViewComments()
 {
    if(!m_authorname_clicked.IsEmpty())
    {
-      theApp.SetLastSearchParms(m_authorname_clicked, UCString(), UCString());
+      theApp.SetLastSearchParms(m_authorname_clicked, UCString(), UCString(), UCString(), UCString());
 
       UCString path = L"CUSTOMSEARCH:";
       char *enc = url_encode(m_authorname_clicked.str8());
       path += enc;
       free(enc);
-      path += L"::";
+      path += L":::all:postdate_desc";
 
       theApp.OpenDocumentFile(path);
    }

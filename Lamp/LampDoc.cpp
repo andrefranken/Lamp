@@ -2002,6 +2002,8 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
       m_search_author = L"";
       m_search_parent_author = L"";
       m_search_terms = L"";
+      m_search_filter = L"";
+      m_search_sort = L"";
 
       const UCChar *work = wcsstr(start, L"chatty_term=");
       if(work != NULL)
@@ -2036,6 +2038,25 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
          while(work < end && *work != L'&'){m_search_parent_author += *work;work++;}
          m_search_parent_author.ReplaceAll(L'+',L' ');
       }
+
+      work = wcsstr(start, L"chatty_filter=");
+      if(work != NULL)
+      {
+         work += 14;
+         while(work < end && *work != L'&'){m_search_filter += *work;work++;}
+         m_search_filter.ReplaceAll(L'+',L' ');
+      }
+
+      work = wcsstr(start, L"result_sort=");
+      if(work != NULL)
+      {
+         work += 12;
+         while(work < end && *work != L'&'){m_search_sort += *work;work++;}
+         m_search_sort.ReplaceAll(L'+',L' ');
+      }
+
+      if(m_search_filter.IsEmpty()) m_search_filter = L"all";
+      if(m_search_sort.IsEmpty()) m_search_sort = "postdate_desc";
 
       if(!m_search_author.IsEmpty() &&
          m_search_parent_author.IsEmpty() &&
@@ -2198,6 +2219,8 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
       m_search_author = theApp.GetUsername();
       m_search_parent_author = L"";
       m_search_terms = L"";
+      m_search_filter = L"all";
+      m_search_sort = "postdate_desc";
 
       m_title = L"My Comments";
       MySetTitle(m_title);
@@ -2209,6 +2232,8 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
       m_search_author = L"";
       m_search_parent_author = theApp.GetUsername();
       m_search_terms = L"";
+      m_search_filter = L"all";
+      m_search_sort = "postdate_desc";
 
       m_title = L"Replies To Me";
       MySetTitle(m_title);
@@ -2220,6 +2245,8 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
       m_search_author = L"";
       m_search_parent_author = L"";
       m_search_terms = theApp.GetUsername();
+      m_search_filter = L"all";
+      m_search_sort = "postdate_desc";
 
       m_title = L"Vanity Search";
       MySetTitle(m_title);
@@ -2232,11 +2259,20 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
       m_search_author = L"";
       m_search_parent_author = L"";
       m_search_terms = L"";
+      m_search_filter = L"";
+      m_search_sort = "";
       while(work < end && *work != L':'){m_search_author += *work;work++;}
       if(work < end && *work == L':')work++;
       while(work < end && *work != L':'){m_search_parent_author += *work;work++;}
       if(work < end && *work == L':')work++;
       while(work < end && *work != L':'){m_search_terms += *work;work++;}
+      if(work < end && *work == L':')work++;
+      while(work < end && *work != L':'){m_search_filter += *work;work++;}
+      if(work < end && *work == L':')work++;
+      while(work < end && *work != L':'){m_search_sort += *work;work++;}
+
+      if(m_search_filter.IsEmpty()) m_search_filter = L"all";
+      if(m_search_sort.IsEmpty()) m_search_sort = "postdate_desc";
 
       char *enc = url_decode(m_search_author.str8());
       m_search_author = enc;
@@ -2458,7 +2494,7 @@ void CLampDoc::PerformSearch()
    }
    m_rootposts.clear();
 
-   theApp.SetLastSearchParms(m_search_author, m_search_parent_author, m_search_terms);
+   theApp.SetLastSearchParms(m_search_author, m_search_parent_author, m_search_terms, m_search_filter, m_search_sort);
 
    if(theApp.UseShack())
    {
@@ -2478,7 +2514,15 @@ void CLampDoc::PerformSearch()
       temp.ReplaceAll(L' ',L'+');
       temp.Replace(L"&",L"%26");
       path += temp;
-      path += L"&chatty_filter=all&result_sort=postdate_desc&page=";
+      //path += L"&chatty_filter=all&result_sort=postdate_desc&page=";
+
+      path += L"&chatty_filter=";
+      path += m_search_filter;
+
+      path += L"&result_sort=";
+      path += m_search_sort;
+
+      path += L"&page=";
       path += m_page;
 
       StartDownload(L"www.shacknews.com",
@@ -3719,14 +3763,16 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
    }
 }
 
-int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, bool bDrawNewThread, bool bDrawCompose)
+int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, bool bDrawNewThread, bool bDrawCompose, bool bDrawSearch)
 {
    RECT bannerrect = DeviceRectangle;
    CDCSurface *pNewThreadImage = theApp.GetNewThreadImage(false);
    CDCSurface *pComposeImage = theApp.GetComposeImage(false);
+   CDCSurface *pSearchImage = theApp.GetSearchImage(false);
    CDCSurface *pRefreshStoryImage = theApp.GetRefreshStoryImage(false);
    if(pNewThreadImage != NULL &&
       pComposeImage != NULL &&
+      pSearchImage != NULL &&
       pRefreshStoryImage != NULL)
    {
       bannerrect.top = pos;
@@ -3743,7 +3789,7 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          hotspot.m_bAnim = false;
          RECT imagerect = bannerrect;
          RECT restrect = bannerrect;
-         if(bDrawNewThread || bDrawCompose)
+         if(bDrawNewThread || bDrawCompose || bDrawSearch)
          {
             if(bDrawNewThread)
             {
@@ -3756,6 +3802,12 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                imagerect.right = imagerect.left + pComposeImage->GetWidth();
                pComposeImage->Blit(hDC,imagerect);
                hotspot.m_type = HST_COMPOSE_MESSAGE;
+            }
+            else if(bDrawSearch)
+            {
+               imagerect.right = imagerect.left + pComposeImage->GetWidth();
+               pSearchImage->Blit(hDC,imagerect);
+               hotspot.m_type = HST_SEARCH_DLG;
             }
             hotspot.m_spot.left = imagerect.left + 20;
             hotspot.m_spot.top = imagerect.top + 20;
@@ -6967,19 +7019,25 @@ void CLampDoc::GetLaunchString(UCString &launch, unsigned int current_id)
 
       if(m_search_author == theApp.GetUsername() &&
          m_search_parent_author.IsEmpty() &&
-         m_search_terms.IsEmpty())
+         m_search_terms.IsEmpty() &&
+         m_search_filter == L"all" &&
+         m_search_sort == L"postdate_desc")
       {
          launch = L"MYCOMMENTS";
       }
       else if(m_search_author.IsEmpty() &&
               m_search_parent_author == theApp.GetUsername() &&
-              m_search_terms.IsEmpty())
+              m_search_terms.IsEmpty() &&
+              m_search_filter == L"all" &&
+              m_search_sort == L"postdate_desc")
       {
          launch = L"REPLIESTOME";
       }
       else if(m_search_author.IsEmpty() &&
               m_search_parent_author.IsEmpty() &&
-              m_search_terms == theApp.GetUsername())
+              m_search_terms == theApp.GetUsername() &&
+              m_search_filter == L"all" &&
+              m_search_sort == L"postdate_desc")
       {
          launch = L"VANITYSEARCH";
       }
@@ -6995,6 +7053,14 @@ void CLampDoc::GetLaunchString(UCString &launch, unsigned int current_id)
          free(enc);
          launch += L":";
          enc = url_encode(m_search_terms.str8());
+         launch += enc;
+         free(enc);
+         launch += L":";
+         enc = url_encode(m_search_filter.str8());
+         launch += enc;
+         free(enc);
+         launch += L":";
+         enc = url_encode(m_search_sort.str8());
          launch += enc;
          free(enc);
       }

@@ -126,6 +126,7 @@ void CReplyDlg::TweakHotspots(std::vector<CHotSpot> &hotspots)
       case HST_FORWARD_MESSAGE:
       case HST_DELETE_MESSAGE:
       case HST_COMPOSE_MESSAGE:
+      case HST_SEARCH_DLG:
          // dissallow these
          break;
       default:

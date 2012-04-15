@@ -2452,6 +2452,8 @@ void CLampApp::ReadSkinFiles()
    m_reply_background.Resize(0,0);
    m_compose.Resize(0,0);
    m_compose_hover.Resize(0,0);
+   m_search.Resize(0,0);
+   m_search_hover.Resize(0,0);
    m_forward.Resize(0,0);
    m_forward_hover.Resize(0,0);
    m_delete.Resize(0,0);
@@ -2952,6 +2954,18 @@ void CLampApp::ReadSkinFiles()
    imagefilename += L"\\mb_pan.png";
    imagepath.PathToMe(imagefilename);
    m_mb_pan.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\search.png";
+   imagepath.PathToMe(imagefilename);
+   m_search.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\search_hover.png";
+   imagepath.PathToMe(imagefilename);
+   m_search_hover.ReadPNG(imagepath);
 
    m_tempimage.Resize(152,130);
    m_tempimage.Fill(GetRValue(m_spoiler_color),GetGValue(m_spoiler_color),GetBValue(m_spoiler_color));
@@ -3911,12 +3925,16 @@ void CLampApp::OnShackSearch()
    csdlg.m_user = m_last_search_author;
    csdlg.m_parent = m_last_search_parent_author;
    csdlg.m_terms = m_last_search_terms;
+   csdlg.m_filter = m_last_search_filter;
+   csdlg.m_sort = m_last_search_sort;
 
    if(csdlg.DoModal() == IDOK)
    {
       m_last_search_author = csdlg.m_user;
       m_last_search_parent_author = csdlg.m_parent;
       m_last_search_terms = csdlg.m_terms;
+      m_last_search_filter = csdlg.m_filter;
+      m_last_search_sort = csdlg.m_sort;
 
       UCString path = L"CUSTOMSEARCH:";
       char *enc = url_encode(m_last_search_author.str8());
@@ -3928,6 +3946,14 @@ void CLampApp::OnShackSearch()
       free(enc);
       path += L":";
       enc = url_encode(m_last_search_terms.str8());
+      path += enc;
+      free(enc);
+      path += L":";
+      enc = url_encode(m_last_search_filter.str8());
+      path += enc;
+      free(enc);
+      path += L":";
+      enc = url_encode(m_last_search_sort.str8());
       path += enc;
       free(enc);
 

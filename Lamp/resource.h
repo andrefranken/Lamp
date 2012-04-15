@@ -59,6 +59,8 @@
 #define IDC_FILTERED_USERS_EDIT         1018
 #define IDC_FILTERED_PHRASES_EDIT       1019
 #define IDC_PREVIEW_TIMER               1020
+#define IDC_SEARCH_FILTER_COMBO         1021
+#define IDC_SEARCH_SORT_COMBO           1022
 #define ID_FILE_OPENTHREAD              32771
 #define ID_EDIT_REFRESH                 32773
 #define ID_FILE_SETUPLOGININFO          32774
@@ -171,17 +173,15 @@
 #define ID_SAFARI_OLI                   32886
 #define ID_DIC_SELECTED                 32887
 #define ID_WOLFRAM_SELECTED             32888
-
-
 #define ID_BOOKMARK_MENUITEM            32900
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        328
+#define _APS_NEXT_RESOURCE_VALUE        329
 #define _APS_NEXT_COMMAND_VALUE         32889
-#define _APS_NEXT_CONTROL_VALUE         1021
+#define _APS_NEXT_CONTROL_VALUE         1023
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

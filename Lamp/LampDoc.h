@@ -252,7 +252,7 @@ public:
 
    bool FetchNextPage();
 
-   int DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, bool bDrawNewThread, bool bDrawCompose);
+   int DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, bool bDrawNewThread, bool bDrawCompose, bool bDrawSearch);
 
    HFONT MySelectFont(HDC hdc, HFONT hfont)
    {
@@ -266,6 +266,32 @@ public:
    void SetLinkColor(COLORREF value){m_link_color = value;}
    void SetImageLinkColor(COLORREF value){m_image_link_color = value;}
 
+   void GetSearchConditions(UCString &search_author,
+                            UCString &search_parent_author,
+                            UCString &search_terms,
+                            UCString &search_filter,
+                            UCString &search_sort)
+   {
+      search_author        = m_search_author;
+      search_parent_author = m_search_parent_author;
+      search_terms         = m_search_terms;
+      search_filter        = m_search_filter;
+      search_sort          = m_search_sort;
+   }
+
+
+   void SetSearchConditions(const UCString &search_author,
+                            const UCString &search_parent_author,
+                            const UCString &search_terms,
+                            const UCString &search_filter,
+                            const UCString &search_sort)
+   {
+      m_search_author        = search_author;
+      m_search_parent_author = search_parent_author;
+      m_search_terms         = search_terms;
+      m_search_filter        = search_filter;
+      m_search_sort          = search_sort;
+   }
 // Implementation
 public:
 	virtual ~CLampDoc();
@@ -349,6 +375,8 @@ protected:
    UCString m_search_author;
    UCString m_search_parent_author;
    UCString m_search_terms;
+   UCString m_search_filter;
+   UCString m_search_sort;
 
    UCString m_profile_user;
 

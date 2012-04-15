@@ -14,6 +14,8 @@ public:
    UCString m_terms;
    UCString m_user;
    UCString m_parent;
+   UCString m_filter;
+   UCString m_sort;
 
 // Dialog Data
 	enum { IDD = IDD_SEARCH_DIALOG };
