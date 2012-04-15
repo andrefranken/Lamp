@@ -64,6 +64,18 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_COPYLINK, &CLampView::OnUpdateCopyLink)
    ON_COMMAND(ID_LAUNCHLINK, &CLampView::OnLaunchLink)
    ON_UPDATE_COMMAND_UI(ID_LAUNCHLINK, &CLampView::OnUpdateLaunchLink)
+   ON_COMMAND(ID_CHROME_OLI, &CLampView::OnLaunchLink_Chrome)
+   ON_COMMAND(ID_CHROME_INCOGNITO_OLI, &CLampView::OnLaunchLink_Chrome_Incognito)
+   ON_COMMAND(ID_FIREFOX_OLI, &CLampView::OnLaunchLink_Firefox)
+   ON_COMMAND(ID_IE_OLI, &CLampView::OnLaunchLink_IE)
+   ON_COMMAND(ID_IE_PRIVATE_OLI, &CLampView::OnLaunchLink_IE_Private)
+   ON_COMMAND(ID_SAFARI_OLI, &CLampView::OnLaunchLink_Safari)
+   ON_UPDATE_COMMAND_UI(ID_CHROME_OLI, &CLampView::OnUpdateLaunchLink)
+   ON_UPDATE_COMMAND_UI(ID_CHROME_INCOGNITO_OLI, &CLampView::OnUpdateLaunchLink)
+   ON_UPDATE_COMMAND_UI(ID_FIREFOX_OLI, &CLampView::OnUpdateLaunchLink)
+   ON_UPDATE_COMMAND_UI(ID_IE_OLI, &CLampView::OnUpdateLaunchLink)
+   ON_UPDATE_COMMAND_UI(ID_IE_PRIVATE_OLI, &CLampView::OnUpdateLaunchLink)
+   ON_UPDATE_COMMAND_UI(ID_SAFARI_OLI, &CLampView::OnUpdateLaunchLink)
    ON_COMMAND(ID_VIEW_INCREASEFONTSIZE, &CLampView::OnViewIncreasefontsize)
    ON_UPDATE_COMMAND_UI(ID_VIEW_INCREASEFONTSIZE, &CLampView::OnUpdateViewIncreasefontsize)
    ON_COMMAND(ID_VIEW_DECREASEFONTSIZE, &CLampView::OnViewDecreasefontsize)
@@ -150,6 +162,12 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_GOOGLE_SELECTED_W_QUOTES, &CLampView::OnUpdateGoogleSelectedWQuotes)
    ON_COMMAND(ID_WIKIPEDIA_SELECTED, &CLampView::OnWikipediaSelected)
    ON_UPDATE_COMMAND_UI(ID_WIKIPEDIA_SELECTED, &CLampView::OnUpdateWikipediaSelected)
+   ON_COMMAND(ID_URBANDIC_SELECTED, &CLampView::OnUrbanDicSelected)
+   ON_UPDATE_COMMAND_UI(ID_URBANDIC_SELECTED, &CLampView::OnUpdateUrbanDicSelected)
+   ON_COMMAND(ID_DIC_SELECTED, &CLampView::OnDicSelected)
+   ON_UPDATE_COMMAND_UI(ID_DIC_SELECTED, &CLampView::OnUpdateDicSelected)
+   ON_COMMAND(ID_WOLFRAM_SELECTED, &CLampView::OnWolframSelected)
+   ON_UPDATE_COMMAND_UI(ID_WOLFRAM_SELECTED, &CLampView::OnUpdateWolframSelected)
    ON_COMMAND(ID_AUTOCHECKINBOX, &CLampView::OnAutoCheckInbox)
    ON_UPDATE_COMMAND_UI(ID_AUTOCHECKINBOX, &CLampView::OnUpdateAutoCheckInbox)
    ON_COMMAND(ID_SHOW_ROOT_SELECTED, &CLampView::OnShowRootSelected)
@@ -574,7 +592,8 @@ void CLampView::OnContextMenu(CWnd* pWnd, CPoint point)
          {
             bDoLink = true;
          }
-         else if(m_hotspots[i].m_type == HST_TEXT)
+         else if(m_hotspots[i].m_type == HST_TEXT ||
+                 m_hotspots[i].m_type == HST_POST_AREA)
          {
             m_rbuttonmenufromid = m_hotspots[i].m_id;
          }
@@ -3549,6 +3568,18 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            }
                         }
                         break;
+                     case HST_POST_AREA:
+                        {
+                           ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(pPost != NULL)
+                           {
+                              unsigned int id = m_hotspots[i].m_id;
+                              UpdateCurrentIdAsRoot(id);
+                              m_textselectionpost = id;
+                              InvalidateEverything();
+                           }
+                        }
+                        break;
                      case HST_LINK:
                         {
                            ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
@@ -5125,88 +5156,30 @@ void CLampView::OnUpdateEditNewthread(CCmdUI *pCmdUI)
 
 void CLampView::OnCopyLink()
 {
-   for(size_t i = 0; i < m_hotspots.size(); i++)
+   UCString link;
+   GetRMBLink(link);
+   
+   if(!link.IsEmpty())
    {
-      if(m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
-         m_rbuttondownpoint.x < m_hotspots[i].m_spot.right &&
-         m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
-         m_rbuttondownpoint.y < m_hotspots[i].m_spot.bottom &&
-         (m_hotspots[i].m_type == HST_LINK ||
-          m_hotspots[i].m_type == HST_IMAGE_LINK ||
-          m_hotspots[i].m_type == HST_IMAGE ||
-          m_hotspots[i].m_type == HST_THUMB ||
-          m_hotspots[i].m_type == HST_OPENINTAB ||
-          m_hotspots[i].m_type == HST_PIN ||
-          m_hotspots[i].m_type == HST_REFRESH ||
-          m_hotspots[i].m_type == HST_REPLIESTOROOTPOSTHINT ||
-          (m_hotspots[i].m_type == HST_TEXT && GetDocument()->GetDataType() != DDT_SHACKMSG)))
-      {
-         ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
-         if(pPost != NULL)
-         {
-            UCString link;
-            if(m_hotspots[i].m_type == HST_LINK)
-            {
-               pPost->GetLink(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
-            }
-            else if(m_hotspots[i].m_type == HST_IMAGE_LINK)
-            {
-               pPost->GetImageLink(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
-            }
-            else if(m_hotspots[i].m_type == HST_IMAGE)
-            {
-               pPost->GetLinkToImage(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
-            }
-            else if(m_hotspots[i].m_type == HST_THUMB)
-            {
-               pPost->GetLinkToThumb(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
-            }
-            else
-            {
-               unsigned int id = GetDocument()->GetID(m_hotspots[i].m_id);
-
-               link = L"http://www.shacknews.com/chatty?id=";
-               link += id;
-            }
-
-            link.PushToClipboard();
-         }
-         break;
-      }
+      link.PushToClipboard();
    }
 }
 
 void CLampView::OnUpdateCopyLink(CCmdUI *pCmdUI)
 {
    BOOL enable = FALSE;
-   for(size_t i = 0; i < m_hotspots.size(); i++)
+
+   UCString link;
+   GetRMBLink(link);
+   
+   if(!link.IsEmpty())
    {
-      if(m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
-         m_rbuttondownpoint.x < m_hotspots[i].m_spot.right &&
-         m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
-         m_rbuttondownpoint.y < m_hotspots[i].m_spot.bottom &&
-         (m_hotspots[i].m_type == HST_LINK ||
-          m_hotspots[i].m_type == HST_IMAGE_LINK ||
-          m_hotspots[i].m_type == HST_IMAGE ||
-          m_hotspots[i].m_type == HST_THUMB ||
-          m_hotspots[i].m_type == HST_OPENINTAB ||
-          m_hotspots[i].m_type == HST_PIN ||
-          m_hotspots[i].m_type == HST_REFRESH ||
-          m_hotspots[i].m_type == HST_REPLIESTOROOTPOSTHINT ||
-          (m_hotspots[i].m_type == HST_TEXT && GetDocument()->GetDataType() != DDT_SHACKMSG)))
-      {
-         ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
-         if(pPost != NULL)
-         {
-            enable = TRUE;
-         }
-         break;
-      }
+      enable = TRUE;
    }
    pCmdUI->Enable(enable);
 }
 
-void CLampView::OnLaunchLink()
+void CLampView::GetRMBLink(UCString &link)
 {
    for(size_t i = 0; i < m_hotspots.size(); i++)
    {
@@ -5225,7 +5198,6 @@ void CLampView::OnLaunchLink()
          ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
          if(pPost != NULL)
          {
-            UCString link;
             if(m_hotspots[i].m_type == HST_LINK)
             {
                pPost->GetLink(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
@@ -5249,16 +5221,25 @@ void CLampView::OnLaunchLink()
                link = L"http://www.shacknews.com/chatty?id=";
                link += id;
             }
+         }
+         break;
+      }
+   }
+}
 
-            ShellExecuteW(NULL,
+void CLampView::OnLaunchLink()
+{
+   UCString link;
+   GetRMBLink(link);
+   
+   if(!link.IsEmpty())
+   {
+      ShellExecuteW(NULL,
                     L"open",
                     link,
                     NULL,
                     NULL,
                     SW_SHOW);
-         }
-         break;
-      }
    }
 }
 
@@ -6341,6 +6322,8 @@ void CLampView::OnGoogleSelected()
       }
    }
 
+   selectedtext.TrimWhitespace();
+
    if(!selectedtext.IsEmpty())
    {
       UCString link = L"http://www.google.com/search?q=";
@@ -6399,6 +6382,8 @@ void CLampView::OnGoogleSelectedWQuotes()
          pPost->GetSelectedText(m_selectionstart, m_selectionend, selectedtext);
       }
    }
+
+   selectedtext.TrimWhitespace();
 
    if(!selectedtext.IsEmpty())
    {
@@ -6468,6 +6453,8 @@ void CLampView::OnWikipediaSelected()
       }
    }
 
+   selectedtext.TrimWhitespace();
+
    if(!selectedtext.IsEmpty())
    {
       UCString link = L"http://en.wikipedia.org/wiki/";
@@ -6479,6 +6466,189 @@ void CLampView::OnWikipediaSelected()
 }
 
 void CLampView::OnUpdateWikipediaSelected(CCmdUI *pCmdUI)
+{
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->GetHasFocus() &&
+      !m_pReplyDlg->AreSuggestionsUp())
+   {
+      if(m_pReplyDlg->HasSelection())
+      {
+         pCmdUI->Enable(TRUE);
+      }
+      else
+      {
+         pCmdUI->Enable(FALSE);
+      }
+   }
+   else if(m_textselectionpost != 0 &&
+           m_selectionstart != m_selectionend)
+   {
+      pCmdUI->Enable(TRUE);
+   }
+   else
+   {
+      pCmdUI->Enable(FALSE);
+   }
+}
+
+void CLampView::OnUrbanDicSelected()
+{
+   UCString selectedtext;
+
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->GetHasFocus() &&
+      !m_pReplyDlg->AreSuggestionsUp())
+   {
+      if(m_pReplyDlg->HasSelection())
+      {
+         m_pReplyDlg->GetSelectedText(selectedtext);
+      }
+   }
+   else if(m_textselectionpost != 0 &&
+           m_selectionstart != m_selectionend)
+   {
+      ChattyPost *pPost = GetDocument()->FindPost(m_textselectionpost);
+      if(pPost != NULL)
+      {
+         pPost->GetSelectedText(m_selectionstart, m_selectionend, selectedtext);
+      }
+   }
+
+   selectedtext.TrimWhitespace();
+
+   if(!selectedtext.IsEmpty())
+   {
+      UCString link = L"http://www.urbandictionary.com/define.php?term=";
+      char *enc = url_encode(selectedtext.str8());
+      link += enc;
+      free(enc);
+      theApp.OpenShackLink(link);
+   }
+}
+
+void CLampView::OnUpdateUrbanDicSelected(CCmdUI *pCmdUI)
+{
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->GetHasFocus() &&
+      !m_pReplyDlg->AreSuggestionsUp())
+   {
+      if(m_pReplyDlg->HasSelection())
+      {
+         pCmdUI->Enable(TRUE);
+      }
+      else
+      {
+         pCmdUI->Enable(FALSE);
+      }
+   }
+   else if(m_textselectionpost != 0 &&
+           m_selectionstart != m_selectionend)
+   {
+      pCmdUI->Enable(TRUE);
+   }
+   else
+   {
+      pCmdUI->Enable(FALSE);
+   }
+}
+
+void CLampView::OnDicSelected()
+{
+   UCString selectedtext;
+
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->GetHasFocus() &&
+      !m_pReplyDlg->AreSuggestionsUp())
+   {
+      if(m_pReplyDlg->HasSelection())
+      {
+         m_pReplyDlg->GetSelectedText(selectedtext);
+      }
+   }
+   else if(m_textselectionpost != 0 &&
+           m_selectionstart != m_selectionend)
+   {
+      ChattyPost *pPost = GetDocument()->FindPost(m_textselectionpost);
+      if(pPost != NULL)
+      {
+         pPost->GetSelectedText(m_selectionstart, m_selectionend, selectedtext);
+      }
+   }
+
+   selectedtext.TrimWhitespace();
+
+   if(!selectedtext.IsEmpty())
+   {
+      UCString link = L"http://dictionary.reference.com/browse/";
+      char *enc = url_encode(selectedtext.str8());
+      link += enc;
+      free(enc);
+      theApp.OpenShackLink(link);
+   }
+}
+
+void CLampView::OnUpdateDicSelected(CCmdUI *pCmdUI)
+{
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->GetHasFocus() &&
+      !m_pReplyDlg->AreSuggestionsUp())
+   {
+      if(m_pReplyDlg->HasSelection())
+      {
+         pCmdUI->Enable(TRUE);
+      }
+      else
+      {
+         pCmdUI->Enable(FALSE);
+      }
+   }
+   else if(m_textselectionpost != 0 &&
+           m_selectionstart != m_selectionend)
+   {
+      pCmdUI->Enable(TRUE);
+   }
+   else
+   {
+      pCmdUI->Enable(FALSE);
+   }
+}
+
+void CLampView::OnWolframSelected()
+{
+   UCString selectedtext;
+
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->GetHasFocus() &&
+      !m_pReplyDlg->AreSuggestionsUp())
+   {
+      if(m_pReplyDlg->HasSelection())
+      {
+         m_pReplyDlg->GetSelectedText(selectedtext);
+      }
+   }
+   else if(m_textselectionpost != 0 &&
+           m_selectionstart != m_selectionend)
+   {
+      ChattyPost *pPost = GetDocument()->FindPost(m_textselectionpost);
+      if(pPost != NULL)
+      {
+         pPost->GetSelectedText(m_selectionstart, m_selectionend, selectedtext);
+      }
+   }
+
+   selectedtext.TrimWhitespace();
+
+   if(!selectedtext.IsEmpty())
+   {
+      UCString link = L"http://www.wolframalpha.com/input/?i=";
+      char *enc = url_encode(selectedtext.str8());
+      link += enc;
+      free(enc);
+      theApp.OpenShackLink(link);
+   }
+}
+
+void CLampView::OnUpdateWolframSelected(CCmdUI *pCmdUI)
 {
    if(m_pReplyDlg != NULL &&
       m_pReplyDlg->GetHasFocus() &&
@@ -6995,3 +7165,109 @@ void CLampView::OnUpdateUsersLOLs(CCmdUI *pCmdUI)
 {
    pCmdUI->Enable(TRUE);
 }
+
+void CLampView::OnLaunchLink_Chrome()
+{
+   UCString link;
+   GetRMBLink(link);
+   
+   if(!link.IsEmpty())
+   {
+      ShellExecuteW(NULL,
+                    L"open",
+                    L"chrome.exe",
+                    link,
+                    NULL,
+                    SW_SHOW);
+   }
+}
+
+void CLampView::OnLaunchLink_Chrome_Incognito()
+{
+   UCString link;
+   GetRMBLink(link);
+   
+   if(!link.IsEmpty())
+   {
+      UCString cmdline = L"--incognito ";
+      cmdline += link;
+
+      ShellExecuteW(NULL,
+                    L"open",
+                    L"chrome.exe",
+                    cmdline,
+                    NULL,
+                    SW_SHOW);
+   }
+}
+
+void CLampView::OnLaunchLink_Firefox()
+{
+   UCString link;
+   GetRMBLink(link);
+   
+   if(!link.IsEmpty())
+   {
+      ShellExecuteW(NULL,
+                    L"open",
+                    L"firefox.exe",
+                    link,
+                    NULL,
+                    SW_SHOW);
+   }
+}
+
+void CLampView::OnLaunchLink_IE()
+{
+   UCString link;
+   GetRMBLink(link);
+   
+   if(!link.IsEmpty())
+   {
+      ShellExecuteW(NULL,
+                    L"open",
+                    L"iexplore.exe",
+                    link,
+                    NULL,
+                    SW_SHOW);
+   }
+}
+
+void CLampView::OnLaunchLink_IE_Private()
+{
+   
+   UCString link;
+   GetRMBLink(link);
+   
+   if(!link.IsEmpty())
+   {
+      UCString cmdline = L"-private ";
+      cmdline += link;
+
+      ShellExecuteW(NULL,
+                    L"open",
+                    L"iexplore.exe",
+                    cmdline,
+                    NULL,
+                    SW_SHOW);
+   }
+}
+
+void CLampView::OnLaunchLink_Safari()
+{
+   UCString link;
+   GetRMBLink(link);
+   
+   if(!link.IsEmpty())
+   {
+      ShellExecuteW(NULL,
+                    L"open",
+                    L"safari.exe",
+                    link,
+                    NULL,
+                    SW_SHOW);
+   }
+}
+
+
+

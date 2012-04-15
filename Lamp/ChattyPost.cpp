@@ -1753,6 +1753,11 @@ int ChattyPost::DrawProfile(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
       hotspot.m_spot = textrect;
       hotspot.m_id = m_id;
       hotspots.push_back(hotspot);
+
+      hotspot.m_type = HST_POST_AREA;
+      hotspot.m_spot = myrect;
+      hotspot.m_id = m_id;
+      hotspots.push_back(hotspot);
    }
 
    return pos;
@@ -2039,6 +2044,11 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
 
             hotspot.m_type = HST_TEXT;
             hotspot.m_spot = textrect;
+            hotspot.m_id = m_id;
+            hotspots.push_back(hotspot);
+
+            hotspot.m_type = HST_POST_AREA;
+            hotspot.m_spot = myrect;
             hotspot.m_id = m_id;
             hotspots.push_back(hotspot);
          }
@@ -2611,6 +2621,11 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             hotspot.m_spot = textrect;
             hotspot.m_id = m_id;
             hotspots.push_back(hotspot);
+
+            hotspot.m_type = HST_POST_AREA;
+            hotspot.m_spot = myrect;
+            hotspot.m_id = m_id;
+            hotspots.push_back(hotspot);
          }
 
          m_height = pos - m_pos;
@@ -3109,6 +3124,11 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
 
                hotspot.m_type = HST_TEXT;
                hotspot.m_spot = textrect;
+               hotspot.m_id = m_id;
+               hotspots.push_back(hotspot);
+
+               hotspot.m_type = HST_POST_AREA;
+               hotspot.m_spot = myrect;
                hotspot.m_id = m_id;
                hotspots.push_back(hotspot);
 

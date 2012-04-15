@@ -318,13 +318,12 @@ BEGIN
     END
 END
 
+
 IDR_POPUP_EDIT MENU 
 BEGIN
     POPUP "Edit"
     BEGIN
         MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
-        MENUITEM SEPARATOR
-        MENUITEM "&Copy Link",                  ID_COPYLINK
         MENUITEM SEPARATOR
         MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
@@ -334,6 +333,9 @@ BEGIN
         MENUITEM "Google selected text",        ID_GOOGLE_SELECTED
         MENUITEM "Google selected, in quotes",  ID_GOOGLE_SELECTED_W_QUOTES
         MENUITEM "Wikipedia selected text",     ID_WIKIPEDIA_SELECTED
+        MENUITEM "Dictionary selected text",    ID_DIC_SELECTED
+        MENUITEM "Urban Dictionary selected text", ID_URBANDIC_SELECTED
+        MENUITEM "Wolfram selected text",       ID_WOLFRAM_SELECTED
         MENUITEM SEPARATOR
         MENUITEM "&Find Text\tCtrl+F",          ID_EDIT_FIND
         MENUITEM SEPARATOR
@@ -374,6 +376,15 @@ BEGIN
     BEGIN
         MENUITEM "&Copy Link",                  ID_COPYLINK
         MENUITEM "&Open Link in Browser",       ID_LAUNCHLINK
+        POPUP "Open Link in..."
+        BEGIN
+            MENUITEM "Chrome",                        ID_CHROME_OLI
+            MENUITEM "Chrome - Incognito",            ID_CHROME_INCOGNITO_OLI
+            MENUITEM "Firefox",                       ID_FIREFOX_OLI
+            MENUITEM "Internet Explorer",             ID_IE_OLI
+            MENUITEM "Internet Explorer - private",   ID_IE_PRIVATE_OLI
+            MENUITEM "Safari",                        ID_SAFARI_OLI
+        END
         MENUITEM "Open in &Tab",                ID_OPENINTAB
     END
 END

@@ -7347,7 +7347,7 @@ void CLampDoc::ReadProfile(const char *pText, int datasize)
 
       text += L" s[l{Web Page Versionl{forceout:http://chattyprofil.es/p/";
       text += m_profile_user;
-      text += L"}l}l]s\t";
+      text += L"}l}l\t";
 
       text += L"l{ShackMessagel{sendmessage:";
       text += m_profile_user;
@@ -7365,6 +7365,8 @@ void CLampDoc::ReadProfile(const char *pText, int datasize)
       {
          text += L" - l{Edit Profilel{http://chattyprofil.es/myprofile}l}l ";
       }
+
+      text += L"]s";
 
       titleblock_group->DecodeShackTagsString(text, true, true);
 
@@ -7408,6 +7410,11 @@ void CLampDoc::ReadProfile(const char *pText, int datasize)
 
       text += L"f{Gender}f\t";
       FindValue(data, i, L"sex");
+      if(data.IsEmpty())
+      {
+         FindValue(data, i, L"gender");
+      }
+
       if(data == L"M")
       {
          text += L"Male";

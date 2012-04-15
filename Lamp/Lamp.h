@@ -33,6 +33,7 @@ typedef enum
    SBT_HOVER
 }scrollbitype;
 
+
 typedef enum 
 {
    DT_THREAD       = 0,

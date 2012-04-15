@@ -119,6 +119,8 @@ protected:
    void CancelInertiaPanning();
    void TrackMouse(CPoint &point);
    void UpdateCurrentIdAsRoot(unsigned int id);
+
+   void GetRMBLink(UCString &link);
       
    void MakePosLegal();
    CDCSurface *m_backbuffer;
@@ -394,7 +396,19 @@ public:
    afx_msg void OnUpdateUseAuthorColor(CCmdUI *pCmdUI);
    afx_msg void OnUsersLOLs();
    afx_msg void OnUpdateUsersLOLs(CCmdUI *pCmdUI);
+   afx_msg void OnUrbanDicSelected();
+   afx_msg void OnUpdateUrbanDicSelected(CCmdUI *pCmdUI);
+   afx_msg void OnDicSelected();
+   afx_msg void OnUpdateDicSelected(CCmdUI *pCmdUI);
+   afx_msg void OnWolframSelected();
+   afx_msg void OnUpdateWolframSelected(CCmdUI *pCmdUI);
 
+   afx_msg void OnLaunchLink_Chrome();
+   afx_msg void OnLaunchLink_Chrome_Incognito();
+   afx_msg void OnLaunchLink_Firefox();
+   afx_msg void OnLaunchLink_IE();
+   afx_msg void OnLaunchLink_IE_Private();
+   afx_msg void OnLaunchLink_Safari();
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp

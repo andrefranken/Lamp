@@ -80,7 +80,8 @@ typedef enum
    HST_MOD_TOOL,
    HST_MOD_TOOL_ITEM,
    HST_SEND,
-   HST_MSG_INFO
+   HST_MSG_INFO,
+   HST_POST_AREA
 
 }hotspottype;
 

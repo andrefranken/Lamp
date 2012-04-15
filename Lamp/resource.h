@@ -162,15 +162,25 @@
 #define ID_LINE_THICKNESS_3             32877
 #define ID_USE_AUTHOR_COLOR_PREVIEW     32878
 #define ID_USERS_LOLS                   32879
+#define ID_URBANDIC_SELECTED            32880
+#define ID_CHROME_OLI                   32881
+#define ID_CHROME_INCOGNITO_OLI         32882
+#define ID_FIREFOX_OLI                  32883
+#define ID_IE_OLI                       32884
+#define ID_IE_PRIVATE_OLI               32885
+#define ID_SAFARI_OLI                   32886
+#define ID_DIC_SELECTED                 32887
+#define ID_WOLFRAM_SELECTED             32888
 
-#define ID_BOOKMARK_MENUITEM            32890
+
+#define ID_BOOKMARK_MENUITEM            32900
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        328
-#define _APS_NEXT_COMMAND_VALUE         32879
+#define _APS_NEXT_COMMAND_VALUE         32889
 #define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
