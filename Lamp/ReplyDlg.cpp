@@ -1313,7 +1313,30 @@ bool CReplyDlg::OnLButtonDown(UINT nFlags, CPoint point, bool &bCloseReplyDlg)
                      }
                      else
                      {
-                        m_pView->GetDocument()->PostReply(m_replytext, m_replytoid);
+                        bool filtered = false;
+                        std::set<UCString> &fpl = theApp.GetFilteredPhraseList();
+                        if(fpl.size() > 0)
+                        {
+                           std::set<UCString>::iterator it = fpl.begin();
+                           std::set<UCString>::iterator end = fpl.end();
+                           while(filtered == false && it != end)
+                           {
+                              if(m_replytext.Find((*it).Str(),NULL,false,true) != NULL)
+                              {
+                                 filtered = true;
+                              }
+                              it++;
+                           }
+                        }
+
+                        if(filtered)
+                        {
+                           m_pView->MessageBox(L"Your post contains a phrase you are filtering. Cannot post this.");
+                        }
+                        else
+                        {
+                           m_pView->GetDocument()->PostReply(m_replytext, m_replytoid);
+                        }
                      }
                   }
                   break;

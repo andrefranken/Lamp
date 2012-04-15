@@ -408,6 +408,10 @@ void ChattyPost::ReadRootChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_itera
    DecodeString(body_temp,m_bodytext,m_shacktags);
    m_bodytext.ReplaceAll(0x02C2,L'<');
    m_bodytext.ReplaceAll(0x02C3,L'>');
+   if(m_bodytext.IsEmpty())
+   {
+      m_bodytext = L" ";
+   }
    //m_bodytext.MakeNormal();
    SetupCharWidths();
    m_lines_of_text.clear();
@@ -568,6 +572,10 @@ void ChattyPost::ReadPostPreviewChattyFromHTML(tree<htmlcxx::HTML::Node>::siblin
       DecodeString(body_temp,m_bodytext,m_shacktags);
       m_bodytext.ReplaceAll(0x02C2,L'<');
       m_bodytext.ReplaceAll(0x02C3,L'>');
+      if(m_bodytext.IsEmpty())
+      {
+         m_bodytext = L" ";
+      }
       //m_bodytext.MakeNormal();
       SetupCharWidths();
       m_lines_of_text.clear();
@@ -667,6 +675,10 @@ void ChattyPost::ReadKnownPostChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_
    DecodeString(body_temp,m_bodytext,m_shacktags);
    m_bodytext.ReplaceAll(0x02C2,L'<');
    m_bodytext.ReplaceAll(0x02C3,L'>');
+   if(m_bodytext.IsEmpty())
+   {
+      m_bodytext = L" ";
+   }
 }
 
 void ChattyPost::ReadSearchResultFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &result_it, CLampDoc *pDoc)
@@ -748,6 +760,10 @@ void ChattyPost::ReadSearchResultFromHTML(tree<htmlcxx::HTML::Node>::sibling_ite
    DecodeShackTagsString(body);
    m_bodytext.ReplaceAll(0x02C2,L'<');
    m_bodytext.ReplaceAll(0x02C3,L'>');
+   if(m_bodytext.IsEmpty())
+   {
+      m_bodytext = L" ";
+   }
 
    SetupCharWidths();
    m_lines_of_text.clear();
@@ -897,7 +913,10 @@ void ChattyPost::ReadMessageFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator
    DecodeShackTagsString(body,false,true);
    m_bodytext.ReplaceAll(0x02C2,L'<');
    m_bodytext.ReplaceAll(0x02C3,L'>');
-
+   if(m_bodytext.IsEmpty())
+   {
+      m_bodytext = L" ";
+   }
    //m_bodytext.MakeNormal();
    SetupCharWidths();
    m_lines_of_text.clear();
@@ -925,11 +944,16 @@ void ChattyPost::ReadLOL(CLampDoc *pDoc,
    RemoveSomeTags(m_author);
    UpdateAuthorColor();
    m_id = id;
+
    m_bodytext = L"";
    m_shacktags.clear();
    DecodeString(body,m_bodytext,m_shacktags);
    m_bodytext.ReplaceAll(0x02C2,L'<');
    m_bodytext.ReplaceAll(0x02C3,L'>');
+   if(m_bodytext.IsEmpty())
+   {
+      m_bodytext = L" ";
+   }
    SetupCharWidths();
    m_lines_of_text.clear();
    m_charsizes.clear();
@@ -1068,11 +1092,16 @@ void ChattyPost::Read(CXMLElement *pElement, CLampDoc *pDoc, bool bDoingNewFlags
       if(pBody != NULL)
       {
          UCString &temp = pBody->GetValue();
+
          m_bodytext = L"";
          m_shacktags.clear();
          DecodeString(temp,m_bodytext,m_shacktags);
          m_bodytext.ReplaceAll(0x02C2,L'<');
          m_bodytext.ReplaceAll(0x02C3,L'>');
+         if(m_bodytext.IsEmpty())
+         {
+            m_bodytext = L" ";
+         }
          //m_bodytext.MakeNormal();
          SetupCharWidths();
          m_lines_of_text.clear();
@@ -1286,12 +1315,16 @@ void ChattyPost::ReadShackMessage(CXMLElement *pElement, CLampDoc *pDoc, bool bI
       body.Replace(L"<br>",L"<br/>");
       body.Replace(L"<p>",L"");
       body.Replace(L"</p>",L"");
-            
+
       m_bodytext = L"";
       m_shacktags.clear();
       DecodeString(body,m_bodytext,m_shacktags);
       m_bodytext.ReplaceAll(0x02C2,L'<');
       m_bodytext.ReplaceAll(0x02C3,L'>');
+      if(m_bodytext.IsEmpty())
+      {
+         m_bodytext = L" ";
+      }
       //m_bodytext.MakeNormal();
       SetupCharWidths();
       m_lines_of_text.clear();
@@ -1345,6 +1378,7 @@ void ChattyPost::ReadSearchResult(CXMLElement *pElement, CLampDoc *pDoc)
       body += temp;
       body += L"</span></i>";
       */
+
       m_bodytext = L"";
 
       DecodeShackTagsString(body);
@@ -1353,6 +1387,10 @@ void ChattyPost::ReadSearchResult(CXMLElement *pElement, CLampDoc *pDoc)
       //DecodeString(body,m_bodytext,m_shacktags);
       m_bodytext.ReplaceAll(0x02C2,L'<');
       m_bodytext.ReplaceAll(0x02C3,L'>');
+      if(m_bodytext.IsEmpty())
+      {
+         m_bodytext = L" ";
+      }
       //m_bodytext.MakeNormal();
       SetupCharWidths();
       m_lines_of_text.clear();
