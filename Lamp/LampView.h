@@ -252,6 +252,10 @@ public:
    afx_msg void OnUpdateEditUndo(CCmdUI *pCmdUI);
    afx_msg void OnCopyLink();
    afx_msg void OnUpdateCopyLink(CCmdUI *pCmdUI);
+   afx_msg void OnCopyPost();
+   afx_msg void OnUpdateCopyPost(CCmdUI *pCmdUI);
+   afx_msg void OnCopyName();
+   afx_msg void OnUpdateCopyName(CCmdUI *pCmdUI);
    afx_msg void OnLaunchLink();
    afx_msg void OnUpdateLaunchLink(CCmdUI *pCmdUI);
    afx_msg void OnTimer(UINT_PTR nIDEvent);

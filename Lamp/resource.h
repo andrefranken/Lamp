@@ -188,6 +188,8 @@
 #define ID_IE_PRIVATE_DEF_NWS           32901
 #define ID_SAFARI_DEF_NWS               32902
 #define ID_ALLOW_GDIPLUS                32903
+#define ID_COPY_NAME                    32904
+#define ID_COPYPOST                     32905
 
 #define ID_BOOKMARK_MENUITEM            32920
 

@@ -63,6 +63,10 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_EDIT_NEWTHREAD, &CLampView::OnUpdateEditNewthread)
    ON_COMMAND(ID_COPYLINK, &CLampView::OnCopyLink)
    ON_UPDATE_COMMAND_UI(ID_COPYLINK, &CLampView::OnUpdateCopyLink)
+   ON_COMMAND(ID_COPY_NAME, &CLampView::OnCopyName)
+   ON_UPDATE_COMMAND_UI(ID_COPY_NAME, &CLampView::OnUpdateCopyName)
+   ON_COMMAND(ID_COPYPOST, &CLampView::OnCopyPost)
+   ON_UPDATE_COMMAND_UI(ID_COPYPOST, &CLampView::OnUpdateCopyPost)
    ON_COMMAND(ID_LAUNCHLINK, &CLampView::OnLaunchLink)
    ON_UPDATE_COMMAND_UI(ID_LAUNCHLINK, &CLampView::OnUpdateLaunchLink)
    ON_COMMAND(ID_CHROME_OLI, &CLampView::OnLaunchLink_Chrome)
@@ -605,6 +609,7 @@ void CLampView::OnContextMenu(CWnd* pWnd, CPoint point)
    m_rbuttonmenufromid = 0;
 
    bool bDoLink = false;
+   bool bDoAuthor = false;
 
    for(size_t i = 0; i < m_hotspots.size(); i++)
    {
@@ -623,6 +628,17 @@ void CLampView::OnContextMenu(CWnd* pWnd, CPoint point)
          {
             bDoLink = true;
          }
+
+         else if(m_hotspots[i].m_type == HST_AUTHOR ||
+                 m_hotspots[i].m_type == HST_AUTHORPREVIEW)
+         {
+            ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
+            if(post != NULL)
+            {
+               m_authorname_clicked = post->GetAuthor();
+               bDoAuthor = true;
+            }
+         }
          else if(m_hotspots[i].m_type == HST_TEXT ||
                  m_hotspots[i].m_type == HST_POST_AREA)
          {
@@ -635,6 +651,10 @@ void CLampView::OnContextMenu(CWnd* pWnd, CPoint point)
 	if(bDoLink)
    {
       theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_COPYLINK_MENU, point.x, point.y, this, TRUE);
+   }
+   else if(bDoAuthor)
+   {
+      theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_USERLINK_MENU, point.x, point.y, this, TRUE);
    }
    else
    {
@@ -3722,7 +3742,8 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                                  if(!bIsLocal)
                                  {
                                     bool NWS = false;
-                                    if(pPost->IsNWSPost())
+                                    if(pPost->IsNWSPost() || 
+                                       GetAsyncKeyState(VK_CONTROL) & 0xFF00)
                                     {
                                        NWS = true;
                                     }
@@ -4456,7 +4477,8 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
                      if(pPost != NULL)
                      {
                         bool NWS = false;
-                        if(pPost->IsNWSPost())
+                        if(pPost->IsNWSPost() || 
+                           GetAsyncKeyState(VK_CONTROL) & 0xFF00)
                         {
                            NWS = true;
                         }
@@ -4473,7 +4495,8 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
                      if(pPost != NULL)
                      {
                         bool NWS = false;
-                        if(pPost->IsNWSPost())
+                        if(pPost->IsNWSPost() || 
+                           GetAsyncKeyState(VK_CONTROL) & 0xFF00)
                         {
                            NWS = true;
                         }
@@ -4490,7 +4513,8 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
                      if(pPost != NULL)
                      {
                         bool NWS = false;
-                        if(pPost->IsNWSPost())
+                        if(pPost->IsNWSPost() || 
+                           GetAsyncKeyState(VK_CONTROL) & 0xFF00)
                         {
                            NWS = true;
                         }
@@ -4507,7 +4531,8 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
                      if(pPost != NULL)
                      {
                         bool NWS = false;
-                        if(pPost->IsNWSPost())
+                        if(pPost->IsNWSPost() || 
+                           GetAsyncKeyState(VK_CONTROL) & 0xFF00)
                         {
                            NWS = true;
                         }
@@ -4516,6 +4541,26 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
                         theApp.OpenShackLink(link,NWS);
                      }
                      bHandled = true;
+                  }
+                  break;
+               case HST_AUTHOR:
+               case HST_AUTHORPREVIEW:
+                  {
+                     ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
+                     if(post != NULL)
+                     {
+                        UCString authorname = post->GetAuthor();
+                        if(!authorname.IsEmpty())
+                        {
+                           theApp.SetLastSearchParms(authorname, UCString(), UCString(), UCString(), UCString());
+
+                           UCString path = L"PROFILE:";
+                           path += authorname;
+
+                           theApp.OpenDocumentFile(path);
+                           bHandled = true;
+                        }
+                     }
                   }
                   break;
                }
@@ -5264,12 +5309,56 @@ void CLampView::OnUpdateEditNewthread(CCmdUI *pCmdUI)
 
 void CLampView::OnCopyLink()
 {
-   UCString link;
-   GetRMBLink(link);
-   
-   if(!link.IsEmpty())
+   for(size_t i = 0; i < m_hotspots.size(); i++)
    {
-      link.PushToClipboard();
+      if(m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
+
+         m_rbuttondownpoint.x < m_hotspots[i].m_spot.right &&
+         m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
+         m_rbuttondownpoint.y < m_hotspots[i].m_spot.bottom &&
+         (m_hotspots[i].m_type == HST_LINK ||
+          m_hotspots[i].m_type == HST_IMAGE_LINK ||
+          m_hotspots[i].m_type == HST_IMAGE ||
+          m_hotspots[i].m_type == HST_THUMB ||
+          m_hotspots[i].m_type == HST_OPENINTAB ||
+          m_hotspots[i].m_type == HST_PIN ||
+          m_hotspots[i].m_type == HST_REFRESH ||
+          m_hotspots[i].m_type == HST_REPLIESTOROOTPOSTHINT ||
+          (m_hotspots[i].m_type == HST_POST_AREA && GetDocument()->GetDataType() != DDT_SHACKMSG) ||
+          (m_hotspots[i].m_type == HST_TEXT && GetDocument()->GetDataType() != DDT_SHACKMSG)))
+      {
+         ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+         if(pPost != NULL)
+         {
+            UCString link;
+            if(m_hotspots[i].m_type == HST_LINK)
+            {
+               pPost->GetLink(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
+            }
+            else if(m_hotspots[i].m_type == HST_IMAGE_LINK)
+            {
+               pPost->GetImageLink(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
+            }
+            else if(m_hotspots[i].m_type == HST_IMAGE)
+            {
+               pPost->GetLinkToImage(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
+            }
+            else if(m_hotspots[i].m_type == HST_THUMB)
+            {
+               pPost->GetLinkToThumb(m_rbuttondownpoint.x, m_rbuttondownpoint.y, link);
+            }
+            else
+            {
+               unsigned int id = GetDocument()->GetID(m_hotspots[i].m_id);
+
+               link = L"http://www.shacknews.com/chatty?id=";
+               link += id;
+            }
+
+            link.PushToClipboard();
+         }
+         break;
+      }
    }
 }
 
@@ -5277,14 +5366,111 @@ void CLampView::OnUpdateCopyLink(CCmdUI *pCmdUI)
 {
    BOOL enable = FALSE;
 
-   UCString link;
-   GetRMBLink(link);
-   
-   if(!link.IsEmpty())
+   for(size_t i = 0; i < m_hotspots.size(); i++)
    {
-      enable = TRUE;
+      if(m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
+         m_rbuttondownpoint.x < m_hotspots[i].m_spot.right &&
+         m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
+         m_rbuttondownpoint.y < m_hotspots[i].m_spot.bottom &&
+         (m_hotspots[i].m_type == HST_LINK ||
+          m_hotspots[i].m_type == HST_IMAGE_LINK ||
+          m_hotspots[i].m_type == HST_IMAGE ||
+          m_hotspots[i].m_type == HST_THUMB ||
+          m_hotspots[i].m_type == HST_OPENINTAB ||
+          m_hotspots[i].m_type == HST_PIN ||
+          m_hotspots[i].m_type == HST_REFRESH ||
+          m_hotspots[i].m_type == HST_REPLIESTOROOTPOSTHINT ||
+          (m_hotspots[i].m_type == HST_POST_AREA && GetDocument()->GetDataType() != DDT_SHACKMSG) ||
+          (m_hotspots[i].m_type == HST_TEXT && GetDocument()->GetDataType() != DDT_SHACKMSG)))
+      {
+         ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+         if(pPost != NULL)
+         {
+            enable = TRUE;
+         }
+         break;
+      }
    }
    pCmdUI->Enable(enable);
+}
+
+void CLampView::OnCopyPost()
+{
+   for(size_t i = 0; i < m_hotspots.size(); i++)
+   {
+      if(m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
+
+         m_rbuttondownpoint.x < m_hotspots[i].m_spot.right &&
+         m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
+         m_rbuttondownpoint.y < m_hotspots[i].m_spot.bottom &&
+         (m_hotspots[i].m_type == HST_LINK ||
+          m_hotspots[i].m_type == HST_IMAGE_LINK ||
+          m_hotspots[i].m_type == HST_IMAGE ||
+          m_hotspots[i].m_type == HST_THUMB ||
+          m_hotspots[i].m_type == HST_OPENINTAB ||
+          m_hotspots[i].m_type == HST_PIN ||
+          m_hotspots[i].m_type == HST_REFRESH ||
+          m_hotspots[i].m_type == HST_REPLIESTOROOTPOSTHINT ||
+          (m_hotspots[i].m_type == HST_POST_AREA && GetDocument()->GetDataType() != DDT_SHACKMSG) ||
+          (m_hotspots[i].m_type == HST_TEXT && GetDocument()->GetDataType() != DDT_SHACKMSG)))
+      {
+         ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+         if(pPost != NULL)
+         {
+            UCString text = pPost->GetAuthor();
+            text += L" :\r\n";
+            text += pPost->GetBodyText();
+            
+            text.PushToClipboard();
+         }
+         break;
+      }
+   }
+}
+
+void CLampView::OnUpdateCopyPost(CCmdUI *pCmdUI)
+{
+   BOOL enable = FALSE;
+
+   for(size_t i = 0; i < m_hotspots.size(); i++)
+   {
+      if(m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
+         m_rbuttondownpoint.x < m_hotspots[i].m_spot.right &&
+         m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
+         m_rbuttondownpoint.y < m_hotspots[i].m_spot.bottom &&
+         (m_hotspots[i].m_type == HST_LINK ||
+          m_hotspots[i].m_type == HST_IMAGE_LINK ||
+          m_hotspots[i].m_type == HST_IMAGE ||
+          m_hotspots[i].m_type == HST_THUMB ||
+          m_hotspots[i].m_type == HST_OPENINTAB ||
+          m_hotspots[i].m_type == HST_PIN ||
+          m_hotspots[i].m_type == HST_REFRESH ||
+          m_hotspots[i].m_type == HST_REPLIESTOROOTPOSTHINT ||
+          (m_hotspots[i].m_type == HST_POST_AREA && GetDocument()->GetDataType() != DDT_SHACKMSG) ||
+          (m_hotspots[i].m_type == HST_TEXT && GetDocument()->GetDataType() != DDT_SHACKMSG)))
+      {
+         ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+         if(pPost != NULL)
+         {
+            enable = TRUE;
+         }
+         break;
+      }
+   }
+   pCmdUI->Enable(enable);
+}
+
+void CLampView::OnCopyName()
+{
+   if(!m_authorname_clicked.IsEmpty())
+   {
+      m_authorname_clicked.PushToClipboard();
+   }
+}
+
+void CLampView::OnUpdateCopyName(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
 }
 
 ChattyPost *CLampView::GetRMBLink(UCString &link)
@@ -5350,8 +5536,9 @@ void CLampView::OnLaunchLink()
    {
       bool NWS = false;
 
-      if(post != NULL &&
-         post->IsNWSPost())
+      if((post != NULL &&
+         post->IsNWSPost()) || 
+         GetAsyncKeyState(VK_CONTROL) & 0xFF00)
       {
          NWS = true;
       }

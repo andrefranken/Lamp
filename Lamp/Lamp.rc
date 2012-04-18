@@ -345,6 +345,9 @@ BEGIN
     BEGIN
         MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
         MENUITEM SEPARATOR
+        MENUITEM "&Copy Link",                  ID_COPYLINK
+        MENUITEM "&Copy Post",                  ID_COPYPOST
+        MENUITEM SEPARATOR
         MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
         MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
@@ -417,6 +420,8 @@ BEGIN
         MENUITEM "Send Message",                ID_SENDMESSAGE
         MENUITEM "View Comments",               ID_VIEWCOMMENTS
         MENUITEM "View LOLs",                   ID_USERS_LOLS
+        MENUITEM SEPARATOR
+        MENUITEM "Copy Name to Clipboard",      ID_COPY_NAME
     END
 END
 
@@ -457,7 +462,7 @@ CAPTION "About Lamp"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
-    LTEXT           "Lamp, Version 2.7",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Lamp, Version 2.8",IDC_STATIC,42,14,114,8,SS_NOPREFIX
     LTEXT           "Copyright (C) 2011",IDC_STATIC,42,26,114,8
     DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
     PUSHBUTTON      "Traffic",ID_NETWORK_TRAFFIC_ID,10,41,50,14
@@ -593,8 +598,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,7,0,0
- PRODUCTVERSION 2,7,0,0
+ FILEVERSION 2,8,0,0
+ PRODUCTVERSION 2,8,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -612,12 +617,12 @@ BEGIN
             VALUE "Comments", "Why are you reading this?"
             VALUE "CompanyName", "FooBar INC."
             VALUE "FileDescription", "Lamp"
-            VALUE "FileVersion", "2.7"
+            VALUE "FileVersion", "2.8"
             VALUE "InternalName", "Lamp.exe"
             VALUE "LegalCopyright", "Whatever"
             VALUE "OriginalFilename", "Lamp.exe"
             VALUE "ProductName", "Lamp"
-            VALUE "ProductVersion", "2.7"
+            VALUE "ProductVersion", "2.8"
         END
     END
     BLOCK "VarFileInfo"
