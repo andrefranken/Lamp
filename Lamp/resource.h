@@ -173,14 +173,30 @@
 #define ID_SAFARI_OLI                   32886
 #define ID_DIC_SELECTED                 32887
 #define ID_WOLFRAM_SELECTED             32888
-#define ID_BOOKMARK_MENUITEM            32900
+#define ID_SYSTEM_DEF                   32889
+#define ID_CHROME_DEF                   32890
+#define ID_CHROME_INCOGNITO_DEF         32891
+#define ID_FIREFOX_DEF                  32892
+#define ID_IE_DEF                       32893
+#define ID_IE_PRIVATE_DEF               32894
+#define ID_SAFARI_DEF                   32895
+#define ID_SYSTEM_DEF_NWS               32896
+#define ID_CHROME_DEF_NWS               32897
+#define ID_CHROME_INCOGNITO_DEF_NWS     32898
+#define ID_FIREFOX_DEF_NWS              32899
+#define ID_IE_DEF_NWS                   32900
+#define ID_IE_PRIVATE_DEF_NWS           32901
+#define ID_SAFARI_DEF_NWS               32902
+#define ID_ALLOW_GDIPLUS                32903
+
+#define ID_BOOKMARK_MENUITEM            32920
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        329
-#define _APS_NEXT_COMMAND_VALUE         32889
+#define _APS_NEXT_COMMAND_VALUE         32921
 #define _APS_NEXT_CONTROL_VALUE         1023
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

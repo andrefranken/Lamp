@@ -209,6 +209,36 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_USE_AUTHOR_COLOR_PREVIEW, &CLampView::OnUpdateUseAuthorColor)
    ON_COMMAND(ID_USERS_LOLS, &CLampView::OnUsersLOLs)
    ON_UPDATE_COMMAND_UI(ID_USERS_LOLS, &CLampView::OnUpdateUsersLOLs)
+   ON_COMMAND(ID_SYSTEM_DEF, &CLampView::OnSystemDef)
+   ON_COMMAND(ID_CHROME_DEF, &CLampView::OnChromeDef)
+   ON_COMMAND(ID_CHROME_INCOGNITO_DEF, &CLampView::OnChromeIncognitoDef)
+   ON_COMMAND(ID_FIREFOX_DEF, &CLampView::OnFirefoxDef)
+   ON_COMMAND(ID_IE_DEF, &CLampView::OnIEDef)
+   ON_COMMAND(ID_IE_PRIVATE_DEF, &CLampView::OnIEPrivateDef)
+   ON_COMMAND(ID_SAFARI_DEF, &CLampView::OnSafariDef)
+   ON_UPDATE_COMMAND_UI(ID_SYSTEM_DEF, &CLampView::OnUpdateSystemDef)
+   ON_UPDATE_COMMAND_UI(ID_CHROME_DEF, &CLampView::OnUpdateChromeDef)
+   ON_UPDATE_COMMAND_UI(ID_CHROME_INCOGNITO_DEF, &CLampView::OnUpdateChromeIncognitoDef)
+   ON_UPDATE_COMMAND_UI(ID_FIREFOX_DEF, &CLampView::OnUpdateFirefoxDef)
+   ON_UPDATE_COMMAND_UI(ID_IE_DEF, &CLampView::OnUpdateIEDef)
+   ON_UPDATE_COMMAND_UI(ID_IE_PRIVATE_DEF, &CLampView::OnUpdateIEPrivateDef)
+   ON_UPDATE_COMMAND_UI(ID_SAFARI_DEF, &CLampView::OnUpdateSafariDef)
+   ON_COMMAND(ID_SYSTEM_DEF_NWS, &CLampView::OnSystemDef_nws)
+   ON_COMMAND(ID_CHROME_DEF_NWS, &CLampView::OnChromeDef_nws)
+   ON_COMMAND(ID_CHROME_INCOGNITO_DEF_NWS, &CLampView::OnChromeIncognitoDef_nws)
+   ON_COMMAND(ID_FIREFOX_DEF_NWS, &CLampView::OnFirefoxDef_nws)
+   ON_COMMAND(ID_IE_DEF_NWS, &CLampView::OnIEDef_nws)
+   ON_COMMAND(ID_IE_PRIVATE_DEF_NWS, &CLampView::OnIEPrivateDef_nws)
+   ON_COMMAND(ID_SAFARI_DEF_NWS, &CLampView::OnSafariDef_nws)
+   ON_UPDATE_COMMAND_UI(ID_SYSTEM_DEF_NWS, &CLampView::OnUpdateSystemDef_nws)
+   ON_UPDATE_COMMAND_UI(ID_CHROME_DEF_NWS, &CLampView::OnUpdateChromeDef_nws)
+   ON_UPDATE_COMMAND_UI(ID_CHROME_INCOGNITO_DEF_NWS, &CLampView::OnUpdateChromeIncognitoDef_nws)
+   ON_UPDATE_COMMAND_UI(ID_FIREFOX_DEF_NWS, &CLampView::OnUpdateFirefoxDef_nws)
+   ON_UPDATE_COMMAND_UI(ID_IE_DEF_NWS, &CLampView::OnUpdateIEDef_nws)
+   ON_UPDATE_COMMAND_UI(ID_IE_PRIVATE_DEF_NWS, &CLampView::OnUpdateIEPrivateDef_nws)
+   ON_UPDATE_COMMAND_UI(ID_SAFARI_DEF_NWS, &CLampView::OnUpdateSafariDef_nws)
+   ON_COMMAND(ID_ALLOW_GDIPLUS, &CLampView::OnAllowGDIPlus)
+   ON_UPDATE_COMMAND_UI(ID_ALLOW_GDIPLUS, &CLampView::OnUpdateAllowGDIPlus)
 
    END_MESSAGE_MAP()
 
@@ -2962,6 +2992,7 @@ void CLampView::CloseReplyDialog()
 
 void CLampView::OnLButtonDown(UINT nFlags, CPoint point) 
 {
+   SetFocus();
    SetCapture();   
    m_gotopos = m_pos;
    CancelInertiaPanning();
@@ -3690,7 +3721,12 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                                  
                                  if(!bIsLocal)
                                  {
-                                    theApp.OpenShackLink(link);
+                                    bool NWS = false;
+                                    if(pPost->IsNWSPost())
+                                    {
+                                       NWS = true;
+                                    }
+                                    theApp.OpenShackLink(link,NWS);
                                  }
                               }
                            }
@@ -4419,9 +4455,14 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
                      ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
                      if(pPost != NULL)
                      {
+                        bool NWS = false;
+                        if(pPost->IsNWSPost())
+                        {
+                           NWS = true;
+                        }
                         UCString link;
                         pPost->GetLink(m_mousepoint.x, m_mousepoint.y, link);
-                        theApp.OpenShackLink(link);
+                        theApp.OpenShackLink(link,NWS);
                      }
                      bHandled = true;
                   }
@@ -4431,9 +4472,14 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
                      ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
                      if(pPost != NULL)
                      {
+                        bool NWS = false;
+                        if(pPost->IsNWSPost())
+                        {
+                           NWS = true;
+                        }
                         UCString link;
                         pPost->GetImageLink(m_mousepoint.x, m_mousepoint.y, link);
-                        theApp.OpenShackLink(link);
+                        theApp.OpenShackLink(link,NWS);
                      }
                      bHandled = true;
                   }
@@ -4443,9 +4489,14 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
                      ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
                      if(pPost != NULL)
                      {
+                        bool NWS = false;
+                        if(pPost->IsNWSPost())
+                        {
+                           NWS = true;
+                        }
                         UCString link;
                         pPost->GetLinkToImage(m_mousepoint.x, m_mousepoint.y, link);
-                        theApp.OpenShackLink(link);
+                        theApp.OpenShackLink(link,NWS);
                      }
                      bHandled = true;
                   }
@@ -4455,9 +4506,14 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
                      ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
                      if(pPost != NULL)
                      {
+                        bool NWS = false;
+                        if(pPost->IsNWSPost())
+                        {
+                           NWS = true;
+                        }
                         UCString link;
                         pPost->GetLinkToThumb(m_mousepoint.x, m_mousepoint.y, link);
-                        theApp.OpenShackLink(link);
+                        theApp.OpenShackLink(link,NWS);
                      }
                      bHandled = true;
                   }
@@ -5231,8 +5287,10 @@ void CLampView::OnUpdateCopyLink(CCmdUI *pCmdUI)
    pCmdUI->Enable(enable);
 }
 
-void CLampView::GetRMBLink(UCString &link)
+ChattyPost *CLampView::GetRMBLink(UCString &link)
 {
+   ChattyPost *result = NULL;
+
    for(size_t i = 0; i < m_hotspots.size(); i++)
    {
       if(m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
@@ -5273,25 +5331,32 @@ void CLampView::GetRMBLink(UCString &link)
                link = L"http://www.shacknews.com/chatty?id=";
                link += id;
             }
+
+            result = pPost;
          }
          break;
       }
    }
+
+   return result;
 }
 
 void CLampView::OnLaunchLink()
 {
    UCString link;
-   GetRMBLink(link);
+   ChattyPost *post = GetRMBLink(link);
    
    if(!link.IsEmpty())
    {
-      ShellExecuteW(NULL,
-                    L"open",
-                    link,
-                    NULL,
-                    NULL,
-                    SW_SHOW);
+      bool NWS = false;
+
+      if(post != NULL &&
+         post->IsNWSPost())
+      {
+         NWS = true;
+      }
+
+      theApp.LaunchLinkInDefaultBrowser(link, NWS);
    }
 }
 
@@ -7225,12 +7290,39 @@ void CLampView::OnLaunchLink_Chrome()
    
    if(!link.IsEmpty())
    {
-      ShellExecuteW(NULL,
-                    L"open",
-                    L"chrome.exe",
-                    link,
-                    NULL,
-                    SW_SHOW);
+      HINSTANCE hInst = ShellExecuteW(NULL,
+                                      L"open",
+                                      L"chrome.exe",
+                                      link,
+                                      NULL,
+                                      SW_SHOW);
+
+      if((int)hInst == ERROR_FILE_NOT_FOUND ||
+         (int)hInst == ERROR_PATH_NOT_FOUND)
+      {
+         UCChar buffer[MAX_PATH];
+         buffer[0] = 0;
+         ::GetEnvironmentVariable(L"USERPROFILE",buffer,MAX_PATH);
+
+         if(buffer[0])
+         {
+            UCString file = buffer;
+
+            if(file.endswith(L"\\") == NULL)
+            {
+               file += L"\\";
+            }
+
+            file += L"AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
+                     
+            ShellExecuteW(NULL,
+                          L"open",
+                          file,
+                          link,
+                          NULL,
+                          SW_SHOW);
+         }
+      }
    }
 }
 
@@ -7243,13 +7335,40 @@ void CLampView::OnLaunchLink_Chrome_Incognito()
    {
       UCString cmdline = L"--incognito ";
       cmdline += link;
+            
+      HINSTANCE hInst = ShellExecuteW(NULL,
+                                      L"open",
+                                      L"chrome.exe",
+                                      cmdline,
+                                      NULL,
+                                      SW_SHOW);
 
-      ShellExecuteW(NULL,
-                    L"open",
-                    L"chrome.exe",
-                    cmdline,
-                    NULL,
-                    SW_SHOW);
+      if((int)hInst == ERROR_FILE_NOT_FOUND ||
+         (int)hInst == ERROR_PATH_NOT_FOUND)
+      {
+         UCChar buffer[MAX_PATH];
+         buffer[0] = 0;
+         ::GetEnvironmentVariable(L"USERPROFILE",buffer,MAX_PATH);
+
+         if(buffer[0])
+         {
+            UCString file = buffer;
+
+            if(file.endswith(L"\\") == NULL)
+            {
+               file += L"\\";
+            }
+
+            file += L"AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
+                     
+            ShellExecuteW(NULL,
+                          L"open",
+                          file,
+                          cmdline,
+                          NULL,
+                          SW_SHOW);
+         }
+      }
    }
 }
 
@@ -7323,3 +7442,264 @@ void CLampView::OnLaunchLink_Safari()
 
 
 
+void CLampView::OnSystemDef()
+{
+   theApp.SetDefaultBrowserType(BT_SYSTEM);
+}
+
+void CLampView::OnChromeDef()
+{
+   theApp.SetDefaultBrowserType(BT_CHROME);
+}
+
+void CLampView::OnChromeIncognitoDef()
+{
+   theApp.SetDefaultBrowserType(BT_CHROME_INCOGNITO);
+}
+
+void CLampView::OnFirefoxDef()
+{
+   theApp.SetDefaultBrowserType(BT_FIREFOX);
+}
+
+void CLampView::OnIEDef()
+{
+   theApp.SetDefaultBrowserType(BT_IE);
+}
+
+void CLampView::OnIEPrivateDef()
+{
+   theApp.SetDefaultBrowserType(BT_IE_PRIVATE);
+}
+
+void CLampView::OnSafariDef()
+{
+   theApp.SetDefaultBrowserType(BT_SAFARI);
+}
+
+void CLampView::OnUpdateSystemDef(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+   
+   if(theApp.GetDefaultBrowserType() == BT_SYSTEM)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnUpdateChromeDef(CCmdUI *pCmdUI)
+{
+   if(theApp.GetDefaultBrowserType() == BT_CHROME)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnUpdateChromeIncognitoDef(CCmdUI *pCmdUI)
+{
+   if(theApp.GetDefaultBrowserType() == BT_CHROME_INCOGNITO)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnUpdateFirefoxDef(CCmdUI *pCmdUI)
+{
+   if(theApp.GetDefaultBrowserType() == BT_FIREFOX)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnUpdateIEDef(CCmdUI *pCmdUI)
+{
+   if(theApp.GetDefaultBrowserType() == BT_IE)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnUpdateIEPrivateDef(CCmdUI *pCmdUI)
+{
+   if(theApp.GetDefaultBrowserType() == BT_IE_PRIVATE)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnUpdateSafariDef(CCmdUI *pCmdUI)
+{
+   if(theApp.GetDefaultBrowserType() == BT_SAFARI)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+///////////////////
+
+void CLampView::OnSystemDef_nws()
+{
+   theApp.SetDefaultBrowserType_NWS(BT_SYSTEM);
+}
+
+void CLampView::OnChromeDef_nws()
+{
+   theApp.SetDefaultBrowserType_NWS(BT_CHROME);
+}
+
+void CLampView::OnChromeIncognitoDef_nws()
+{
+   theApp.SetDefaultBrowserType_NWS(BT_CHROME_INCOGNITO);
+}
+
+void CLampView::OnFirefoxDef_nws()
+{
+   theApp.SetDefaultBrowserType_NWS(BT_FIREFOX);
+}
+
+void CLampView::OnIEDef_nws()
+{
+   theApp.SetDefaultBrowserType_NWS(BT_IE);
+}
+
+void CLampView::OnIEPrivateDef_nws()
+{
+   theApp.SetDefaultBrowserType_NWS(BT_IE_PRIVATE);
+}
+
+void CLampView::OnSafariDef_nws()
+{
+   theApp.SetDefaultBrowserType_NWS(BT_SAFARI);
+}
+
+void CLampView::OnUpdateSystemDef_nws(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+   
+   if(theApp.GetDefaultBrowserType_NWS() == BT_SYSTEM)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnUpdateChromeDef_nws(CCmdUI *pCmdUI)
+{
+   if(theApp.GetDefaultBrowserType_NWS() == BT_CHROME)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnUpdateChromeIncognitoDef_nws(CCmdUI *pCmdUI)
+{
+   if(theApp.GetDefaultBrowserType_NWS() == BT_CHROME_INCOGNITO)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnUpdateFirefoxDef_nws(CCmdUI *pCmdUI)
+{
+   if(theApp.GetDefaultBrowserType_NWS() == BT_FIREFOX)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnUpdateIEDef_nws(CCmdUI *pCmdUI)
+{
+   if(theApp.GetDefaultBrowserType_NWS() == BT_IE)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnUpdateIEPrivateDef_nws(CCmdUI *pCmdUI)
+{
+   if(theApp.GetDefaultBrowserType_NWS() == BT_IE_PRIVATE)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnUpdateSafariDef_nws(CCmdUI *pCmdUI)
+{
+   if(theApp.GetDefaultBrowserType_NWS() == BT_SAFARI)
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+
+void CLampView::OnAllowGDIPlus()
+{
+   theApp.allow_gdiplus(!theApp.allow_gdiplus());
+}
+
+void CLampView::OnUpdateAllowGDIPlus(CCmdUI *pCmdUI)
+{
+   if(theApp.allow_gdiplus())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}

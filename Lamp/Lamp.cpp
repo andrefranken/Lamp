@@ -880,6 +880,10 @@ CLampApp::CLampApp()
    wcscpy_s(m_new_messages_text,17,L"000 new messages");
 
    m_use_shack = true;
+   m_allow_gdiplus = true;
+
+   m_defaultbrowser = BT_SYSTEM;
+   m_defaultbrowser_nws = BT_SYSTEM;
 
    m_userid = 0;
 
@@ -1482,6 +1486,40 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_use_shack = setting->GetValue();
    else m_use_shack = true;
 
+   setting = hostxml.FindChildElement(L"allow_gdiplus");
+   if(setting!=NULL) m_allow_gdiplus = setting->GetValue();
+   else m_allow_gdiplus = true;
+
+   setting = hostxml.FindChildElement(L"default_browser");
+   if(setting!=NULL)
+   {
+      UCString temp = setting->GetValue();
+           if(temp == L"system")             m_defaultbrowser = BT_SYSTEM;
+      else if(temp == L"chrome")             m_defaultbrowser = BT_CHROME;
+      else if(temp == L"chrome_incognito")   m_defaultbrowser = BT_CHROME_INCOGNITO;
+      else if(temp == L"firefox")            m_defaultbrowser = BT_FIREFOX;
+      else if(temp == L"ie")                 m_defaultbrowser = BT_IE;
+      else if(temp == L"ie_private")         m_defaultbrowser = BT_IE_PRIVATE;
+      else if(temp == L"safari")             m_defaultbrowser = BT_SAFARI;
+      else m_defaultbrowser = BT_SYSTEM;
+   }
+   else m_defaultbrowser = BT_SYSTEM;
+
+   setting = hostxml.FindChildElement(L"default_browser_nws");
+   if(setting!=NULL)
+   {
+      UCString temp = setting->GetValue();
+           if(temp == L"system")             m_defaultbrowser_nws = BT_SYSTEM;
+      else if(temp == L"chrome")             m_defaultbrowser_nws = BT_CHROME;
+      else if(temp == L"chrome_incognito")   m_defaultbrowser_nws = BT_CHROME_INCOGNITO;
+      else if(temp == L"firefox")            m_defaultbrowser_nws = BT_FIREFOX;
+      else if(temp == L"ie")                 m_defaultbrowser_nws = BT_IE;
+      else if(temp == L"ie_private")         m_defaultbrowser_nws = BT_IE_PRIVATE;
+      else if(temp == L"safari")             m_defaultbrowser_nws = BT_SAFARI;
+      else m_defaultbrowser_nws = BT_SYSTEM;
+   }
+   else m_defaultbrowser_nws = BT_SYSTEM;
+
    setting = hostxml.FindChildElement(L"userhost");
    if(setting!=NULL) m_userhostname = setting->GetValue();
    else m_userhostname = L"shackapi.stonedonkey.com";
@@ -2004,6 +2042,34 @@ void CLampApp::WriteSettingsFile()
 
    settingsxml.AddChildComment(L"Should we use the Shack, as opposed to stonedonkey");
    settingsxml.AddChildElement(L"use_shack",UCString(m_use_shack));
+   settingsxml.AddChildElement(L"allow_gdiplus",UCString(m_allow_gdiplus));
+
+   UCString temp;
+   switch(m_defaultbrowser)
+   {
+   case BT_SYSTEM:           temp = L"system"; break;
+   case BT_CHROME:           temp = L"chrome"; break;
+   case BT_CHROME_INCOGNITO: temp = L"chrome_incognito"; break;
+   case BT_FIREFOX:          temp = L"firefox"; break;
+   case BT_IE:               temp = L"ie"; break;
+   case BT_IE_PRIVATE:       temp = L"ie_private"; break;
+   case BT_SAFARI:           temp = L"safari"; break;
+   default:                  temp = L"system"; break;
+   }
+   settingsxml.AddChildElement(L"default_browser",temp);
+
+   switch(m_defaultbrowser_nws)
+   {
+   case BT_SYSTEM:           temp = L"system"; break;
+   case BT_CHROME:           temp = L"chrome"; break;
+   case BT_CHROME_INCOGNITO: temp = L"chrome_incognito"; break;
+   case BT_FIREFOX:          temp = L"firefox"; break;
+   case BT_IE:               temp = L"ie"; break;
+   case BT_IE_PRIVATE:       temp = L"ie_private"; break;
+   case BT_SAFARI:           temp = L"safari"; break;
+   default:                  temp = L"system"; break;
+   }
+   settingsxml.AddChildElement(L"default_browser_nws",temp);
 
    settingsxml.AddChildComment(L"host for getting user info");
    settingsxml.AddChildElement(L"userhost",m_userhostname);
@@ -2091,7 +2157,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"quoted_fontname",m_quoted_fontname);
    settingsxml.AddChildElement(L"code_fontname",m_code_fontname);
 
-   UCString temp = GetRValue(m_text_selection_color);
+   temp = GetRValue(m_text_selection_color);
    temp += L',';
    temp += GetGValue(m_text_selection_color);
    temp += L',';
@@ -3001,19 +3067,89 @@ void CLampApp::SetStatusBarText(const UCString &text, CLampView *pView)
 }
 
 
-void CLampApp::OpenShackLink(const UCString &shackpath)
+void CLampApp::LaunchLinkInDefaultBrowser(const UCChar *link, bool NWS/* = false*/)
+{
+   UCString verb(L"open");
+   UCString file, parms;
+   if(NWS)
+   {
+      switch(m_defaultbrowser_nws)
+      {
+      case BT_SYSTEM:           file = link; break;
+      case BT_CHROME:           file = L"chrome.exe"; parms = link; break;
+      case BT_CHROME_INCOGNITO: file = L"chrome.exe"; parms = L"--incognito "; parms += link; break;
+      case BT_FIREFOX:          file = L"firefox.exe"; parms = link; break;
+      case BT_IE:               file = L"iexplore.exe"; parms = link; break;
+      case BT_IE_PRIVATE:       file = L"iexplore.exe"; parms = L"-private "; parms += link; break;
+      case BT_SAFARI:           file = L"safari.exe"; parms = link; break;
+      default:                  file = link; break;
+      }
+   }
+   else
+   {
+      switch(m_defaultbrowser)
+      {
+      case BT_SYSTEM:           file = link; break;
+      case BT_CHROME:           file = L"chrome.exe"; parms = link; break;
+      case BT_CHROME_INCOGNITO: file = L"chrome.exe"; parms = L"--incognito "; parms += link; break;
+      case BT_FIREFOX:          file = L"firefox.exe"; parms = link; break;
+      case BT_IE:               file = L"iexplore.exe"; parms = link; break;
+      case BT_IE_PRIVATE:       file = L"iexplore.exe"; parms = L"-private "; parms += link; break;
+      case BT_SAFARI:           file = L"safari.exe"; parms = link; break;
+      default:                  file = link; break;
+      }
+   }
+
+   const UCChar *pparms = NULL;
+   if(!parms.IsEmpty())
+   {
+      pparms = parms;
+   }
+
+   HINSTANCE hInst = ShellExecuteW(NULL,
+                                   verb,
+                                   file,
+                                   pparms,
+                                   NULL,
+                                   SW_SHOW);
+
+   if(((int)hInst == ERROR_FILE_NOT_FOUND ||
+       (int)hInst == ERROR_PATH_NOT_FOUND) &&
+      file == L"chrome.exe")
+   {
+      UCChar buffer[MAX_PATH];
+      buffer[0] = 0;
+      ::GetEnvironmentVariable(L"USERPROFILE",buffer,MAX_PATH);
+
+      if(buffer[0])
+      {
+         file = buffer;
+
+         if(file.endswith(L"\\") == NULL)
+         {
+            file += L"\\";
+         }
+
+         file += L"AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
+                  
+         ShellExecuteW(NULL,
+                       verb,
+                       file,
+                       pparms,
+                       NULL,
+                       SW_SHOW);
+      }
+   }
+}
+
+void CLampApp::OpenShackLink(const UCString &shackpath, bool NWS /*= false*/)
 {
    bool bIsMine = false;
 
    if(_wcsnicmp(shackpath,L"forceout:",9) == 0 &&
       shackpath.Length() > 9)
    {
-      ShellExecuteW(NULL,
-                    L"open",
-                    shackpath.Str() + 9,
-                    NULL,
-                    NULL,
-                    SW_SHOW);
+      LaunchLinkInDefaultBrowser(shackpath.Str() + 9, NWS);
    }
    else
    {   
@@ -3080,12 +3216,7 @@ void CLampApp::OpenShackLink(const UCString &shackpath)
       else
       {
          // must be an html link
-         ShellExecuteW(NULL,
-                       L"open",
-                       shackpath,
-                       NULL,
-                       NULL,
-                       SW_SHOW);
+         LaunchLinkInDefaultBrowser(shackpath, NWS);
       }
    }
 }

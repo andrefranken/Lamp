@@ -33,6 +33,17 @@ typedef enum
    SBT_HOVER
 }scrollbitype;
 
+typedef enum 
+{
+   BT_SYSTEM,
+   BT_CHROME,
+   BT_CHROME_INCOGNITO,
+   BT_FIREFOX,
+   BT_IE,
+   BT_IE_PRIVATE,
+   BT_SAFARI
+}browsertype;
+
 
 typedef enum 
 {
@@ -170,7 +181,7 @@ public:
 
    virtual CDocument* OpenDocumentFile(LPCTSTR lpszFileName);
 
-   void OpenShackLink(const UCString &shackpath);
+   void OpenShackLink(const UCString &shackpath, bool NWS = false);
 
    void SetStatusBarText(const UCString &text, CLampView *pView);
 
@@ -197,6 +208,9 @@ public:
    void UnloadAllImages();
 
    void UpdateTabSizes();
+
+   bool allow_gdiplus(){return m_allow_gdiplus;}
+   void allow_gdiplus(bool value){m_allow_gdiplus = value;}
 
    CDCSurface *GetLinkedImage(const UCString &link, unsigned int &index);
    CDCSurface *GetLinkedImage(unsigned int index);
@@ -911,6 +925,14 @@ public:
 
    void SetUseShack(bool value){m_use_shack = value;}
 
+   void SetDefaultBrowserType(browsertype browser){m_defaultbrowser = browser;}
+
+   browsertype GetDefaultBrowserType(){return m_defaultbrowser;}
+
+   void SetDefaultBrowserType_NWS(browsertype browser){m_defaultbrowser_nws = browser;}
+
+   browsertype GetDefaultBrowserType_NWS(){return m_defaultbrowser_nws;}
+
    bool IsPostKnown(unsigned int id);
 
    void KnowPost(unsigned int id, ChattyPost *post);
@@ -977,6 +999,8 @@ public:
    }
 
    void DisplayDownload();
+
+   void LaunchLinkInDefaultBrowser(const UCChar *link, bool NWS = false);
       
 // Overrides
 public:
@@ -1315,6 +1339,12 @@ protected:
    bool m_inverted_lol_previews;
 
    bool m_use_shack;
+
+   bool m_allow_gdiplus;
+
+   browsertype m_defaultbrowser;
+
+   browsertype m_defaultbrowser_nws;
 
    unsigned int m_userid;
 

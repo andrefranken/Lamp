@@ -231,12 +231,33 @@ BEGIN
             MENUITEM SEPARATOR
             MENUITEM "Unload all images from memory", ID_UNLOADALLIMAGES
         END
+        POPUP "Default Browser"
+        BEGIN
+            MENUITEM "System Default",              ID_SYSTEM_DEF           
+            MENUITEM "Chrome",                      ID_CHROME_DEF           
+            MENUITEM "Chrome - Incognito",          ID_CHROME_INCOGNITO_DEF 
+            MENUITEM "Firefox",                     ID_FIREFOX_DEF          
+            MENUITEM "Internet Explorer",           ID_IE_DEF               
+            MENUITEM "Internet Explorer - Private", ID_IE_PRIVATE_DEF       
+            MENUITEM "Safari",                      ID_SAFARI_DEF           
+        END
+        POPUP "Default Browser for NWS"
+        BEGIN
+            MENUITEM "System Default",              ID_SYSTEM_DEF_NWS           
+            MENUITEM "Chrome",                      ID_CHROME_DEF_NWS           
+            MENUITEM "Chrome - Incognito",          ID_CHROME_INCOGNITO_DEF_NWS 
+            MENUITEM "Firefox",                     ID_FIREFOX_DEF_NWS          
+            MENUITEM "Internet Explorer",           ID_IE_DEF_NWS               
+            MENUITEM "Internet Explorer - Private", ID_IE_PRIVATE_DEF_NWS       
+            MENUITEM "Safari",                      ID_SAFARI_DEF_NWS           
+        END
         MENUITEM "Smooth Scroll",               ID_VIEW_SMOOTHSCROLL
         MENUITEM "Allow Pinning",               ID_PINNING_MENUITEM
         MENUITEM "Clear All Pinnings",          ID_CLEAR_ALL_PINNINGS_MENUITEM
         MENUITEM "Double Size Pages in Chatty", ID_DOUBLE_PAGE_STORY_MENUITEM
         MENUITEM "Hide Collapsed Threads",      ID_HIDE_COLLAPSED_POSTS
         MENUITEM "Infinite Paging",             ID_INFINATE_PAGING
+        MENUITEM "Allow GDI+"                   ID_ALLOW_GDIPLUS
         MENUITEM "Go to New Post",              ID_GOTONEWPOST
         POPUP "LOL settings"
         BEGIN

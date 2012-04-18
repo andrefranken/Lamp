@@ -5384,7 +5384,7 @@ void CLampDoc::MyTextOut(HDC hDC, int x, int y, bool bSampleText, const UCChar *
       {
          //output what we have
          UINT thiscount = work - start;
-         if(bComplexShapeText/* && !g_bIsXP*/)
+         if(bComplexShapeText && theApp.allow_gdiplus())
          {
             GDIPLUS_TextOut(hDC, x, y, bSampleText, fupotions, pClipRect, start, thiscount, w);
          }
@@ -5410,7 +5410,7 @@ void CLampDoc::MyTextOut(HDC hDC, int x, int y, bool bSampleText, const UCChar *
    if(start < end)
    {
       //output the remainder
-      if(bComplexShapeText/* && !g_bIsXP*/)
+      if(bComplexShapeText && theApp.allow_gdiplus())
       {
          GDIPLUS_TextOut(hDC, x, y, bSampleText, fupotions, pClipRect, start, end - start, w);
       }

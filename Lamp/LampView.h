@@ -120,7 +120,7 @@ protected:
    void TrackMouse(CPoint &point);
    void UpdateCurrentIdAsRoot(unsigned int id);
 
-   void GetRMBLink(UCString &link);
+   ChattyPost *GetRMBLink(UCString &link);
       
    void MakePosLegal();
    CDCSurface *m_backbuffer;
@@ -409,6 +409,42 @@ public:
    afx_msg void OnLaunchLink_IE();
    afx_msg void OnLaunchLink_IE_Private();
    afx_msg void OnLaunchLink_Safari();
+
+   afx_msg void OnSystemDef();
+   afx_msg void OnChromeDef();
+   afx_msg void OnChromeIncognitoDef();
+   afx_msg void OnFirefoxDef();
+   afx_msg void OnIEDef();
+   afx_msg void OnIEPrivateDef();
+   afx_msg void OnSafariDef();
+
+   afx_msg void OnUpdateSystemDef(CCmdUI *pCmdUI);
+   afx_msg void OnUpdateChromeDef(CCmdUI *pCmdUI);
+   afx_msg void OnUpdateChromeIncognitoDef(CCmdUI *pCmdUI);
+   afx_msg void OnUpdateFirefoxDef(CCmdUI *pCmdUI);
+   afx_msg void OnUpdateIEDef(CCmdUI *pCmdUI);
+   afx_msg void OnUpdateIEPrivateDef(CCmdUI *pCmdUI);
+   afx_msg void OnUpdateSafariDef(CCmdUI *pCmdUI);
+
+   afx_msg void OnSystemDef_nws();
+   afx_msg void OnChromeDef_nws();
+   afx_msg void OnChromeIncognitoDef_nws();
+   afx_msg void OnFirefoxDef_nws();
+   afx_msg void OnIEDef_nws();
+   afx_msg void OnIEPrivateDef_nws();
+   afx_msg void OnSafariDef_nws();
+
+   afx_msg void OnUpdateSystemDef_nws(CCmdUI *pCmdUI);
+   afx_msg void OnUpdateChromeDef_nws(CCmdUI *pCmdUI);
+   afx_msg void OnUpdateChromeIncognitoDef_nws(CCmdUI *pCmdUI);
+   afx_msg void OnUpdateFirefoxDef_nws(CCmdUI *pCmdUI);
+   afx_msg void OnUpdateIEDef_nws(CCmdUI *pCmdUI);
+   afx_msg void OnUpdateIEPrivateDef_nws(CCmdUI *pCmdUI);
+   afx_msg void OnUpdateSafariDef_nws(CCmdUI *pCmdUI);
+
+   afx_msg void OnAllowGDIPlus();
+   afx_msg void OnUpdateAllowGDIPlus(CCmdUI *pCmdUI);
+   
 };
 
 #ifndef _DEBUG  // debug version in LampView.cpp
