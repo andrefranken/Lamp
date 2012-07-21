@@ -111,6 +111,18 @@ public:
    DWORD m_end_time;
 };
 
+class CollapsedThread
+{
+public:
+   CollapsedThread(unsigned int thread_id, time_t date)
+   {
+      m_thread_id = thread_id;
+      m_date = date;
+   }
+
+   unsigned int m_thread_id;
+   time_t m_date;
+};
 
 class CShackBookmark
 {
@@ -883,6 +895,9 @@ public:
 
    bool InvertedLOLPreviews(){return m_inverted_lol_previews;}
    void SetInvertedLOLPreviews(bool value);
+
+   bool ShowRawDate(){return m_show_raw_date;}
+   void SetShowRawDate(bool value){m_show_raw_date = value;}
    
    void ClearSession(){m_session.clear();}
 
@@ -938,6 +953,8 @@ public:
    void KnowPost(unsigned int id, ChattyPost *post);
 
    ChattyPost *GetKnownPost(unsigned int id);
+
+   void ClearKnownPosts();
 
    unsigned int GetUserID();
 
@@ -1247,7 +1264,7 @@ protected:
    Hunspell *m_pHunspell;
 
    std::list<CMyLol> m_mylols;
-   std::list<unsigned int> m_mycollapses;
+   std::list<CollapsedThread> m_mycollapses;
 
    UCString m_last_search_author;
    UCString m_last_search_parent_author;
@@ -1337,6 +1354,8 @@ protected:
    bool m_verbose_lol_previews;
 
    bool m_inverted_lol_previews;
+
+   bool m_show_raw_date;
 
    bool m_use_shack;
 

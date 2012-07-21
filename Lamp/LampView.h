@@ -369,6 +369,8 @@ public:
    afx_msg void OnUpdateVerboseLOLPreviews(CCmdUI *pCmdUI);
    afx_msg void OnInvertedLOLPreviews();
    afx_msg void OnUpdateInvertedLOLPreviews(CCmdUI *pCmdUI);
+   afx_msg void OnShowRawDate();
+   afx_msg void OnUpdateShowRawDate(CCmdUI *pCmdUI);
    afx_msg void OnBackId();
    afx_msg void OnUpdateBackId(CCmdUI *pCmdUI);
    afx_msg void OnForeId();

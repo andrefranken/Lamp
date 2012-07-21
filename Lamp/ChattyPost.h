@@ -566,6 +566,7 @@ protected:
    void RemoveSomeTags(UCString &str);
    void AddToFamilySize(size_t &familysize);
    void UpdateDate();
+   bool IsRoot(){if(m_pParent != NULL)return false;return true;}
 
    unsigned int GetLOLWidth(const UCChar *text);
 

@@ -183,6 +183,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_VERBOSE_LOL_PREVIEWS, &CLampView::OnUpdateVerboseLOLPreviews)
    ON_COMMAND(ID_INVERTED_LOL_PREVIEWS, &CLampView::OnInvertedLOLPreviews)
    ON_UPDATE_COMMAND_UI(ID_INVERTED_LOL_PREVIEWS, &CLampView::OnUpdateInvertedLOLPreviews)
+   ON_COMMAND(ID_SHOW_RAW_DATE, &CLampView::OnShowRawDate)
+   ON_UPDATE_COMMAND_UI(ID_SHOW_RAW_DATE, &CLampView::OnUpdateShowRawDate)
    ON_COMMAND(ID_UNLOADALLIMAGES, &CLampView::OnUnloadAllImages)
    ON_UPDATE_COMMAND_UI(ID_UNLOADALLIMAGES, &CLampView::OnUpdateUnloadAllImages)
    ON_COMMAND(ID_EXPAND_PREVIEWS_DOWN, &CLampView::OnExpandPreviewsDown)
@@ -2972,6 +2974,10 @@ void CLampView::UpdateHotspotPosition()
 
 BOOL CLampView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt) 
 {
+   m_bDrawMButtonDownIcon = false;
+   m_bMButtonDown = false;
+   //m_bStartedTrackingMouse = false;
+
    if(m_pReplyDlg == NULL ||
       !m_pReplyDlg->OnMouseWheel(nFlags, zDelta, m_mousepoint))
    {
@@ -4385,27 +4391,30 @@ void CLampView::OnLButtonDblClk(UINT nFlags, CPoint point)
 
 void CLampView::OnMButtonDown(UINT nFlags, CPoint point) 
 {
-   SetCapture();   
-   CancelInertiaPanning();
-   m_bStartedTrackingMouse = true;
-   m_lastmousetime = ::GetTickCount();
-   m_mousepoint = point;
-
-   if(!m_brakes)
-   {   
-      if(m_bDrawMButtonDownIcon == false)
-      {
-         m_MButtonDownPoint = point;
-         m_mbuttondowntime = ::GetTickCount();
-         m_bMButtonDown = true;
-      }
-      m_bDrawMButtonDownIcon = false;
-   }
-
-   if(m_bModToolIsUp)
+   if(m_gotopos == m_pos)
    {
-      m_bModToolIsUp = false;
-      InvalidateEverything();
+      SetCapture();   
+      CancelInertiaPanning();
+      m_bStartedTrackingMouse = true;
+      m_lastmousetime = ::GetTickCount();
+      m_mousepoint = point;
+
+      if(!m_brakes)
+      {   
+         if(m_bDrawMButtonDownIcon == false)
+         {
+            m_MButtonDownPoint = point;
+            m_mbuttondowntime = ::GetTickCount();
+            m_bMButtonDown = true;
+         }
+         m_bDrawMButtonDownIcon = false;
+      }
+
+      if(m_bModToolIsUp)
+      {
+         m_bModToolIsUp = false;
+         InvalidateEverything();
+      }
    }
 
    CView::OnMButtonDown(nFlags, point);
@@ -7070,6 +7079,27 @@ void CLampView::OnUpdateInvertedLOLPreviews(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(theApp.InvertedLOLPreviews())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnShowRawDate()
+{
+   theApp.SetShowRawDate(!theApp.ShowRawDate());
+   InvalidateEverything();
+   theApp.ClearKnownPosts();
+}
+
+void CLampView::OnUpdateShowRawDate(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.ShowRawDate())
    {
       pCmdUI->SetCheck(TRUE);
    }

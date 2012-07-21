@@ -1198,14 +1198,7 @@ BOOL CLampApp::InitInstance()
 
 int CLampApp::ExitInstance() 
 {
-   std::map<unsigned int,ChattyPost *>::iterator pit = m_KnownPosts.begin();
-   std::map<unsigned int,ChattyPost *>::iterator pend = m_KnownPosts.end();
-   while(pit != pend)
-   {
-      delete pit->second;
-      pit++;
-   }
-   m_KnownPosts.clear();
+   ClearKnownPosts();
 
    std::map<unsigned int,CXMLElement *>::iterator it = m_cachedthreadreplies.begin();
    std::map<unsigned int,CXMLElement *>::iterator end = m_cachedthreadreplies.end();
@@ -1741,6 +1734,10 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_inverted_lol_previews = setting->GetValue();
    else m_inverted_lol_previews = true;
 
+   setting = hostxml.FindChildElement(L"show_raw_date");
+   if(setting!=NULL) m_show_raw_date = setting->GetValue();
+   else m_show_raw_date = false;
+
    setting = hostxml.FindChildElement(L"UseAuthorColorForPreview");
    if(setting!=NULL) m_bUseAuthorColorForPreview = setting->GetValue();
    else m_bUseAuthorColorForPreview = false;
@@ -2016,7 +2013,8 @@ void CLampApp::ReadSettingsFile()
       m_cheatsheet.push_back(UCString(foo));            
    }
    */
-   // save session
+
+   // restore session
    setting = hostxml.FindChildElement(L"Session");
    if(setting != NULL)
    {
@@ -2027,6 +2025,28 @@ void CLampApp::ReadSettingsFile()
          if(tab != NULL && tab->GetTag() == L"tab")
          {
             m_session.push_back(tab->GetValue());
+         }
+      }
+   }
+
+   // collapsed threads
+   setting = hostxml.FindChildElement(L"collapsed_threads");
+   if(setting != NULL)
+   {
+      int num = setting->CountChildren();
+      for(int i = 0; i < num; i++)
+      {
+         CXMLElement *thread = setting->GetChildElement(i);
+         if(thread != NULL)
+         {
+            size_t days2 = 1000 * 60 * 60 * 24 * 2;
+            size_t now = ::GetTickCount();
+            size_t then = (size_t)((unsigned int)thread->GetAttributeValue(L"time"));
+            if(now - then < days2)
+            {
+               unsigned int id = (unsigned int)thread->GetTag();
+               m_mycollapses.push_back(CollapsedThread(id,then));
+            }
          }
       }
    }
@@ -2148,6 +2168,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"show_thomw_lols",UCString(m_show_thomw_lols));
    settingsxml.AddChildElement(L"verbose_lol_previews",UCString(m_verbose_lol_previews));
    settingsxml.AddChildElement(L"inverted_lol_previews",UCString(m_inverted_lol_previews));
+   settingsxml.AddChildElement(L"show_raw_date",UCString(m_show_raw_date));
    settingsxml.AddChildElement(L"UseAuthorColorForPreview",UCString(m_bUseAuthorColorForPreview));
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
    settingsxml.AddChildElement(L"num_minutes_check_inbox",UCString(m_num_minutes_check_inbox));
@@ -2228,6 +2249,22 @@ void CLampApp::WriteSettingsFile()
       for(size_t i = 0; i < m_session.size(); i++)
       {
          session->AddChildElement(L"tab",m_session[i]);
+      }
+   }
+
+   // collapsed threads list
+   if(m_mycollapses.size() > 0)
+   {
+      settingsxml.AddChildComment(L"Collapsed Threads (expire in 2 days)");
+      CXMLElement *collapsed = settingsxml.AddChildElement();
+      collapsed->SetTag(L"collapsed_threads");
+      std::list<CollapsedThread>::iterator cit = m_mycollapses.begin();
+      std::list<CollapsedThread>::iterator cend = m_mycollapses.end();
+
+      while(cit != cend)
+      {
+         collapsed->AddChildElement(UCString((*cit).m_thread_id), L"time",UCString((unsigned int)(*cit).m_date));
+         cit++;
       }
    }
 
@@ -3693,12 +3730,12 @@ byte CLampApp::GetMyLol(unsigned int post_id)
 
 void CLampApp::AddMyCollapse(unsigned int post_id)
 {
-   std::list<unsigned int>::iterator it = m_mycollapses.begin();
-   std::list<unsigned int>::iterator end = m_mycollapses.end();
+   std::list<CollapsedThread>::iterator it = m_mycollapses.begin();
+   std::list<CollapsedThread>::iterator end = m_mycollapses.end();
 
    while(it != end)
    {
-      if((*it) == post_id)
+      if((*it).m_thread_id == post_id)
       {
          return;
       }
@@ -3707,25 +3744,22 @@ void CLampApp::AddMyCollapse(unsigned int post_id)
    }
 
    // add it
-   m_mycollapses.push_back(post_id);
+   m_mycollapses.push_back(CollapsedThread(post_id,::GetTickCount()));
 
-   while(m_mycollapses.size() > 100)
-   {
-      m_mycollapses.pop_front();
-   }
+   WriteSettingsFile();
 }
 
 void CLampApp::RemoveMyCollapse(unsigned int post_id)
 {
-   std::list<unsigned int>::iterator it = m_mycollapses.begin();
-   std::list<unsigned int>::iterator end = m_mycollapses.end();
+   std::list<CollapsedThread>::iterator it = m_mycollapses.begin();
+   std::list<CollapsedThread>::iterator end = m_mycollapses.end();
 
    while(it != end)
    {
-      if((*it) == post_id)
+      if((*it).m_thread_id == post_id)
       {
          // we do have it, so remove it
-         m_mycollapses.remove(post_id);
+         m_mycollapses.erase(it);
          return;
       }
 
@@ -3735,12 +3769,12 @@ void CLampApp::RemoveMyCollapse(unsigned int post_id)
 
 bool CLampApp::GetMyCollapse(unsigned int post_id)
 {
-   std::list<unsigned int>::iterator it = m_mycollapses.begin();
-   std::list<unsigned int>::iterator end = m_mycollapses.end();
+   std::list<CollapsedThread>::iterator it = m_mycollapses.begin();
+   std::list<CollapsedThread>::iterator end = m_mycollapses.end();
 
    while(it != end)
    {
-      if((*it) == post_id)
+      if((*it).m_thread_id == post_id)
       {
          return true;
       }
@@ -5195,6 +5229,17 @@ ChattyPost *CLampApp::GetKnownPost(unsigned int id)
    return NULL;
 }
 
+void CLampApp::ClearKnownPosts()
+{
+   std::map<unsigned int,ChattyPost *>::iterator pit = m_KnownPosts.begin();
+   std::map<unsigned int,ChattyPost *>::iterator pend = m_KnownPosts.end();
+   while(pit != pend)
+   {
+      delete pit->second;
+      pit++;
+   }
+   m_KnownPosts.clear();
+}
 
 unsigned int CLampApp::GetUserID()
 {

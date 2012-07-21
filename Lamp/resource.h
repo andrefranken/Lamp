@@ -190,6 +190,7 @@
 #define ID_ALLOW_GDIPLUS                32903
 #define ID_COPY_NAME                    32904
 #define ID_COPYPOST                     32905
+#define ID_SHOW_RAW_DATE                32906
 
 #define ID_BOOKMARK_MENUITEM            32920
 

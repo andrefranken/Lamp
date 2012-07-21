@@ -5436,6 +5436,7 @@ void ChattyPost::ReadFromKnown(CLampDoc *pDoc)
          m_bodytext = knownpost->m_bodytext;
          m_shacktags = knownpost->m_shacktags;
          m_lightningbolt = knownpost->m_lightningbolt;
+         m_datetext = knownpost->m_datetext;
 
          if(pDoc->GetDataType() == DDT_STORY)
          {
@@ -5541,6 +5542,8 @@ void ChattyPost::GetTitle(UCString &title)
 
 void ChattyPost::UpdateDate()
 {
+   UCString datetext_backup = m_datetext;
+
    if(m_datetext.Length() > 0 ||
       m_tm_posttime.tm_year != 0 ||
       m_tm_posttime.tm_mon  != 0 ||
@@ -5614,6 +5617,15 @@ void ChattyPost::UpdateDate()
       bool bAddedsomething = false;
 
       double year_diff = diff / (60.0 * 60.0 * 24.0 * 365.0);
+
+      if(year_diff > 20.0)
+      {
+         // mistake
+         ago_seconds = 0;
+         diff = 0.0;
+         year_diff = 0.0;
+      }
+
       if(year_diff > 1.0)
       {
          m_datetext += (int)year_diff;
@@ -5671,6 +5683,11 @@ void ChattyPost::UpdateDate()
       else
       {
          m_datetext += L"just now";
+      }
+
+      if(theApp.ShowRawDate())
+      {
+         m_datetext = datetext_backup;
       }
 
       if(ago_seconds > (theApp.GetHoursExpire() * 60 * 60))
@@ -6596,6 +6613,16 @@ bool ChattyPost::IsFiltered()
          if(it != ful.end())
          {
             result = true;
+         }
+         else if(IsRoot())
+         {
+            UCString rootauthor = L"[root]";
+            rootauthor += m_author;
+            it = ful.find(rootauthor);
+            if(it != ful.end())
+            {
+               result = true;
+            }
          }
       }
    }
