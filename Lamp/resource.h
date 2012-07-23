@@ -191,6 +191,12 @@
 #define ID_COPY_NAME                    32904
 #define ID_COPYPOST                     32905
 #define ID_SHOW_RAW_DATE                32906
+#define ID_FLAG_USER                    32907
+#define IDD_FLAG_USER_DIALOG            32908
+#define IDC_UNFLAG_BUTTON               32909
+#define IDC_FLAG_COMBO                  32910
+#define IDC_NOTE_EDIT                   32911
+
 
 #define ID_BOOKMARK_MENUITEM            32920
 

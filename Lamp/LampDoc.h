@@ -138,11 +138,11 @@ public:
                      std::vector<std::vector<shacktagpos>> &linetags,
                      std::vector<linetype> &linetypes);
    void DrawNewMessagesTab(HDC hDC, RECT &rect, const UCChar *pChar, int *widths, size_t numchars, bool bHover);
-   void DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF AuthorColor, bool bFade = false, bool m_bIsInbox=true);
+   void DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF AuthorColor, CDCSurface *Flag, RECT &flagrect, bool bFade = false, bool m_bIsInbox=true);
    void DrawDate(HDC hDC, RECT &rect, UCString &date, COLORREF ago_color, bool bGetExtents=false);
    void DrawRepliesHint(HDC hDC, RECT &rect, int m_reportedchildcount);
    void DrawCollapseNote(HDC hDC, RECT &rect);
-   void DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipped, int shade, COLORREF AuthorColor, const UCString &rootauthor);
+   void DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipped, int shade, COLORREF AuthorColor, const UCString &rootauthor, CDCSurface *Flag, RECT &flagrect);
    void DrawBranch(HDC hDC, RECT &rect, indenttype type, int shade, newness Newness);
    void DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols, bool bHover, bool bVoted, bool bRoot, bool bHasLols);
    int GetHeight(){return m_height;}
@@ -228,6 +228,7 @@ public:
    ChattyPost *GetThreadPost();
 
    void InvalidateSkin();
+   void InvalidateFlags();
 
    bool IsBusy(){return m_bBusy;}
 

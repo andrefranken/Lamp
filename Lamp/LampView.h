@@ -9,6 +9,7 @@
 #include "MainFrm.h"
 #include "chattypost.h"
 #include "FindTextDlg.h"
+#include "FlagUserDialog.h"
 
 class CLampDoc;
 
@@ -60,6 +61,8 @@ public:
    void SetHoverPreviewPercent(float id);
 
    void InvalidateSkin();
+
+   void InvalidateFlags();
 
    int GetPos(){return m_pos;}
 
@@ -402,6 +405,8 @@ public:
    afx_msg void OnUpdateUseAuthorColor(CCmdUI *pCmdUI);
    afx_msg void OnUsersLOLs();
    afx_msg void OnUpdateUsersLOLs(CCmdUI *pCmdUI);
+   afx_msg void OnFlagUser();
+   afx_msg void OnUpdateFlagUser(CCmdUI *pCmdUI);
    afx_msg void OnUrbanDicSelected();
    afx_msg void OnUpdateUrbanDicSelected(CCmdUI *pCmdUI);
    afx_msg void OnDicSelected();

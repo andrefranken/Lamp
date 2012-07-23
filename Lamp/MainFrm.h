@@ -43,6 +43,8 @@ public:
    void UpdateInboxTimer();
    void UpdateLOLTimer();
 
+   void RecordSession();
+
 // Attributes
 public:
    void SetActiveLampView(CLampView *pView){m_pLastActiveView = pView;}

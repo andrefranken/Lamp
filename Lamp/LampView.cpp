@@ -215,6 +215,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_USE_AUTHOR_COLOR_PREVIEW, &CLampView::OnUpdateUseAuthorColor)
    ON_COMMAND(ID_USERS_LOLS, &CLampView::OnUsersLOLs)
    ON_UPDATE_COMMAND_UI(ID_USERS_LOLS, &CLampView::OnUpdateUsersLOLs)
+   ON_COMMAND(ID_FLAG_USER, &CLampView::OnFlagUser)
+   ON_UPDATE_COMMAND_UI(ID_FLAG_USER, &CLampView::OnUpdateFlagUser)
    ON_COMMAND(ID_SYSTEM_DEF, &CLampView::OnSystemDef)
    ON_COMMAND(ID_CHROME_DEF, &CLampView::OnChromeDef)
    ON_COMMAND(ID_CHROME_INCOGNITO_DEF, &CLampView::OnChromeIncognitoDef)
@@ -1847,6 +1849,7 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
             case HST_SPELL_SUGGESTION:
             case HST_CLOSE_MESSAGE:
             case HST_EXPAND:
+            case HST_FLAG:
                {
                   m_backbuffer->Blit(hDC, m_hotspots[i].m_spot, false);
                }
@@ -2285,6 +2288,7 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
             case HST_SPELL_SUGGESTION:
             case HST_CLOSE_MESSAGE:
             case HST_EXPAND:
+            case HST_FLAG:
                {
                   m_backbuffer->Blit(hDC, m_hotspots[i].m_spot, false);
                   m_whitebuffer.AlphaBlit(hDC, m_hotspots[i].m_spot, false, 32);
@@ -2607,6 +2611,11 @@ void CLampView::InvalidateSkin()
    InvalidateEverything();
 }
 
+void CLampView::InvalidateFlags()
+{
+   GetDocument()->InvalidateFlags();
+}
+
 void CLampView::CloseFindDlg()
 {
    if(m_pFindDlg != NULL)
@@ -2746,6 +2755,11 @@ void CLampView::UpdateHotspotPosition()
          case HST_REFRESH: 
             {
                theApp.SetStatusBarText(L"Refresh Replies",this);
+            }
+            break;
+         case HST_FLAG: 
+            {
+               theApp.SetStatusBarText(L"View Note About User",this);
             }
             break;
          case HST_CLOSEREPLY: 
@@ -3222,6 +3236,15 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         {
                            unsigned int id = m_hotspots[i].m_id;
                            GetDocument()->RefreshThread(GetDocument()->GetRootId(id), id);
+                        }
+                        break;
+                     case HST_FLAG:
+                        {
+                           ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(pPost != NULL)
+                           {
+                              MessageBox(pPost->GetNote(),L"Note About User",MB_OK);
+                           }
                         }
                         break;
                      case HST_CLOSEREPLY: 
@@ -4945,6 +4968,7 @@ BOOL CLampView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
             switch(m_hotspottype)
             {
             case HST_REFRESH: 
+            case HST_FLAG: 
             case HST_REPLIESTOROOTPOSTHINT:
             case HST_OPENINTAB:
             case HST_PIN:
@@ -7496,6 +7520,23 @@ void CLampView::OnUsersLOLs()
 }
 
 void CLampView::OnUpdateUsersLOLs(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+}
+
+void CLampView::OnFlagUser()
+{
+   if(!m_authorname_clicked.IsEmpty())
+   {
+      CFlagUserDialog dlg(this);
+
+      dlg.m_name = m_authorname_clicked;
+
+      dlg.DoModal();
+   }
+}
+
+void CLampView::OnUpdateFlagUser(CCmdUI *pCmdUI)
 {
    pCmdUI->Enable(TRUE);
 }

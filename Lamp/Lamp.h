@@ -22,7 +22,7 @@
 #define WM_WAKEUP (WM_USER + 102)
 
 #define LAMP_VERSION_MAJOR 2
-#define LAMP_VERSION_MINOR 8
+#define LAMP_VERSION_MINOR 9
 
 chattyerror download(const char* host, const char* path, char** out_response, int *psize=NULL);
 
@@ -146,6 +146,44 @@ public:
    postcategorytype m_category;
    UCString m_title;
    UCString m_author;
+};
+
+class CFlagImage
+{
+public:
+   CFlagImage()
+   {
+      m_image_preview = NULL;
+      m_image_reply = NULL;
+      m_image_root = NULL;
+   }
+
+   ~CFlagImage()
+   {
+      if(m_image_preview != NULL)
+         delete m_image_preview;
+
+      if(m_image_reply != NULL)
+         delete m_image_reply;
+
+      if(m_image_root != NULL)
+         delete m_image_root;
+   }
+
+   RECT m_active_rect;
+   CDCSurface *m_image_preview;
+   CDCSurface *m_image_reply;
+   CDCSurface *m_image_root;
+   UCString m_image_path;
+};
+
+class CFlaggedUser
+{
+public:
+
+   CFlagImage *m_flag_image;
+   UCString m_flag;
+   UCString m_note;
 };
 
 class CImageCacheItem
@@ -732,6 +770,8 @@ public:
 
    void InvalidateSkinAllViews();
 
+   void InvalidateFlagsAllViews();
+
    float GetTextScaler(){return m_textscaler;}
    void SetTextScaler(float value)
    {
@@ -1018,6 +1058,13 @@ public:
    void DisplayDownload();
 
    void LaunchLinkInDefaultBrowser(const UCChar *link, bool NWS = false);
+
+   CFlaggedUser *GetFlaggedUser(const UCString &username);
+   void AddFlaggedUser(const UCString &username, const UCString &flag, const UCString &note);
+   void UpdateFlaggedUser(const UCString &username, const UCString &flag, const UCString &note);
+   void DeleteFlaggedUser(const UCString &username);
+
+   std::map<UCString,CFlagImage> &GetFlagImages(){return m_flagimages;}
       
 // Overrides
 public:
@@ -1062,7 +1109,11 @@ protected:
 
    void GenerateLightningBolt();
 
+   void GenerateFlagActives();
+
    void CheckForModMode();
+
+   void CollectFlagImages();
 
    HANDLE m_hMutex;
    
@@ -1252,6 +1303,9 @@ protected:
    bool m_bHideCollapsedPosts;
    bool m_bInfinatePaging;
    bool m_bGotoNewPost;
+
+   std::map<UCString,CFlagImage> m_flagimages;
+   std::map<UCString,CFlaggedUser> m_flagged_users;
 
    std::map<UCString,COLORREF> m_namelist;
 

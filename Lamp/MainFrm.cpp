@@ -253,7 +253,8 @@ void CMainFrame::OnUpdateApplicationLook(CCmdUI* pCmdUI)
 	pCmdUI->SetRadio(theApp.m_nAppLook == pCmdUI->m_nID);
 }
 
-void CMainFrame::OnClose() 
+
+void CMainFrame::RecordSession()
 {
    theApp.ClearSession();
    CHackedTabCtrl *tabctrl = (CHackedTabCtrl*)GetCA()->FindActiveTabWnd();
@@ -283,6 +284,11 @@ void CMainFrame::OnClose()
          }
       }
    }
+}
+
+void CMainFrame::OnClose() 
+{
+   RecordSession();
 
 	CMDIFrameWndEx::OnClose();
 }

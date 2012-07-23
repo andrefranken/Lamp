@@ -236,7 +236,7 @@ bool HTML_FindChild_StartsWithAttribute(tree<htmlcxx::HTML::Node> &from_dom,
    return false;
 }
 
-void ChattyPost::UpdateAuthorColor()
+void ChattyPost::UpdateAuthorInfo()
 {
    if(m_author == theApp.GetUsername())
    {
@@ -247,6 +247,8 @@ void ChattyPost::UpdateAuthorColor()
    {
       m_AuthorColor = theApp.GetUserColor(m_author);
    }
+
+   m_pFlaggedUser = theApp.GetFlaggedUser(m_author);
 }
 
 void ChattyPost::ReadRootChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &root_it, 
@@ -312,7 +314,7 @@ void ChattyPost::ReadRootChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_itera
                         m_author = (const char*)author.data();
                         m_author.TrimWhitespace();
                         RemoveSomeTags(m_author);
-                        UpdateAuthorColor();
+                        UpdateAuthorInfo();
                      }
                   }
 
@@ -500,7 +502,7 @@ void ChattyPost::ReadPostPreviewChattyFromHTML(tree<htmlcxx::HTML::Node>::siblin
                m_author = (const char*)author.data();
                m_author.TrimWhitespace();
                RemoveSomeTags(m_author);
-               UpdateAuthorColor();
+               UpdateAuthorInfo();
             }
 
             tree<htmlcxx::HTML::Node>::sibling_iterator lightning_it = author_it;
@@ -636,7 +638,7 @@ void ChattyPost::ReadKnownPostChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_
                   m_author = (const char*)author.data();
                   m_author.TrimWhitespace();
                   RemoveSomeTags(m_author);
-                  UpdateAuthorColor();
+                  UpdateAuthorInfo();
                }
             }
 
@@ -704,7 +706,7 @@ void ChattyPost::ReadSearchResultFromHTML(tree<htmlcxx::HTML::Node>::sibling_ite
                if(m_author[m_author.Length()-1] == L':')
                   m_author.TrimEnd(1);
                RemoveSomeTags(m_author);
-               UpdateAuthorColor();
+               UpdateAuthorInfo();
             }
          }
       }
@@ -856,7 +858,7 @@ void ChattyPost::ReadMessageFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator
    m_author = (char*)author.data();
    RemoveSomeTags(m_author);
    m_author.MakeNormal();
-   UpdateAuthorColor();
+   UpdateAuthorInfo();
 
    tree<htmlcxx::HTML::Node>::sibling_iterator subject_it;
    if(HTML_FindChild_HasAttribute(it,subject_it, "div", "class", "subject-column toggle-message"))
@@ -942,7 +944,7 @@ void ChattyPost::ReadLOL(CLampDoc *pDoc,
    m_category = PCT_NORMAL;
    m_author = author;
    RemoveSomeTags(m_author);
-   UpdateAuthorColor();
+   UpdateAuthorInfo();
    m_id = id;
 
    m_bodytext = L"";
@@ -977,7 +979,7 @@ void ChattyPost::ReadPost(ChattyPost *pOther, CLampDoc *pDoc)
       m_category = pOther->m_category;
       m_author = pOther->m_author;
       RemoveSomeTags(m_author);
-      UpdateAuthorColor();
+      UpdateAuthorInfo();
 
       m_Newness = pOther->m_Newness;
       
@@ -1075,7 +1077,7 @@ void ChattyPost::Read(CXMLElement *pElement, CLampDoc *pDoc, bool bDoingNewFlags
       m_author = pElement->GetAttributeValue(L"author");
       RemoveSomeTags(m_author);
       m_author.MakeNormal();
-      UpdateAuthorColor();
+      UpdateAuthorInfo();
 
       UCString temp = pElement->GetAttributeValue(L"id");
       m_id = temp;
@@ -1295,7 +1297,7 @@ void ChattyPost::ReadShackMessage(CXMLElement *pElement, CLampDoc *pDoc, bool bI
       m_author = pElement->GetAttributeValue(L"author");
       RemoveSomeTags(m_author);
       m_author.MakeNormal();
-      UpdateAuthorColor();
+      UpdateAuthorInfo();
 
       UCString temp = pElement->GetAttributeValue(L"id");
       m_id = temp;
@@ -1355,7 +1357,7 @@ void ChattyPost::ReadSearchResult(CXMLElement *pElement, CLampDoc *pDoc)
       m_author = pElement->GetAttributeValue(L"author");
       RemoveSomeTags(m_author);
       m_author.MakeNormal();
-      UpdateAuthorColor();
+      UpdateAuthorInfo();
 
       UCString temp = pElement->GetAttributeValue(L"id");
       m_id = temp;
@@ -1871,10 +1873,25 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
             m_pDoc->FillBackground(hDC,backrect);
 
             m_pDoc->FillExpandedBackground(hDC,myrect,true,m_category,false);
+
+            RECT flagrect = myrect;
+            flagrect.right = flagrect.left;
+
+            CDCSurface *Flag = NULL;
+
+            if(m_pFlaggedUser != NULL &&
+               m_pFlaggedUser->m_flag_image != NULL)
+            {
+               flagrect.left = m_pFlaggedUser->m_flag_image->m_active_rect.left;
+               flagrect.right = m_pFlaggedUser->m_flag_image->m_active_rect.right;
+
+               Flag = m_pFlaggedUser->m_flag_image->m_image_root;
+            }
             
             RECT authorrect = myrect;
             authorrect.right = authorrect.left + (theApp.GetCellHeight() + 5 + m_authorsize + 5);
-            m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor, false, m_bIsInbox);
+
+            m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor, Flag, flagrect, false, m_bIsInbox);
             
             /*
             RECT collapsedrect = myrect;
@@ -1979,15 +1996,55 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
             m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs, m_bComplexShapeText,&textrect);
             m_drewtextpos = textrect.top;
             m_drewtextedge = textrect.left;
+
+            RECT flagrect = textrect;
+            flagrect.top = myrect.top;
+            flagrect.bottom = textrect.top;
+            flagrect.right = flagrect.left;
+
+            CDCSurface *Flag = NULL;
+
+            if(m_pFlaggedUser != NULL &&
+               m_pFlaggedUser->m_flag_image != NULL)
+            {
+               flagrect.left = m_pFlaggedUser->m_flag_image->m_active_rect.left;
+               flagrect.right = m_pFlaggedUser->m_flag_image->m_active_rect.right;
+               flagrect.top++;
+               flagrect.bottom++;
+               if(theApp.GetLineThickness() == 3)
+               {
+                  flagrect.top++;
+                  flagrect.bottom++;
+               }
+
+               if(bAsRoot)
+               {
+                  Flag = m_pFlaggedUser->m_flag_image->m_image_root;
+               }
+               else
+               {
+                  Flag = m_pFlaggedUser->m_flag_image->m_image_reply;
+               }
+            }
             
             RECT authorrect;
             authorrect.left = textrect.left;
             authorrect.right = textrect.left + theApp.GetCellHeight() + 5 + m_authorsize + 5;
             authorrect.top = myrect.top;
             authorrect.bottom = textrect.top;
-            m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor, false, m_bIsInbox);
+            m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor, Flag, flagrect, false, m_bIsInbox);
 
-            authorrect.left = textrect.left + theApp.GetCellHeight() + 5;
+            if(m_pFlaggedUser != NULL &&
+               m_pFlaggedUser->m_flag_image != NULL)
+            {
+               CHotSpot hotspot;
+               hotspot.m_bAnim = false;
+               hotspot.m_type = HST_FLAG;
+               hotspot.m_spot = flagrect;
+               hotspot.m_id = m_id;
+               hotspots.push_back(hotspot);
+            }
+
             CHotSpot hotspot;
             hotspot.m_bAnim = false;
             hotspot.m_type = HST_AUTHOR;
@@ -2158,7 +2215,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                
                RECT authorrect = myrect;
                authorrect.right += (theApp.GetCellHeight() + 5 + m_authorsize + 5);
-               m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor, true);
+               m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor, NULL, authorrect, true);
                            
                RECT collapsedrect = myrect;
                collapsedrect.left += (theApp.GetCellHeight() + 5 + m_authorsize + 5);
@@ -2392,17 +2449,51 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   }
                }
             }
-            
+
+            RECT flagrect = textrect;
+            flagrect.left = textrect.left;
+            flagrect.right = textrect.left;
+            flagrect.bottom = textrect.top;
+            flagrect.top = flagrect.bottom - theApp.GetTextHeight();
+
+            CDCSurface *Flag = NULL;
+
+            if(m_pFlaggedUser != NULL &&
+               m_pFlaggedUser->m_flag_image != NULL)
+            {
+               flagrect.left = m_pFlaggedUser->m_flag_image->m_active_rect.left;
+               flagrect.right = m_pFlaggedUser->m_flag_image->m_active_rect.right;
+
+               if(bAsRoot)
+               {
+                  Flag = m_pFlaggedUser->m_flag_image->m_image_root;
+               }
+               else
+               {
+                  Flag = m_pFlaggedUser->m_flag_image->m_image_reply;
+               }
+            }
+
             RECT authorrect;
             authorrect.left = textrect.left;
             authorrect.right = textrect.left + theApp.GetCellHeight() + 5 + m_authorsize + 5;
             authorrect.bottom = textrect.top;
             authorrect.top = authorrect.bottom - theApp.GetTextHeight();
-            m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor);
+            m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor, Flag, flagrect);
 
+            if(m_pFlaggedUser != NULL &&
+               m_pFlaggedUser->m_flag_image != NULL)
+            {
+               CHotSpot hotspot;
+               hotspot.m_bAnim = false;
+               hotspot.m_type = HST_FLAG;
+               hotspot.m_spot = flagrect;
+               hotspot.m_id = m_id;
+               hotspots.push_back(hotspot);
+            }
+            
             int rightofauthor = authorrect.right;
 
-            authorrect.left = textrect.left + theApp.GetCellHeight() + 5;
             CHotSpot hotspot;
             hotspot.m_bAnim = false;
             hotspot.m_type = HST_AUTHOR;
@@ -2928,17 +3019,44 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                      }
                   }
                }
-               
+
+               RECT flagrect = textrect;
+               flagrect.left = textrect.left;
+               flagrect.right = textrect.left;
+               flagrect.bottom = textrect.top;
+               flagrect.top = flagrect.bottom - theApp.GetTextHeight();
+
+               CDCSurface *Flag = NULL;
+
+               if(m_pFlaggedUser != NULL &&
+                  m_pFlaggedUser->m_flag_image != NULL)
+               {
+                  flagrect.left = m_pFlaggedUser->m_flag_image->m_active_rect.left;
+                  flagrect.right = m_pFlaggedUser->m_flag_image->m_active_rect.right;
+
+                  Flag = m_pFlaggedUser->m_flag_image->m_image_reply;
+               }
+
                RECT authorrect;
                authorrect.left = textrect.left;
                authorrect.right = textrect.left + theApp.GetCellHeight() + 5 + m_authorsize + 5;
                authorrect.bottom = textrect.top;
                authorrect.top = authorrect.bottom - theApp.GetTextHeight();
-               m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor);
+               m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor, Flag, flagrect);
+
+               if(m_pFlaggedUser != NULL &&
+                  m_pFlaggedUser->m_flag_image != NULL)
+               {
+                  CHotSpot hotspot;
+                  hotspot.m_bAnim = false;
+                  hotspot.m_type = HST_FLAG;
+                  hotspot.m_spot = flagrect;
+                  hotspot.m_id = m_id;
+                  hotspots.push_back(hotspot);
+               }
 
                int rightofauthor = authorrect.right;
 
-               authorrect.left = textrect.left + theApp.GetCellHeight() + 5;
                CHotSpot hotspot;
                hotspot.m_bAnim = false;
                hotspot.m_type = HST_AUTHOR;
@@ -3219,6 +3337,12 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                author_info_size += m_lol_preview_size;
             }
 
+            if(m_pFlaggedUser != NULL &&
+               m_pFlaggedUser->m_flag_image != NULL)
+            {
+               author_info_size += m_pFlaggedUser->m_flag_image->m_active_rect.right;
+            }
+
             if(m_lightningbolt)
             {
                CDCSurface *pLImage = theApp.GetLightningBoltImage(false);
@@ -3247,24 +3371,9 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                myrect.left += 20 + (indent * 20);
 
                m_last_left = myrect.left;
-                             
             
-               myrect.right -= 20;
-               myrect.right -= m_authorsize;
+               myrect.right -= author_info_size;
                myrect.right -= (abs(theApp.GetCellHeight()) + 5);// "... : "
-               if(theApp.ShowLOLButtons() && m_bHaveLOLPreview)
-               {
-                  myrect.right -= m_lol_preview_size;
-               }
-
-               if(m_lightningbolt)
-               {
-                  CDCSurface *pLImage = theApp.GetLightningBoltImage(false);
-                  if(pLImage != NULL)
-                  {
-                     myrect.right -= pLImage->GetWidth();
-                  }
-               }
 
                if(myrect.right - myrect.left > DeviceRectangle.right - DeviceRectangle.left)
                {
@@ -3351,6 +3460,19 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                hotspot.m_id = m_id;
                hotspots.push_back(hotspot);
 
+               RECT flagrect = textrect;
+
+               CDCSurface *Flag = NULL;
+
+               if(m_pFlaggedUser != NULL &&
+                  m_pFlaggedUser->m_flag_image != NULL)
+               {
+                  flagrect.left = m_pFlaggedUser->m_flag_image->m_active_rect.left;
+                  flagrect.right = m_pFlaggedUser->m_flag_image->m_active_rect.right;
+
+                  Flag = m_pFlaggedUser->m_flag_image->m_image_preview;
+               }
+
                RECT authorrect = textrect;
                authorrect.left = textrect.right;
                if(clipped)
@@ -3361,16 +3483,21 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                {
                   authorrect.right = authorrect.left + abs(theApp.GetCellHeight() / 3) + 5 + m_authorpreviewsize + 5;
                }
-               m_pDoc->DrawPreviewAuthor(hDC, authorrect, m_author, clipped, m_previewshade, m_AuthorColor, rootauthor);
+               m_pDoc->DrawPreviewAuthor(hDC, authorrect, m_author, clipped, m_previewshade, m_AuthorColor, rootauthor, Flag, flagrect);
 
-               if(clipped)
+               if(m_pFlaggedUser != NULL &&
+                  m_pFlaggedUser->m_flag_image != NULL)
                {
-                  authorrect.left += abs(theApp.GetCellHeight());
+                  CHotSpot hotspot;
+                  hotspot.m_bAnim = false;
+                  hotspot.m_type = HST_FLAG;
+                  hotspot.m_spot = flagrect;
+                  hotspot.m_id = m_id;
+                  hotspots.push_back(hotspot);
                }
-               else
-               {
-                  authorrect.left += abs(theApp.GetCellHeight() / 3);
-               }
+                              
+               authorrect.right = authorrect.left + m_authorpreviewsize;
+               
                hotspot.m_type = HST_AUTHORPREVIEW;
                hotspot.m_spot = authorrect;
                hotspot.m_id = m_id;
@@ -3540,6 +3667,12 @@ int ChattyPost::GetReplyPreviewHeight(RECT &DeviceRectangle)
          author_info_size += m_lol_preview_size;
       }
 
+      if(m_pFlaggedUser != NULL &&
+         m_pFlaggedUser->m_flag_image != NULL)
+      {
+         author_info_size += m_pFlaggedUser->m_flag_image->m_active_rect.right;
+      }
+
       if(m_lightningbolt)
       {
          CDCSurface *pLImage = theApp.GetLightningBoltImage(false);
@@ -3584,6 +3717,12 @@ void ChattyPost::DrawReplyPreview(HDC hDC, RECT &DeviceRectangle, int top, int b
       if(theApp.ShowLOLButtons() && m_bHaveLOLPreview)
       {
          author_info_size += m_lol_preview_size;
+      }
+
+      if(m_pFlaggedUser != NULL &&
+         m_pFlaggedUser->m_flag_image != NULL)
+      {
+         author_info_size += m_pFlaggedUser->m_flag_image->m_active_rect.right;
       }
 
       if(m_lightningbolt)
@@ -3656,8 +3795,23 @@ void ChattyPost::DrawReplyPreview(HDC hDC, RECT &DeviceRectangle, int top, int b
       RECT authornamerect = authorrect;
 
       authornamerect.right = authornamerect.left + abs(theApp.GetCellHeight() / 3) + 5 + m_authorpreviewsize + 5;
+
+      RECT flagrect = authornamerect;
+
+      CDCSurface *Flag = NULL;
+
+      if(m_pFlaggedUser != NULL &&
+         m_pFlaggedUser->m_flag_image != NULL)
+      {
+         flagrect.left = 0;
+         flagrect.right = m_pFlaggedUser->m_flag_image->m_active_rect.right;
+
+         Flag = m_pFlaggedUser->m_flag_image->m_image_preview;
+      }
       
-      m_pDoc->DrawPreviewAuthor(hDC, authornamerect, m_author, false, m_previewshade, m_AuthorColor, rootauthor);
+      m_pDoc->DrawPreviewAuthor(hDC, authornamerect, m_author, false, m_previewshade, m_AuthorColor, rootauthor, Flag, flagrect);
+
+      authornamerect.right = authornamerect.left + m_authorpreviewsize;
 
       int rightofauthor = authornamerect.right;
 
@@ -5446,7 +5600,7 @@ void ChattyPost::ReadFromKnown(CLampDoc *pDoc)
          m_mylols = theApp.GetMyLol(m_id);
          UpdateLOLs();
          UpdateDate();
-         UpdateAuthorColor();
+         UpdateAuthorInfo();
 
          SetupCharWidths();
          m_lines_of_text.clear();
@@ -6567,7 +6721,7 @@ void ChattyPost::InvalidateSkin()
 
    SetupCharWidths();
 
-   UpdateAuthorColor();
+   UpdateAuthorInfo();
 
    std::list<ChattyPost*>::iterator it = m_children.begin();
    std::list<ChattyPost*>::iterator end = m_children.end();
@@ -6576,6 +6730,22 @@ void ChattyPost::InvalidateSkin()
       if((*it) != NULL)
       {
          (*it)->InvalidateSkin();
+      }
+      it++;
+   }
+}
+
+void ChattyPost::InvalidateFlags()
+{
+   m_pFlaggedUser = theApp.GetFlaggedUser(m_author);
+
+   std::list<ChattyPost*>::iterator it = m_children.begin();
+   std::list<ChattyPost*>::iterator end = m_children.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         (*it)->InvalidateFlags();
       }
       it++;
    }
@@ -7189,4 +7359,14 @@ CReplyDlg *ChattyPost::FindReplyDlgInPostRecurse(unsigned int &who_id)
    }
 
    return result;
+}
+
+const UCChar *ChattyPost::GetNote()
+{
+   if(m_pFlaggedUser != NULL)
+   {
+      return m_pFlaggedUser->m_note.Str();
+   }
+
+   return NULL;
 }

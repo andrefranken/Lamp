@@ -24,7 +24,7 @@ public:
 
    bool Resize( int pixelwidth, int pixelheight );
    void *Size( int pixelwidth, int pixelheight, void **pBits, HDC *pDC, int *pImageByteSize );
-   bool ReadPNG(const UCString &FileName, bool bBackgroundAlpha = false);
+   bool ReadPNG(const UCString &FileName, bool bBackgroundAlpha = false, bool bUseTrueBackground = false, bool bUseRootBackground = false);
    bool ReadJpeg(const UCString &filename);
 
    HDC GetDC(){return m_DC;}
@@ -54,7 +54,7 @@ public:
    void AlphaBlit(HDC hDC, RECT &rect, bool fromorigin = true, byte globalalpha = 255, int xsourceoffset = 0, int ysourceoffset = 0);
    void SetWhite();
    void Fill(byte red, byte green, byte blue);
-   void MakeTransparentBitmap(bool bBackgroundAlpha);
+   void MakeTransparentBitmap(bool bBackgroundAlpha, bool bUseTrueBackground, bool bUseRootBackground);
 
    void UseAlphaChannel(bool bValue)
    {

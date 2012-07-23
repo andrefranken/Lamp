@@ -27,6 +27,7 @@
 
 #include <afxdisp.h>        // MFC Automation classes
 
+#include <stdio.h>
 
 
 #ifndef _AFX_NO_OLE_SUPPORT

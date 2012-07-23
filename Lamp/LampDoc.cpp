@@ -5315,23 +5315,31 @@ void CLampDoc::DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols
    }
 }
 
-void CLampDoc::DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipped, int shade, COLORREF AuthorColor, const UCString &rootauthor)
+void CLampDoc::DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipped, int shade, COLORREF AuthorColor, const UCString &rootauthor, CDCSurface *Flag, RECT &flagrect)
 {
    HFONT oldfont = MySelectFont(hDC,m_normalfont);
 
    ::SetTextColor(hDC,theApp.GetPostTextColorShade(shade));
 
-   int offset;
-
    if(clipped)
    {
       ::ExtTextOutW(hDC, rect.left, rect.bottom, 0, NULL, L"... :", 5, NULL);
-      offset = abs(theApp.GetCellHeight()) + 5;
+      rect.left += abs(theApp.GetCellHeight()) + 5;
    }
    else
    {
       ::ExtTextOutW(hDC, rect.left, rect.bottom, 0, NULL, L" :", 2, NULL);
-      offset = abs(theApp.GetCellHeight() / 3) + 5;
+      rect.left += abs(theApp.GetCellHeight() / 3) + 5;
+   }
+
+   if(Flag != NULL)
+   {
+      flagrect.left += rect.left;
+      flagrect.right += rect.left;
+
+      Flag->StretchBlit(hDC, flagrect);
+
+      rect.left = flagrect.right;
    }
 
    ::SetTextColor(hDC,AuthorColor);
@@ -5348,11 +5356,11 @@ void CLampDoc::DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipp
       
       if(theApp.RoundedPosts())
       {
-         ::RoundRect(hDC,rect.left + offset - 5, rect.top, rect.right, rect.bottom, (rect.bottom - rect.top)/2, (rect.bottom - rect.top)/2);
+         ::RoundRect(hDC,rect.left - 5, rect.top, rect.right, rect.bottom, (rect.bottom - rect.top)/2, (rect.bottom - rect.top)/2);
       }
       else
       {
-         ::Rectangle(hDC,rect.left + offset - 5, rect.top, rect.right, rect.bottom);
+         ::Rectangle(hDC,rect.left - 5, rect.top, rect.right, rect.bottom);
       }
 
       ::SelectObject(hDC,oldpen);
@@ -5360,7 +5368,7 @@ void CLampDoc::DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipp
       ::DeleteObject(newbrush);
    }
 
-   ::ExtTextOutW(hDC, rect.left + offset, rect.bottom, 0, NULL, text, text.Length(), NULL);
+   ::ExtTextOutW(hDC, rect.left, rect.bottom, 0, NULL, text, text.Length(), NULL);
 
    MySelectFont(hDC,oldfont);
 }
@@ -6371,7 +6379,7 @@ void CLampDoc::DrawNewMessagesTab(HDC hDC, RECT &rect, const UCChar *pChar, int 
 }
 
 
-void CLampDoc::DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF AuthorColor, bool bFade/*= false*/, bool m_bIsInbox/*=true*/)
+void CLampDoc::DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF AuthorColor, CDCSurface *Flag, RECT &flagrect, bool bFade/*= false*/, bool m_bIsInbox/*=true*/)
 {
    HFONT oldfont = MySelectFont(hDC,m_miscfont);
    ::SetTextColor(hDC,theApp.GetMiscPostTextColor());
@@ -6383,6 +6391,19 @@ void CLampDoc::DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF Aut
    else
    {
       ::ExtTextOutW(hDC, rect.left + 5, rect.bottom, 0, NULL, L"To:", 3, NULL);
+   }
+
+   rect.left += theApp.GetCellHeight() + 5;
+
+   if(Flag != NULL)
+   {
+      flagrect.left += rect.left;
+      flagrect.right += rect.left;
+
+      Flag->StretchBlit(hDC, flagrect);
+
+      rect.left = flagrect.right;
+      rect.right += (flagrect.right - flagrect.left);
    }
 
    MySelectFont(hDC,m_boldfont);
@@ -6400,7 +6421,7 @@ void CLampDoc::DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF Aut
       ::SetTextColor(hDC,AuthorColor);
    }
 
-   ::ExtTextOutW(hDC, rect.left + theApp.GetCellHeight() + 5, rect.bottom, 0, NULL, author, author.Length(), NULL);
+   ::ExtTextOutW(hDC, rect.left, rect.bottom, 0, NULL, author, author.Length(), NULL);
 
    MySelectFont(hDC,oldfont);
 }
@@ -6844,6 +6865,20 @@ void CLampDoc::InvalidateSkin()
       it++;
    }
 
+}
+
+void CLampDoc::InvalidateFlags()
+{
+   std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+   std::list<ChattyPost*>::iterator end = m_rootposts.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         (*it)->InvalidateFlags();
+      }
+      it++;
+   }
 }
 
 

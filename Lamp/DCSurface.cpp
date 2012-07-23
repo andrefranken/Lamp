@@ -394,13 +394,13 @@ void CDCSurface::Fill(byte red, byte green, byte blue)
    }
 }
 
-bool CDCSurface::ReadPNG(const UCString &FileName, bool bBackgroundAlpha/*= false*/)
+bool CDCSurface::ReadPNG(const UCString &FileName, bool bBackgroundAlpha/*= false*/, bool bUseTrueBackground/*= false*/, bool bUseRootBackground /*= false*/)
 {
    bool result = false;
 
    if(FileName.Length() > 0)
    {
-      if(_waccess(FileName,0) != -1)
+      if(_waccess(FileName,04) == 0)
       {
          result = LoadPNG(FileName, this);
       }
@@ -410,13 +410,13 @@ bool CDCSurface::ReadPNG(const UCString &FileName, bool bBackgroundAlpha/*= fals
       m_bytedepth == 4 
       /* && OS is XP */)
    {
-      MakeTransparentBitmap(bBackgroundAlpha);
+      MakeTransparentBitmap(bBackgroundAlpha, bUseTrueBackground, bUseRootBackground);
    }
 
    return result;
 }
 
-void CDCSurface::MakeTransparentBitmap(bool bBackgroundAlpha)
+void CDCSurface::MakeTransparentBitmap(bool bBackgroundAlpha, bool bUseTrueBackground, bool bUseRootBackground)
 {
    if(m_bytedepth == 4)
    {
@@ -428,7 +428,20 @@ void CDCSurface::MakeTransparentBitmap(bool bBackgroundAlpha)
       byte *pOldPixels = (byte*)malloc(m_PixelHeight * m_ScanlineByteLength);
       memcpy(pOldPixels, m_pBits, m_PixelHeight * m_ScanlineByteLength);
 
-      COLORREF crf = theApp.GetPostBackgroundColor();
+      COLORREF crf;
+      if(bUseTrueBackground)
+      {
+         crf = theApp.GetBackgroundColor();
+      }
+      else if(bUseRootBackground)
+      {
+         crf = theApp.GetRootPostBackgroundColor();
+      }
+      else
+      {
+         crf = theApp.GetPostBackgroundColor();
+      }
+
       byte bkclr[3];
       bkclr[0] = GetBValue(crf);
       bkclr[1] = GetGValue(crf);

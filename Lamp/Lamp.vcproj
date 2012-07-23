@@ -234,6 +234,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\FlagUserDialog.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\html.cpp"
 				>
 			</File>
@@ -385,6 +389,10 @@
 			</File>
 			<File
 				RelativePath=".\FindTextDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\FlagUserDialog.h"
 				>
 			</File>
 			<File

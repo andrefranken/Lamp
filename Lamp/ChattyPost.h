@@ -16,6 +16,7 @@ typedef enum
    HST_SCROLLBAR_DOWN,
    HST_SCROLLBAR_THUMB,
    HST_REFRESH,
+   HST_FLAG,
    HST_REPLIESTOROOTPOSTHINT,
    HST_OPENINTAB,
    HST_REPLYPREVIEW,
@@ -218,6 +219,8 @@ public:
 
 class CLampDoc;
 class CReplyDlg;
+class CFlaggedUser;
+
 typedef enum 
 {
    IT_VERT,
@@ -366,6 +369,7 @@ public:
       m_bComplexShapeText = false;
       m_indent_offset = 0;
       m_bIsProfileGroup = false;
+      m_pFlaggedUser = NULL;
    }
    virtual ~ChattyPost();
 
@@ -479,6 +483,7 @@ public:
    UCString &GetAuthor(){return m_author;}
 
    void InvalidateSkin();
+   void InvalidateFlags();
 
    void DecodeShackTagsString(UCString &from, bool bAllowCustomTags = false, bool bAllowLinks = false);
 
@@ -509,7 +514,7 @@ public:
 
    void CountFamilySize();
 
-   void UpdateAuthorColor();
+   void UpdateAuthorInfo();
 
    std::list<ChattyPost*> *GetChildren(){return &m_children;}
 
@@ -557,6 +562,8 @@ public:
    int GetIndentOffset(){return m_indent_offset;}
 
    void InitImageLinks();
+
+   const UCChar *GetNote();
 protected:
    void SetupCharWidths();
    void SetupBodyText(RECT &textrect);
@@ -666,4 +673,6 @@ protected:
    int                     m_indent_offset;
 
    bool                    m_bIsProfileGroup;
+
+   CFlaggedUser           *m_pFlaggedUser;
 };

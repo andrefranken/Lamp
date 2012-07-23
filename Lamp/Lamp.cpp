@@ -18,6 +18,7 @@
 #include "CustomSearchDlg.h"
 #include "comm.h"
 
+#include <io.h>
 
 #define NDEBUG
 
@@ -130,6 +131,14 @@ END_MESSAGE_MAP()
 
 BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
 {
+   /*
+   if(m_password.IsEmpty() == false &&
+      m_password != L"password")
+   {
+      int g = 5;
+   }
+   */
+
    // Is it the Message you want?
    // You can use a switch statement but because this is
    // only looking for one message, you can use the if/else
@@ -1025,6 +1034,7 @@ BOOL CLampApp::InitInstance()
    ReadBookmarks();
    ReadSettingsFile();
    ReadSkinFiles();
+   CollectFlagImages();
    
    UCString langfile;
    langfile = L"hun_dic\\";
@@ -1095,6 +1105,7 @@ BOOL CLampApp::InitInstance()
    UpdateNewMessages();
 
    GenerateLightningBolt();
+   GenerateFlagActives();
 
    ///
    WNDCLASSW wndcls;
@@ -2050,6 +2061,28 @@ void CLampApp::ReadSettingsFile()
          }
       }
    }
+
+   // flagged users
+   setting = hostxml.FindChildElement(L"flagged_users");
+   if(setting != NULL)
+   {
+      int num = setting->CountChildren();
+      for(int i = 0; i < num; i++)
+      {
+         CXMLElement *entry = setting->GetChildElement(i);
+         if(entry != NULL)
+         {
+            UCString username = entry->GetTag();
+
+            CFlaggedUser flagged_user;
+            flagged_user.m_flag = entry->GetAttributeValue(L"flag");
+            flagged_user.m_note = entry->GetValue();
+            
+            m_flagged_users[username] = flagged_user;
+         }
+      }
+   }
+   
 }
 
 void CLampApp::WriteSettingsFile()
@@ -2109,7 +2142,7 @@ void CLampApp::WriteSettingsFile()
       byte *buffer = (byte *)m_password.str8(false,CET_UTF8);
       if(buffer != NULL)
       {
-         size_t numbytes = strlen((char*)buffer);
+         size_t numbytes = m_password.Length();
          if(numbytes > 0)
          {
             byte *work = buffer;
@@ -2124,6 +2157,14 @@ void CLampApp::WriteSettingsFile()
             temp.EncodeBinaryToBase64Text(buffer,numbytes);
 
             settingsxml.AddChildElement(L"password",temp);
+
+            // put back
+            work = buffer;
+            while(work < end)
+            {
+               *work  = *work ^ 0xFF;
+               work++;
+            }
          }
       }
    }
@@ -2240,6 +2281,11 @@ void CLampApp::WriteSettingsFile()
    }
 
    // save session
+   if(m_pMainWnd != NULL)
+   {
+      ((CMainFrame*)m_pMainWnd)->RecordSession();
+   }
+
    if(m_session.size() > 0)
    {
       settingsxml.AddChildComment(L"Saved session.  These tabs were open on exit.");
@@ -2265,6 +2311,26 @@ void CLampApp::WriteSettingsFile()
       {
          collapsed->AddChildElement(UCString((*cit).m_thread_id), L"time",UCString((unsigned int)(*cit).m_date));
          cit++;
+      }
+   }
+
+   // flagged users
+   if(m_flagged_users.size() > 0)
+   {
+      settingsxml.AddChildComment(L"Flagged Users");
+      CXMLElement *flagged_users = settingsxml.AddChildElement();
+      flagged_users->SetTag(L"flagged_users");
+
+      std::map<UCString,CFlaggedUser>::iterator fit = m_flagged_users.begin();
+      std::map<UCString,CFlaggedUser>::iterator fend = m_flagged_users.end();
+
+      while(fit != fend)
+      {
+         CXMLElement *flagged_user = flagged_users->AddChildElement();
+         flagged_user->SetTag(fit->first);
+         flagged_user->SetValue(fit->second.m_note);
+         flagged_user->AddAttribute(L"flag",fit->second.m_flag);
+         fit++;
       }
    }
 
@@ -3462,6 +3528,19 @@ void CLampApp::InvalidateSkinAllViews()
    }
 
    GenerateLightningBolt();
+   GenerateFlagActives();
+}
+
+void CLampApp::InvalidateFlagsAllViews()
+{
+   std::list<CLampView*>::iterator it = m_views.begin();
+   std::list<CLampView*>::iterator end = m_views.end();
+
+   while(it != end)
+   {
+      (*it)->InvalidateFlags();
+      it++;
+   }
 }
 
 void CLampApp::ShowNewMessages()
@@ -5158,6 +5237,43 @@ void CLampApp::CalcDescent()
    }
 }
 
+void CLampApp::GenerateFlagActives()
+{
+   std::map<UCString, CFlagImage>::iterator it = m_flagimages.begin();
+   std::map<UCString, CFlagImage>::iterator end = m_flagimages.end();
+  
+   while(it != end)
+   {
+      if(it->second.m_image_preview != NULL)
+         delete it->second.m_image_preview;
+
+      if(it->second.m_image_reply != NULL)
+         delete it->second.m_image_reply;
+
+      if(it->second.m_image_root != NULL)
+         delete it->second.m_image_root;
+
+      it->second.m_image_preview = new CDCSurface();
+      it->second.m_image_preview->EnableCachedStretchImage(true);
+      it->second.m_image_preview->ReadPNG(it->second.m_image_path,true,true,false);
+
+      it->second.m_image_reply = new CDCSurface();
+      it->second.m_image_reply->EnableCachedStretchImage(true);
+      it->second.m_image_reply->ReadPNG(it->second.m_image_path,true,false,false);
+
+      it->second.m_image_root = new CDCSurface();
+      it->second.m_image_root->EnableCachedStretchImage(true);
+      it->second.m_image_root->ReadPNG(it->second.m_image_path,true,false,true);
+
+      it->second.m_active_rect.left = it->second.m_active_rect.top = 0;
+      it->second.m_active_rect.bottom = GetTextHeight();
+      it->second.m_active_rect.right = (int)(((double)it->second.m_active_rect.bottom / (double)it->second.m_image_preview->GetHeight()) * (double)it->second.m_image_preview->GetWidth());
+
+      it++;
+   }
+   
+}
+
 void CLampApp::GenerateLightningBolt()
 {
    CDCSurface canvas;
@@ -5369,4 +5485,126 @@ void CLampApp::CheckForModMode()
       m_modmode = true;
    }
    */
+}
+
+void CLampApp::CollectFlagImages()
+{
+   UCString folder;
+   folder = L"Flags";
+
+   UCString path;
+   path.PathToMe(folder);
+   path += "\\*.png";
+
+   _wfinddata_t fileStruct;
+
+   int hSearch = _wfindfirst( (wchar_t*)path.Str(), &fileStruct);
+
+   if(hSearch != -1L)
+   {
+      do
+      {
+         UCString name = fileStruct.name;
+         folder = L"Flags\\";
+         folder += name;
+         path.PathToMe(folder);
+
+         name.TrimEnd(4);
+
+         CFlagImage flagimage;
+         flagimage.m_image_path = path;
+ 
+         m_flagimages[name] = flagimage;
+
+      }while( _wfindnext( hSearch, &fileStruct ) == 0);
+
+      _findclose( hSearch );
+   }
+
+   // hook up images to users
+
+   std::map<UCString,CFlaggedUser>::iterator fit = m_flagged_users.begin();
+   std::map<UCString,CFlaggedUser>::iterator fend = m_flagged_users.end();
+
+   while(fit != fend)
+   {
+      std::map<UCString,CFlagImage>::iterator it = m_flagimages.find(fit->second.m_flag);
+
+      if(it != m_flagimages.end())
+      {
+         fit->second.m_flag_image = &(it->second);
+      }
+
+      fit++;
+   }
+}
+
+
+CFlaggedUser *CLampApp::GetFlaggedUser(const UCString &username)
+{
+   CFlaggedUser *result = NULL;
+   std::map<UCString,CFlaggedUser>::iterator it = m_flagged_users.find(username);
+
+   if(it != m_flagged_users.end())
+   {
+      result = &(it->second);
+   }
+
+   return result;
+}
+
+void CLampApp::AddFlaggedUser(const UCString &username, const UCString &flag, const UCString &note)
+{
+   CFlaggedUser flagged_user;
+   flagged_user.m_flag = flag;
+   flagged_user.m_note = note;
+
+   std::map<UCString,CFlagImage>::iterator it = m_flagimages.find(flag);
+
+   if(it != m_flagimages.end())
+   {
+      flagged_user.m_flag_image = &(it->second);
+   }
+   
+   m_flagged_users[username] = flagged_user;
+
+   InvalidateFlagsAllViews();
+
+   WriteSettingsFile();
+}
+
+void CLampApp::UpdateFlaggedUser(const UCString &username, const UCString &flag, const UCString &note)
+{
+   CFlaggedUser *flagged_user = GetFlaggedUser(username);
+
+   if(flagged_user != NULL)
+   {
+      flagged_user->m_flag = flag;
+      flagged_user->m_note = note;
+
+      std::map<UCString,CFlagImage>::iterator it = m_flagimages.find(flag);
+
+      if(it != m_flagimages.end())
+      {
+         flagged_user->m_flag_image = &(it->second);
+      }
+   }
+
+   InvalidateFlagsAllViews();
+
+   WriteSettingsFile();
+}
+
+void CLampApp::DeleteFlaggedUser(const UCString &username)
+{
+   std::map<UCString,CFlaggedUser>::iterator it = m_flagged_users.find(username);
+
+   if(it != m_flagged_users.end())
+   {
+      m_flagged_users.erase(it);
+   }
+
+   InvalidateFlagsAllViews();
+
+   WriteSettingsFile();
 }
