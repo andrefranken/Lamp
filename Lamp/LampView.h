@@ -286,6 +286,10 @@ public:
    afx_msg void OnUpdateLoadAllImages(CCmdUI *pCmdUI);
    afx_msg void OnCloseAllImages();
    afx_msg void OnUpdateCloseAllImages(CCmdUI *pCmdUI);
+   afx_msg void OnOpenAllLinks();
+   afx_msg void OnUpdateOpenAllLinks(CCmdUI *pCmdUI);
+   afx_msg void OnOpenAllGifs();
+   afx_msg void OnUpdateOpenAllGifs(CCmdUI *pCmdUI);
    afx_msg void OnBookmarkAdd();
    afx_msg void OnUpdateBookmarkAdd(CCmdUI *pCmdUI);
    afx_msg void OnBookmarkThisPost();

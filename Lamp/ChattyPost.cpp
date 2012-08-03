@@ -1562,6 +1562,144 @@ void ChattyPost::LoadAllImageLinks()
    m_lasttextrectwidth = 0;
 }
 
+
+void ChattyPost::OpenAllLinks()
+{
+   int begin = -1;
+   int end = -1;
+
+   shacktag type = ST_RED;
+
+   for(size_t i=0; i < m_shacktags.size(); i++)
+   {
+      if(m_shacktags[i].m_tag == ST_IMAGE_LINK)
+      {
+         begin = i;
+         type = ST_IMAGE_LINK;
+      }
+
+      if(m_shacktags[i].m_tag == ST_IMAGE)
+      {
+         begin = i;
+         type = ST_IMAGE;
+      }
+
+      if(m_shacktags[i].m_tag == ST_THUMB)
+      {
+         begin = i;
+         type = ST_THUMB;
+      }
+
+      if(m_shacktags[i].m_tag == ST_LINK)
+      {
+         begin = i;
+         type = ST_LINK;
+      }
+
+      if(m_shacktags[i].m_tag == ST_IMAGE_LINK_END && type == ST_IMAGE_LINK)
+      {
+         end = i;
+      }
+
+      if(m_shacktags[i].m_tag == ST_IMAGE_END && type == ST_IMAGE)
+      {
+         end = i;
+      }
+
+      if(m_shacktags[i].m_tag == ST_THUMB_END && type == ST_THUMB)
+      {
+         end = i;
+      }
+
+      if(m_shacktags[i].m_tag == ST_LINK_END && type == ST_LINK)
+      {
+         end = i;
+      }
+
+      if(begin != -1 && end != -1)
+      {
+         UCString link = m_shacktags[begin].m_href;
+         
+         theApp.OpenShackLink(link);
+         
+         begin = -1;
+         end = -1;
+      }
+   }
+}
+
+void ChattyPost::OpenAllGifs()
+{
+   // see if any of the links should be converted to image links
+   int begin = -1;
+   int end = -1;
+
+   shacktag type = ST_RED;
+
+   for(size_t i=0; i < m_shacktags.size(); i++)
+   {
+      if(m_shacktags[i].m_tag == ST_IMAGE_LINK)
+      {
+         begin = i;
+         type = ST_IMAGE_LINK;
+      }
+
+      if(m_shacktags[i].m_tag == ST_IMAGE)
+      {
+         begin = i;
+         type = ST_IMAGE;
+      }
+
+      if(m_shacktags[i].m_tag == ST_THUMB)
+      {
+         begin = i;
+         type = ST_THUMB;
+      }
+
+      if(m_shacktags[i].m_tag == ST_LINK)
+      {
+         begin = i;
+         type = ST_LINK;
+      }
+
+      if(m_shacktags[i].m_tag == ST_IMAGE_LINK_END && type == ST_IMAGE_LINK)
+      {
+         end = i;
+      }
+
+      if(m_shacktags[i].m_tag == ST_IMAGE_END && type == ST_IMAGE)
+      {
+         end = i;
+      }
+
+      if(m_shacktags[i].m_tag == ST_THUMB_END && type == ST_THUMB)
+      {
+         end = i;
+      }
+
+      if(m_shacktags[i].m_tag == ST_LINK_END && type == ST_LINK)
+      {
+         end = i;
+      }
+
+      if(begin != -1 && end != -1)
+      {
+         UCString link = m_shacktags[begin].m_href;
+
+         const UCChar *ext = link.Str() + link.Length();
+         while(ext > link.Str() && *ext != L'.') ext--;
+
+         if(_wcsicmp(ext,L".gif") == 0)
+         {
+            theApp.OpenShackLink(link);
+         }
+
+         begin = -1;
+         end = -1;
+      }
+   }
+}
+
 void ChattyPost::UnloadAllImagesRecurse()
 {
    CloseAllImageLinks();
@@ -5026,10 +5164,23 @@ void ChattyPost::DecodeShackTagsString(UCString &from, bool bAllowCustomTags/* =
    m_linetypes.clear();
 }
 
-void ChattyPost::RemoveSomeTags(UCString &str)
+void ChattyPost::RemoveSomeTags(UCString &str, bool safe/* = false*/)
 {
-   str.Replace(L"&lt;",L"<",false);
-   str.Replace(L"&gt;",L">",false);
+   if(safe)
+   {
+      UCChar buff[2];
+      buff[1] = NULL;
+
+      buff[0] = 0x02C2;
+      str.Replace(L"&lt;",buff,false);
+      buff[0] = 0x02C3;
+      str.Replace(L"&gt;",buff,false);
+   }
+   else
+   {
+      str.Replace(L"&lt;",L"<",false);
+      str.Replace(L"&gt;",L">",false);
+   }
    str.Replace(L"&apos;",L"\'",false);
    str.Replace(L"&quot;",L"\"",false);
    str.Replace(L"&amp;",L"&",false);
@@ -5051,7 +5202,7 @@ void ChattyPost::DecodeString(UCString &from, UCString &to, std::vector<shacktag
    bom[1] = 0;
    from.Replace(bom,L"");
 
-   RemoveSomeTags(from);
+   RemoveSomeTags(from, true);
    
    int red = 0;
    int green = 0;
@@ -5477,6 +5628,9 @@ void ChattyPost::DecodeString(UCString &from, UCString &to, std::vector<shacktag
    to.Replace(L"<i/>",L"");
    to.Replace(L"<b/>",L"");
    to.Replace(L"<u/>",L"");
+
+   to.ReplaceAll(0x02C2,L'<');
+   to.ReplaceAll(0x02C3,L'>');
 
    // trim trailing whitespace
    while(to.Length() > 0 &&
@@ -6035,6 +6189,12 @@ void ChattyPost::GetTextSelectionRects(int selectionstart, int selectionend, std
          rect.top = m_drewtextpos - theApp.GetTextHeight();
          rect.bottom = m_drewtextpos;
          rect.left = m_drewtextedge + theApp.GetCellHeight() + 5;
+
+         if(m_pFlaggedUser != NULL &&
+            m_pFlaggedUser->m_flag_image != NULL)
+         {
+            rect.left += m_pFlaggedUser->m_flag_image->m_active_rect.right;
+         }
 
          for(int i = 0; i < min; i++)
          {

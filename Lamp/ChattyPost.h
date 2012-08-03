@@ -494,6 +494,9 @@ public:
 
    void LoadAllImageLinks();
    void CloseAllImageLinks();
+   void OpenAllLinks();
+   void OpenAllGifs();
+
    void UnloadAllImagesRecurse();
    void UnloadImageRecurse(unsigned int image_index);
 
@@ -570,7 +573,7 @@ protected:
    void SetupProfileText(RECT &textrect);
    void DecodeString(UCString &from, UCString &to, std::vector<shacktagpos> &shacktags);
    void GatherIds(std::list<unsigned int> &ids);
-   void RemoveSomeTags(UCString &str);
+   void RemoveSomeTags(UCString &str, bool safe = false);
    void AddToFamilySize(size_t &familysize);
    void UpdateDate();
    bool IsRoot(){if(m_pParent != NULL)return false;return true;}

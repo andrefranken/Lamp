@@ -196,6 +196,8 @@
 #define IDC_UNFLAG_BUTTON               32909
 #define IDC_FLAG_COMBO                  32910
 #define IDC_NOTE_EDIT                   32911
+#define ID_OPENALLLINKS                 32912
+#define ID_OPENALLGIFS                  32913
 
 
 #define ID_BOOKMARK_MENUITEM            32920

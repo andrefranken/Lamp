@@ -2072,7 +2072,7 @@ void CLampApp::ReadSettingsFile()
          CXMLElement *entry = setting->GetChildElement(i);
          if(entry != NULL)
          {
-            UCString username = entry->GetTag();
+            UCString username = entry->GetAttributeValue(L"name");
 
             CFlaggedUser flagged_user;
             flagged_user.m_flag = entry->GetAttributeValue(L"flag");
@@ -2327,9 +2327,10 @@ void CLampApp::WriteSettingsFile()
       while(fit != fend)
       {
          CXMLElement *flagged_user = flagged_users->AddChildElement();
-         flagged_user->SetTag(fit->first);
+         flagged_user->SetTag(L"user");
          flagged_user->SetValue(fit->second.m_note);
          flagged_user->AddAttribute(L"flag",fit->second.m_flag);
+         flagged_user->AddAttribute(L"name",fit->first);
          fit++;
       }
    }

@@ -4808,7 +4808,11 @@ void CLampDoc::CalcBodyText(RECT &rect,
          rectheight += height;
 
          // setup tags for this finished line
+         //std::vector<shacktagpos> thislinetags;
+         //linetags.push_back(thislinetags);
+
          std::vector<shacktagpos> thislinetags;
+         CalcLineTags(shacktags,thislinetags, thistext - text, i);
          linetags.push_back(thislinetags);
 
          
@@ -5339,7 +5343,8 @@ void CLampDoc::DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipp
 
       Flag->StretchBlit(hDC, flagrect);
 
-      rect.left = flagrect.right;
+      rect.left += (flagrect.right - flagrect.left);
+      rect.right += (flagrect.right - flagrect.left);
    }
 
    ::SetTextColor(hDC,AuthorColor);
@@ -6319,6 +6324,174 @@ void CLampDoc::DrawBodyText(HDC hDC,
 
                images.push_back(output);
             }
+         }
+
+         // update tag states
+         std::vector<shacktagpos>::iterator it = linetags[i].begin();
+         std::vector<shacktagpos>::iterator end = linetags[i].end();
+         
+         // loop for every shack tag range
+         while(it != end)
+         {
+            switch((*it).m_tag)
+            {
+            case ST_RED: color = theApp.GetRed(); colorstack.push_back(color); colorchange = true; break;
+            case ST_GREEN: color = theApp.GetGreen(); colorstack.push_back(color); colorchange = true; break;
+            case ST_BLUE: color = theApp.GetBlue(); colorstack.push_back(color); colorchange = true; break;
+            case ST_YELLOW: color = theApp.GetYellow(); colorstack.push_back(color); colorchange = true; break;
+            case ST_OLIVE: color = theApp.GetOlive(); colorstack.push_back(color); colorchange = true; break;
+            case ST_LIME: color = theApp.GetLime(); colorstack.push_back(color); colorchange = true; break;
+            case ST_ORANGE: color = theApp.GetOrange(); colorstack.push_back(color); colorchange = true; break;
+            case ST_PURPLE: color = theApp.GetPurple(); colorstack.push_back(color); colorchange = true; break;
+            case ST_PINK: color = theApp.GetPink(); colorstack.push_back(color); colorchange = true; break;
+            case ST_FADE: color = fadecolor; colorstack.push_back(color); colorchange = true; break;
+
+            case ST_RED_END:
+            case ST_GREEN_END:
+            case ST_BLUE_END:
+            case ST_YELLOW_END:
+            case ST_OLIVE_END:
+            case ST_LIME_END:
+            case ST_ORANGE_END:
+            case ST_PURPLE_END:
+            case ST_PINK_END: 
+            case ST_FADE_END: 
+            {
+               if(colorstack.size() > 0)
+               {
+                  colorstack.pop_back();
+                  if(colorstack.size() > 0)
+                  {
+                     color = colorstack[colorstack.size()-1];
+                  }
+                  else
+                  {
+                     color = normalcolor;
+                  }
+               }
+               else
+               {
+                  color = normalcolor;
+               }
+               colorchange = true;
+               break;
+            }
+
+            case ST_QUOTE: quote = true;stylechange = true;break;
+            case ST_SAMPLE: sample = true;stylechange = true;break;
+            case ST_STRIKE: strike = true;stylechange = true;break;
+            case ST_ITALIC: italic = true;stylechange = true;break;
+            case ST_BOLD: bold = true;stylechange = true;break;
+            case ST_UNDERLINE: underline = true;stylechange = true;break;
+            case ST_SPOILER: spoiler = true;stylechange = true;break;
+            case ST_CODE: 
+               {
+                  code = true;
+                  stylechange = true;
+               }
+               break;
+
+            case ST_LINK: link = true;stylechange = true; color = m_link_color; colorstack.push_back(color); colorchange = true; break;
+            case ST_IMAGE_LINK: imagelink = true;stylechange = true; color = m_image_link_color; colorstack.push_back(color); colorchange = true; break;
+
+            case ST_QUOTE_END: quote = false;stylechange = true;break;
+            case ST_SAMPLE_END: sample = false;stylechange = true;break;
+            case ST_STRIKE_END: strike = false;stylechange = true;break;
+            case ST_ITALIC_END: italic = false;stylechange = true;break;
+            case ST_BOLD_END: bold = false;stylechange = true;break;
+            case ST_UNDERLINE_END: underline = false;stylechange = true;break;
+            case ST_SPOILER_END: spoiler = false;stylechange = true;break;
+            case ST_CODE_END: code = false;stylechange = true;break;
+            case ST_LINK_END: 
+               {
+                  link = false;
+                  stylechange = true;
+                  
+                  if(colorstack.size() > 0)
+                  {
+                     colorstack.pop_back();
+                     if(colorstack.size() > 0)
+                     {
+                        color = colorstack[colorstack.size()-1];
+                     }
+                     else
+                     {
+                        color = normalcolor;
+                     }
+                  }
+                  else
+                  {
+                     color = normalcolor;
+                  }
+                  colorchange = true;
+               }
+               break;
+            
+            case ST_IMAGE_LINK_END: 
+               {
+                  imagelink = false;
+                  stylechange = true;
+                  
+                  if(colorstack.size() > 0)
+                  {
+                     colorstack.pop_back();
+                     if(colorstack.size() > 0)
+                     {
+                        color = colorstack[colorstack.size()-1];
+                     }
+                     else
+                     {
+                        color = normalcolor;
+                     }
+                  }
+                  else
+                  {
+                     color = normalcolor;
+                  }
+                  colorchange = true;
+               }
+               break;
+            }
+
+            if(colorchange)
+            {
+               ::SetTextColor(hDC,color);
+               colorchange = false;
+            }
+
+            if(stylechange)
+            {
+               if(hPreviousFont != NULL)
+               {
+                  MySelectFont(hDC, hPreviousFont);
+               }
+               if(hCreatedFont != NULL)
+               {
+                  ::DeleteObject(hCreatedFont);
+               }
+               
+               int fsize = theApp.GetFontHeight();
+               if(sample)
+               {
+                  fsize = theApp.GetSampleFontHeight();
+               }
+               int weight = FW_NORMAL;
+               if(bold) weight = FW_EXTRABOLD;
+               const wchar_t *font = theApp.GetNormalFontName();
+               if(code)
+               {
+                  font = theApp.GetCodeFontName();
+               }
+               else if(quote)
+               {
+                  font = theApp.GetQuotedFontName();
+               }
+               hCreatedFont = ::CreateFontW(fsize,0,0,0,weight,italic,underline|link|imagelink,strike,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,font);
+               hPreviousFont = MySelectFont(hDC, hCreatedFont);
+               stylechange = false;
+            }
+            
+            it++;
          }
       }
             

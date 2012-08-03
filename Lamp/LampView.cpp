@@ -91,6 +91,10 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_EDIT_LOADALLIMAGES, &CLampView::OnUpdateLoadAllImages)
    ON_COMMAND(ID_EDIT_CLOSEALLIMAGES, &CLampView::OnCloseAllImages)
    ON_UPDATE_COMMAND_UI(ID_EDIT_CLOSEALLIMAGES, &CLampView::OnUpdateCloseAllImages)
+   ON_COMMAND(ID_OPENALLLINKS, &CLampView::OnOpenAllLinks)
+   ON_UPDATE_COMMAND_UI(ID_OPENALLLINKS, &CLampView::OnUpdateOpenAllLinks)
+   ON_COMMAND(ID_OPENALLGIFS, &CLampView::OnOpenAllGifs)
+   ON_UPDATE_COMMAND_UI(ID_OPENALLGIFS, &CLampView::OnUpdateOpenAllGifs)
    ON_COMMAND(ID_BOOKMARK_ADD, &CLampView::OnBookmarkAdd)
    ON_UPDATE_COMMAND_UI(ID_BOOKMARK_ADD, &CLampView::OnUpdateBookmarkAdd)
    ON_COMMAND(ID_EDIT_BOOKMARK_THIS_POST, &CLampView::OnBookmarkThisPost)
@@ -3243,7 +3247,9 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
                            if(pPost != NULL)
                            {
-                              MessageBox(pPost->GetNote(),L"Note About User",MB_OK);
+                              CFlagUserDialog dlg(this);
+                              dlg.m_name = pPost->GetAuthor();
+                              dlg.DoModal();
                            }
                         }
                         break;
@@ -5750,6 +5756,50 @@ void CLampView::OnCloseAllImages()
 }
 
 void CLampView::OnUpdateCloseAllImages(CCmdUI *pCmdUI)
+{
+   if(m_rbuttonmenufromid != 0)
+   {
+      pCmdUI->Enable(TRUE);
+   }
+   else
+   {
+      pCmdUI->Enable(FALSE);
+   }
+}
+
+void CLampView::OnOpenAllLinks()
+{
+   ChattyPost *pPost = GetDocument()->FindPost(m_rbuttonmenufromid);
+   if(pPost != NULL)
+   {
+      CWaitCursor wait;
+      pPost->OpenAllLinks();
+   }
+}
+
+void CLampView::OnUpdateOpenAllLinks(CCmdUI *pCmdUI)
+{
+   if(m_rbuttonmenufromid != 0)
+   {
+      pCmdUI->Enable(TRUE);
+   }
+   else
+   {
+      pCmdUI->Enable(FALSE);
+   }
+}
+
+void CLampView::OnOpenAllGifs()
+{
+   ChattyPost *pPost = GetDocument()->FindPost(m_rbuttonmenufromid);
+   if(pPost != NULL)
+   {
+      CWaitCursor wait;
+      pPost->OpenAllGifs();
+   }
+}
+
+void CLampView::OnUpdateOpenAllGifs(CCmdUI *pCmdUI)
 {
    if(m_rbuttonmenufromid != 0)
    {
