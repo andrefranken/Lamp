@@ -1619,8 +1619,8 @@ void ChattyPost::OpenAllLinks()
       if(begin != -1 && end != -1)
       {
          UCString link = m_shacktags[begin].m_href;
-         
-         theApp.OpenShackLink(link);
+
+         theApp.OpenShackLink(link,IsNWSPost());
          
          begin = -1;
          end = -1;
@@ -1691,7 +1691,7 @@ void ChattyPost::OpenAllGifs()
 
          if(_wcsicmp(ext,L".gif") == 0)
          {
-            theApp.OpenShackLink(link);
+            theApp.OpenShackLink(link,IsNWSPost());
          }
 
          begin = -1;
@@ -6966,9 +6966,21 @@ bool ChattyPost::IsFiltered()
          std::set<UCString>::iterator end = fpl.end();
          while(result == false && it != end)
          {
-            if(m_bodytext.Find((*it).Str(),NULL,false,true) != NULL)
+            const UCChar *phrase = (*it).Str();
+            bool rootphrase = false;
+            if((*it).beginswith(L"[root]"))
             {
-               result = true;
+               rootphrase = true;
+               phrase += 6;
+            }
+
+            if((IsRoot() && rootphrase) ||
+               !rootphrase)
+            {
+               if(m_bodytext.Find(phrase,NULL,false,true) != NULL)
+               {
+                  result = true;
+               }
             }
             it++;
          }

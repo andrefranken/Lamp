@@ -1322,17 +1322,37 @@ bool CReplyDlg::OnLButtonDown(UINT nFlags, CPoint point, bool &bCloseReplyDlg)
                            std::set<UCString>::iterator end = fpl.end();
                            while(filtered == false && it != end)
                            {
-                              if(m_replytext.Find((*it).Str(),NULL,false,true) != NULL)
+                              const UCChar *phrase = (*it).Str();
+                              bool rootphrase = false;
+                              if((*it).beginswith(L"[root]"))
                               {
-                                 filtered = true;
+                                 rootphrase = true;
+                                 phrase += 6;
                               }
+
+                              if((m_replytoid == 0 && rootphrase) ||
+                                  !rootphrase)
+                              {
+                                 if(m_replytext.Find(phrase,NULL,false,true) != NULL)
+                                 {
+                                    filtered = true;
+                                 }
+                              }
+
                               it++;
                            }
                         }
 
                         if(filtered)
                         {
-                           m_pView->MessageBox(L"Your post contains a phrase you are filtering. Cannot post this.");
+                           if(m_replytoid == 0)
+                           {
+                              m_pView->MessageBox(L"Your new thread contains a root-phrase you are filtering. Cannot post this.");
+                           }
+                           else
+                           {
+                              m_pView->MessageBox(L"Your post contains a phrase you are filtering. Cannot post this.");
+                           }
                         }
                         else
                         {
