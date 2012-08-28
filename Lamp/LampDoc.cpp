@@ -916,6 +916,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                if(m_pView)
                   m_pView->InvalidateEverything();
             }
+
+            DetermineIfUserHasPostedInThreads();
          }
          break;
       case DT_SHACK_CHATTY:
@@ -972,6 +974,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                }
                it++;
             }
+
+            DetermineIfUserHasPostedInThreads();
          }
          break;
       case DT_SHACK_CHATTY_INFINATE_PAGE:
@@ -1020,6 +1024,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                }
                it++;
             }
+
+            DetermineIfUserHasPostedInThreads();
 
             // update the page's height by forcing a draw
             if(m_pView)
@@ -1127,6 +1133,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                {
                   post->SetRefreshing(false);
                }
+
+               DetermineIfUserHasPostedInThreads();
 
                if(m_pView)
                {
@@ -2969,11 +2977,11 @@ void CLampDoc::ProcessLOLData(char *data, int datasize)
                loltag.AppendEncodedString(work,3,CET_UTF8);
 
                //
-                    if(loltag == L"lol") theApp.AddLOL_LOL((unsigned int)id, (unsigned int)lolcount);
-               else if(loltag == L"inf") theApp.AddLOL_INF((unsigned int)id, (unsigned int)lolcount);
-               else if(loltag == L"unf") theApp.AddLOL_UNF((unsigned int)id, (unsigned int)lolcount);
-               else if(loltag == L"tag") theApp.AddLOL_TAG((unsigned int)id, (unsigned int)lolcount);
-               else if(loltag == L"wtf") theApp.AddLOL_WTF((unsigned int)id, (unsigned int)lolcount);               
+                    if(loltag == L"lol") theApp.SetLOL_LOL((unsigned int)id, (unsigned int)lolcount);
+               else if(loltag == L"inf") theApp.SetLOL_INF((unsigned int)id, (unsigned int)lolcount);
+               else if(loltag == L"unf") theApp.SetLOL_UNF((unsigned int)id, (unsigned int)lolcount);
+               else if(loltag == L"tag") theApp.SetLOL_TAG((unsigned int)id, (unsigned int)lolcount);
+               else if(loltag == L"wtf") theApp.SetLOL_WTF((unsigned int)id, (unsigned int)lolcount);               
                //
                
                work = strstr(work,"<span class=\"post-author\">By <a href=\"");
@@ -4968,6 +4976,94 @@ void CLampDoc::StrokeShapedRect(HDC hDC, RECT &rect, int thickness)
    ::DeleteObject(hNewPen);
 }
 
+void CLampDoc::FillBackgroundAuthorGlow(HDC hDC, RECT &rect, bool rightedge)
+{
+   FillBackground(hDC,rect);
+
+   TRIVERTEX tripoints[4];
+   memset(tripoints,0,sizeof(TRIVERTEX) * 4);
+
+   if(rightedge)
+   {
+      tripoints[0].x = rect.right;
+      tripoints[0].y = rect.top;
+      tripoints[1].x = rect.left;
+      tripoints[1].y = (rect.top + rect.bottom) >> 1;
+      tripoints[2].x = rect.right;
+      tripoints[2].y = tripoints[1].y;
+      tripoints[3].x = rect.right;
+      tripoints[3].y = rect.bottom;
+
+      tripoints[0].Red = GetRValue(theApp.GetBackgroundColor()) << 8;
+      tripoints[0].Green = GetGValue(theApp.GetBackgroundColor()) << 8;
+      tripoints[0].Blue = GetBValue(theApp.GetBackgroundColor()) << 8;
+      tripoints[0].Alpha = 0xFFFF;
+
+      tripoints[1].Red = tripoints[0].Red;
+      tripoints[1].Green = tripoints[0].Green;
+      tripoints[1].Blue = tripoints[0].Blue;
+      tripoints[1].Alpha = 0xFFFF;
+
+      tripoints[2].Red = GetRValue(theApp.GetMyPostColor()) << 8;
+      tripoints[2].Green = GetGValue(theApp.GetMyPostColor()) << 8;
+      tripoints[2].Blue = GetBValue(theApp.GetMyPostColor()) << 8;
+      tripoints[2].Alpha = 0xFFFF;
+
+      tripoints[3].Red = tripoints[0].Red;
+      tripoints[3].Green = tripoints[0].Green;
+      tripoints[3].Blue = tripoints[0].Blue;
+      tripoints[3].Alpha = 0xFFFF;
+   }
+   else
+   {
+      tripoints[0].x = rect.left;
+      tripoints[0].y = rect.top;
+      tripoints[1].x = rect.left;
+      tripoints[1].y = (rect.top + rect.bottom) >> 1;
+      tripoints[2].x = rect.right;
+      tripoints[2].y = tripoints[1].y;
+      tripoints[3].x = rect.left;
+      tripoints[3].y = rect.bottom;
+
+      tripoints[0].Red = GetRValue(theApp.GetBackgroundColor()) << 8;
+      tripoints[0].Green = GetGValue(theApp.GetBackgroundColor()) << 8;
+      tripoints[0].Blue = GetBValue(theApp.GetBackgroundColor()) << 8;
+      tripoints[0].Alpha = 0xFFFF;
+
+      tripoints[1].Red = GetRValue(theApp.GetMyPostColor()) << 8;
+      tripoints[1].Green = GetGValue(theApp.GetMyPostColor()) << 8;
+      tripoints[1].Blue = GetBValue(theApp.GetMyPostColor()) << 8;
+      tripoints[1].Alpha = 0xFFFF;
+
+      tripoints[2].Red = tripoints[0].Red;
+      tripoints[2].Green = tripoints[0].Green;
+      tripoints[2].Blue = tripoints[0].Blue;
+      tripoints[2].Alpha = 0xFFFF;
+
+      tripoints[3].Red = tripoints[0].Red;
+      tripoints[3].Green = tripoints[0].Green;
+      tripoints[3].Blue = tripoints[0].Blue;
+      tripoints[3].Alpha = 0xFFFF;
+   }
+   
+   GRADIENT_TRIANGLE triangles[2];
+   triangles[0].Vertex1 = 0;
+   triangles[0].Vertex2 = 1;
+   triangles[0].Vertex3 = 2;
+   triangles[1].Vertex1 = 1;
+   triangles[1].Vertex2 = 2;
+   triangles[1].Vertex3 = 3;
+
+   GradientFill(hDC,
+                tripoints,
+                4,
+                triangles,
+                2,
+                GRADIENT_FILL_TRIANGLE);
+
+   
+}
+
 void CLampDoc::FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcategorytype posttype, bool bStrokeTopOnly, bool bUseCustomStrokeColor /*= false*/, COLORREF customcolor /*= 0*/)
 {
    RECT temprect = rect;
@@ -6808,32 +6904,50 @@ bool CLampDoc::LolTagPost(unsigned int post_id, loltagtype tag)
    if(tag != LTT_NONE)
    {
       //   http://thomwetzel.com/greasemonkey/shacklol/report.php?who=[username]&what=24079617&tag=lol&version=-1
-      CWaitCursor wait;
-      char*         data = NULL;
-
-      UCString path = L"/greasemonkey/shacklol/report.php?who=";
-      path += theApp.GetUsername();
-      path += L"&what=";
-      path += post_id;
-      path += L"&tag=";
-
-      switch(tag)
+      ChattyPost *post = FindPost(post_id);
+      if(post != NULL)
       {
-      case LTT_LOL: path += L"lol";break;
-      case LTT_INF: path += L"inf";break;
-      case LTT_UNF: path += L"unf";break;
-      case LTT_TAG: path += L"tag";break;
-      case LTT_WTF: path += L"wtf";break;
+         char*         data = NULL;
+
+         UCString path = L"/greasemonkey/shacklol/report.php?who=";
+         path += theApp.GetUsername();
+         path += L"&what=";
+         path += post_id;
+         path += L"&tag=";
+
+         switch(tag)
+         {
+         case LTT_LOL: path += L"lol";break;
+         case LTT_INF: path += L"inf";break;
+         case LTT_UNF: path += L"unf";break;
+         case LTT_TAG: path += L"tag";break;
+         case LTT_WTF: path += L"wtf";break;
+         }
+
+         path += L"&version=-1";
+
+         if(post->DidLolTag(tag))
+         {
+            // remove
+            path += L"&action=untag";
+
+            theApp.RemoveMyLol(post_id,tag);
+            post->RemoveLolTag(tag);
+         }
+         else
+         {
+            // add
+            theApp.AddMyLol(post_id,tag);
+            post->AddLolTag(tag);
+         }
+
+         StartDownload(theApp.GetLolHostName(),
+                       path,
+                       DT_SUBMIT_LOLVOTE,
+                       0);
+
+         result = true;
       }
-
-      path += L"&version=-1";
-
-      StartDownload(theApp.GetLolHostName(),
-                    path,
-                    DT_SUBMIT_LOLVOTE,
-                    0);
-
-      result = true;
    }   
 
 	return result;
@@ -7845,4 +7959,22 @@ void CLampDoc::CalcWidthOfAverageProfileGroup()
    GetCharWidths(sampletext, widths, 1, false, false, false, theApp.GetNormalFontName());
 
    m_widthofaverageprofilegroup = 40 + (widths[0] * 36);
+}
+
+void CLampDoc::DetermineIfUserHasPostedInThreads()
+{
+   if(m_datatype == DDT_STORY)
+   {
+      std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+      std::list<ChattyPost*>::iterator end = m_rootposts.end();
+
+      while(it != end)
+      {
+         if((*it) != NULL)
+         {
+            (*it)->DetermineIfUserHasPostedInThread();
+         }
+         it++;
+      }
+   }
 }

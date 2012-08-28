@@ -3875,8 +3875,6 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            if(pPost != NULL)
                            {
                               GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_LOL);
-                              theApp.AddMyLol(m_hotspots[i].m_id,LTT_LOL);
-                              pPost->AddLolTag(LTT_LOL);                           
                               InvalidateEverything();
                            }
                         }
@@ -3887,8 +3885,6 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            if(pPost != NULL)
                            {
                               GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_INF);
-                              theApp.AddMyLol(m_hotspots[i].m_id,LTT_INF);
-                              pPost->AddLolTag(LTT_INF);                           
                               InvalidateEverything();
                            }
                         }
@@ -3899,8 +3895,6 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            if(pPost != NULL)
                            {
                               GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_UNF);
-                              theApp.AddMyLol(m_hotspots[i].m_id,LTT_UNF);
-                              pPost->AddLolTag(LTT_UNF);
                               InvalidateEverything();
                            }
                         }
@@ -3911,8 +3905,6 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            if(pPost != NULL)
                            {
                               GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_TAG);
-                              theApp.AddMyLol(m_hotspots[i].m_id,LTT_TAG);
-                              pPost->AddLolTag(LTT_TAG);
                               InvalidateEverything();
                            }
                         }
@@ -3923,8 +3915,6 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            if(pPost != NULL)
                            {
                               GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_WTF);
-                              theApp.AddMyLol(m_hotspots[i].m_id,LTT_WTF);
-                              pPost->AddLolTag(LTT_WTF);
                               InvalidateEverything();
                            }
                         }

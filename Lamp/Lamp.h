@@ -799,6 +799,7 @@ public:
    void GetSpellSuggestions(const UCChar *wordtotest, size_t count, std::vector<CSuggestion> &suggestions);
 
    void AddMyLol(unsigned int post_id, loltagtype);
+   void RemoveMyLol(unsigned int post_id, loltagtype);
    byte GetMyLol(unsigned int post_id);
 
    void AddMyCollapse(unsigned int post_id);
@@ -894,11 +895,12 @@ public:
    UCString &GetFindText(){return m_findtext;}
    void SetFindText(UCString &txt){m_findtext = txt;}
 
-   void AddLOL_LOL(unsigned int post_id, unsigned int count);
-   void AddLOL_INF(unsigned int post_id, unsigned int count);
-   void AddLOL_UNF(unsigned int post_id, unsigned int count);
-   void AddLOL_TAG(unsigned int post_id, unsigned int count);
-   void AddLOL_WTF(unsigned int post_id, unsigned int count);
+   void SetLOL_LOL(unsigned int post_id, unsigned int count);
+   void SetLOL_INF(unsigned int post_id, unsigned int count);
+   void SetLOL_UNF(unsigned int post_id, unsigned int count);
+   void SetLOL_TAG(unsigned int post_id, unsigned int count);
+   void SetLOL_WTF(unsigned int post_id, unsigned int count);
+
    CLOLFlags &GetKnownLOLFlags(unsigned int post_id);
 
    int GetLOLFieldWidth(){return m_LOLFieldWidth;}

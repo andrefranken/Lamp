@@ -348,11 +348,11 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                            unsigned int id = thread_id;
                            unsigned int count = uccount;
 
-                           if(category == L"lol")      AddLOL_LOL(id, count);
-                           else if(category == L"inf") AddLOL_INF(id, count);
-                           else if(category == L"unf") AddLOL_UNF(id, count);
-                           else if(category == L"tag") AddLOL_TAG(id, count);
-                           else if(category == L"wtf") AddLOL_WTF(id, count);
+                           if(category == L"lol")      SetLOL_LOL(id, count);
+                           else if(category == L"inf") SetLOL_INF(id, count);
+                           else if(category == L"unf") SetLOL_UNF(id, count);
+                           else if(category == L"tag") SetLOL_TAG(id, count);
+                           else if(category == L"wtf") SetLOL_WTF(id, count);
 
                            k++;
                         }
@@ -3783,11 +3783,47 @@ void CLampApp::AddMyLol(unsigned int post_id, loltagtype tag)
 
    switch(tag)
    {
-   case LTT_LOL: AddLOL_LOL(post_id, flags.m_LOLd + 1); break;
-   case LTT_INF: AddLOL_INF(post_id, flags.m_INFd + 1); break;
-   case LTT_UNF: AddLOL_UNF(post_id, flags.m_UNFd + 1); break;
-   case LTT_TAG: AddLOL_TAG(post_id, flags.m_TAGd + 1); break;
-   case LTT_WTF: AddLOL_WTF(post_id, flags.m_WTFd + 1); break;
+   case LTT_LOL: SetLOL_LOL(post_id, flags.m_LOLd + 1); break;
+   case LTT_INF: SetLOL_INF(post_id, flags.m_INFd + 1); break;
+   case LTT_UNF: SetLOL_UNF(post_id, flags.m_UNFd + 1); break;
+   case LTT_TAG: SetLOL_TAG(post_id, flags.m_TAGd + 1); break;
+   case LTT_WTF: SetLOL_WTF(post_id, flags.m_WTFd + 1); break;
+   }
+}
+
+void CLampApp::RemoveMyLol(unsigned int post_id, loltagtype tag)
+{
+   bool bFound = false;
+
+   std::list<CMyLol>::iterator it = m_mylols.begin();
+   std::list<CMyLol>::iterator end = m_mylols.end();
+
+   while(it != end)
+   {
+      if((*it).m_post_id == post_id &&
+         (*it).m_mylols & tag)
+      {
+         (*it).m_mylols ^= tag;
+         bFound = true;
+         break;
+      }
+
+      it++;
+   }
+
+   if(bFound)
+   {      
+
+      CLOLFlags &flags = GetKnownLOLFlags(post_id);
+
+      switch(tag)
+      {
+      case LTT_LOL: SetLOL_LOL(post_id, flags.m_LOLd - 1); break;
+      case LTT_INF: SetLOL_INF(post_id, flags.m_INFd - 1); break;
+      case LTT_UNF: SetLOL_UNF(post_id, flags.m_UNFd - 1); break;
+      case LTT_TAG: SetLOL_TAG(post_id, flags.m_TAGd - 1); break;
+      case LTT_WTF: SetLOL_WTF(post_id, flags.m_WTFd - 1); break;
+      }
    }
 }
 
@@ -5179,35 +5215,35 @@ CLOLFlags &CLampApp::GetKnownLOLFlags(unsigned int post_id)
    return m_cachedLOLposts[post_id];
 }
 
-void CLampApp::AddLOL_LOL(unsigned int post_id, unsigned int count)
+void CLampApp::SetLOL_LOL(unsigned int post_id, unsigned int count)
 {
    CLOLFlags flags = m_cachedLOLposts[post_id];
    flags.m_LOLd = count;
    m_cachedLOLposts[post_id] = flags;
 }
 
-void CLampApp::AddLOL_INF(unsigned int post_id, unsigned int count)
+void CLampApp::SetLOL_INF(unsigned int post_id, unsigned int count)
 {
    CLOLFlags flags = m_cachedLOLposts[post_id];
    flags.m_INFd = count;
    m_cachedLOLposts[post_id] = flags;
 }
 
-void CLampApp::AddLOL_UNF(unsigned int post_id, unsigned int count)
+void CLampApp::SetLOL_UNF(unsigned int post_id, unsigned int count)
 {
    CLOLFlags flags = m_cachedLOLposts[post_id];
    flags.m_UNFd = count;
    m_cachedLOLposts[post_id] = flags;
 }
 
-void CLampApp::AddLOL_TAG(unsigned int post_id, unsigned int count)
+void CLampApp::SetLOL_TAG(unsigned int post_id, unsigned int count)
 {
    CLOLFlags flags = m_cachedLOLposts[post_id];
    flags.m_TAGd = count;
    m_cachedLOLposts[post_id] = flags;
 }
 
-void CLampApp::AddLOL_WTF(unsigned int post_id, unsigned int count)
+void CLampApp::SetLOL_WTF(unsigned int post_id, unsigned int count)
 {
    CLOLFlags flags = m_cachedLOLposts[post_id];
    flags.m_WTFd = count;

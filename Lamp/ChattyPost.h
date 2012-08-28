@@ -370,6 +370,7 @@ public:
       m_indent_offset = 0;
       m_bIsProfileGroup = false;
       m_pFlaggedUser = NULL;
+      m_bUserHasPostedInThread = false;
    }
    virtual ~ChattyPost();
 
@@ -488,6 +489,8 @@ public:
    void DecodeShackTagsString(UCString &from, bool bAllowCustomTags = false, bool bAllowLinks = false);
 
    void AddLolTag(loltagtype tag){m_mylols |= tag; UpdateLOLs();}
+   void RemoveLolTag(loltagtype tag){if(m_mylols & tag){m_mylols ^= tag;} UpdateLOLs();}
+   bool DidLolTag(loltagtype tag){if(m_mylols & tag) return true; return false;}
 
    void UpdateLOLs();
    void UpdateLOLsRecurse();
@@ -567,6 +570,8 @@ public:
    void InitImageLinks();
 
    const UCChar *GetNote();
+
+   void DetermineIfUserHasPostedInThread();
 protected:
    void SetupCharWidths();
    void SetupBodyText(RECT &textrect);
@@ -577,6 +582,7 @@ protected:
    void AddToFamilySize(size_t &familysize);
    void UpdateDate();
    bool IsRoot(){if(m_pParent != NULL)return false;return true;}
+   void IfUserHasPostedInThread(bool &result);
 
    unsigned int GetLOLWidth(const UCChar *text);
 
@@ -678,4 +684,6 @@ protected:
    bool                    m_bIsProfileGroup;
 
    CFlaggedUser           *m_pFlaggedUser;
+
+   bool                    m_bUserHasPostedInThread;
 };

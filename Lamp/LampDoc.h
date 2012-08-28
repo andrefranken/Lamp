@@ -103,6 +103,7 @@ public:
 
    void DoBoldFont(HDC hDC){::SelectObject(hDC, m_boldfont);}
    void FillBackground(HDC hDC, RECT &rect){::FillRect(hDC, &rect, m_backgroundbrush);}
+   void FillBackgroundAuthorGlow(HDC hDC, RECT &rect, bool rightedge);
    void FillExpandedBackground(HDC hDC, RECT &rect, bool bAsRoot, postcategorytype posttype, bool bStrokeTopOnly, bool bUseCustomStrokeColor = false, COLORREF customcolor = 0);
    void StrokeShapedRect(HDC hDC, RECT &rect, int thickness);
    void DrawBodyText(HDC hDC,
@@ -157,6 +158,7 @@ public:
    void UpdateLOLsRecurse();
    void UnloadAllImages();
    void UnloadImage(unsigned int image_index);
+   void DetermineIfUserHasPostedInThreads();
    
    int GetPage(){return m_page;}
    void SetPage(int page);
