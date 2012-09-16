@@ -1723,6 +1723,7 @@ CLampDoc::CLampDoc()
    m_page = 1;
    m_lastpage = 0;
    m_ThingsILOLD = false;
+   m_ThingsITAGD = false;
    m_ThingsIWrote = false;
    m_ThingsUserWrote = false;
    m_bScramblePath = false;
@@ -2205,6 +2206,13 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
          pCmd += 5;
          m_loltag = L"";
          m_ThingsILOLD = true;
+      }
+      else if(end - pCmd >= 5 &&
+        _wcsnicmp(pCmd,L"ITAGD",5) == 0)
+      {
+         pCmd += 5;
+         m_loltag = L"";
+         m_ThingsITAGD = true;
       }
       else if(end - pCmd >= 6 &&
         _wcsnicmp(pCmd,L"IWROTE",6) == 0)
@@ -2879,7 +2887,16 @@ void CLampDoc::ReadLOL()
 
    UCString path = L"/greasemonkey/shacklol/";
 
-   if(m_ThingsILOLD)
+   if(m_ThingsITAGD)
+   {
+      m_title = L"Things I Tagged for later";
+      // http://lmnopc.com/greasemonkey/shacklol/user.php?tag=tag&loldby=[username]&sort_by=date&page=1
+      path += L"user.php?tag=tag&loldby=";
+      path += theApp.GetUsername();
+      path += L"&sort_by=date&page=";
+      path += m_page;
+   }
+   else if(m_ThingsILOLD)
    {
       m_title = L"Things I LOL'd";
       // http://lmnopc.com/greasemonkey/shacklol/user.php?loldby=[username]&sort_by=date&page=1
@@ -3139,7 +3156,8 @@ void CLampDoc::ProcessLOLData(char *data, int datasize)
       else work = end;
    }
 
-   if(m_ThingsILOLD ||
+   if(m_ThingsITAGD ||
+      m_ThingsILOLD ||
       m_ThingsIWrote ||
       m_ThingsUserWrote)
    {
@@ -7318,7 +7336,11 @@ void CLampDoc::GetLaunchString(UCString &launch, unsigned int current_id)
       break;
    case DDT_LOLS:
       launch = L"LOL";
-      if(m_ThingsILOLD)
+      if(m_ThingsITAGD)
+      {
+         launch += L"ITAGD";
+      }
+      else if(m_ThingsILOLD)
       {
          launch += L"ILOLD";
       }

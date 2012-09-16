@@ -7588,10 +7588,16 @@ void CLampView::OnLaunchLink_Chrome()
    
    if(!link.IsEmpty())
    {
+      const UCChar *work = link;
+      if(_wcsnicmp(work,L"forceout:",9) == 0)
+      {
+         work += 9;
+      }
+
       HINSTANCE hInst = ShellExecuteW(NULL,
                                       L"open",
                                       L"chrome.exe",
-                                      link,
+                                      work,
                                       NULL,
                                       SW_SHOW);
 
@@ -7616,7 +7622,7 @@ void CLampView::OnLaunchLink_Chrome()
             ShellExecuteW(NULL,
                           L"open",
                           file,
-                          link,
+                          work,
                           NULL,
                           SW_SHOW);
          }
@@ -7631,8 +7637,14 @@ void CLampView::OnLaunchLink_Chrome_Incognito()
    
    if(!link.IsEmpty())
    {
+      const UCChar *work = link;
+      if(_wcsnicmp(work,L"forceout:",9) == 0)
+      {
+         work += 9;
+      }
+
       UCString cmdline = L"--incognito ";
-      cmdline += link;
+      cmdline += work;
             
       HINSTANCE hInst = ShellExecuteW(NULL,
                                       L"open",
@@ -7677,10 +7689,16 @@ void CLampView::OnLaunchLink_Firefox()
    
    if(!link.IsEmpty())
    {
+      const UCChar *work = link;
+      if(_wcsnicmp(work,L"forceout:",9) == 0)
+      {
+         work += 9;
+      }
+
       ShellExecuteW(NULL,
                     L"open",
                     L"firefox.exe",
-                    link,
+                    work,
                     NULL,
                     SW_SHOW);
    }
@@ -7693,10 +7711,16 @@ void CLampView::OnLaunchLink_IE()
    
    if(!link.IsEmpty())
    {
+      const UCChar *work = link;
+      if(_wcsnicmp(work,L"forceout:",9) == 0)
+      {
+         work += 9;
+      }
+
       ShellExecuteW(NULL,
                     L"open",
                     L"iexplore.exe",
-                    link,
+                    work,
                     NULL,
                     SW_SHOW);
    }
@@ -7710,8 +7734,14 @@ void CLampView::OnLaunchLink_IE_Private()
    
    if(!link.IsEmpty())
    {
+      const UCChar *work = link;
+      if(_wcsnicmp(work,L"forceout:",9) == 0)
+      {
+         work += 9;
+      }
+
       UCString cmdline = L"-private ";
-      cmdline += link;
+      cmdline += work;
 
       ShellExecuteW(NULL,
                     L"open",
@@ -7729,10 +7759,16 @@ void CLampView::OnLaunchLink_Safari()
    
    if(!link.IsEmpty())
    {
+      const UCChar *work = link;
+      if(_wcsnicmp(work,L"forceout:",9) == 0)
+      {
+         work += 9;
+      }
+
       ShellExecuteW(NULL,
                     L"open",
                     L"safari.exe",
-                    link,
+                    work,
                     NULL,
                     SW_SHOW);
    }

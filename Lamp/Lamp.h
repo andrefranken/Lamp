@@ -1456,6 +1456,8 @@ public:
    afx_msg void OnUpdateLOLWTF(CCmdUI *pCmdUI);
    afx_msg void OnThingsILold();
    afx_msg void OnUpdateThingsILold(CCmdUI *pCmdUI);
+   afx_msg void OnThingsITagd();
+   afx_msg void OnUpdateThingsITagd(CCmdUI *pCmdUI);
    afx_msg void OnThingsIWrote();
    afx_msg void OnUpdateThingsIWrote(CCmdUI *pCmdUI);
    afx_msg void OnGotoLol();

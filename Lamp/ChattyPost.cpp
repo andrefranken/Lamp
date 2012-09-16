@@ -7471,6 +7471,8 @@ bool ChattyPost::IsNWSPost()
    const UCChar *work = start;
    const UCChar *end = work + m_bodytext.Length();
 
+   const UCChar *nws_start = NULL; 
+
    int status = 0;
 
    while(work < end)
@@ -7482,8 +7484,13 @@ bool ChattyPost::IsNWSPost()
             *work == L'N')
          {
             status++;
+            nws_start = work;
          }
-         else status = 0;
+         else
+         {
+            status = 0;
+            nws_start = work;
+         }
          break;
       case 1: // have n
          if(*work == L'w' ||
@@ -7491,15 +7498,24 @@ bool ChattyPost::IsNWSPost()
          {
             status++;
          }
-         else status = 0;
+         else if(*work == L' ' ||
+                 *work == L'.')
+         {
+            // keep going
+         }
+         else
+         {
+            status = 0;
+            nws_start = work;
+         }
          break;
       case 2: // have w
          if(*work == L's' ||
             *work == L'S')
          {
             // check to see if the character before nws was nonalpha
-            if(work - 2 == start ||
-               (!iswalpha(*(work - 3))))
+            if(nws_start == start ||
+               (!iswalpha(*(nws_start - 1))))
             {
                // check to see if the character after nws was nonalpha
                if(work + 1 == end ||
@@ -7508,8 +7524,18 @@ bool ChattyPost::IsNWSPost()
                   return true;
                }
             }
+            status = 0;
          }
-         status = 0;
+         else if(*work == L' ' ||
+                 *work == L'.')
+         {
+            // keep going
+         }
+         else
+         {
+            status = 0;
+            nws_start = work;
+         }
          break;
       }
 

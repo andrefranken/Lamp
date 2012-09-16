@@ -101,6 +101,8 @@ BEGIN_MESSAGE_MAP(CLampApp, CWinAppEx)
    ON_UPDATE_COMMAND_UI(ID_LOL_WTF, &CLampApp::OnUpdateLOLWTF)
    ON_COMMAND(ID_LOL_THINGS_I_LOLD, &CLampApp::OnThingsILold)
    ON_UPDATE_COMMAND_UI(ID_LOL_THINGS_I_LOLD, &CLampApp::OnUpdateThingsILold)
+   ON_COMMAND(ID_LOL_THINGS_I_TAGD, &CLampApp::OnThingsITagd)
+   ON_UPDATE_COMMAND_UI(ID_LOL_THINGS_I_TAGD, &CLampApp::OnUpdateThingsITagd)
    ON_COMMAND(ID_LOL_THINGS_I_WROTE, &CLampApp::OnThingsIWrote)
    ON_UPDATE_COMMAND_UI(ID_LOL_THINGS_I_WROTE, &CLampApp::OnUpdateThingsIWrote)
    ON_COMMAND(ID_LOL_GOTO_LOL, &CLampApp::OnGotoLol)
@@ -3173,6 +3175,11 @@ void CLampApp::SetStatusBarText(const UCString &text, CLampView *pView)
 
 void CLampApp::LaunchLinkInDefaultBrowser(const UCChar *link, bool NWS/* = false*/)
 {
+   if(_wcsnicmp(link,L"forceout:",9) == 0)
+   {
+      link += 9;
+   }
+
    UCString verb(L"open");
    UCString file, parms;
    if(NWS)
@@ -4104,6 +4111,16 @@ void CLampApp::OnThingsILold()
 }
 
 void CLampApp::OnUpdateThingsILold(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+}
+
+void CLampApp::OnThingsITagd()
+{
+   OpenDocumentFile(L"LOLITAGD");
+}
+
+void CLampApp::OnUpdateThingsITagd(CCmdUI *pCmdUI)
 {
    pCmdUI->Enable(TRUE);
 }

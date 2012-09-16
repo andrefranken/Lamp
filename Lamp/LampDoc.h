@@ -371,6 +371,7 @@ protected:
    CReplyDlg *m_pReplyDlg;
 
    UCString m_loltag;
+   bool m_ThingsITAGD;
    bool m_ThingsILOLD;
    bool m_ThingsIWrote;
    bool m_ThingsUserWrote;

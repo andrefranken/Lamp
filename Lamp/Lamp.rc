@@ -100,6 +100,7 @@ BEGIN
         MENUITEM "Popular TAGs",                ID_LOL_TAG
         MENUITEM "Popular WTFs",                ID_LOL_WTF
         MENUITEM SEPARATOR
+        MENUITEM "Things I Tagged for later",   ID_LOL_THINGS_I_TAGD
         MENUITEM "Things I LOL'd",              ID_LOL_THINGS_I_LOLD
         MENUITEM "Things I wrote",              ID_LOL_THINGS_I_WROTE
         MENUITEM SEPARATOR
@@ -185,6 +186,7 @@ BEGIN
         MENUITEM "Popular TAGs",                ID_LOL_TAG
         MENUITEM "Popular WTFs",                ID_LOL_WTF
         MENUITEM SEPARATOR
+        MENUITEM "Things I Tagged for later",   ID_LOL_THINGS_I_TAGD
         MENUITEM "Things I LOL'd",              ID_LOL_THINGS_I_LOLD
         MENUITEM "Things I wrote",              ID_LOL_THINGS_I_WROTE
         MENUITEM SEPARATOR
@@ -233,23 +235,23 @@ BEGIN
         END
         POPUP "Default Browser"
         BEGIN
-            MENUITEM "System Default",              ID_SYSTEM_DEF           
-            MENUITEM "Chrome",                      ID_CHROME_DEF           
-            MENUITEM "Chrome - Incognito",          ID_CHROME_INCOGNITO_DEF 
-            MENUITEM "Firefox",                     ID_FIREFOX_DEF          
-            MENUITEM "Internet Explorer",           ID_IE_DEF               
-            MENUITEM "Internet Explorer - Private", ID_IE_PRIVATE_DEF       
-            MENUITEM "Safari",                      ID_SAFARI_DEF           
+            MENUITEM "System Default",              ID_SYSTEM_DEF
+            MENUITEM "Chrome",                      ID_CHROME_DEF
+            MENUITEM "Chrome - Incognito",          ID_CHROME_INCOGNITO_DEF
+            MENUITEM "Firefox",                     ID_FIREFOX_DEF
+            MENUITEM "Internet Explorer",           ID_IE_DEF
+            MENUITEM "Internet Explorer - Private", ID_IE_PRIVATE_DEF
+            MENUITEM "Safari",                      ID_SAFARI_DEF
         END
         POPUP "Default Browser for NWS"
         BEGIN
-            MENUITEM "System Default",              ID_SYSTEM_DEF_NWS           
-            MENUITEM "Chrome",                      ID_CHROME_DEF_NWS           
-            MENUITEM "Chrome - Incognito",          ID_CHROME_INCOGNITO_DEF_NWS 
-            MENUITEM "Firefox",                     ID_FIREFOX_DEF_NWS          
-            MENUITEM "Internet Explorer",           ID_IE_DEF_NWS               
-            MENUITEM "Internet Explorer - Private", ID_IE_PRIVATE_DEF_NWS       
-            MENUITEM "Safari",                      ID_SAFARI_DEF_NWS           
+            MENUITEM "System Default",              ID_SYSTEM_DEF_NWS
+            MENUITEM "Chrome",                      ID_CHROME_DEF_NWS
+            MENUITEM "Chrome - Incognito",          ID_CHROME_INCOGNITO_DEF_NWS
+            MENUITEM "Firefox",                     ID_FIREFOX_DEF_NWS
+            MENUITEM "Internet Explorer",           ID_IE_DEF_NWS
+            MENUITEM "Internet Explorer - Private", ID_IE_PRIVATE_DEF_NWS
+            MENUITEM "Safari",                      ID_SAFARI_DEF_NWS
         END
         MENUITEM "Smooth Scroll",               ID_VIEW_SMOOTHSCROLL
         MENUITEM "Allow Pinning",               ID_PINNING_MENUITEM
@@ -257,7 +259,7 @@ BEGIN
         MENUITEM "Double Size Pages in Chatty", ID_DOUBLE_PAGE_STORY_MENUITEM
         MENUITEM "Hide Collapsed Threads",      ID_HIDE_COLLAPSED_POSTS
         MENUITEM "Infinite Paging",             ID_INFINATE_PAGING
-        MENUITEM "Allow GDI+"                   ID_ALLOW_GDIPLUS
+        MENUITEM "Allow GDI+",                  ID_ALLOW_GDIPLUS
         MENUITEM "Go to New Post",              ID_GOTONEWPOST
         POPUP "LOL settings"
         BEGIN
@@ -270,7 +272,7 @@ BEGIN
         MENUITEM "Check Spelling",              ID_CHECK_SPELLING
         MENUITEM "Highlight OP's Replies",      ID_HIGHLIGHT_OP
         MENUITEM "Show recent branches Flared", ID_FLAREDBRANCHES
-        MENUITEM "Show Raw Dates",              ID_SHOW_RAW_DATE
+        MENUITEM "Show Dates instead of time difference", ID_SHOW_RAW_DATE
         MENUITEM "Use Alternate Post Hotkeys",  ID_ALT_POSTKEYS
         MENUITEM "Auto-Check Inbox",            ID_AUTOCHECKINBOX
         MENUITEM "Show Root As Selected",       ID_SHOW_ROOT_SELECTED
@@ -467,7 +469,7 @@ CAPTION "About Lamp"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
-    LTEXT           "Lamp, Version 3.0",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Lamp, Version 3.1",IDC_STATIC,42,14,114,8,SS_NOPREFIX
     LTEXT           "Copyright (C) 2011",IDC_STATIC,42,26,114,8
     DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
     PUSHBUTTON      "Traffic",ID_NETWORK_TRAFFIC_ID,10,41,50,14
@@ -596,16 +598,16 @@ BEGIN
     RTEXT           "Preview expansion percentage per frame",IDC_STATIC,7,181,172,8
 END
 
-IDD_FLAG_USER_DIALOG DIALOGEX 0, 0, 204, 137
+IDD_FLAG_USER_DIALOG DIALOGEX 0, 0, 337, 235
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Flag User"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,86,116,50,14
-    EDITTEXT        IDC_NOTE_EDIT,7,28,190,78,ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL
-    COMBOBOX        IDC_FLAG_COMBO,7,7,190,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Cancel",IDCANCEL,147,116,50,14
-    PUSHBUTTON      "Un-Flag User",IDC_UNFLAG_BUTTON,7,116,68,14
+    DEFPUSHBUTTON   "OK",IDOK,215,214,50,14
+    EDITTEXT        IDC_NOTE_EDIT,7,28,319,179,ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL
+    COMBOBOX        IDC_FLAG_COMBO,7,7,319,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Cancel",IDCANCEL,276,214,50,14
+    PUSHBUTTON      "Un-Flag User",IDC_UNFLAG_BUTTON,7,214,68,14
 END
 
 
@@ -615,8 +617,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,0,0,0
- PRODUCTVERSION 3,0,0,0
+ FILEVERSION 3,1,0,0
+ PRODUCTVERSION 3,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -634,12 +636,12 @@ BEGIN
             VALUE "Comments", "Why are you reading this?"
             VALUE "CompanyName", "FooBar INC."
             VALUE "FileDescription", "Lamp"
-            VALUE "FileVersion", "3.0"
+            VALUE "FileVersion", "3.1"
             VALUE "InternalName", "Lamp.exe"
             VALUE "LegalCopyright", "Whatever"
             VALUE "OriginalFilename", "Lamp.exe"
             VALUE "ProductName", "Lamp"
-            VALUE "ProductVersion", "3.0"
+            VALUE "ProductVersion", "3.1"
         END
     END
     BLOCK "VarFileInfo"
@@ -719,6 +721,13 @@ BEGIN
         RIGHTMARGIN, 331
         TOPMARGIN, 7
         BOTTOMMARGIN, 253
+    END
+
+    IDD_FLAG_USER_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 326
+        BOTTOMMARGIN, 228
     END
 END
 #endif    // APSTUDIO_INVOKED
