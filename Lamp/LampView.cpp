@@ -139,6 +139,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_SKIN_CUSTOM, &CLampView::OnUpdateSkinCustom)
    ON_COMMAND(ID_HIGHLIGHT_OP, &CLampView::OnHighlightOP)
    ON_UPDATE_COMMAND_UI(ID_HIGHLIGHT_OP, &CLampView::OnUpdateHighlightOP)
+   ON_COMMAND(ID_AUTHOR_GLOW, &CLampView::OnAuthorGlow)
+   ON_UPDATE_COMMAND_UI(ID_AUTHOR_GLOW, &CLampView::OnUpdateAuthorGlow)
    ON_COMMAND(ID_SHOW_SETTINGS_DIALOG, &CLampView::OnShowSettings)
    ON_UPDATE_COMMAND_UI(ID_SHOW_SETTINGS_DIALOG, &CLampView::OnUpdateShowSettings)
    ON_COMMAND(ID_NORM_FONT, &CLampView::OnNormalFont)
@@ -177,6 +179,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_DIC_SELECTED, &CLampView::OnUpdateDicSelected)
    ON_COMMAND(ID_WOLFRAM_SELECTED, &CLampView::OnWolframSelected)
    ON_UPDATE_COMMAND_UI(ID_WOLFRAM_SELECTED, &CLampView::OnUpdateWolframSelected)
+   ON_COMMAND(ID_IMDB_SELECTED, &CLampView::OnIMDBSelected)
+   ON_UPDATE_COMMAND_UI(ID_IMDB_SELECTED, &CLampView::OnUpdateIMDBSelected)
    ON_COMMAND(ID_AUTOCHECKINBOX, &CLampView::OnAutoCheckInbox)
    ON_UPDATE_COMMAND_UI(ID_AUTOCHECKINBOX, &CLampView::OnUpdateAutoCheckInbox)
    ON_COMMAND(ID_SHOW_ROOT_SELECTED, &CLampView::OnShowRootSelected)
@@ -6420,6 +6424,26 @@ void CLampView::OnUpdateHighlightOP(CCmdUI *pCmdUI)
    }
 }
 
+void CLampView::OnAuthorGlow()
+{
+   theApp.SetAuthorGlow(!theApp.GetAuthorGlow());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateAuthorGlow(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.GetAuthorGlow())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
 void CLampView::OnShowSettings()
 {
    CSettingsDlg settingsdlg(this);
@@ -7050,6 +7074,73 @@ void CLampView::OnUpdateWolframSelected(CCmdUI *pCmdUI)
       pCmdUI->Enable(FALSE);
    }
 }
+
+
+void CLampView::OnIMDBSelected()
+{
+   UCString selectedtext;
+
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->GetHasFocus() &&
+      !m_pReplyDlg->AreSuggestionsUp())
+   {
+      if(m_pReplyDlg->HasSelection())
+      {
+         m_pReplyDlg->GetSelectedText(selectedtext);
+      }
+   }
+   else if(m_textselectionpost != 0 &&
+           m_selectionstart != m_selectionend)
+   {
+      ChattyPost *pPost = GetDocument()->FindPost(m_textselectionpost);
+      if(pPost != NULL)
+      {
+         pPost->GetSelectedText(m_selectionstart, m_selectionend, selectedtext);
+      }
+   }
+
+   selectedtext.TrimWhitespace();
+
+   selectedtext.ReplaceAll(L' ',L'+');
+
+   if(!selectedtext.IsEmpty())
+   {
+      // http://www.imdb.com/find?q=Candice+Cameron&s=all
+      UCString link = L"http://www.imdb.com/find?q=";
+      char *enc = url_encode(selectedtext.str8());
+      link += enc;
+      link += L"&s=all";
+      free(enc);
+      theApp.OpenShackLink(link);
+   }
+}
+
+void CLampView::OnUpdateIMDBSelected(CCmdUI *pCmdUI)
+{
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->GetHasFocus() &&
+      !m_pReplyDlg->AreSuggestionsUp())
+   {
+      if(m_pReplyDlg->HasSelection())
+      {
+         pCmdUI->Enable(TRUE);
+      }
+      else
+      {
+         pCmdUI->Enable(FALSE);
+      }
+   }
+   else if(m_textselectionpost != 0 &&
+           m_selectionstart != m_selectionend)
+   {
+      pCmdUI->Enable(TRUE);
+   }
+   else
+   {
+      pCmdUI->Enable(FALSE);
+   }
+}
+
 
 void CLampView::OnAutoCheckInbox()
 {

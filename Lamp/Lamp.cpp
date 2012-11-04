@@ -885,6 +885,7 @@ CLampApp::CLampApp()
 
    m_enable_spell_checker = true;
    m_highlight_OP = true;
+   m_authorglow = true;
 
    m_unreadmessagecount = 0;
 
@@ -1771,6 +1772,10 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_highlight_OP = setting->GetValue();
    else m_highlight_OP = true;
 
+   setting = hostxml.FindChildElement(L"authorglow");
+   if(setting!=NULL) m_authorglow = setting->GetValue();
+   else m_authorglow = true;
+
    setting = hostxml.FindChildElement(L"normal_fontname");
    if(setting!=NULL) m_normal_fontname = setting->GetValue();
    else m_normal_fontname = L"Arial";
@@ -2217,6 +2222,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"num_minutes_check_inbox",UCString(m_num_minutes_check_inbox));
    settingsxml.AddChildElement(L"enable_spell_checker",UCString(m_enable_spell_checker));
    settingsxml.AddChildElement(L"highlight_OP",UCString(m_highlight_OP));
+   settingsxml.AddChildElement(L"authorglow",UCString(m_authorglow));
    settingsxml.AddChildElement(L"normal_fontname",m_normal_fontname);
    settingsxml.AddChildElement(L"quoted_fontname",m_quoted_fontname);
    settingsxml.AddChildElement(L"code_fontname",m_code_fontname);

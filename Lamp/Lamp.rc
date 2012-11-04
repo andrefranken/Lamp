@@ -272,6 +272,7 @@ BEGIN
         MENUITEM "Check Spelling",              ID_CHECK_SPELLING
         MENUITEM "Highlight OP's Replies",      ID_HIGHLIGHT_OP
         MENUITEM "Show recent branches Flared", ID_FLAREDBRANCHES
+        MENUITEM "Glow threads you posted in",  ID_AUTHOR_GLOW
         MENUITEM "Show Dates instead of time difference", ID_SHOW_RAW_DATE
         MENUITEM "Use Alternate Post Hotkeys",  ID_ALT_POSTKEYS
         MENUITEM "Auto-Check Inbox",            ID_AUTOCHECKINBOX
@@ -346,31 +347,26 @@ IDR_POPUP_EDIT MENU
 BEGIN
     POPUP "Edit"
     BEGIN
-        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
-        MENUITEM SEPARATOR
-        MENUITEM "&Copy Link",                  ID_COPYLINK
-        MENUITEM "&Copy Post",                  ID_COPYPOST
-        MENUITEM SEPARATOR
         MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
         MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
         MENUITEM "Paste &Last Post",            ID_EDIT_PASTE_LAST_POST
         MENUITEM SEPARATOR
-        MENUITEM "Google selected text",        ID_GOOGLE_SELECTED
-        MENUITEM "Google selected, in quotes",  ID_GOOGLE_SELECTED_W_QUOTES
-        MENUITEM "Wikipedia selected text",     ID_WIKIPEDIA_SELECTED
-        MENUITEM "Dictionary selected text",    ID_DIC_SELECTED
-        MENUITEM "Urban Dictionary selected text", ID_URBANDIC_SELECTED
-        MENUITEM "Wolfram selected text",       ID_WOLFRAM_SELECTED
+        MENUITEM "&Copy Link",                  ID_COPYLINK
+        MENUITEM "&Copy Post",                  ID_COPYPOST
+        MENUITEM SEPARATOR
+        POPUP "Selected Text"
+        BEGIN
+           MENUITEM "Google",             ID_GOOGLE_SELECTED
+           MENUITEM "Google, in quotes",  ID_GOOGLE_SELECTED_W_QUOTES
+           MENUITEM "Wikipedia",          ID_WIKIPEDIA_SELECTED
+           MENUITEM "Dictionary",         ID_DIC_SELECTED
+           MENUITEM "Urban Dictionary",   ID_URBANDIC_SELECTED
+           MENUITEM "Wolfram",            ID_WOLFRAM_SELECTED
+           MENUITEM "IMDb",               ID_IMDB_SELECTED
+        END
         MENUITEM SEPARATOR
         MENUITEM "&Find Text\tCtrl+F",          ID_EDIT_FIND
-        MENUITEM SEPARATOR
-        MENUITEM "Previous Post\tAlt+LeftArrow", ID_BACK_ID
-        MENUITEM "Next Post\tAlt+RightArrow",   ID_FORE_ID
-        MENUITEM SEPARATOR
-        MENUITEM "&Refresh\tF5",                ID_EDIT_REFRESH
-        MENUITEM SEPARATOR
-        MENUITEM "&New Thread",                 ID_EDIT_NEWTHREAD
         MENUITEM SEPARATOR
         MENUITEM "&Bookmark This Post",         ID_EDIT_BOOKMARK_THIS_POST
         MENUITEM SEPARATOR
@@ -379,6 +375,17 @@ BEGIN
         MENUITEM "Open All GIFs In Browser",    ID_OPENALLGIFS
         MENUITEM SEPARATOR
         MENUITEM "Open All Links In Browser",   ID_OPENALLLINKS
+        MENUITEM SEPARATOR
+        MENUITEM "&Refresh\tF5",                ID_EDIT_REFRESH
+        MENUITEM SEPARATOR
+        POPUP "Other"
+        BEGIN
+           MENUITEM "Previous Post\tAlt+LeftArrow", ID_BACK_ID
+           MENUITEM "Next Post\tAlt+RightArrow",   ID_FORE_ID
+           MENUITEM SEPARATOR        
+           MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+           MENUITEM "&New Thread",                 ID_EDIT_NEWTHREAD        
+        END
     END
 END
 

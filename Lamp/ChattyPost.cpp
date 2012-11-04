@@ -2432,7 +2432,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
 
             RECT backrect = myrect;
             backrect.right = backrect.left + 20;
-            if(m_bUserHasPostedInThread)
+            if(m_bUserHasPostedInThread && theApp.GetAuthorGlow())
             {
                m_pDoc->FillBackgroundAuthorGlow(hDC,backrect, true);
             }
@@ -2443,7 +2443,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
 
             backrect.left = myrect.right - 20;
             backrect.right = myrect.right;
-            if(m_bUserHasPostedInThread)
+            if(m_bUserHasPostedInThread && theApp.GetAuthorGlow())
             {
                m_pDoc->FillBackgroundAuthorGlow(hDC,backrect, false);
             }
@@ -6503,9 +6503,11 @@ void ChattyPost::ClearSpoilerTags(int x, int y)
 
       if(m_shacktags[i].m_tag == ST_SPOILER_END &&
          m_shacktags[i].m_pos >= charpos &&
+         pSpoil != NULL &&
          pSpoilEnd == NULL)
       {
          pSpoilEnd = &(m_shacktags[i]);
+         break;
       }
    }
 

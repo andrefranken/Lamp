@@ -450,7 +450,17 @@ LRESULT CMainFrame::OnMenuRBUMessage(WPARAM wparam, LPARAM lparam)
 
 void CMainFrame::OnTimer(UINT nIDEvent) 
 {
-   if(::GetTickCount() < g_LastPostTime + ((UINT)60000 * 15))
+   if(nIDEvent == UPDATE_TIMER)
+   {
+      if(m_bFirstUpdate)
+      {
+         m_bFirstUpdate = false;
+         KillTimer(UPDATE_TIMER);
+         SetTimer(UPDATE_TIMER,(UINT)60000 * 1440,NULL); // check for updates once a day
+      }
+      theApp.CheckForUpdates(false);
+   }
+   else if(::GetTickCount() < g_LastPostTime + ((UINT)60000 * 15))
    {
       // ^^^ If the user hasn't done anything web-wise in the past 15 minutes,
       // assume they walked away.   Don't hammer the servers with automated
@@ -462,16 +472,6 @@ void CMainFrame::OnTimer(UINT nIDEvent)
       else if(nIDEvent == REFRESH_LOL_TIMER)
       {
          theApp.RefreshLOLs();
-      }
-      else if(nIDEvent == UPDATE_TIMER)
-      {
-         if(m_bFirstUpdate)
-         {
-            m_bFirstUpdate = false;
-            KillTimer(UPDATE_TIMER);
-            SetTimer(UPDATE_TIMER,(UINT)60000 * 1440,NULL); // check for updates once a day
-         }
-         theApp.CheckForUpdates(false);
       }
       else if(nIDEvent == IMAGE_EXPIRE_TIMER)
       {

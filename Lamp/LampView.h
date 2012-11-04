@@ -334,6 +334,8 @@ public:
    afx_msg void OnUpdateSkinCustom(CCmdUI *pCmdUI);
    afx_msg void OnHighlightOP();
    afx_msg void OnUpdateHighlightOP(CCmdUI *pCmdUI);
+   afx_msg void OnAuthorGlow();
+   afx_msg void OnUpdateAuthorGlow(CCmdUI *pCmdUI);
    afx_msg void OnShowSettings();
    afx_msg void OnUpdateShowSettings(CCmdUI *pCmdUI);
    afx_msg void OnNormalFont();
@@ -417,6 +419,8 @@ public:
    afx_msg void OnUpdateDicSelected(CCmdUI *pCmdUI);
    afx_msg void OnWolframSelected();
    afx_msg void OnUpdateWolframSelected(CCmdUI *pCmdUI);
+   afx_msg void OnIMDBSelected();
+   afx_msg void OnUpdateIMDBSelected(CCmdUI *pCmdUI);
 
    afx_msg void OnLaunchLink_Chrome();
    afx_msg void OnLaunchLink_Chrome_Incognito();

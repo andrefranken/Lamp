@@ -199,6 +199,8 @@
 #define ID_OPENALLLINKS                 32912
 #define ID_OPENALLGIFS                  32913
 #define ID_LOL_THINGS_I_TAGD            32914
+#define ID_AUTHOR_GLOW                  32915
+#define ID_IMDB_SELECTED                32916
 
 
 #define ID_BOOKMARK_MENUITEM            32920

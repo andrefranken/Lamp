@@ -765,6 +765,9 @@ public:
    bool GetHighlightOP(){return m_highlight_OP;}
    void SetHighlightOP(bool value){m_highlight_OP = value;}
 
+   bool GetAuthorGlow(){return m_authorglow;}
+   void SetAuthorGlow(bool value){m_authorglow = value;}
+
    void AddView(CLampView *pView){m_views.push_back(pView);}
    void RemoveView(CLampView *pView){m_views.remove(pView);}
 
@@ -1364,6 +1367,8 @@ protected:
    bool m_enable_spell_checker;
 
    bool m_highlight_OP;
+
+   bool m_authorglow;
 
    UCString m_findtext;
 
