@@ -268,6 +268,7 @@ BEGIN
             MENUITEM "Small LOL Stuff",             ID_SMALL_LOL
             MENUITEM "Detailed LOL Previews",       ID_VERBOSE_LOL_PREVIEWS
             MENUITEM "Inverted LOL Previews",       ID_INVERTED_LOL_PREVIEWS
+            MENUITEM "Do UGH",                      ID_DO_UGH
         END
         MENUITEM "Check Spelling",              ID_CHECK_SPELLING
         MENUITEM "Highlight OP's Replies",      ID_HIGHLIGHT_OP
@@ -357,13 +358,13 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "Selected Text"
         BEGIN
-           MENUITEM "Google",             ID_GOOGLE_SELECTED
-           MENUITEM "Google, in quotes",  ID_GOOGLE_SELECTED_W_QUOTES
-           MENUITEM "Wikipedia",          ID_WIKIPEDIA_SELECTED
-           MENUITEM "Dictionary",         ID_DIC_SELECTED
-           MENUITEM "Urban Dictionary",   ID_URBANDIC_SELECTED
-           MENUITEM "Wolfram",            ID_WOLFRAM_SELECTED
-           MENUITEM "IMDb",               ID_IMDB_SELECTED
+            MENUITEM "Google",                      ID_GOOGLE_SELECTED
+            MENUITEM "Google, in quotes",           ID_GOOGLE_SELECTED_W_QUOTES
+            MENUITEM "Wikipedia",                   ID_WIKIPEDIA_SELECTED
+            MENUITEM "Dictionary",                  ID_DIC_SELECTED
+            MENUITEM "Urban Dictionary",            ID_URBANDIC_SELECTED
+            MENUITEM "Wolfram",                     ID_WOLFRAM_SELECTED
+            MENUITEM "IMDb",                        ID_IMDB_SELECTED
         END
         MENUITEM SEPARATOR
         MENUITEM "&Find Text\tCtrl+F",          ID_EDIT_FIND
@@ -380,11 +381,11 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "Other"
         BEGIN
-           MENUITEM "Previous Post\tAlt+LeftArrow", ID_BACK_ID
-           MENUITEM "Next Post\tAlt+RightArrow",   ID_FORE_ID
-           MENUITEM SEPARATOR        
-           MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
-           MENUITEM "&New Thread",                 ID_EDIT_NEWTHREAD        
+            MENUITEM "Previous Post\tAlt+LeftArrow", ID_BACK_ID
+            MENUITEM "Next Post\tAlt+RightArrow",   ID_FORE_ID
+            MENUITEM SEPARATOR
+            MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+            MENUITEM "&New Thread",                 ID_EDIT_NEWTHREAD
         END
     END
 END
@@ -580,17 +581,17 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,215,239,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,281,239,50,14
     EDITTEXT        IDC_MOUSE_WHEEL_SPEED_EDIT,184,15,40,14,ES_AUTOHSCROLL
-    EDITTEXT        IDC_MB_PAN_SPEED_EDIT,184,39,40,14,ES_AUTOHSCROLL
-    EDITTEXT        IDC_NUM_SHOW_TRUNC_EDIT,184,63,40,14,ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_NUM_MIN_INBOX_EDIT,184,87,40,14,ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_INERTIA_EDIT,184,110,40,14,ES_AUTOHSCROLL
-    EDITTEXT        IDC_NUM_HOURS_EXPIRE_EDIT,184,133,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_MB_PAN_SPEED_EDIT,184,36,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_NUM_SHOW_TRUNC_EDIT,184,57,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_NUM_MIN_INBOX_EDIT,184,78,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_INERTIA_EDIT,184,99,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_NUM_HOURS_EXPIRE_EDIT,184,120,40,14,ES_AUTOHSCROLL
     RTEXT           "Mouse wheel speed factor",IDC_STATIC,7,17,172,8
-    RTEXT           "Mouse middle-button pan speed factor",IDC_STATIC,7,41,172,8
-    RTEXT           "Number of replies to show when thread truncated",IDC_STATIC,7,65,172,8
-    RTEXT           "Number of minutes to wait to periodically check Inbox",IDC_STATIC,7,89,172,8
-    RTEXT           "Inertia Friction",IDC_STATIC,7,112,172,8
-    RTEXT           "Number of hours in which threads expire",IDC_STATIC,7,135,172,8
+    RTEXT           "Mouse middle-button pan speed factor",IDC_STATIC,7,38,172,8
+    RTEXT           "Number of replies to show when thread truncated",IDC_STATIC,7,59,172,8
+    RTEXT           "Number of minutes to wait to periodically check Inbox",IDC_STATIC,7,80,172,8
+    RTEXT           "Inertia Friction",IDC_STATIC,7,101,172,8
+    RTEXT           "Number of hours in which threads expire",IDC_STATIC,7,122,172,8
     CONTROL         "Use stonedonkey, to get around the shack being blocked.",ID_USE_STONEDONKEY,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,205,201,10
     CONTROL         "Old 1.9.1 single thread style",ID_SINGLE_THREAD_STYLE,
@@ -599,10 +600,12 @@ BEGIN
     EDITTEXT        IDC_FILTERED_PHRASES_EDIT,241,144,90,82,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
     LTEXT           "Usernames to filter out:",IDC_STATIC,243,17,88,8
     LTEXT           "Phrases to filter out:",IDC_STATIC,243,131,88,8
-    EDITTEXT        IDC_PREVIEW_TIMER,183,156,40,14,ES_AUTOHSCROLL
-    RTEXT           "Preview hover time.  In milliseconds",IDC_STATIC,7,158,172,8
-    EDITTEXT        IDC_PREVIEW_EXCPAND_PERCENT_EDIT,183,179,40,14,ES_AUTOHSCROLL
-    RTEXT           "Preview expansion percentage per frame",IDC_STATIC,7,181,172,8
+    EDITTEXT        IDC_PREVIEW_TIMER,183,141,40,14,ES_AUTOHSCROLL
+    RTEXT           "Preview hover time.  In milliseconds",IDC_STATIC,7,143,172,8
+    EDITTEXT        IDC_PREVIEW_EXCPAND_PERCENT_EDIT,183,162,40,14,ES_AUTOHSCROLL
+    RTEXT           "Preview expansion percentage per frame",IDC_STATIC,7,164,172,8
+    EDITTEXT        ID_UGH_THRESH,183,183,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    RTEXT           "Threshold of UGH votes to filter",IDC_STATIC,7,186,172,8
 END
 
 IDD_FLAG_USER_DIALOG DIALOGEX 0, 0, 337, 235

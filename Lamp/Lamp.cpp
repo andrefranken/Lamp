@@ -355,6 +355,7 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                            else if(category == L"unf") SetLOL_UNF(id, count);
                            else if(category == L"tag") SetLOL_TAG(id, count);
                            else if(category == L"wtf") SetLOL_WTF(id, count);
+                           else if(category == L"ugh") SetLOL_UGH(id, count);
 
                            k++;
                         }
@@ -867,10 +868,13 @@ CLampApp::CLampApp()
    m_bDoublePageStory = false;
    m_bStartInDockedMode = true;
    m_bShowLOLButtons = true;
+   m_bDoUGH = false;
    m_bHideCollapsedPosts = false;
    m_bAlwaysOnTopWhenNotDocked = false;
    m_bInfinatePaging = false;
    m_bGotoNewPost = true;
+
+   m_UGHThreshold = 3;
 
    m_normal_fontname = L"Arial";
    m_quoted_fontname = L"Times New Roman";
@@ -1102,7 +1106,7 @@ BOOL CLampApp::InitInstance()
    CalcDescent();
 
    int widths[4];
-   GetCharWidths(L"wag", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
+   GetCharWidths(L"www", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
    m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
 
    UpdateNewMessages();
@@ -1692,6 +1696,14 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_bShowLOLButtons = setting->GetValue();
    else m_bShowLOLButtons = true;   
 
+   setting = hostxml.FindChildElement(L"DoUGH");
+   if(setting!=NULL) m_bDoUGH = setting->GetValue();
+   else m_bDoUGH = false;   
+
+   setting = hostxml.FindChildElement(L"UGHThreshold");
+   if(setting!=NULL) m_UGHThreshold = setting->GetValue();
+   else m_UGHThreshold = 3;
+
    setting = hostxml.FindChildElement(L"SmallLOLButtons");
    if(setting!=NULL) m_bShowSmallLOL = setting->GetValue();
    else m_bShowSmallLOL = true;   
@@ -2202,6 +2214,8 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"PinningInStories",UCString(m_bPinningInStories));
    settingsxml.AddChildElement(L"DoublePageStory",UCString(m_bDoublePageStory));
    settingsxml.AddChildElement(L"ShowLOLButtons",UCString(m_bShowLOLButtons));
+   settingsxml.AddChildElement(L"DoUGH",UCString(m_bDoUGH));
+   settingsxml.AddChildElement(L"UGHThreshold",UCString(m_UGHThreshold));
    settingsxml.AddChildElement(L"SmallLOLButtons",UCString(m_bShowSmallLOL));
    settingsxml.AddChildElement(L"HideCollapsedPosts",UCString(m_bHideCollapsedPosts));
    settingsxml.AddChildElement(L"InfinatePaging",UCString(m_bInfinatePaging));
@@ -2519,6 +2533,7 @@ void CLampApp::ReadSkinFiles()
 
    m_RED = RGB(255,0,0);
    m_GREEN = RGB(141,198,63);
+   m_DGREEN = RGB(0,198,0);
    m_BLUE = RGB(68,174,223);
    m_YELLOW = RGB(255,222,0);
    m_OLIVE = RGB(128,128,0);
@@ -2531,6 +2546,8 @@ void CLampApp::ReadSkinFiles()
    if(setting!=NULL) m_RED = setting->GetValue();
    setting = settings.FindChildElement(L"tag_GREEN");
    if(setting!=NULL) m_GREEN = setting->GetValue();
+   setting = settings.FindChildElement(L"tag_DGREEN");
+   if(setting!=NULL) m_DGREEN = setting->GetValue();
    setting = settings.FindChildElement(L"tag_BLUE");
    if(setting!=NULL) m_BLUE = setting->GetValue();
    setting = settings.FindChildElement(L"tag_YELLOW");
@@ -3458,7 +3475,7 @@ void CLampApp::SetShowSmallLOL(bool value)
 {
    m_bShowSmallLOL = value;
    int widths[4];
-   GetCharWidths(L"wag", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
+   GetCharWidths(L"www", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
    m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
 
    // have all the tabs update their lol count info
@@ -3527,7 +3544,7 @@ void CLampApp::InvalidateSkinAllViews()
    CalcDescent();
 
    int widths[4];
-   GetCharWidths(L"wag", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
+   GetCharWidths(L"www", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
    m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
 
    UpdateNewMessages();
@@ -3801,6 +3818,7 @@ void CLampApp::AddMyLol(unsigned int post_id, loltagtype tag)
    case LTT_UNF: SetLOL_UNF(post_id, flags.m_UNFd + 1); break;
    case LTT_TAG: SetLOL_TAG(post_id, flags.m_TAGd + 1); break;
    case LTT_WTF: SetLOL_WTF(post_id, flags.m_WTFd + 1); break;
+   case LTT_UGH: SetLOL_UGH(post_id, flags.m_UGHd + 1); break;
    }
 }
 
@@ -3836,6 +3854,7 @@ void CLampApp::RemoveMyLol(unsigned int post_id, loltagtype tag)
       case LTT_UNF: SetLOL_UNF(post_id, flags.m_UNFd - 1); break;
       case LTT_TAG: SetLOL_TAG(post_id, flags.m_TAGd - 1); break;
       case LTT_WTF: SetLOL_WTF(post_id, flags.m_WTFd - 1); break;
+      case LTT_UGH: SetLOL_UGH(post_id, flags.m_UGHd - 1); break;
       }
    }
 }
@@ -5270,6 +5289,13 @@ void CLampApp::SetLOL_WTF(unsigned int post_id, unsigned int count)
 {
    CLOLFlags flags = m_cachedLOLposts[post_id];
    flags.m_WTFd = count;
+   m_cachedLOLposts[post_id] = flags;
+}
+
+void CLampApp::SetLOL_UGH(unsigned int post_id, unsigned int count)
+{
+   CLOLFlags flags = m_cachedLOLposts[post_id];
+   flags.m_UGHd = count;
    m_cachedLOLposts[post_id] = flags;
 }
 

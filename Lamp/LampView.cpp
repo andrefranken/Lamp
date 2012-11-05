@@ -117,6 +117,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_HELP_WIKI, &CLampView::OnUpdateHelpWiki)
    ON_COMMAND(ID_SHOW_LOL_BUTTONS, &CLampView::OnShowLOLButtons)
    ON_UPDATE_COMMAND_UI(ID_SHOW_LOL_BUTTONS, &CLampView::OnUpdateShowLOLButtons)
+   ON_COMMAND(ID_DO_UGH, &CLampView::OnDoUGH)
+   ON_UPDATE_COMMAND_UI(ID_DO_UGH, &CLampView::OnUpdateDoUGH)
    ON_COMMAND(ID_CHECK_SPELLING, &CLampView::OnCheckSpelling)
    ON_UPDATE_COMMAND_UI(ID_CHECK_SPELLING, &CLampView::OnUpdateCheckSpelling)
    ON_COMMAND(ID_FILTER_ENABLE_NWS, &CLampView::OnFilterNWS)
@@ -2044,6 +2046,11 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                   GetDocument()->DrawLOLField(hDC, LTT_WTF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
                }
                break;
+            case HST_UGHTAG:
+               {
+                  GetDocument()->DrawLOLField(hDC, LTT_UGH, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, false, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
+               }
+               break;
             case HST_NULL_BACKGROUND:
                {
                   /* 
@@ -2465,6 +2472,11 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
             case HST_WTFTAG:
                {
                   GetDocument()->DrawLOLField(hDC, LTT_WTF, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
+               }
+               break;
+            case HST_UGHTAG:
+               {
+                  GetDocument()->DrawLOLField(hDC, LTT_UGH, m_hotspots[i].m_spot, m_hotspots[i].m_loltext, true, m_hotspots[i].m_lolvoted, m_hotspots[i].m_lolroot, m_hotspots[i].m_haslols);
                }
                break;
             case HST_NULL_BACKGROUND:
@@ -3923,6 +3935,29 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                            }
                         }
                         break;
+                     case HST_UGHTAG:
+                        {
+                           ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                           if(pPost != NULL)
+                           {
+                              UCString msg;
+                              if(m_hotspots[i].m_lolvoted)
+                              {
+                                 msg = L"Are you sure you wish to Un-UGH this post?";
+                              }
+                              else
+                              {
+                                 msg = L"Are you sure you wish to UGH this post?";
+                              }
+                              int ret = MessageBox(msg,L"Lamp",MB_YESNO);
+                              if(ret == IDYES)
+                              {
+                                 GetDocument()->LolTagPost(m_hotspots[i].m_id, LTT_UGH);
+                                 InvalidateEverything();
+                              }
+                           }
+                        }
+                        break;
                      case HST_NULL_BACKGROUND:
                         {
                            /* 
@@ -5022,8 +5057,9 @@ BOOL CLampView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
             case HST_INFTAG:
             case HST_UNFTAG:
             case HST_TAGTAG:
-            case HST_NEW_MESSAGES_NOTE:
             case HST_WTFTAG:
+            case HST_UGHTAG:
+            case HST_NEW_MESSAGES_NOTE:
             case HST_LIGHTNINGBOLT:
             case HST_MOD_TOOL:
             case HST_MOD_TOOL_ITEM:
@@ -6167,6 +6203,26 @@ void CLampView::OnUpdateShowLOLButtons(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(theApp.ShowLOLButtons())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnDoUGH()
+{
+   theApp.SetDoUGH(!theApp.DoUGH());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateDoUGH(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.DoUGH())
    {
       pCmdUI->SetCheck(TRUE);
    }

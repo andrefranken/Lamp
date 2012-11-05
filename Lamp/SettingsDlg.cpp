@@ -46,6 +46,7 @@ void CSettingsDlg::OnBnClickedOk()
    CEdit *pFilteredPhrasesEdit = (CEdit*)GetDlgItem(IDC_FILTERED_PHRASES_EDIT);
    CEdit *ptMSecondsPreviewTimer = (CEdit*)GetDlgItem(IDC_PREVIEW_TIMER);
    CEdit *pPreviewExpandPercentEdit = (CEdit*)GetDlgItem(IDC_PREVIEW_EXCPAND_PERCENT_EDIT);
+   CEdit *pUghThreshEdit = (CEdit*)GetDlgItem(ID_UGH_THRESH);
 
    if(pMouseWheelSpeed != NULL &&
       pMBPanSpeed != NULL &&
@@ -58,7 +59,8 @@ void CSettingsDlg::OnBnClickedOk()
       pFilteredUsersEdit != NULL &&
       pFilteredPhrasesEdit != NULL &&
       ptMSecondsPreviewTimer != NULL &&
-      pPreviewExpandPercentEdit != NULL)
+      pPreviewExpandPercentEdit != NULL &&
+      pUghThreshEdit != NULL)
    {
       CString temp;
       UCString temp2;
@@ -93,6 +95,10 @@ void CSettingsDlg::OnBnClickedOk()
       pPreviewExpandPercentEdit->GetWindowTextW(temp);
       temp2 = temp;
       theApp.SetHoverPreviewPercentStepsize(temp2);
+
+      pUghThreshEdit->GetWindowTextW(temp);
+      temp2 = temp;
+      theApp.SetUGHThreshold(temp2);
 
       if(pUseStoneDonkey->GetCheck() == BST_CHECKED)
       {
@@ -172,6 +178,7 @@ BOOL CSettingsDlg::OnInitDialog()
    CEdit *pFilteredPhrasesEdit = (CEdit*)GetDlgItem(IDC_FILTERED_PHRASES_EDIT);
    CEdit *ptMSecondsPreviewTimer = (CEdit*)GetDlgItem(IDC_PREVIEW_TIMER);
    CEdit *pPreviewExpandPercentEdit = (CEdit*)GetDlgItem(IDC_PREVIEW_EXCPAND_PERCENT_EDIT);
+   CEdit *pUghThreshEdit = (CEdit*)GetDlgItem(ID_UGH_THRESH);
 
    if(pMouseWheelSpeed != NULL &&
       pMBPanSpeed != NULL &&
@@ -184,7 +191,8 @@ BOOL CSettingsDlg::OnInitDialog()
       pFilteredUsersEdit != NULL &&
       pFilteredPhrasesEdit != NULL &&
       ptMSecondsPreviewTimer != NULL &&
-      pPreviewExpandPercentEdit != NULL)
+      pPreviewExpandPercentEdit != NULL &&
+      pUghThreshEdit != NULL)
    {
       pMouseWheelSpeed->SetWindowTextW(UCString(theApp.GetMouseWheelScale()));
       pMBPanSpeed->SetWindowTextW(UCString(theApp.GetMBPanScale()));
@@ -194,6 +202,7 @@ BOOL CSettingsDlg::OnInitDialog()
       pHoursExpire->SetWindowTextW(UCString(theApp.GetHoursExpire()));
       ptMSecondsPreviewTimer->SetWindowTextW(UCString(theApp.GetMSecondsPreviewTimer()));
       pPreviewExpandPercentEdit->SetWindowTextW(UCString(theApp.GetHoverPreviewPercentStepsize()));
+      pUghThreshEdit->SetWindowTextW(UCString(theApp.GetUGHThreshold()));
 
       if(theApp.UseShack())
       {

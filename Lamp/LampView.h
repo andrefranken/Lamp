@@ -312,6 +312,8 @@ public:
    afx_msg void OnUpdateHelpWiki(CCmdUI *pCmdUI);
    afx_msg void OnShowLOLButtons();
    afx_msg void OnUpdateShowLOLButtons(CCmdUI *pCmdUI);
+   afx_msg void OnDoUGH();
+   afx_msg void OnUpdateDoUGH(CCmdUI *pCmdUI);
    afx_msg void OnCheckSpelling();
    afx_msg void OnUpdateCheckSpelling(CCmdUI *pCmdUI);
    afx_msg void OnFilterNWS();

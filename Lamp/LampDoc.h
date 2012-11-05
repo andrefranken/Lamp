@@ -401,6 +401,7 @@ protected:
    UCString                m_unf_text;
    UCString                m_tag_text;
    UCString                m_wtf_text;
+   UCString                m_ugh_text;
 
    std::map<unsigned int,DWORD> m_id_contents_requests;
 

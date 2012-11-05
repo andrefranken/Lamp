@@ -65,6 +65,7 @@ typedef enum
    HST_UNFTAG,
    HST_TAGTAG,
    HST_WTFTAG,
+   HST_UGHTAG,
    HST_CLOSEREPLY,
    HST_COLLAPSEPOST,
    HST_EXPAND,
@@ -104,6 +105,7 @@ public:
       m_UNFd = 0;
       m_TAGd = 0;
       m_WTFd = 0;
+      m_UGHd = 0;
    }
 
    unsigned int m_LOLd;
@@ -111,12 +113,14 @@ public:
    unsigned int m_UNFd;
    unsigned int m_TAGd;
    unsigned int m_WTFd;
+   unsigned int m_UGHd;
 };
 
 typedef enum 
 {
    ST_RED = 0,
    ST_GREEN,
+   ST_DGREEN,
    ST_BLUE,
    ST_YELLOW,
    ST_OLIVE,
@@ -142,6 +146,7 @@ typedef enum
 
    ST_RED_END = 30,
    ST_GREEN_END,
+   ST_DGREEN_END,
    ST_BLUE_END,
    ST_YELLOW_END,
    ST_OLIVE_END,
@@ -263,7 +268,8 @@ typedef enum
    LTT_INF = 2,
    LTT_UNF = 4,
    LTT_TAG = 8,
-   LTT_WTF = 16
+   LTT_WTF = 16,
+   LTT_UGH = 32
 }loltagtype;
 
 void FindLinksInStringAndTagThem(UCString &body);
@@ -650,12 +656,14 @@ protected:
    UCString                m_unf_text;
    UCString                m_tag_text;
    UCString                m_wtf_text;
+   UCString                m_ugh_text;
 
    unsigned int            m_lol_width;
    unsigned int            m_inf_width;
    unsigned int            m_unf_width;
    unsigned int            m_tag_width;
    unsigned int            m_wtf_width;
+   unsigned int            m_ugh_width;
 
    UCString                m_lol_preview_text;
    int                    *m_plol_preview_charwidths;

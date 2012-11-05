@@ -1736,6 +1736,7 @@ CLampDoc::CLampDoc()
    m_unf_text = L"unf";
    m_tag_text = L"tag";
    m_wtf_text = L"wtf";
+   m_ugh_text = L"ugh";
 
    m_widthofaverageprofilegroup = 0;
 
@@ -2999,6 +3000,7 @@ void CLampDoc::ProcessLOLData(char *data, int datasize)
                else if(loltag == L"unf") theApp.SetLOL_UNF((unsigned int)id, (unsigned int)lolcount);
                else if(loltag == L"tag") theApp.SetLOL_TAG((unsigned int)id, (unsigned int)lolcount);
                else if(loltag == L"wtf") theApp.SetLOL_WTF((unsigned int)id, (unsigned int)lolcount);               
+               else if(loltag == L"ugh") theApp.SetLOL_UGH((unsigned int)id, (unsigned int)lolcount);               
                //
                
                work = strstr(work,"<span class=\"post-author\">By <a href=\"");
@@ -3088,6 +3090,7 @@ void CLampDoc::ProcessLOLData(char *data, int datasize)
                                  else if(loltag == L"unf") body += L"<span class=\"jt_red\">";
                                  else if(loltag == L"tag") body += L"<span class=\"jt_green\">";
                                  else if(loltag == L"wtf") body += L"<span class=\"jt_purple\">";
+                                 else if(loltag == L"ugh") body += L"<span class=\"jt_dgreen\">";
 
                                  LOLup = loltag;
                                  LOLup.MakeUpper();
@@ -5278,6 +5281,7 @@ void CLampDoc::DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols
          case LTT_UNF: color = theApp.GetRed(); break;
          case LTT_TAG: color = theApp.GetGreen(); break;
          case LTT_WTF: color = theApp.GetPurple(); break;
+         case LTT_UGH: color = theApp.GetDGreen(); break;
       }
 
       if(!bHasLols && !bHover)
@@ -5292,6 +5296,15 @@ void CLampDoc::DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols
       ::ExtTextOutW(hDC, 0, y, ETO_CLIPPED, &rect, lols.Str(), lols.Length(), NULL);
 
       // draw trailing bracket
+
+      if(theApp.ShowSmallLOL())
+      {
+         MySelectFont(hDC,m_miscfont);
+      }
+      else
+      {
+         MySelectFont(hDC,m_normalfont);
+      }
 
       ::SetTextColor(hDC,bracketcolor);
       ::ExtTextOutW(hDC, 0, y, ETO_CLIPPED, &rect, L" ]", 2, NULL);
@@ -5339,6 +5352,7 @@ void CLampDoc::DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols
          case LTT_UNF: color = theApp.GetRed(); break;
          case LTT_TAG: color = theApp.GetGreen(); break;
          case LTT_WTF: color = theApp.GetPurple(); break;
+         case LTT_UGH: color = theApp.GetDGreen(); break;
       }
 
       COLORREF thiscolor = color;
@@ -5373,6 +5387,7 @@ void CLampDoc::DrawLOLField(HDC hDC, loltagtype type, RECT &rect, UCString &lols
             case LTT_UNF: text = &m_unf_text; break;
             case LTT_TAG: text = &m_tag_text; break;
             case LTT_WTF: text = &m_wtf_text; break;
+            case LTT_UGH: text = &m_ugh_text; break;
          }
       }
 
@@ -5748,6 +5763,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
          {
          case ST_RED: color = theApp.GetRed(); colorstack.push_back(color); colorchange = true; break;
          case ST_GREEN: color = theApp.GetGreen(); colorstack.push_back(color); colorchange = true; break;
+         case ST_DGREEN: color = theApp.GetDGreen(); colorstack.push_back(color); colorchange = true; break;
          case ST_BLUE: color = theApp.GetBlue(); colorstack.push_back(color); colorchange = true; break;
          case ST_YELLOW: color = theApp.GetYellow(); colorstack.push_back(color); colorchange = true; break;
          case ST_OLIVE: color = theApp.GetOlive(); colorstack.push_back(color); colorchange = true; break;
@@ -5758,6 +5774,7 @@ void CLampDoc::DrawPreviewText(HDC hDC,
 
          case ST_RED_END:
          case ST_GREEN_END:
+         case ST_DGREEN_END:
          case ST_BLUE_END:
          case ST_YELLOW_END:
          case ST_OLIVE_END:
@@ -6172,6 +6189,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
                {
                case ST_RED: color = theApp.GetRed(); colorstack.push_back(color); colorchange = true; break;
                case ST_GREEN: color = theApp.GetGreen(); colorstack.push_back(color); colorchange = true; break;
+               case ST_DGREEN: color = theApp.GetDGreen(); colorstack.push_back(color); colorchange = true; break;
                case ST_BLUE: color = theApp.GetBlue(); colorstack.push_back(color); colorchange = true; break;
                case ST_YELLOW: color = theApp.GetYellow(); colorstack.push_back(color); colorchange = true; break;
                case ST_OLIVE: color = theApp.GetOlive(); colorstack.push_back(color); colorchange = true; break;
@@ -6183,6 +6201,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
 
                case ST_RED_END:
                case ST_GREEN_END:
+               case ST_DGREEN_END:
                case ST_BLUE_END:
                case ST_YELLOW_END:
                case ST_OLIVE_END:
@@ -6451,6 +6470,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
             {
             case ST_RED: color = theApp.GetRed(); colorstack.push_back(color); colorchange = true; break;
             case ST_GREEN: color = theApp.GetGreen(); colorstack.push_back(color); colorchange = true; break;
+            case ST_DGREEN: color = theApp.GetDGreen(); colorstack.push_back(color); colorchange = true; break;
             case ST_BLUE: color = theApp.GetBlue(); colorstack.push_back(color); colorchange = true; break;
             case ST_YELLOW: color = theApp.GetYellow(); colorstack.push_back(color); colorchange = true; break;
             case ST_OLIVE: color = theApp.GetOlive(); colorstack.push_back(color); colorchange = true; break;
@@ -6462,6 +6482,7 @@ void CLampDoc::DrawBodyText(HDC hDC,
 
             case ST_RED_END:
             case ST_GREEN_END:
+            case ST_DGREEN_END:
             case ST_BLUE_END:
             case ST_YELLOW_END:
             case ST_OLIVE_END:
@@ -6940,6 +6961,7 @@ bool CLampDoc::LolTagPost(unsigned int post_id, loltagtype tag)
          case LTT_UNF: path += L"unf";break;
          case LTT_TAG: path += L"tag";break;
          case LTT_WTF: path += L"wtf";break;
+         case LTT_UGH: path += L"ugh";break;
          }
 
          path += L"&version=-1";

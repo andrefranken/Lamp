@@ -152,6 +152,7 @@
 #define ID_EXPAND_PREVIEWS_DOWN         32865
 #define IDC_PREVIEW_EXCPAND_PERCENT_EDIT 32866
 #define ID_HELP_CHECK_UPDATE            32867
+#define IDC_PREVIEW_EXCPAND_PERCENT_EDIT2 32867
 #define ID_FORE_ID                      32868
 #define ID_NETWORK_TRAFFIC_ID           32869
 #define ID_VIEWPROFILE                  32870
@@ -201,8 +202,9 @@
 #define ID_LOL_THINGS_I_TAGD            32914
 #define ID_AUTHOR_GLOW                  32915
 #define ID_IMDB_SELECTED                32916
-
-
+#define ID_LOL_UGH                      32917
+#define ID_DO_UGH                       32918
+#define ID_UGH_THRESH                   32919
 #define ID_BOOKMARK_MENUITEM            32920
 
 // Next default values for new objects

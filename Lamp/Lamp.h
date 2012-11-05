@@ -707,6 +707,7 @@ public:
 
    COLORREF GetRed(){return m_RED;}
    COLORREF GetGreen(){return m_GREEN;}
+   COLORREF GetDGreen(){return m_DGREEN;}
    COLORREF GetBlue(){return m_BLUE;}
    COLORREF GetYellow(){return m_YELLOW;}
    COLORREF GetOlive(){return m_OLIVE;}
@@ -871,6 +872,12 @@ public:
 
    void SetShowLOLButtons(bool value){m_bShowLOLButtons = value;}
 
+   bool DoUGH(){return m_bDoUGH;}
+   void SetDoUGH(bool value){m_bDoUGH = value;}
+
+   int  GetUGHThreshold(){return m_UGHThreshold;}
+   void SetUGHThreshold(int value){m_UGHThreshold = value;}
+
    bool HideCollapsedPosts(){return m_bHideCollapsedPosts;}
    void SetHideCollapsedPosts(bool value){m_bHideCollapsedPosts = value;}
 
@@ -903,6 +910,7 @@ public:
    void SetLOL_UNF(unsigned int post_id, unsigned int count);
    void SetLOL_TAG(unsigned int post_id, unsigned int count);
    void SetLOL_WTF(unsigned int post_id, unsigned int count);
+   void SetLOL_UGH(unsigned int post_id, unsigned int count);
 
    CLOLFlags &GetKnownLOLFlags(unsigned int post_id);
 
@@ -1261,6 +1269,7 @@ protected:
 
    COLORREF m_RED;
    COLORREF m_GREEN;
+   COLORREF m_DGREEN;
    COLORREF m_BLUE;
    COLORREF m_YELLOW;
    COLORREF m_OLIVE;
@@ -1304,10 +1313,13 @@ protected:
    bool m_bDoublePageStory;
    bool m_bStartInDockedMode;
    bool m_bShowLOLButtons;
+   bool m_bDoUGH;
    bool m_bAlwaysOnTopWhenNotDocked;
    bool m_bHideCollapsedPosts;
    bool m_bInfinatePaging;
    bool m_bGotoNewPost;
+
+   int m_UGHThreshold;
 
    std::map<UCString,CFlagImage> m_flagimages;
    std::map<UCString,CFlaggedUser> m_flagged_users;
