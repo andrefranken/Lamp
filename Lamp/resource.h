@@ -4,7 +4,6 @@
 //
 #define IDD_ABOUTBOX                    100
 #define IDP_OLE_INIT_FAILED             100
-#define IDR_POPUP_EDIT                  119
 #define ID_STATUSBAR_PANE1              120
 #define ID_STATUSBAR_PANE2              121
 #define IDS_STATUS_PANE1                122
@@ -206,6 +205,10 @@
 #define ID_DO_UGH                       32918
 #define ID_UGH_THRESH                   32919
 #define ID_BOOKMARK_MENUITEM            32920
+#define IDR_POPUP_EDIT_SEL              32921
+#define IDR_POPUP_EDIT_NOSEL            32922
+#define IDR_POPUP_SEL                   32923
+#define IDR_POPUP_NOSEL                 32924
 
 // Next default values for new objects
 // 

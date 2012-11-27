@@ -1440,10 +1440,11 @@ void CLampApp::PreLoadState()
 {
 	BOOL bNameValid;
 	CString strName;
+   /*
 	bNameValid = strName.LoadString(IDS_EDIT_MENU);
 	ASSERT(bNameValid);
 	GetContextMenuManager()->AddMenu(strName, IDR_POPUP_EDIT);
-
+   */
    bNameValid = strName.LoadString(IDS_COPYLINK_MENU);
 	ASSERT(bNameValid);
    GetContextMenuManager()->AddMenu(strName, IDR_POPUP_COPYLINK_MENU);
@@ -1451,6 +1452,18 @@ void CLampApp::PreLoadState()
    bNameValid = strName.LoadString(IDS_USERLINK_MENU);
 	ASSERT(bNameValid);
    GetContextMenuManager()->AddMenu(strName, IDR_POPUP_USERLINK_MENU);
+
+   strName = L"EditSel";
+   GetContextMenuManager()->AddMenu(strName, IDR_POPUP_EDIT_SEL);
+
+   strName = L"EditNoSel";
+   GetContextMenuManager()->AddMenu(strName, IDR_POPUP_EDIT_NOSEL);
+
+   strName = L"Sel";
+   GetContextMenuManager()->AddMenu(strName, IDR_POPUP_SEL);
+   
+   strName = L"NoSel";
+   GetContextMenuManager()->AddMenu(strName, IDR_POPUP_NOSEL);
 }
 
 void CLampApp::LoadCustomState()

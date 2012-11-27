@@ -624,6 +624,9 @@ void CLampView::OnContextMenu(CWnd* pWnd, CPoint point)
 
    bool bDoLink = false;
    bool bDoAuthor = false;
+   bool bDoReplyEdit = false;
+   bool bDoPostBody = false;
+   bool bHasSel = false;
 
    for(size_t i = 0; i < m_hotspots.size(); i++)
    {
@@ -653,15 +656,36 @@ void CLampView::OnContextMenu(CWnd* pWnd, CPoint point)
                bDoAuthor = true;
             }
          }
+         else if(m_hotspots[i].m_type == HST_REPLYTEXT)
+         {
+            bDoReplyEdit = true;
+
+            if(m_pReplyDlg != NULL &&
+               !m_pReplyDlg->AreSuggestionsUp())
+            {
+               if(m_pReplyDlg->HasSelection())
+               {
+                  bHasSel = true;
+               }
+            }
+         }
          else if(m_hotspots[i].m_type == HST_TEXT ||
                  m_hotspots[i].m_type == HST_POST_AREA)
          {
             m_rbuttonmenufromid = m_hotspots[i].m_id;
+                        
+            bDoPostBody = true;
+
+            if(m_textselectionpost != 0 &&
+               m_selectionstart != m_selectionend)
+            {
+               bHasSel = true;
+            }
          }
          break;
       }
    }
-
+   
 	if(bDoLink)
    {
       theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_COPYLINK_MENU, point.x, point.y, this, TRUE);
@@ -670,9 +694,27 @@ void CLampView::OnContextMenu(CWnd* pWnd, CPoint point)
    {
       theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_USERLINK_MENU, point.x, point.y, this, TRUE);
    }
-   else
+   else if(bDoPostBody)
    {
-      theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_EDIT, point.x, point.y, this, TRUE);
+      if(bHasSel)
+      {
+         theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_SEL, point.x, point.y, this, TRUE);
+      }
+      else
+      {
+         theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_NOSEL, point.x, point.y, this, TRUE);
+      }
+   }
+   else if(bDoReplyEdit)
+   {
+      if(bHasSel)
+      {
+         theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_EDIT_SEL, point.x, point.y, this, TRUE);
+      }
+      else
+      {
+         theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_EDIT_NOSEL, point.x, point.y, this, TRUE);
+      }
    }
 }
 

@@ -344,30 +344,54 @@ BEGIN
     END
 END
 
-IDR_POPUP_EDIT MENU 
+IDR_POPUP_EDIT_SEL MENU 
 BEGIN
-    POPUP "Edit"
+    POPUP "EditSel"
     BEGIN
         MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
         MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
         MENUITEM "Paste &Last Post",            ID_EDIT_PASTE_LAST_POST
         MENUITEM SEPARATOR
+        MENUITEM "Google",                      ID_GOOGLE_SELECTED
+        MENUITEM "Google, in quotes",           ID_GOOGLE_SELECTED_W_QUOTES
+        MENUITEM "Wikipedia",                   ID_WIKIPEDIA_SELECTED
+        MENUITEM "Dictionary",                  ID_DIC_SELECTED
+        MENUITEM "Urban Dictionary",            ID_URBANDIC_SELECTED
+        MENUITEM "Wolfram",                     ID_WOLFRAM_SELECTED
+        MENUITEM "IMDb",                        ID_IMDB_SELECTED
+        MENUITEM SEPARATOR
+        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+    END
+END
+
+IDR_POPUP_EDIT_NOSEL MENU 
+BEGIN
+    POPUP "EditNoSel"
+    BEGIN
+        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+        MENUITEM "Paste &Last Post",            ID_EDIT_PASTE_LAST_POST
+        MENUITEM SEPARATOR
+        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+    END
+END
+
+IDR_POPUP_SEL MENU 
+BEGIN
+    POPUP "Sel"
+    BEGIN
+        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM SEPARATOR
         MENUITEM "&Copy Link",                  ID_COPYLINK
         MENUITEM "&Copy Post",                  ID_COPYPOST
         MENUITEM SEPARATOR
-        POPUP "Selected Text"
-        BEGIN
-            MENUITEM "Google",                      ID_GOOGLE_SELECTED
-            MENUITEM "Google, in quotes",           ID_GOOGLE_SELECTED_W_QUOTES
-            MENUITEM "Wikipedia",                   ID_WIKIPEDIA_SELECTED
-            MENUITEM "Dictionary",                  ID_DIC_SELECTED
-            MENUITEM "Urban Dictionary",            ID_URBANDIC_SELECTED
-            MENUITEM "Wolfram",                     ID_WOLFRAM_SELECTED
-            MENUITEM "IMDb",                        ID_IMDB_SELECTED
-        END
-        MENUITEM SEPARATOR
-        MENUITEM "&Find Text\tCtrl+F",          ID_EDIT_FIND
+        MENUITEM "Google",                      ID_GOOGLE_SELECTED
+        MENUITEM "Google, in quotes",           ID_GOOGLE_SELECTED_W_QUOTES
+        MENUITEM "Wikipedia",                   ID_WIKIPEDIA_SELECTED
+        MENUITEM "Dictionary",                  ID_DIC_SELECTED
+        MENUITEM "Urban Dictionary",            ID_URBANDIC_SELECTED
+        MENUITEM "Wolfram",                     ID_WOLFRAM_SELECTED
+        MENUITEM "IMDb",                        ID_IMDB_SELECTED
         MENUITEM SEPARATOR
         MENUITEM "&Bookmark This Post",         ID_EDIT_BOOKMARK_THIS_POST
         MENUITEM SEPARATOR
@@ -376,19 +400,34 @@ BEGIN
         MENUITEM "Open All GIFs In Browser",    ID_OPENALLGIFS
         MENUITEM SEPARATOR
         MENUITEM "Open All Links In Browser",   ID_OPENALLLINKS
-        MENUITEM SEPARATOR
-        MENUITEM "&Refresh\tF5",                ID_EDIT_REFRESH
-        MENUITEM SEPARATOR
-        POPUP "Other"
-        BEGIN
-            MENUITEM "Previous Post\tAlt+LeftArrow", ID_BACK_ID
-            MENUITEM "Next Post\tAlt+RightArrow",   ID_FORE_ID
-            MENUITEM SEPARATOR
-            MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
-            MENUITEM "&New Thread",                 ID_EDIT_NEWTHREAD
-        END
     END
 END
+
+IDR_POPUP_NOSEL MENU 
+BEGIN
+    POPUP "NoSel"
+    BEGIN
+        MENUITEM "&Copy Link",                  ID_COPYLINK
+        MENUITEM "&Copy Post",                  ID_COPYPOST
+        MENUITEM SEPARATOR
+        MENUITEM "Google",                      ID_GOOGLE_SELECTED
+        MENUITEM "Google, in quotes",           ID_GOOGLE_SELECTED_W_QUOTES
+        MENUITEM "Wikipedia",                   ID_WIKIPEDIA_SELECTED
+        MENUITEM "Dictionary",                  ID_DIC_SELECTED
+        MENUITEM "Urban Dictionary",            ID_URBANDIC_SELECTED
+        MENUITEM "Wolfram",                     ID_WOLFRAM_SELECTED
+        MENUITEM "IMDb",                        ID_IMDB_SELECTED
+        MENUITEM SEPARATOR
+        MENUITEM "&Bookmark This Post",         ID_EDIT_BOOKMARK_THIS_POST
+        MENUITEM SEPARATOR
+        MENUITEM "Load All Images",             ID_EDIT_LOADALLIMAGES
+        MENUITEM "Close All Images",            ID_EDIT_CLOSEALLIMAGES
+        MENUITEM "Open All GIFs In Browser",    ID_OPENALLGIFS
+        MENUITEM SEPARATOR
+        MENUITEM "Open All Links In Browser",   ID_OPENALLLINKS
+    END
+END
+
 
 IDR_THEME_MENU MENU 
 BEGIN
