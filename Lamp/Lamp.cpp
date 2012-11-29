@@ -914,6 +914,8 @@ CLampApp::CLampApp()
 
    m_modmode = false;
 
+   m_bigskin = false;
+
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
 }
@@ -2591,6 +2593,10 @@ void CLampApp::ReadSkinFiles()
    setting = settings.FindChildElement(L"rounded_posts");
    if(setting!=NULL) m_rounded_posts = setting->GetValue();
    else m_rounded_posts = false;
+
+   setting = settings.FindChildElement(L"bigskin");
+   if(setting!=NULL) m_bigskin = setting->GetValue();
+   else m_bigskin = false;
    
    m_refresh_buffer.Resize(0,0);
    m_refresh_hover_buffer.Resize(0,0);
@@ -2642,8 +2648,6 @@ void CLampApp::ReadSkinFiles()
    m_post_hover.Resize(0,0);
    m_send.Resize(0,0);
    m_send_hover.Resize(0,0);
-   m_tags.Resize(0,0);
-   m_tags_hover.Resize(0,0);
    m_newthread.Resize(0,0);
    m_newthread_hover.Resize(0,0);
    m_preview.Resize(0,0);
@@ -2972,18 +2976,6 @@ void CLampApp::ReadSkinFiles()
    imagefilename += L"\\send_hover.png";
    imagepath.PathToMe(imagefilename);
    m_send_hover.ReadPNG(imagepath);
-
-   imagefilename = L"skins\\";
-   imagefilename += m_skinname;
-   imagefilename += L"\\tags.png";
-   imagepath.PathToMe(imagefilename);
-   m_tags.ReadPNG(imagepath);
-   
-   imagefilename = L"skins\\";
-   imagefilename += m_skinname;
-   imagefilename += L"\\tags_hover.png";
-   imagepath.PathToMe(imagefilename);
-   m_tags_hover.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;

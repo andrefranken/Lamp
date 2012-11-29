@@ -119,7 +119,8 @@ public:
                      std::vector<RECT> &images,
                      std::vector<RECT> &thumbs, 
                      bool bComplexShapeText,
-                     const RECT *pClipRect = NULL);
+                     const RECT *pClipRect = NULL,
+                     bool bCenterSingleLine = false);
    void DrawPreviewText(HDC hDC,
                         RECT &rect,
                         UCString &text,
@@ -358,6 +359,7 @@ protected:
    HFONT  m_boldfont;
    HFONT  m_miscfont;
    HFONT  m_pagefont;
+   HFONT  m_pagecountfont;
    HFONT  m_miscboldfont;
    HFONT  m_normalunderlinefont;
    HFONT  m_miscunderlinefont;

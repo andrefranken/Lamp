@@ -35,7 +35,21 @@ CReplyDlg::CReplyDlg(CLampView *pView)
    m_bLastEventWasDeletion = false;
    m_undocaretpos = 0;
    m_undocaretanchor = 0;
-   m_height = 279 + theApp.GetCellHeight();
+   
+   m_tagheight = theApp.GetTextHeight() + (theApp.GetTextHeight() >> 1);
+   m_tagwidth = m_tagheight * 2;
+
+   m_height = 8 * m_tagheight;
+
+   if(theApp.BigSkin())
+   {
+      m_height += 40 + 30 + 10 + 10;
+   }
+   else
+   {
+      m_height += 20 + 20 + 10 + 10;
+   }
+
    m_pView = pView;
    m_timer = 0;
    m_bSuggestionsUp = false;
@@ -64,6 +78,8 @@ CReplyDlg::CReplyDlg(CLampView *pView)
    {
       m_textbackgroundbrush = ::CreateSolidBrush(theApp.GetEditBackgroundColor());
    }
+
+   m_bHaveSetupTags = false;
 }
 
 CReplyDlg::~CReplyDlg()
@@ -139,6 +155,12 @@ void CReplyDlg::TweakHotspots(std::vector<CHotSpot> &hotspots)
 
 void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotspots, CPoint &mousepoint)
 {
+   if(!m_bHaveSetupTags)
+   {
+      SetupShackTags();
+      m_bHaveSetupTags = true;
+   }
+
    if(m_pos != m_gotopos)
    {
       if(theApp.GetSmoothScroll())
@@ -241,26 +263,26 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
       }
       ::SelectObject(hDC,oldbrush);
 
+      int iconsize = 20;
+      if(theApp.BigSkin())
+      {
+         iconsize = 40;
+      }
+
       CHotSpot hotspot;
       hotspot.m_bAnim = false;
       hotspot.m_type = HST_CLOSEREPLYDLG;
       hotspot.m_spot = m_replydlgrect;
-      hotspot.m_spot.left = hotspot.m_spot.right - 20;
-      hotspot.m_spot.bottom = hotspot.m_spot.top + 20;
+      hotspot.m_spot.left = hotspot.m_spot.right - iconsize;
+      hotspot.m_spot.bottom = hotspot.m_spot.top + iconsize;
       hotspot.m_id = m_replytoid;
       hotspots.push_back(hotspot);
-
-      // from reply top to text top = 40
-
-      // text height = 209
-
-      // from text bottom to reply bottom = 50
-
+      
       RECT tagsrect;
-      tagsrect.left = m_replydlgrect.right - (135 + 20);
-      tagsrect.right = m_replydlgrect.right - 20;
-      tagsrect.top = (m_replydlgrect.top - 20) + theApp.GetCellHeight();
-      tagsrect.bottom = tagsrect.top + 249;
+      tagsrect.left = m_replydlgrect.right - ((m_tagwidth << 1) + 20);
+      tagsrect.right = tagsrect.left + (m_tagwidth << 1);
+      tagsrect.top = m_replydlgrect.top + iconsize;
+      tagsrect.bottom = tagsrect.top + (m_tagheight * 8);
 
       RECT restrect;
       restrect = m_replydlgrect;
@@ -276,120 +298,191 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
 
       if(bDrawTags)
       {
-         theApp.GetTagsImage(false)->Blit(hDC,tagsrect);
-
+         RECT tagrect;
+         tagrect.left = tagsrect.left;
+         tagrect.top = tagsrect.top;
+         tagrect.right = tagrect.left + m_tagwidth;            
+         tagrect.bottom = tagrect.top + m_tagheight;
+         
+         hotspot.m_id = 0;
+         
+         hotspot.m_type = HST_TAG_RED;
+         hotspot.m_spot = tagrect;
          if(!m_bPreviewMode)
          {
-            RECT tagrect;
-            tagrect.left = tagsrect.left;
-            tagrect.right = tagrect.left + 68;
-            tagrect.top = tagsrect.top + 40;
-            tagrect.bottom = tagrect.top + 27;
-            
-            hotspot.m_id = 0;
-
-            hotspot.m_type = HST_TAG_RED;
-            hotspot.m_spot = tagrect;
-            hotspots.push_back(hotspot);
-
-            tagrect.top += 26;
-            tagrect.bottom += 26;
-            hotspot.m_type = HST_TAG_GREEN;
-            hotspot.m_spot = tagrect;
-            hotspots.push_back(hotspot);
-                     
-            tagrect.top += 26;
-            tagrect.bottom += 26;
-            hotspot.m_type = HST_TAG_BLUE;
-            hotspot.m_spot = tagrect;
-            hotspots.push_back(hotspot);
-
-            tagrect.top += 26;
-            tagrect.bottom += 26;
-            hotspot.m_type = HST_TAG_YELLOW;
-            hotspot.m_spot = tagrect;
-            hotspots.push_back(hotspot);
-
-            tagrect.top += 26;
-            tagrect.bottom += 26;
-            hotspot.m_type = HST_TAG_OLIVE;
-            hotspot.m_spot = tagrect;
-            hotspots.push_back(hotspot);
-
-            tagrect.top += 26;
-            tagrect.bottom += 26;
-            hotspot.m_type = HST_TAG_LIME;
-            hotspot.m_spot = tagrect;
-            hotspots.push_back(hotspot);
-
-            tagrect.top += 26;
-            tagrect.bottom += 26;
-            hotspot.m_type = HST_TAG_ORANGE;
-            hotspot.m_spot = tagrect;
-            hotspots.push_back(hotspot);
-
-            tagrect.top += 26;
-            tagrect.bottom += 26;
-            hotspot.m_type = HST_TAG_PINK;
-            hotspot.m_spot = tagrect;
-            hotspots.push_back(hotspot);
-
-            tagrect.left = tagrect.right;
-            tagrect.right = tagrect.left + 68;
-            tagrect.top = tagsrect.top + 40;
-            tagrect.bottom = tagrect.top + 27;
-            hotspot.m_type = HST_TAG_ITALICS;
-            hotspot.m_spot = tagrect;
-            hotspots.push_back(hotspot);
-
-            tagrect.top += 26;
-            tagrect.bottom += 26;
-            hotspot.m_type = HST_TAG_BOLD;
-            hotspot.m_spot = tagrect;
-            hotspots.push_back(hotspot);
-
-            tagrect.top += 26;
-            tagrect.bottom += 26;
-            hotspot.m_type = HST_TAG_QUOTE;
-            hotspot.m_spot = tagrect;
-            hotspots.push_back(hotspot);
-
-            tagrect.top += 26;
-            tagrect.bottom += 26;
-            hotspot.m_type = HST_TAG_SAMPLE;
-            hotspot.m_spot = tagrect;
-            hotspots.push_back(hotspot);
-
-            tagrect.top += 26;
-            tagrect.bottom += 26;
-            hotspot.m_type = HST_TAG_UNDERLINE;
-            hotspot.m_spot = tagrect;
-            hotspots.push_back(hotspot);
-
-            tagrect.top += 26;
-            tagrect.bottom += 26;
-            hotspot.m_type = HST_TAG_STRIKE;
-            hotspot.m_spot = tagrect;
-            hotspots.push_back(hotspot);
-
-            tagrect.top += 26;
-            tagrect.bottom += 26;
-            hotspot.m_type = HST_TAG_SPOILER;
-            hotspot.m_spot = tagrect;
-            hotspots.push_back(hotspot);
-
-            tagrect.top += 26;
-            tagrect.bottom += 26;
-            hotspot.m_type = HST_TAG_CODE;
-            hotspot.m_spot = tagrect;
             hotspots.push_back(hotspot);
          }
+         DrawShackTag(hDC, ST_RED, tagrect, false);
+
+         tagrect.top += m_tagheight;
+         tagrect.bottom += m_tagheight;
+         hotspot.m_type = HST_TAG_GREEN;
+         hotspot.m_spot = tagrect;
+         if(!m_bPreviewMode)
+         {
+            hotspots.push_back(hotspot);
+         }
+         DrawShackTag(hDC, ST_GREEN, tagrect, false);
+
+         tagrect.top += m_tagheight;
+         tagrect.bottom += m_tagheight;
+         hotspot.m_type = HST_TAG_BLUE;
+         hotspot.m_spot = tagrect;
+         if(!m_bPreviewMode)
+         {
+            hotspots.push_back(hotspot);
+         }
+         DrawShackTag(hDC, ST_BLUE, tagrect, false);
+
+         tagrect.top += m_tagheight;
+         tagrect.bottom += m_tagheight;
+         hotspot.m_type = HST_TAG_YELLOW;
+         hotspot.m_spot = tagrect;
+         if(!m_bPreviewMode)
+         {
+            hotspots.push_back(hotspot);
+         }
+         DrawShackTag(hDC, ST_YELLOW, tagrect, false);
+
+         tagrect.top += m_tagheight;
+         tagrect.bottom += m_tagheight;
+         hotspot.m_type = HST_TAG_OLIVE;
+         hotspot.m_spot = tagrect;
+         if(!m_bPreviewMode)
+         {
+            hotspots.push_back(hotspot);
+         }
+         DrawShackTag(hDC, ST_OLIVE, tagrect, false);
+
+         tagrect.top += m_tagheight;
+         tagrect.bottom += m_tagheight;
+         hotspot.m_type = HST_TAG_LIME;
+         hotspot.m_spot = tagrect;
+         if(!m_bPreviewMode)
+         {
+            hotspots.push_back(hotspot);
+         }
+         DrawShackTag(hDC, ST_LIME, tagrect, false);
+
+         tagrect.top += m_tagheight;
+         tagrect.bottom += m_tagheight;
+         hotspot.m_type = HST_TAG_ORANGE;
+         hotspot.m_spot = tagrect;
+         if(!m_bPreviewMode)
+         {
+            hotspots.push_back(hotspot);
+         }
+         DrawShackTag(hDC, ST_ORANGE, tagrect, false);
+
+         tagrect.top += m_tagheight;
+         tagrect.bottom += m_tagheight;
+         hotspot.m_type = HST_TAG_PINK;
+         hotspot.m_spot = tagrect;
+         if(!m_bPreviewMode)
+         {
+            hotspots.push_back(hotspot);
+         }
+         DrawShackTag(hDC, ST_PINK, tagrect, false);
+
+         tagrect.right = tagsrect.right;
+         tagrect.top = tagsrect.top;
+         tagrect.left = tagrect.right - m_tagwidth;            
+         tagrect.bottom = tagrect.top + m_tagheight;
+
+         hotspot.m_type = HST_TAG_ITALICS;
+         hotspot.m_spot = tagrect;
+         if(!m_bPreviewMode)
+         {
+            hotspots.push_back(hotspot);
+         }
+         DrawShackTag(hDC, ST_ITALIC, tagrect, false);
+
+         tagrect.top += m_tagheight;
+         tagrect.bottom += m_tagheight;
+         hotspot.m_type = HST_TAG_BOLD;
+         hotspot.m_spot = tagrect;
+         if(!m_bPreviewMode)
+         {
+            hotspots.push_back(hotspot);
+         }
+         DrawShackTag(hDC, ST_BOLD, tagrect, false);
+
+         tagrect.top += m_tagheight;
+         tagrect.bottom += m_tagheight;
+         hotspot.m_type = HST_TAG_QUOTE;
+         hotspot.m_spot = tagrect;
+         if(!m_bPreviewMode)
+         {
+            hotspots.push_back(hotspot);
+         }
+         DrawShackTag(hDC, ST_QUOTE, tagrect, false);
+
+         tagrect.top += m_tagheight;
+         tagrect.bottom += m_tagheight;
+         hotspot.m_type = HST_TAG_SAMPLE;
+         hotspot.m_spot = tagrect;
+         if(!m_bPreviewMode)
+         {
+            hotspots.push_back(hotspot);
+         }
+         DrawShackTag(hDC, ST_SAMPLE, tagrect, false);
+
+         tagrect.top += m_tagheight;
+         tagrect.bottom += m_tagheight;
+         hotspot.m_type = HST_TAG_UNDERLINE;
+         hotspot.m_spot = tagrect;
+         if(!m_bPreviewMode)
+         {
+            hotspots.push_back(hotspot);
+         }
+         DrawShackTag(hDC, ST_UNDERLINE, tagrect, false);
+
+         tagrect.top += m_tagheight;
+         tagrect.bottom += m_tagheight;
+         hotspot.m_type = HST_TAG_STRIKE;
+         hotspot.m_spot = tagrect;
+         if(!m_bPreviewMode)
+         {
+            hotspots.push_back(hotspot);
+         }
+         DrawShackTag(hDC, ST_STRIKE, tagrect, false);
+
+         tagrect.top += m_tagheight;
+         tagrect.bottom += m_tagheight;
+         hotspot.m_type = HST_TAG_SPOILER;
+         hotspot.m_spot = tagrect;
+         if(!m_bPreviewMode)
+         {
+            hotspots.push_back(hotspot);
+         }
+         DrawShackTag(hDC, ST_SPOILER, tagrect, false);
+
+         tagrect.top += m_tagheight;
+         tagrect.bottom += m_tagheight;
+         hotspot.m_type = HST_TAG_CODE;
+         hotspot.m_spot = tagrect;
+         if(!m_bPreviewMode)
+         {
+            hotspots.push_back(hotspot);
+         }
+         DrawShackTag(hDC, ST_CODE, tagrect, false);
+      
          
          RECT previewrect;
-         previewrect.left = ((tagsrect.right + tagsrect.left) / 2) - (theApp.GetPreviewImage(false)->GetWidth() / 2);
-         previewrect.right = previewrect.left + theApp.GetPreviewImage(false)->GetWidth();
-         previewrect.top = tagsrect.bottom + 15;
-         previewrect.bottom = previewrect.top + theApp.GetPreviewImage(false)->GetHeight();
+         if(tagsrect.right - tagsrect.left > theApp.GetPreviewImage(false)->GetWidth())
+         {
+            previewrect.left = ((tagsrect.right + tagsrect.left) / 2) - (theApp.GetPreviewImage(false)->GetWidth() / 2);
+            previewrect.right = previewrect.left + theApp.GetPreviewImage(false)->GetWidth();
+         }
+         else
+         {
+            previewrect.right = m_replydlgrect.right - 20;
+            previewrect.left = previewrect.right - theApp.GetPreviewImage(false)->GetWidth();
+         }
+         
+         previewrect.bottom = m_replydlgrect.bottom - 10;
+         previewrect.top = previewrect.bottom - theApp.GetPreviewImage(false)->GetHeight();
+
          if(m_bPreviewMode)
          {
             hotspot.m_type = HST_UNPREVIEW;
@@ -486,8 +579,11 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
       ::SelectObject(hDC,oldpen);
       ::DeleteObject(newpen);
 
+      int scrollwidth = 16;
+      if(theApp.BigSkin()) scrollwidth = 32;
+
       m_textdrawrect = m_textrect;
-      m_textdrawrect.right -= 16;
+      m_textdrawrect.right -= scrollwidth;
             
       if(m_textdrawrect.right - m_textdrawrect.left != m_lasttextdrawwidth)
       {
@@ -511,7 +607,7 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
 
       if(m_bPreviewMode)
       {
-         m_previewhost.DrawTextOnly(hDC, m_textdrawrect, textsizerect.top);
+         m_previewhost.DrawTextOnly(hDC, m_textdrawrect, textsizerect.top, false);
       }
       else
       {
@@ -575,7 +671,7 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
       ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
 
       m_ScrollRectangle = m_textrect;
-      m_ScrollRectangle.left = m_ScrollRectangle.right - 16;
+      m_ScrollRectangle.left = m_ScrollRectangle.right - scrollwidth;
       DrawScrollbar(hDC, m_ScrollRectangle, hotspots, mousepoint);
 
       if(m_bSuggestionsUp)
@@ -673,6 +769,83 @@ void CReplyDlg::Draw(HDC hDC, RECT DeviceRectangle, std::vector<CHotSpot> &hotsp
    {
       m_pView->InvalidateEverything();
    }
+}
+
+void CReplyDlg::DrawShackTag(HDC hDC, shacktag which, RECT &rect, bool bHover)
+{
+   ChattyPost *tag = NULL;
+   COLORREF color = theApp.GetPostTextColorShade(10);
+
+   switch(which)
+   {
+   case ST_RED:      color = theApp.GetRed();      tag = &m_red_tag; break;
+   case ST_GREEN:    color = theApp.GetGreen();    tag = &m_green_tag; break;
+   case ST_BLUE:     color = theApp.GetBlue();     tag = &m_blue_tag; break;
+   case ST_YELLOW:   color = theApp.GetYellow();   tag = &m_yellow_tag; break;
+   case ST_OLIVE:    color = theApp.GetOlive();    tag = &m_olive_tag; break;
+   case ST_LIME:     color = theApp.GetLime();     tag = &m_lime_tag; break;
+   case ST_ORANGE:   color = theApp.GetOrange();   tag = &m_orange_tag; break;
+   case ST_PINK:     color = theApp.GetPink();     tag = &m_pink_tag; break;
+   case ST_QUOTE:                                  tag = &m_quote_tag; break;
+   case ST_SAMPLE:                                 tag = &m_sample_tag; break;
+   case ST_STRIKE:                                 tag = &m_strike_tag; break;
+   case ST_ITALIC:                                 tag = &m_italics_tag; break;
+   case ST_BOLD:                                   tag = &m_bold_tag; break;
+   case ST_UNDERLINE:                              tag = &m_underline_tag; break;
+   case ST_SPOILER:                                tag = &m_spoiler_tag; break;
+   case ST_CODE:                                   tag = &m_code_tag; break;
+   }
+
+   if(bHover)
+   {
+      COLORREF backcolor = theApp.GetPostBackgroundColor();
+
+      COLORREF mixcolor = RGB((GetRValue(color) + GetRValue(backcolor)) / 2,
+                              (GetGValue(color) + GetGValue(backcolor)) / 2,
+                              (GetBValue(color) + GetBValue(backcolor)) / 2);
+      
+
+      if(theApp.RoundedPosts())
+      {
+         HPEN pen = ::CreatePen(PS_NULL,0,0);
+         HPEN oldpen = (HPEN)::SelectObject(hDC,pen);
+         HBRUSH brush = ::CreateSolidBrush(mixcolor);
+         HBRUSH oldbrush = (HBRUSH)::SelectObject(hDC,brush);
+         ::RoundRect(hDC,rect.left, rect.top, rect.right, rect.bottom, rect.bottom - rect.top, rect.bottom - rect.top);
+         ::SelectObject(hDC,oldbrush);
+         ::DeleteObject(brush);
+         ::SelectObject(hDC,oldpen);
+         ::DeleteObject(pen);
+      }
+      else
+      {
+         HBRUSH brush = ::CreateSolidBrush(mixcolor);
+         ::FillRect(hDC,&rect,brush);
+         ::DeleteObject(brush);
+      }
+   }
+   else
+   {
+      HBRUSH brush = ::CreateSolidBrush(theApp.GetPostBackgroundColor());
+      ::FillRect(hDC,&rect,brush);
+      ::DeleteObject(brush);
+   }
+
+   tag->DrawTextOnly(hDC, rect, 0, true);
+   /*
+   std::vector<RECT> spoilers;
+   std::vector<RECT> links;
+   std::vector<RECT> imagelinks;
+   std::vector<RECT> images;
+   std::vector<RECT> thumbs;
+   m_pDoc->DrawBodyText(hDC,rect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs, m_bComplexShapeText,&textrect);
+
+   std::vector<const UCChar*> m_lines_of_text;
+   std::vector<const int*> m_charsizes;
+   std::vector<const int>  m_linesizes;
+   m_pDoc->CalcBodyText(textrect,m_bodytext,m_pCharWidths,m_shacktags,m_bodytext.Length(),m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes);
+   */
+   
 }
 
 void CReplyDlg::RecalcCharWidths()
@@ -1259,6 +1432,9 @@ bool CReplyDlg::OnLButtonDown(UINT nFlags, CPoint point, bool &bCloseReplyDlg)
                   break;
                case HST_SCROLLBAR_REPLYTEXT_DLG:
                   {               
+                     int scrollwidth = 16;
+                     if(theApp.BigSkin()) scrollwidth = 32;
+
                      if(point.x >= m_uptrackrect.left &&
                         point.x < m_uptrackrect.right &&
                         point.y >= m_uptrackrect.top &&
@@ -1274,7 +1450,7 @@ bool CReplyDlg::OnLButtonDown(UINT nFlags, CPoint point, bool &bCloseReplyDlg)
                         else
                         {
                            // goto spot
-                           m_gotopos = ((int)((float)((point.y - m_ScrollRectangle.top) - 16) * (1.0f / m_scrollscale))) - ((m_ScrollRectangle.bottom - m_ScrollRectangle.top) >> 1);
+                           m_gotopos = ((int)((float)((point.y - m_ScrollRectangle.top) - scrollwidth) * (1.0f / m_scrollscale))) - ((m_ScrollRectangle.bottom - m_ScrollRectangle.top) >> 1);
                            MakePosLegal();
                            m_pView->InvalidateEverything();
                         }
@@ -1294,7 +1470,7 @@ bool CReplyDlg::OnLButtonDown(UINT nFlags, CPoint point, bool &bCloseReplyDlg)
                         else
                         {
                            // goto spot
-                           m_gotopos = ((int)((float)((point.y - m_ScrollRectangle.top) - 16) * (1.0f / m_scrollscale))) - ((m_ScrollRectangle.bottom - m_ScrollRectangle.top) >> 1);
+                           m_gotopos = ((int)((float)((point.y - m_ScrollRectangle.top) - scrollwidth) * (1.0f / m_scrollscale))) - ((m_ScrollRectangle.bottom - m_ScrollRectangle.top) >> 1);
                            MakePosLegal();
                            m_pView->InvalidateEverything();
                         }
@@ -2202,6 +2378,14 @@ void CReplyDlg::Enclose(const UCChar *frontbit,const UCChar *backbit, bool bTigh
 
 void CReplyDlg::DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<CHotSpot> &hotspots, CPoint &mousepoint)
 {
+   int thumbcapsize = 4;
+   int scrollwidth = 16;
+   if(theApp.BigSkin())
+   {
+      thumbcapsize = 8;
+      scrollwidth = 32;
+   }
+
    scrollbitype maintype = SBT_INACTIVE;
    scrollbitype thistype;
    if(m_bTrackingThumb ||
@@ -2214,7 +2398,7 @@ void CReplyDlg::DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<
    }
 
    m_uprect = ScrollRectangle;
-   m_uprect.bottom = m_uprect.top + 16;
+   m_uprect.bottom = m_uprect.top + scrollwidth;
    thistype = maintype;
    if(thistype == SBT_ACTIVE &&
       mousepoint.x >= m_uprect.left &&
@@ -2234,7 +2418,7 @@ void CReplyDlg::DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<
    hotspots.push_back(hotspot);
 
    m_downrect = ScrollRectangle;
-   m_downrect.top = m_downrect.bottom - 16;
+   m_downrect.top = m_downrect.bottom - scrollwidth;
    thistype = maintype;
    if(thistype == SBT_ACTIVE &&
       mousepoint.x >= m_downrect.left &&
@@ -2252,35 +2436,35 @@ void CReplyDlg::DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<
    hotspots.push_back(hotspot);
 
    int scrollbarheight = ScrollRectangle.bottom - ScrollRectangle.top;
-   int trackheight = scrollbarheight - 16 - 16;
-   int docheight = __max(16,m_textsizerect.bottom - m_textsizerect.top);
+   int trackheight = scrollbarheight - scrollwidth - scrollwidth;
+   int docheight = __max(scrollwidth,m_textsizerect.bottom - m_textsizerect.top);
    int thumbtop = m_pos;
    int thumbbottom = thumbtop + scrollbarheight;//scrollbarheight is also screenheight
 
    // now translate those to the range of the scrollbar's pixels
    m_scrollscale =  (float)trackheight / (float)docheight;
-   thumbtop = __max(16, 16 + (int)((float)thumbtop * m_scrollscale));
-   thumbbottom = __min(scrollbarheight - 16, 16 + (int)((float)thumbbottom * m_scrollscale));
+   thumbtop = __max(scrollwidth, scrollwidth + (int)((float)thumbtop * m_scrollscale));
+   thumbbottom = __min(scrollbarheight - scrollwidth, scrollwidth + (int)((float)thumbbottom * m_scrollscale));
    int thumbheight = thumbbottom - thumbtop;
    
-   if(thumbheight < (4 + 4))
+   if(thumbheight < (thumbcapsize + thumbcapsize))
    {
       // too small, bump it up
       int thumbcenter = (thumbtop + thumbbottom) >> 1;
-      thumbtop = thumbcenter - 4;
-      thumbbottom = thumbtop + 8;
+      thumbtop = thumbcenter - thumbcapsize;
+      thumbbottom = thumbtop + (thumbcapsize + thumbcapsize);
       thumbheight = thumbbottom - thumbtop;
       
-      if(thumbtop < 16)
+      if(thumbtop < scrollwidth)
       {
-         int off = 16 - thumbtop;
+         int off = scrollwidth - thumbtop;
          thumbtop+=off;
          thumbbottom+=off;
       }
 
-      if(thumbbottom > scrollbarheight - 16)
+      if(thumbbottom > scrollbarheight - scrollwidth)
       {
-         int off = thumbbottom - (scrollbarheight - 16);
+         int off = thumbbottom - (scrollbarheight - scrollwidth);
          thumbtop-=off;
          thumbbottom-=off;
       }
@@ -2355,19 +2539,29 @@ void CReplyDlg::DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<
 
 void CReplyDlg::DrawThumb(HDC hDC, const RECT &thumbrect, scrollbitype type)
 {
+   int thumbcapsize = 4;
+   int thumbgripsize = 10;
+   int scrollwidth = 16;
+   if(theApp.BigSkin())
+   {
+      thumbcapsize = 8;
+      thumbgripsize = 20;
+      scrollwidth = 32;
+   }
+
    if(m_bdrawthumb)
    {
       RECT thumbtoprect = thumbrect;
-      thumbtoprect.bottom = thumbrect.top + 4;
+      thumbtoprect.bottom = thumbrect.top + thumbcapsize;
       theApp.GetThumbTopImage(type)->Blit(hDC,thumbtoprect);
 
       RECT thumbbottomrect = thumbrect;
-      thumbbottomrect.top = thumbrect.bottom - 4;
+      thumbbottomrect.top = thumbrect.bottom - thumbcapsize;
       thumbbottomrect.bottom = thumbrect.bottom;
       theApp.GetThumbBottomImage(type)->Blit(hDC,thumbbottomrect);
 
       bool bShowGrip = false;
-      if(thumbrect.bottom - thumbrect.top > (4 + 4 + 10))
+      if(thumbrect.bottom - thumbrect.top > (thumbcapsize + thumbcapsize + thumbgripsize))
       {
          bShowGrip = true;
       }
@@ -2376,8 +2570,8 @@ void CReplyDlg::DrawThumb(HDC hDC, const RECT &thumbrect, scrollbitype type)
       {
          int thumbcenter = (thumbrect.top + thumbrect.bottom) >> 1;
          RECT thumbgriprect = thumbrect;
-         thumbgriprect.top = thumbcenter - 5;
-         thumbgriprect.bottom = thumbgriprect.top + 10;
+         thumbgriprect.top = thumbcenter - (thumbgripsize >> 1);
+         thumbgriprect.bottom = thumbgriprect.top + thumbgripsize;
          theApp.GetThumbGripImage(type)->Blit(hDC,thumbgriprect);
 
          RECT thumbuppermrect = thumbrect;
@@ -2448,7 +2642,21 @@ void CReplyDlg::MakeCaretVisible()
 
 void CReplyDlg::InvalidateSkin()
 {
-   m_height = 279 + theApp.GetCellHeight();
+   // height is 8 lines with half a line gap between each
+
+   m_tagheight = theApp.GetTextHeight() + (theApp.GetTextHeight() >> 1);
+   m_tagwidth = m_tagheight * 2;
+
+   m_height = 8 * m_tagheight;
+
+   if(theApp.BigSkin())
+   {
+      m_height += 40 + 30 + 10 + 10;
+   }
+   else
+   {
+      m_height += 20 + 20 + 10 + 10;
+   }
 
    if(m_backgroundbrush != NULL)
    {
@@ -2493,6 +2701,8 @@ void CReplyDlg::InvalidateSkin()
    {
       m_previewhost.DecodeShackTagsString(m_replytext);
    }
+
+   SetupShackTags();
 }
 
 void CReplyDlg::CheckSpellingAndTags()
@@ -2665,10 +2875,10 @@ bool CReplyDlg::OnRButtonDown(UINT nFlags, CPoint point)
       bITookIt = true;
    }
    else if(!m_bPreviewMode &&
-      point.x >= m_replydlgrect.left &&
-      point.x < m_replydlgrect.right &&
-      point.y >= m_replydlgrect.top &&
-      point.y < m_replydlgrect.bottom)
+      point.x >= m_textdrawrect.left &&
+      point.x < m_textdrawrect.right &&
+      point.y >= m_textdrawrect.top &&
+      point.y < m_textdrawrect.bottom)
    {
       m_bHaveFocus = true;
       int charpos = GetCharPos(point.x, point.y + m_pos);
@@ -2834,4 +3044,48 @@ void CReplyDlg::PromptForMessageInfo()
       message_subject = dlg.m_subject;
       m_message_info_dirty = true;
    }
+}
+
+void CReplyDlg::SetupShackTags()
+{   
+   m_red_tag.SetDoc(m_pDoc);
+   m_green_tag.SetDoc(m_pDoc);
+   m_blue_tag.SetDoc(m_pDoc);
+   m_yellow_tag.SetDoc(m_pDoc);
+   m_olive_tag.SetDoc(m_pDoc);
+   m_lime_tag.SetDoc(m_pDoc);
+   m_orange_tag.SetDoc(m_pDoc);
+   m_pink_tag.SetDoc(m_pDoc);
+   m_italics_tag.SetDoc(m_pDoc);
+   m_bold_tag.SetDoc(m_pDoc);
+   m_quote_tag.SetDoc(m_pDoc);
+   m_sample_tag.SetDoc(m_pDoc);
+   m_underline_tag.SetDoc(m_pDoc);
+   m_strike_tag.SetDoc(m_pDoc);
+   m_spoiler_tag.SetDoc(m_pDoc);
+   m_code_tag.SetDoc(m_pDoc);
+
+   int biggestwidth = 0;;
+   int thiswidth;
+
+   m_red_tag.SetFromText(L"r{red}r",thiswidth);    if(thiswidth > biggestwidth) biggestwidth = thiswidth;
+   m_green_tag.SetFromText(L"g{green}g",thiswidth);    if(thiswidth > biggestwidth) biggestwidth = thiswidth;
+   m_blue_tag.SetFromText(L"b{blue}b",thiswidth);    if(thiswidth > biggestwidth) biggestwidth = thiswidth;
+   m_yellow_tag.SetFromText(L"y{yellow}y",thiswidth);    if(thiswidth > biggestwidth) biggestwidth = thiswidth;
+   m_olive_tag.SetFromText(L"e[olive]e",thiswidth);    if(thiswidth > biggestwidth) biggestwidth = thiswidth;
+   m_lime_tag.SetFromText(L"l[lime]l",thiswidth);    if(thiswidth > biggestwidth) biggestwidth = thiswidth;
+   m_orange_tag.SetFromText(L"n[orange]n",thiswidth);    if(thiswidth > biggestwidth) biggestwidth = thiswidth;
+   m_pink_tag.SetFromText(L"p[pink]p",thiswidth);    if(thiswidth > biggestwidth) biggestwidth = thiswidth;
+   m_italics_tag.SetFromText(L"/[italics]/",thiswidth);    if(thiswidth > biggestwidth) biggestwidth = thiswidth;
+   m_bold_tag.SetFromText(L"b[bold]b",thiswidth);    if(thiswidth > biggestwidth) biggestwidth = thiswidth;
+   m_quote_tag.SetFromText(L"q[quote]q",thiswidth);    if(thiswidth > biggestwidth) biggestwidth = thiswidth;
+   m_sample_tag.SetFromText(L"s[sample]s",thiswidth);    if(thiswidth > biggestwidth) biggestwidth = thiswidth;
+   m_underline_tag.SetFromText(L"_[underline]_",thiswidth);    if(thiswidth > biggestwidth) biggestwidth = thiswidth;
+   m_strike_tag.SetFromText(L"-[strike]-",thiswidth);    if(thiswidth > biggestwidth) biggestwidth = thiswidth;
+   m_spoiler_tag.SetFromText(L"o[spoiler]o",thiswidth);    if(thiswidth > biggestwidth) biggestwidth = thiswidth;
+   m_code_tag.SetFromText(L"/{{code}}/",thiswidth);    if(thiswidth > biggestwidth) biggestwidth = thiswidth;
+
+   int extra = theApp.GetTextHeight() >> 1;
+   m_tagheight = theApp.GetTextHeight() + extra;
+   m_tagwidth = biggestwidth + extra;
 }

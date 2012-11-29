@@ -968,6 +968,31 @@ void ChattyPost::ReadLOL(CLampDoc *pDoc,
    InitImageLinks();
 }
 
+void ChattyPost::SetFromText(const UCChar *text, int &width)
+{
+   UCString body = text;
+   m_bodytext = L"";
+   m_shacktags.clear();
+   DecodeShackTagsString(body, true);
+   SetupCharWidths();
+   m_lines_of_text.clear();
+   m_charsizes.clear();
+   m_linesizes.clear();
+   m_linetags.clear();
+   m_linetypes.clear();
+   m_lasttextrectwidth = 0;
+   m_textrectheight = 0;
+   m_largest_line_width = 0;
+
+   RECT textrect;
+   textrect.left = 0;
+   textrect.right = 9999;
+   textrect.top = 0;
+   textrect.bottom = 9999;
+   SetupBodyText(textrect);
+   width = m_largest_line_width;
+}
+
 void ChattyPost::ReadPost(ChattyPost *pOther, CLampDoc *pDoc)
 {
    if(pOther != NULL)
@@ -1942,40 +1967,51 @@ int ChattyPost::DrawProfile(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
    return pos;
 }
 
-void ChattyPost::DrawTextOnly(HDC hDC, RECT &DeviceRectangle, int pos)
+void ChattyPost::DrawTextOnly(HDC hDC, RECT &DeviceRectangle, int pos, bool bCenter)
 {
    if(m_pDoc != NULL)
    {
       RECT textrect = DeviceRectangle;
-      textrect.top = 0;
-      textrect.bottom = 0;
-      
+
       if(textrect.right - textrect.left != m_lasttextrectwidth)
       {
+         int origin = textrect.top;
+         textrect.top = 0;
+         textrect.bottom = 0;
          m_lasttextrectwidth = textrect.right - textrect.left;
          SetupBodyText(textrect);
          m_textrectheight = textrect.bottom;
-      }
-      else
-      {
-         textrect.bottom = m_textrectheight;
+         textrect.top += origin;
+         textrect.bottom += origin;
       }
 
-      textrect.top += pos;
-      textrect.bottom += pos;
+      if(!bCenter)
+      {
+         textrect.top = 0;
+         textrect.bottom = m_textrectheight;      
+
+         textrect.top += pos;
+         textrect.bottom += pos;
+      }
 
       std::vector<RECT> spoilers;
       std::vector<RECT> links;
       std::vector<RECT> imagelinks;
       std::vector<RECT> images;
       std::vector<RECT> thumbs;
-      m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs, m_bComplexShapeText,&DeviceRectangle);
+      m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs, m_bComplexShapeText,&DeviceRectangle,bCenter);
    }
 }
 
 
 int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id)
 {
+   int iconsize = 20;
+   if(theApp.BigSkin())
+   {
+      iconsize = 40;
+   }
+
    if(m_pDoc != NULL)
    {
       if(m_bCollapsed)
@@ -2089,7 +2125,7 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
 
          RECT myrect = DeviceRectangle;
          myrect.top = pos;
-         myrect.bottom = pos + textrect.bottom + theApp.GetCellHeight() + theApp.GetCellHeight();
+         myrect.bottom = pos + textrect.bottom + iconsize + theApp.GetCellHeight();
 
          if(myrect.bottom < DeviceRectangle.top ||
             myrect.top > DeviceRectangle.bottom)
@@ -2217,7 +2253,7 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
             hotspot.m_spot.left = myrect.left + 20;
             hotspot.m_spot.bottom = myrect.bottom;
             hotspot.m_spot.right = hotspot.m_spot.left + theApp.GetReplyBuffer(false)->GetWidth();
-            hotspot.m_spot.top = myrect.bottom - 20;
+            hotspot.m_spot.top = myrect.bottom - iconsize;
             hotspot.m_id = m_id;
             hotspots.push_back(hotspot);
 
@@ -2297,6 +2333,14 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
 
 int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
 {
+   int iconsize = 20;
+   int replybuttonwidth = 60;
+   if(theApp.BigSkin())
+   {
+      iconsize = 40;
+      replybuttonwidth = 120;
+   }
+
    if(m_pDoc != NULL)
    {
       if(m_bJustText)
@@ -2375,8 +2419,8 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          m_drewtextpos = pos + 20 + theApp.GetCellHeight();
 
          RECT textrect = DeviceRectangle;
-         textrect.left += 40;
-         textrect.right -= 40;
+         textrect.left += (20 + iconsize);
+         textrect.right -= (20 + iconsize);
          textrect.top = 0;
          textrect.bottom = 0;
          
@@ -2400,9 +2444,11 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             trunkatingposts = (size_t)(m_familysize - theApp.GetNumToShowWhenTruncated());
          }
 
+         int topsize = __max(theApp.GetCellHeight(), iconsize);
+
          RECT myrect = DeviceRectangle;
          myrect.top = pos;
-         myrect.bottom = pos + textrect.bottom + theApp.GetCellHeight() + theApp.GetCellHeight();
+         myrect.bottom = pos + textrect.bottom + topsize + theApp.GetCellHeight();
 
          if(myrect.bottom < DeviceRectangle.top ||
             myrect.top > DeviceRectangle.bottom)
@@ -2453,13 +2499,14 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                m_pDoc->FillBackground(hDC,backrect);
             }
 
-            textrect.top += pos + theApp.GetCellHeight();
-            textrect.bottom += pos + theApp.GetCellHeight();
+            int toparea_top = myrect.top + ((topsize - theApp.GetTextHeight()) / 2);
+
+            textrect.top += pos + topsize;
+            textrect.bottom += pos + topsize;
             pos = myrect.bottom;
 
             myrect.left += 20;
             myrect.right -= 20;
-            //myrect.top += 20;
             m_pDoc->FillExpandedBackground(hDC,myrect,bAsRoot,m_category,!theApp.StrokeRootEdges());            
 
             std::vector<RECT> spoilers;
@@ -2490,7 +2537,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   if(pModImage != NULL)
                   {
                      RECT modrect;
-                     modrect.right = myrect.right - 60;
+                     modrect.right = myrect.right - replybuttonwidth;
                      modrect.left = modrect.right - pModImage->GetWidth();
                      modrect.top = myrect.top;
                      modrect.bottom = myrect.top + 20;
@@ -2522,7 +2569,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                      hotspot.m_bAnim = false;
                      hotspot.m_type = HST_MOD_TOOL;
 
-                     hotspot.m_spot.right = myrect.right - 60;
+                     hotspot.m_spot.right = myrect.right - replybuttonwidth;
                      hotspot.m_spot.left = hotspot.m_spot.right - pCatImage->GetWidth();
                      hotspot.m_spot.top = myrect.top;
                      hotspot.m_spot.bottom = myrect.top + 20;
@@ -2541,7 +2588,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   if(pINFIMage != NULL)
                   {
                      RECT infrect;
-                     infrect.right = myrect.right - 60;
+                     infrect.right = myrect.right - replybuttonwidth;
                      infrect.left = infrect.right - pINFIMage->GetWidth();
                      infrect.top = myrect.top;
                      infrect.bottom = myrect.top + 20;
@@ -2554,7 +2601,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   if(pNWSIMage != NULL)
                   {
                      RECT nwsrect;
-                     nwsrect.right = myrect.right - 60;
+                     nwsrect.right = myrect.right - replybuttonwidth;
                      nwsrect.left = nwsrect.right - pNWSIMage->GetWidth();
                      nwsrect.top = myrect.top;
                      nwsrect.bottom = myrect.top + 20;
@@ -2567,7 +2614,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   if(pOTIMage != NULL)
                   {
                      RECT otrect;
-                     otrect.right = myrect.right - 60;
+                     otrect.right = myrect.right - replybuttonwidth;
                      otrect.left = otrect.right - pOTIMage->GetWidth();
                      otrect.top = myrect.top;
                      otrect.bottom = myrect.top + 20;
@@ -2580,7 +2627,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   if(pPIMage != NULL)
                   {
                      RECT prect;
-                     prect.right = myrect.right - 60;
+                     prect.right = myrect.right - replybuttonwidth;
                      prect.left = prect.right - pPIMage->GetWidth();
                      prect.top = myrect.top;
                      prect.bottom = myrect.top + 20;
@@ -2593,7 +2640,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   if(pSIMage != NULL)
                   {
                      RECT srect;
-                     srect.right = myrect.right - 60;
+                     srect.right = myrect.right - replybuttonwidth;
                      srect.left = srect.right - pSIMage->GetWidth();
                      srect.top = myrect.top;
                      srect.bottom = myrect.top + 20;
@@ -2605,8 +2652,8 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             RECT flagrect = textrect;
             flagrect.left = textrect.left;
             flagrect.right = textrect.left;
-            flagrect.bottom = textrect.top;
-            flagrect.top = flagrect.bottom - theApp.GetTextHeight();
+            flagrect.top = toparea_top;
+            flagrect.bottom = flagrect.top + theApp.GetTextHeight();
 
             CDCSurface *Flag = NULL;
 
@@ -2629,8 +2676,8 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             RECT authorrect;
             authorrect.left = textrect.left;
             authorrect.right = textrect.left + theApp.GetCellHeight() + 5 + m_authorsize + 5;
-            authorrect.bottom = textrect.top;
-            authorrect.top = authorrect.bottom - theApp.GetTextHeight();
+            authorrect.top = toparea_top;
+            authorrect.bottom = authorrect.top + theApp.GetTextHeight();
             m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor, Flag, flagrect);
 
             if(m_pFlaggedUser != NULL &&
@@ -2680,31 +2727,16 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             daterect.bottom = myrect.bottom;
             m_pDoc->DrawDate(hDC,daterect,m_datetext,m_ago_color);
 
-            if(!bLinkOnly)
+            if(!bLinkOnly &&
+               m_pDoc->GetDataType() == DDT_STORY)
             {
                hotspot.m_type = HST_COLLAPSEPOST;
                hotspot.m_spot.left = myrect.left;
-               hotspot.m_spot.right = myrect.left + 20;
+               hotspot.m_spot.right = myrect.left + iconsize;
                hotspot.m_spot.bottom = myrect.bottom;
-               hotspot.m_spot.top = myrect.bottom - 20;
+               hotspot.m_spot.top = myrect.bottom - iconsize;
                hotspot.m_id = m_id;
                hotspots.push_back(hotspot);
-            }
-
-            if(!bLinkOnly)
-            {
-               hotspot.m_type = HST_REFRESH;
-               if(m_bRefreshing)
-               {
-                  hotspot.m_bAnim = true;
-               }
-               hotspot.m_spot.left = myrect.left;
-               hotspot.m_spot.top = myrect.top + 20;
-               hotspot.m_spot.right = myrect.left + 20;
-               hotspot.m_spot.bottom = myrect.top + 40;
-               hotspot.m_id = m_id;
-               hotspots.push_back(hotspot);
-               hotspot.m_bAnim = false;
             }
 
             if(trunkatingposts > 0)
@@ -2721,6 +2753,22 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
 
             if(!bThread)
             {
+               if(!bLinkOnly)
+               {
+                  hotspot.m_type = HST_REFRESH;
+                  if(m_bRefreshing)
+                  {
+                     hotspot.m_bAnim = true;
+                  }
+                  hotspot.m_spot.left = myrect.left;
+                  hotspot.m_spot.top = myrect.top + iconsize;
+                  hotspot.m_spot.right = myrect.left + iconsize;
+                  hotspot.m_spot.bottom = myrect.top + iconsize + iconsize;
+                  hotspot.m_id = m_id;
+                  hotspots.push_back(hotspot);
+                  hotspot.m_bAnim = false;
+               }
+
                if(theApp.IsPinningInStories() &&
                   m_pDoc->GetDataType() == DDT_STORY)
                {
@@ -2733,17 +2781,35 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                }
                hotspot.m_spot.left = myrect.left;
                hotspot.m_spot.top = myrect.top;
-               hotspot.m_spot.right = myrect.left + 20;
-               hotspot.m_spot.bottom = myrect.top + 20;
+               hotspot.m_spot.right = myrect.left + iconsize;
+               hotspot.m_spot.bottom = myrect.top + iconsize;
                hotspot.m_id = m_id;
                hotspots.push_back(hotspot);
+            }
+            else
+            {
+               if(!bLinkOnly)
+               {
+                  hotspot.m_type = HST_REFRESH;
+                  if(m_bRefreshing)
+                  {
+                     hotspot.m_bAnim = true;
+                  }
+                  hotspot.m_spot.left = myrect.left;
+                  hotspot.m_spot.top = myrect.top;
+                  hotspot.m_spot.right = myrect.left + iconsize;
+                  hotspot.m_spot.bottom = myrect.top + iconsize;
+                  hotspot.m_id = m_id;
+                  hotspots.push_back(hotspot);
+                  hotspot.m_bAnim = false;
+               }
             }
 
             if(!bLinkOnly)
             {
                hotspot.m_type = HST_CREATEREPLY;
-               hotspot.m_spot.left = myrect.right - 60;
-               hotspot.m_spot.bottom = myrect.top + 20;
+               hotspot.m_spot.left = myrect.right - replybuttonwidth;
+               hotspot.m_spot.bottom = myrect.top + iconsize;
                hotspot.m_spot.right = myrect.right;
                hotspot.m_spot.top = myrect.top;
                hotspot.m_id = m_id;
@@ -2988,6 +3054,14 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
 
 int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, int indent, unsigned int current_id, int &trunkatingposts, const UCString &rootauthor, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
 {
+   int iconsize = 20;
+   int replybuttonwidth = 60;
+   if(theApp.BigSkin())
+   {
+      iconsize = 40;
+      replybuttonwidth = 120;
+   }
+
    if(m_pDoc != NULL)
    {
       m_pos = pos;
@@ -3005,8 +3079,8 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
          {
             // draw expanded
             RECT textrect = DeviceRectangle;
-            textrect.left += 40 + (indent * 20);
-            textrect.right -= 40;
+            textrect.left += (20 + iconsize) + (indent * 20);
+            textrect.right -= (20 + iconsize);
             textrect.top = 0;
             textrect.bottom = 0;
             replyrect = textrect;
@@ -3022,9 +3096,13 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                textrect.bottom = m_textrectheight;
             }
 
+            int topsize = __max(theApp.GetCellHeight(), iconsize);
+
             RECT myrect = DeviceRectangle;
             myrect.top = pos;
-            myrect.bottom = pos + textrect.bottom + theApp.GetCellHeight() + theApp.GetCellHeight();
+            myrect.bottom = pos + textrect.bottom + topsize + theApp.GetCellHeight();
+
+            int toparea_top = myrect.top + ((topsize - theApp.GetTextHeight()) / 2);
 
             if(myrect.bottom < DeviceRectangle.top ||
                myrect.top > DeviceRectangle.bottom)
@@ -3047,11 +3125,11 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                m_bDrewTextBody = true;
                m_pDoc->FillBackground(hDC,myrect);
 
-               textrect.top += pos + theApp.GetCellHeight();
-               textrect.bottom += pos + theApp.GetCellHeight();
+               textrect.top += pos + topsize;
+               textrect.bottom += pos + topsize;
                pos = myrect.bottom;
 
-               myrect.left = textrect.left - 20;
+               myrect.left = textrect.left - iconsize;
                myrect.right -= 20;
                m_pDoc->FillExpandedBackground(hDC,myrect,false,m_category, false);
 
@@ -3083,7 +3161,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                      if(pModImage != NULL)
                      {
                         RECT modrect;
-                        modrect.right = myrect.right - 60;
+                        modrect.right = myrect.right - replybuttonwidth;
                         modrect.left = modrect.right - pModImage->GetWidth();
                         modrect.top = myrect.top;
                         modrect.bottom = myrect.top + 20;
@@ -3115,7 +3193,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                         hotspot.m_bAnim = false;
                         hotspot.m_type = HST_MOD_TOOL;
 
-                        hotspot.m_spot.right = myrect.right - 60;
+                        hotspot.m_spot.right = myrect.right - replybuttonwidth;
                         hotspot.m_spot.left = hotspot.m_spot.right - pCatImage->GetWidth();
                         hotspot.m_spot.top = myrect.top;
                         hotspot.m_spot.bottom = myrect.top + 20;
@@ -3134,7 +3212,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                      if(pINFIMage != NULL)
                      {
                         RECT infrect;
-                        infrect.right = myrect.right - 60;
+                        infrect.right = myrect.right - replybuttonwidth;
                         infrect.left = infrect.right - pINFIMage->GetWidth();
                         infrect.top = myrect.top;
                         infrect.bottom = myrect.top + 20;
@@ -3147,7 +3225,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                      if(pNWSIMage != NULL)
                      {
                         RECT nwsrect;
-                        nwsrect.right = myrect.right - 60;
+                        nwsrect.right = myrect.right - replybuttonwidth;
                         nwsrect.left = nwsrect.right - pNWSIMage->GetWidth();
                         nwsrect.top = myrect.top;
                         nwsrect.bottom = myrect.top + 20;
@@ -3160,7 +3238,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                      if(pOTIMage != NULL)
                      {
                         RECT otrect;
-                        otrect.right = myrect.right - 60;
+                        otrect.right = myrect.right - replybuttonwidth;
                         otrect.left = otrect.right - pOTIMage->GetWidth();
                         otrect.top = myrect.top;
                         otrect.bottom = myrect.top + 20;
@@ -3173,7 +3251,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                      if(pPIMage != NULL)
                      {
                         RECT prect;
-                        prect.right = myrect.right - 60;
+                        prect.right = myrect.right - replybuttonwidth;
                         prect.left = prect.right - pPIMage->GetWidth();
                         prect.top = myrect.top;
                         prect.bottom = myrect.top + 20;
@@ -3186,7 +3264,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                      if(pSIMage != NULL)
                      {
                         RECT srect;
-                        srect.right = myrect.right - 60;
+                        srect.right = myrect.right - replybuttonwidth;
                         srect.left = srect.right - pSIMage->GetWidth();
                         srect.top = myrect.top;
                         srect.bottom = myrect.top + 20;
@@ -3198,8 +3276,8 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                RECT flagrect = textrect;
                flagrect.left = textrect.left;
                flagrect.right = textrect.left;
-               flagrect.bottom = textrect.top;
-               flagrect.top = flagrect.bottom - theApp.GetTextHeight();
+               flagrect.top = toparea_top;
+               flagrect.bottom = flagrect.top + theApp.GetTextHeight();
 
                CDCSurface *Flag = NULL;
 
@@ -3215,8 +3293,8 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                RECT authorrect;
                authorrect.left = textrect.left;
                authorrect.right = textrect.left + theApp.GetCellHeight() + 5 + m_authorsize + 5;
-               authorrect.bottom = textrect.top;
-               authorrect.top = authorrect.bottom - theApp.GetTextHeight();
+               authorrect.top = toparea_top;
+               authorrect.bottom = authorrect.top + theApp.GetTextHeight();
                m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor, Flag, flagrect);
 
                if(m_pFlaggedUser != NULL &&
@@ -3263,43 +3341,51 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                daterect.top = textrect.bottom;
                daterect.bottom = myrect.bottom;
                m_pDoc->DrawDate(hDC,daterect,m_datetext,m_ago_color);
-
+               /*
                hotspot.m_type = HST_CLOSEREPLY;
                hotspot.m_spot.left = myrect.left;
-               hotspot.m_spot.right = myrect.left + 20;
+               hotspot.m_spot.right = myrect.left + iconsize;
                hotspot.m_spot.bottom = myrect.bottom;
-               hotspot.m_spot.top = myrect.bottom - 20;
+               hotspot.m_spot.top = myrect.bottom - iconsize;
                hotspot.m_id = m_id;
                hotspots.push_back(hotspot);
-
+               */
                hotspot.m_type = HST_REFRESH;
                if(m_bRefreshing)
                {
                   hotspot.m_bAnim = true;
                }
                hotspot.m_spot.left = myrect.left;
-               hotspot.m_spot.top = myrect.top + 20;
-               hotspot.m_spot.right = myrect.left + 20;
-               hotspot.m_spot.bottom = myrect.top + 40;
+               hotspot.m_spot.right = myrect.left + iconsize;
                hotspot.m_id = m_id;
-               hotspots.push_back(hotspot);
-               hotspot.m_bAnim = false;
 
                if(m_pDoc->GetDataType() != DDT_THREAD &&
                   !theApp.IsPinningInStories())
                {
+                  hotspot.m_spot.top = myrect.top + iconsize;
+                  hotspot.m_spot.bottom = myrect.top + iconsize + iconsize;
+                  hotspots.push_back(hotspot);
+                  hotspot.m_bAnim = false;
+
                   hotspot.m_type = HST_OPENINTAB;
                   hotspot.m_spot.left = myrect.left;
                   hotspot.m_spot.top = myrect.top;
-                  hotspot.m_spot.right = myrect.left + 20;
-                  hotspot.m_spot.bottom = myrect.top + 20;
+                  hotspot.m_spot.right = myrect.left + iconsize;
+                  hotspot.m_spot.bottom = myrect.top + iconsize;
                   hotspot.m_id = m_id;
                   hotspots.push_back(hotspot);
                }
+               else
+               {
+                  hotspot.m_spot.top = myrect.top;
+                  hotspot.m_spot.bottom = myrect.top + iconsize;
+                  hotspots.push_back(hotspot);
+                  hotspot.m_bAnim = false;
+               }
 
                hotspot.m_type = HST_CREATEREPLY;
-               hotspot.m_spot.left = myrect.right - 60;
-               hotspot.m_spot.bottom = myrect.top + 20;
+               hotspot.m_spot.left = myrect.right - replybuttonwidth;
+               hotspot.m_spot.bottom = myrect.top + iconsize;
                hotspot.m_spot.right = myrect.right;
                hotspot.m_spot.top = myrect.top;
                hotspot.m_id = m_id;

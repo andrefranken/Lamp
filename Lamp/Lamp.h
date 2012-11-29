@@ -517,18 +517,6 @@ public:
       }
    }
 
-   CDCSurface *GetTagsImage(bool bHover)
-   {
-      if(bHover)
-      {
-         return &m_tags_hover;
-      }
-      else
-      {
-         return &m_tags;
-      }
-   }
-
    CDCSurface *GetNewThreadImage(bool bHover)
    {
       if(bHover)
@@ -1078,6 +1066,8 @@ public:
    void DeleteFlaggedUser(const UCString &username);
 
    std::map<UCString,CFlagImage> &GetFlagImages(){return m_flagimages;}
+
+   bool BigSkin(){return m_bigskin;}
       
 // Overrides
 public:
@@ -1181,8 +1171,6 @@ protected:
    CDCSurface m_post_hover;
    CDCSurface m_send;
    CDCSurface m_send_hover;
-   CDCSurface m_tags;
-   CDCSurface m_tags_hover;
    CDCSurface m_newthread;
    CDCSurface m_newthread_hover;
    CDCSurface m_preview;
@@ -1451,6 +1439,8 @@ protected:
    std::list<CDownloadHistoryItem> m_downloadhistory;
 
    bool m_bUseAuthorColorForPreview;   
+
+   bool m_bigskin;
 
 public:
    afx_msg void OnFileSetuplogininfo();

@@ -159,6 +159,17 @@ public:
 
    void PromptForMessageInfo();
 
+   void DrawShackTag(HDC hDC, shacktag which, RECT &rect, bool bHover);
+
+   void SetupShackTags();
+
+   RECT m_replydlgrect;
+
+   RECT m_textrect;
+   RECT m_textdrawrect;
+   RECT m_textsizerect;
+   RECT m_ScrollRectangle;
+
 protected:
    void RecalcCharWidths();
    void RecalcLines();
@@ -179,13 +190,7 @@ protected:
       
    CLampDoc *m_pDoc;
    unsigned int m_replytoid;
-   RECT m_replydlgrect;
-
-   RECT m_textrect;
-   RECT m_textdrawrect;
-   RECT m_textsizerect;
-   RECT m_ScrollRectangle;
-
+   
    int m_pos;
    int m_gotopos;
 
@@ -270,4 +275,43 @@ protected:
    bool                     m_message_info_dirty;
 
    bool  m_bComplexShapeText;
+
+   int m_tagheight;
+   int m_tagwidth;
+   /*
+   UCString m_redtext;
+   UCString m_greentext;
+   UCString m_bluetext;
+   UCString m_yellowtext;
+   UCString m_olivetext;
+   UCString m_limetext;
+   UCString m_orangetext;
+   UCString m_pinktext;
+   UCString m_italicstext;
+   UCString m_boldtext;
+   UCString m_quotetext;
+   UCString m_sampletext;
+   UCString m_underlinetext;
+   UCString m_striketext;
+   UCString m_spoilertext;
+   UCString m_codetext;
+   */
+   ChattyPost m_red_tag;
+   ChattyPost m_green_tag;
+   ChattyPost m_blue_tag;
+   ChattyPost m_yellow_tag;
+   ChattyPost m_olive_tag;
+   ChattyPost m_lime_tag;
+   ChattyPost m_orange_tag;
+   ChattyPost m_pink_tag;
+   ChattyPost m_italics_tag;
+   ChattyPost m_bold_tag;
+   ChattyPost m_quote_tag;
+   ChattyPost m_sample_tag;
+   ChattyPost m_underline_tag;
+   ChattyPost m_strike_tag;
+   ChattyPost m_spoiler_tag;
+   ChattyPost m_code_tag;
+
+   bool m_bHaveSetupTags;
 };

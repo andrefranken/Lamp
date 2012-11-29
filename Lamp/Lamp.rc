@@ -325,6 +325,11 @@ BEGIN
             MENUITEM "Round Shack",                 ID_SKIN_ROUNDSHACK
             MENUITEM "Square Shack",                ID_SKIN_DEFAULT
             MENUITEM "Worksafe Shack",              ID_SKIN_WORKSAFE
+            MENUITEM SEPARATOR
+            MENUITEM "Round Shack (large)",         ID_SKIN_ROUNDSHACK_2
+            MENUITEM "Square Shack (large)",        ID_SKIN_DEFAULT_2
+            MENUITEM "Worksafe Shack (large)",      ID_SKIN_WORKSAFE_2
+            MENUITEM SEPARATOR
             MENUITEM "Custom",                      ID_SKIN_CUSTOM
         END
         MENUITEM SEPARATOR

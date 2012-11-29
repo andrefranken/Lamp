@@ -209,13 +209,17 @@
 #define IDR_POPUP_EDIT_NOSEL            32922
 #define IDR_POPUP_SEL                   32923
 #define IDR_POPUP_NOSEL                 32924
+#define ID_SKIN_ROUNDSHACK_2            32925
+#define ID_SKIN_DEFAULT_2               32926
+#define ID_SKIN_WORKSAFE_2              32927
+
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        329
-#define _APS_NEXT_COMMAND_VALUE         32921
+#define _APS_NEXT_COMMAND_VALUE         32928
 #define _APS_NEXT_CONTROL_VALUE         1023
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

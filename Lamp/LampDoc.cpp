@@ -1790,7 +1790,18 @@ CLampDoc::CLampDoc()
       
    m_miscfont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
    m_boldfont = ::CreateFontW(theApp.GetFontHeight(),0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
-   m_pagefont = ::CreateFontW(-13,0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
+
+   if(theApp.BigSkin())
+   {
+      m_pagefont = ::CreateFontW(-26,0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
+   }
+   else
+   {
+      m_pagefont = ::CreateFontW(-13,0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
+   }
+
+   m_pagecountfont = ::CreateFontW(-13,0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
+
    m_miscboldfont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
 
    m_miscunderlinefont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_NORMAL,0,1,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
@@ -1884,6 +1895,11 @@ CLampDoc::~CLampDoc()
    if(m_pagefont != NULL)
    {
       ::DeleteObject(m_pagefont);
+   }
+
+   if(m_pagecountfont != NULL)
+   {
+      ::DeleteObject(m_pagecountfont);
    }
 
    if(m_miscfont != NULL)
@@ -3804,6 +3820,21 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
       pSearchImage != NULL &&
       pRefreshStoryImage != NULL)
    {
+      int pagebuttonwidth = 20;
+      int pagebuttongap = 10;
+      int pagetxtoff_x = 15;
+      int pagetxtoff_y = 2;
+      
+      if(theApp.BigSkin())
+      {
+         pagebuttonwidth = 40;
+         pagebuttongap = 20;
+         pagetxtoff_x = 25;
+         pagetxtoff_y = 4;
+      }
+
+      int pagebuttonsize = pagebuttonwidth + pagebuttongap;
+
       bannerrect.top = pos;
       bannerrect.bottom = bannerrect.top + pNewThreadImage->GetHeight();
 
@@ -3875,7 +3906,7 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          if(GetDataType() == DDT_STORY && theApp.InfinatePaging() && theApp.UseShack())
          {
             ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
-            MySelectFont(hDC,m_pagefont);
+            MySelectFont(hDC,m_pagecountfont);
             ::SetTextColor(hDC,theApp.GetPostTextColor());
 
             UCString pagenote = L"Have ";
@@ -3898,7 +3929,7 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             // each square needs 20 + 10
             int howmanycanihave = m_lastpage + 2;
 
-            while(howmanycanihave * (20+10) > pagingwidth)
+            while(howmanycanihave * pagebuttonsize > pagingwidth)
             {
                howmanycanihave--;
             }
@@ -3933,8 +3964,8 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   }
                }
 
-               int x = ((pagingrect.right + pagingrect.left) / 2) - (int)(((float)(howmanycanihave + 2) /2.0f) * (20.0f+10.0f));
-               int y = ((bannerrect.bottom + bannerrect.top) / 2) + 10;
+               int x = ((pagingrect.right + pagingrect.left) / 2) - (int)(((float)(howmanycanihave + 2) /2.0f) * (float)pagebuttonsize);
+               int y = ((bannerrect.bottom + bannerrect.top) / 2) + pagebuttongap;
 
                ::SetTextAlign(hDC,TA_CENTER|TA_BOTTOM);
                MySelectFont(hDC,m_pagefont);
@@ -3945,8 +3976,8 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
 
                RECT pagebut;
                pagebut.left = x + 5;
-               pagebut.top = y - 20;
-               pagebut.right = x + 25;
+               pagebut.top = y - pagebuttonwidth;
+               pagebut.right = x + 5 + pagebuttonwidth;
                pagebut.bottom = y;
 
                // draw the previous
@@ -3955,22 +3986,22 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   // draw greyed out
                   ::SelectObject(hDC,nullpen);
                   ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-                  ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, L"<", 1, NULL);
+                  ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, L"<", 1, NULL);
                   ::SelectObject(hDC,m_roottoppen);
                }
                else
                {
                   ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-                  ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, L"<", 1, NULL);
+                  ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, L"<", 1, NULL);
                   
                   hotspot.m_type = HST_PREV_PAGE;
                   hotspot.m_spot = pagebut;
                   hotspot.m_id = 0;
                   hotspots.push_back(hotspot);
                }
-               pagebut.left += 30;
-               pagebut.right += 30;
-               x += 30;
+               pagebut.left += pagebuttonsize;
+               pagebut.right += pagebuttonsize;
+               x += pagebuttonsize;
 
                for(int i = first; i <= last; i++)
                {
@@ -3981,13 +4012,13 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                      // draw greyed out
                      ::SelectObject(hDC,nullpen);
                      ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-                     ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, pagenum, pagenum.Length(), NULL);
+                     ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, pagenum, pagenum.Length(), NULL);
                      ::SelectObject(hDC,m_roottoppen);
                   }
                   else
                   {
                      ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-                     ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, pagenum, pagenum.Length(), NULL);
+                     ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, pagenum, pagenum.Length(), NULL);
                   }   
 
                   hotspot.m_type = HST_PAGE;
@@ -3995,9 +4026,9 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   hotspot.m_id = i;
                   hotspots.push_back(hotspot);
                   
-                  pagebut.left += 30;
-                  pagebut.right += 30;
-                  x += 30;
+                  pagebut.left += pagebuttonsize;
+                  pagebut.right += pagebuttonsize;
+                  x += pagebuttonsize;
                }
                
                // draw the next
@@ -4006,13 +4037,13 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   // draw greyed out
                   ::SelectObject(hDC,nullpen);
                   ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-                  ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, L">", 1, NULL);
+                  ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, L">", 1, NULL);
                   ::SelectObject(hDC,m_roottoppen);
                }
                else
                {
                   ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-                  ::ExtTextOut(hDC, x + 15, y - 2 , 0, NULL, L">", 1, NULL);
+                  ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, L">", 1, NULL);
                   
                   hotspot.m_type = HST_NEXT_PAGE;
                   hotspot.m_spot = pagebut;
@@ -6021,13 +6052,26 @@ void CLampDoc::DrawBodyText(HDC hDC,
                             std::vector<RECT> &images,
                             std::vector<RECT> &thumbs, 
                             bool bComplexShapeText,
-                            const RECT *pClipRect/*=NULL*/)
+                            const RECT *pClipRect/*=NULL*/,
+                            bool bCenterSingleLine/*=false*/)
 {
-   int y = rect.top + 4 + theApp.GetTextHeight();
+   if(bCenterSingleLine && lines_of_text.size() > 1)
+      bCenterSingleLine = false;
+
+   int y;
+   if(bCenterSingleLine)
+   {
+      y = ((rect.bottom + rect.top) / 2) + (theApp.GetTextHeight() / 2);
+   }
+   else
+   {
+      y = rect.top + 4 + theApp.GetTextHeight();
+   }
 
    int rise = theApp.GetDescent();
 
    ::SetTextAlign(hDC,TA_LEFT|TA_BASELINE);
+   ::SetBkMode(hDC,TRANSPARENT);
 
    std::vector<COLORREF> colorstack;
    bool quote = false;
@@ -6062,11 +6106,26 @@ void CLampDoc::DrawBodyText(HDC hDC,
    {
       if(linetypes[i].m_bIsText)
       {
-         int codeline = rect.left + 5 - 2;
-         int x = rect.left + 5;
          const UCChar *pLineText = lines_of_text[i];
          const int* pLineWidths = charsizes[i];
          const int numchars = linesizes[i];
+
+         int x;
+         if(bCenterSingleLine)
+         {
+            int thiswidth = 0;
+            for(int h = 0; h < numchars; h++)
+            {
+               thiswidth += pLineWidths[h];
+            }
+            x = (rect.left + ((rect.right - rect.left) / 2)) - (thiswidth / 2);
+         }
+         else
+         {
+            x = rect.left + 5;
+         }
+
+         int codeline = x - 2;
 
          if(code)
          {
@@ -7105,6 +7164,11 @@ void CLampDoc::InvalidateSkin()
       ::DeleteObject(m_pagefont);
    }
 
+   if(m_pagecountfont != NULL)
+   {
+      ::DeleteObject(m_pagecountfont);
+   }
+
    if(m_miscfont != NULL)
    {
       ::DeleteObject(m_miscfont);
@@ -7174,7 +7238,17 @@ void CLampDoc::InvalidateSkin()
       
    m_miscfont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
    m_boldfont = ::CreateFontW(theApp.GetFontHeight(),0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
-   m_pagefont = ::CreateFontW(-13,0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
+   if(theApp.BigSkin())
+   {
+      m_pagefont = ::CreateFontW(-26,0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
+   }
+   else
+   {
+      m_pagefont = ::CreateFontW(-13,0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
+   }
+
+   m_pagecountfont = ::CreateFontW(-13,0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
+
    m_miscboldfont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_EXTRABOLD,0,0,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());
 
    m_miscunderlinefont = ::CreateFontW(theApp.GetMiscFontHeight(),0,0,0,FW_NORMAL,0,1,0,DEFAULT_CHARSET,OUT_TT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH|FF_DONTCARE,theApp.GetNormalFontName());

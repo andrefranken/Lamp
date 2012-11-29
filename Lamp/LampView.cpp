@@ -137,6 +137,12 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_SKIN_DEFAULT, &CLampView::OnUpdateSkinSquareShack)
    ON_COMMAND(ID_SKIN_WORKSAFE, &CLampView::OnSkinWorksafeShack)
    ON_UPDATE_COMMAND_UI(ID_SKIN_WORKSAFE, &CLampView::OnUpdateSkinWorksafeShack)
+   ON_COMMAND(ID_SKIN_ROUNDSHACK_2, &CLampView::OnSkinRoundShack2)
+   ON_UPDATE_COMMAND_UI(ID_SKIN_ROUNDSHACK_2, &CLampView::OnUpdateSkinRoundShack2)
+   ON_COMMAND(ID_SKIN_DEFAULT_2, &CLampView::OnSkinSquareShack2)
+   ON_UPDATE_COMMAND_UI(ID_SKIN_DEFAULT_2, &CLampView::OnUpdateSkinSquareShack2)
+   ON_COMMAND(ID_SKIN_WORKSAFE_2, &CLampView::OnSkinWorksafeShack2)
+   ON_UPDATE_COMMAND_UI(ID_SKIN_WORKSAFE_2, &CLampView::OnUpdateSkinWorksafeShack2)
    ON_COMMAND(ID_SKIN_CUSTOM, &CLampView::OnSkinCustom)
    ON_UPDATE_COMMAND_UI(ID_SKIN_CUSTOM, &CLampView::OnUpdateSkinCustom)
    ON_COMMAND(ID_HIGHLIGHT_OP, &CLampView::OnHighlightOP)
@@ -628,64 +634,89 @@ void CLampView::OnContextMenu(CWnd* pWnd, CPoint point)
    bool bDoPostBody = false;
    bool bHasSel = false;
 
-   for(size_t i = 0; i < m_hotspots.size(); i++)
+   if(m_pReplyDlg != NULL &&
+      m_mousepoint.x >= m_pReplyDlg->m_replydlgrect.left &&
+      m_mousepoint.x < m_pReplyDlg->m_replydlgrect.right &&
+      m_mousepoint.y >= m_pReplyDlg->m_replydlgrect.top &&
+      m_mousepoint.y < m_pReplyDlg->m_replydlgrect.bottom)
    {
-      if(m_mousepoint.x >= m_hotspots[i].m_spot.left &&
-         m_mousepoint.x < m_hotspots[i].m_spot.right &&
-         m_mousepoint.y >= m_hotspots[i].m_spot.top &&
-         m_mousepoint.y < m_hotspots[i].m_spot.bottom)
+      if(m_mousepoint.x >= m_pReplyDlg->m_textdrawrect.left &&
+         m_mousepoint.x < m_pReplyDlg->m_textdrawrect.right &&
+         m_mousepoint.y >= m_pReplyDlg->m_textdrawrect.top &&
+         m_mousepoint.y < m_pReplyDlg->m_textdrawrect.bottom)
       {
-         if(m_hotspots[i].m_type == HST_LINK ||
-            m_hotspots[i].m_type == HST_IMAGE_LINK ||
-            m_hotspots[i].m_type == HST_IMAGE ||
-            m_hotspots[i].m_type == HST_THUMB ||
-            m_hotspots[i].m_type == HST_OPENINTAB ||
-            m_hotspots[i].m_type == HST_PIN ||
-            m_hotspots[i].m_type == HST_REFRESH)
-         {
-            bDoLink = true;
-         }
+         bDoReplyEdit = true;
 
-         else if(m_hotspots[i].m_type == HST_AUTHOR ||
-                 m_hotspots[i].m_type == HST_AUTHORPREVIEW)
+         if(!m_pReplyDlg->AreSuggestionsUp())
          {
-            ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
-            if(post != NULL)
-            {
-               m_authorname_clicked = post->GetAuthor();
-               bDoAuthor = true;
-            }
-         }
-         else if(m_hotspots[i].m_type == HST_REPLYTEXT)
-         {
-            bDoReplyEdit = true;
-
-            if(m_pReplyDlg != NULL &&
-               !m_pReplyDlg->AreSuggestionsUp())
-            {
-               if(m_pReplyDlg->HasSelection())
-               {
-                  bHasSel = true;
-               }
-            }
-         }
-         else if(m_hotspots[i].m_type == HST_TEXT ||
-                 m_hotspots[i].m_type == HST_POST_AREA)
-         {
-            m_rbuttonmenufromid = m_hotspots[i].m_id;
-                        
-            bDoPostBody = true;
-
-            if(m_textselectionpost != 0 &&
-               m_selectionstart != m_selectionend)
+            if(m_pReplyDlg->HasSelection())
             {
                bHasSel = true;
             }
          }
-         break;
       }
    }
-   
+   else
+   {
+      for(size_t i = 0; i < m_hotspots.size(); i++)
+      {
+         if(m_mousepoint.x >= m_hotspots[i].m_spot.left &&
+            m_mousepoint.x < m_hotspots[i].m_spot.right &&
+            m_mousepoint.y >= m_hotspots[i].m_spot.top &&
+            m_mousepoint.y < m_hotspots[i].m_spot.bottom)
+         {
+            if(m_hotspots[i].m_type == HST_LINK ||
+               m_hotspots[i].m_type == HST_IMAGE_LINK ||
+               m_hotspots[i].m_type == HST_IMAGE ||
+               m_hotspots[i].m_type == HST_THUMB ||
+               m_hotspots[i].m_type == HST_OPENINTAB ||
+               m_hotspots[i].m_type == HST_PIN ||
+               m_hotspots[i].m_type == HST_REFRESH)
+            {
+               bDoLink = true;
+            }
+
+            else if(m_hotspots[i].m_type == HST_AUTHOR ||
+                    m_hotspots[i].m_type == HST_AUTHORPREVIEW)
+            {
+               ChattyPost *post = GetDocument()->FindPost(m_hotspots[i].m_id);
+               if(post != NULL)
+               {
+                  m_authorname_clicked = post->GetAuthor();
+                  bDoAuthor = true;
+               }
+            }
+            else if(m_hotspots[i].m_type == HST_REPLYTEXT)
+            {
+               bDoReplyEdit = true;
+
+               if(m_pReplyDlg != NULL &&
+                  !m_pReplyDlg->AreSuggestionsUp())
+               {
+                  if(m_pReplyDlg->HasSelection())
+                  {
+                     bHasSel = true;
+                  }
+               }
+            }
+            else if(m_hotspots[i].m_type == HST_TEXT ||
+                    m_hotspots[i].m_type == HST_POST_AREA)
+            {
+               m_rbuttonmenufromid = m_hotspots[i].m_id;
+                           
+               bDoPostBody = true;
+
+               if(m_textselectionpost != 0 &&
+                  m_selectionstart != m_selectionend)
+               {
+                  bHasSel = true;
+               }
+            }
+            break;
+         }
+      }
+   }
+
 	if(bDoLink)
    {
       theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_COPYLINK_MENU, point.x, point.y, this, TRUE);
@@ -850,11 +881,14 @@ void CLampView::OnDraw(CDC* pDC)
             RECT DocRectangle;
             RECT ScrollRectangle;
 
+            int scrollwidth = 16;
+            if(theApp.BigSkin()) scrollwidth = 32;
+
             DocRectangle = DeviceRectangle;
-            DocRectangle.right -= 16;
+            DocRectangle.right -= scrollwidth;
 
             ScrollRectangle = DeviceRectangle;
-            ScrollRectangle.left = ScrollRectangle.right - 16;
+            ScrollRectangle.left = ScrollRectangle.right - scrollwidth;
             
             POINT brushorg;
             brushorg.x = DeviceRectangle.left;
@@ -879,10 +913,10 @@ void CLampView::OnDraw(CDC* pDC)
                }
 
                RECT fromrect = DeviceRectangle;
-               fromrect.right -= 16;
+               fromrect.right -= scrollwidth;
 
                RECT torect = DeviceRectangle;
-               torect.right -= 16;
+               torect.right -= scrollwidth;
 
                if(m_pos > m_lastdrawnpos)
                {
@@ -1227,6 +1261,9 @@ void CLampView::DrawEverythingToBuffer(CDCSurface *pSurface/* = NULL*/,
    // setup some basic drawing assumptions
    ::SetTextAlign(pSurface->GetDC(),TA_LEFT|TA_BOTTOM);
    ::SetBkMode(pSurface->GetDC(),TRANSPARENT);
+
+   int scrollwidth = 16;
+   if(theApp.BigSkin()) scrollwidth = 32;
    
    RECT DeviceRectangle;
 
@@ -1237,7 +1274,7 @@ void CLampView::DrawEverythingToBuffer(CDCSurface *pSurface/* = NULL*/,
    else
    {
       DeviceRectangle.left = DeviceRectangle.top = 0;
-      DeviceRectangle.right = pSurface->GetWidth() - 16;
+      DeviceRectangle.right = pSurface->GetWidth() - scrollwidth;
       DeviceRectangle.bottom = pSurface->GetHeight();
    }
 
@@ -1273,7 +1310,7 @@ void CLampView::DrawEverythingToBuffer(CDCSurface *pSurface/* = NULL*/,
    {
       m_ScrollRectangle = DeviceRectangle;
       m_ScrollRectangle.left = m_ScrollRectangle.right;
-      m_ScrollRectangle.right += 16;
+      m_ScrollRectangle.right += scrollwidth;
    }
 
    ::ExtSelectClipRgn(pSurface->GetDC(),NULL,RGN_COPY);
@@ -1344,6 +1381,14 @@ void CLampView::DrawEverythingToBuffer(CDCSurface *pSurface/* = NULL*/,
 
 void CLampView::DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<CHotSpot> &hotspots)
 {
+   int thumbcapsize = 4;
+   int scrollwidth = 16;
+   if(theApp.BigSkin())
+   {
+      thumbcapsize = 8;
+      scrollwidth = 32;
+   }
+
    scrollbitype maintype = SBT_INACTIVE;
    scrollbitype thistype;
    if(m_bTrackingThumb ||
@@ -1356,7 +1401,7 @@ void CLampView::DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<
    }
 
    m_uprect = ScrollRectangle;
-   m_uprect.bottom = m_uprect.top + 16;
+   m_uprect.bottom = m_uprect.top + scrollwidth;
    thistype = maintype;
    if(thistype == SBT_ACTIVE &&
       m_mousepoint.x >= m_uprect.left &&
@@ -1376,7 +1421,7 @@ void CLampView::DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<
    hotspots.push_back(hotspot);
 
    m_downrect = ScrollRectangle;
-   m_downrect.top = m_downrect.bottom - 16;
+   m_downrect.top = m_downrect.bottom - scrollwidth;
    thistype = maintype;
    if(thistype == SBT_ACTIVE &&
       m_mousepoint.x >= m_downrect.left &&
@@ -1394,7 +1439,7 @@ void CLampView::DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<
    hotspots.push_back(hotspot);
 
    int scrollbarheight = ScrollRectangle.bottom - ScrollRectangle.top;
-   int trackheight = scrollbarheight - 16 - 16;
+   int trackheight = scrollbarheight - scrollwidth - scrollwidth;
    int docheight = GetDocument()->GetHeight();
    int thumbtop = m_pos;
    int screenheight = scrollbarheight;
@@ -1407,29 +1452,29 @@ void CLampView::DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<
 
    // now translate those to the range of the scrollbar's pixels
    m_scrollscale =  (float)trackheight / (float)docheight;
-   thumbtop = ScrollRectangle.top + __max(16, 16 + (int)((float)thumbtop * m_scrollscale));
-   thumbbottom = ScrollRectangle.top + __min(scrollbarheight - 16, 16 + (int)((float)thumbbottom * m_scrollscale));
+   thumbtop = ScrollRectangle.top + __max(scrollwidth, scrollwidth + (int)((float)thumbtop * m_scrollscale));
+   thumbbottom = ScrollRectangle.top + __min(scrollbarheight - scrollwidth, scrollwidth + (int)((float)thumbbottom * m_scrollscale));
    int thumbheight = thumbbottom - thumbtop;
-   
+
    if(docheight > 0 && 
-      thumbheight < (4 + 4))
+      thumbheight < (thumbcapsize + thumbcapsize))
    {
       // too small, bump it up
       int thumbcenter = (thumbtop + thumbbottom) >> 1;
-      thumbtop = thumbcenter - 4;
-      thumbbottom = thumbtop + 8;
+      thumbtop = thumbcenter - thumbcapsize;
+      thumbbottom = thumbtop + (thumbcapsize + thumbcapsize);
       thumbheight = thumbbottom - thumbtop;
       
-      if(thumbtop < 16)
+      if(thumbtop < scrollwidth)
       {
-         int off = 16 - thumbtop;
+         int off = scrollwidth - thumbtop;
          thumbtop+=off;
          thumbbottom+=off;
       }
 
-      if(thumbbottom > scrollbarheight - 16)
+      if(thumbbottom > ScrollRectangle.bottom - scrollwidth)
       {
-         int off = thumbbottom - (scrollbarheight - 16);
+         int off = thumbbottom - (ScrollRectangle.bottom - scrollwidth);
          thumbtop-=off;
          thumbbottom-=off;
       }
@@ -1507,17 +1552,27 @@ void CLampView::DrawThumb(HDC hDC, const RECT &thumbrect, scrollbitype type)
 {
    if(m_bdrawthumb)
    {
+      int thumbcapsize = 4;
+      int thumbgripsize = 10;
+      int scrollwidth = 16;
+      if(theApp.BigSkin())
+      {
+         thumbcapsize = 8;
+         thumbgripsize = 20;
+         scrollwidth = 32;
+      }
+
       RECT thumbtoprect = thumbrect;
-      thumbtoprect.bottom = thumbrect.top + 4;
+      thumbtoprect.bottom = thumbrect.top + thumbcapsize;
       theApp.GetThumbTopImage(type)->Blit(hDC,thumbtoprect);
 
       RECT thumbbottomrect = thumbrect;
-      thumbbottomrect.top = thumbrect.bottom - 4;
+      thumbbottomrect.top = thumbrect.bottom - thumbcapsize;
       thumbbottomrect.bottom = thumbrect.bottom;
       theApp.GetThumbBottomImage(type)->Blit(hDC,thumbbottomrect);
 
       bool bShowGrip = false;
-      if(thumbrect.bottom - thumbrect.top > (4 + 4 + 10))
+      if(thumbrect.bottom - thumbrect.top > (thumbcapsize + thumbcapsize + thumbgripsize))
       {
          bShowGrip = true;
       }
@@ -1526,8 +1581,8 @@ void CLampView::DrawThumb(HDC hDC, const RECT &thumbrect, scrollbitype type)
       {
          int thumbcenter = (thumbrect.top + thumbrect.bottom) >> 1;
          RECT thumbgriprect = thumbrect;
-         thumbgriprect.top = thumbcenter - 5;
-         thumbgriprect.bottom = thumbgriprect.top + 10;
+         thumbgriprect.top = thumbcenter - (thumbgripsize >> 1);
+         thumbgriprect.bottom = thumbgriprect.top + thumbgripsize;
          theApp.GetThumbGripImage(type)->Blit(hDC,thumbgriprect);
 
          RECT thumbuppermrect = thumbrect;
@@ -1985,82 +2040,130 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                break;
             case HST_TAG_RED:
                {
-                  theApp.GetTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,0,40);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_RED,m_hotspots[i].m_spot,false);
+                  }
                }
                break;
             case HST_TAG_GREEN:
                {
-                  theApp.GetTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,0,66);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_GREEN,m_hotspots[i].m_spot,false);
+                  }
                }
                break;
             case HST_TAG_BLUE:
                {
-                  theApp.GetTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,0,92);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_BLUE,m_hotspots[i].m_spot,false);
+                  }
                }
                break;
             case HST_TAG_YELLOW:
                {
-                  theApp.GetTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,0,118);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_YELLOW,m_hotspots[i].m_spot,false);
+                  }
                }
                break;
             case HST_TAG_OLIVE:
                {
-                  theApp.GetTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,0,144);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_OLIVE,m_hotspots[i].m_spot,false);
+                  }
                }
                break;
             case HST_TAG_LIME:
                {
-                  theApp.GetTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,0,170);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_LIME,m_hotspots[i].m_spot,false);
+                  }
                }
                break;
             case HST_TAG_ORANGE:
                {
-                  theApp.GetTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,0,196);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_ORANGE,m_hotspots[i].m_spot,false);
+                  }
                }
                break;
             case HST_TAG_PINK:
                {
-                  theApp.GetTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,0,222);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_PINK,m_hotspots[i].m_spot,false);
+                  }
                }
                break;
             case HST_TAG_ITALICS:
                {
-                  theApp.GetTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,67,40);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_ITALIC,m_hotspots[i].m_spot,false);
+                  }
                }
                break;
             case HST_TAG_BOLD:
                {
-                  theApp.GetTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,67,66);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_BOLD,m_hotspots[i].m_spot,false);
+                  }
                }
                break;
             case HST_TAG_QUOTE:
                {
-                  theApp.GetTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,67,92);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_QUOTE,m_hotspots[i].m_spot,false);
+                  }
                }
                break;
             case HST_TAG_SAMPLE:
                {
-                  theApp.GetTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,67,118);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_SAMPLE,m_hotspots[i].m_spot,false);
+                  }
                }
                break;
             case HST_TAG_UNDERLINE:
                {
-                  theApp.GetTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,67,144);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_UNDERLINE,m_hotspots[i].m_spot,false);
+                  }
                }
                break;
             case HST_TAG_STRIKE:
                {
-                  theApp.GetTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,67,170);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_STRIKE,m_hotspots[i].m_spot,false);
+                  }
                }
                break;
             case HST_TAG_SPOILER:
                {
-                  theApp.GetTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,67,196);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_SPOILER,m_hotspots[i].m_spot,false);
+                  }
                }
                break;
             case HST_TAG_CODE:
                {
-                  theApp.GetTagsImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,67,222);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_CODE,m_hotspots[i].m_spot,false);
+                  }
                }
                break;
             case HST_LOLTAG:
@@ -2413,82 +2516,130 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                break;
             case HST_TAG_RED:
                {
-                  theApp.GetTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,0,40);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_RED,m_hotspots[i].m_spot,true);
+                  }
                }
                break;
             case HST_TAG_GREEN:
                {
-                  theApp.GetTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,0,66);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_GREEN,m_hotspots[i].m_spot,true);
+                  }
                }
                break;
             case HST_TAG_BLUE:
                {
-                  theApp.GetTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,0,92);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_BLUE,m_hotspots[i].m_spot,true);
+                  }
                }
                break;
             case HST_TAG_YELLOW:
                {
-                  theApp.GetTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,0,118);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_YELLOW,m_hotspots[i].m_spot,true);
+                  }
                }
                break;
             case HST_TAG_OLIVE:
                {
-                  theApp.GetTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,0,144);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_OLIVE,m_hotspots[i].m_spot,true);
+                  }
                }
                break;
             case HST_TAG_LIME:
                {
-                  theApp.GetTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,0,170);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_LIME,m_hotspots[i].m_spot,true);
+                  }
                }
                break;
             case HST_TAG_ORANGE:
                {
-                  theApp.GetTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,0,196);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_ORANGE,m_hotspots[i].m_spot,true);
+                  }
                }
                break;
             case HST_TAG_PINK:
                {
-                  theApp.GetTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,0,222);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_PINK,m_hotspots[i].m_spot,true);
+                  }
                }
                break;
             case HST_TAG_ITALICS:
                {
-                  theApp.GetTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,67,40);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_ITALIC,m_hotspots[i].m_spot,true);
+                  }
                }
                break;
             case HST_TAG_BOLD:
                {
-                  theApp.GetTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,67,66);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_BOLD,m_hotspots[i].m_spot,true);
+                  }
                }
                break;
             case HST_TAG_QUOTE:
                {
-                  theApp.GetTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,67,92);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_QUOTE,m_hotspots[i].m_spot,true);
+                  }
                }
                break;
             case HST_TAG_SAMPLE:
                {
-                  theApp.GetTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,67,118);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_SAMPLE,m_hotspots[i].m_spot,true);
+                  }
                }
                break;
             case HST_TAG_UNDERLINE:
                {
-                  theApp.GetTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,67,144);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_UNDERLINE,m_hotspots[i].m_spot,true);
+                  }
                }
                break;
             case HST_TAG_STRIKE:
                {
-                  theApp.GetTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,67,170);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_STRIKE,m_hotspots[i].m_spot,true);
+                  }
                }
                break;
             case HST_TAG_SPOILER:
                {
-                  theApp.GetTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,67,196);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_SPOILER,m_hotspots[i].m_spot,true);
+                  }
                }
                break;
             case HST_TAG_CODE:
                {
-                  theApp.GetTagsImage(true)->Blit(hDC,m_hotspots[i].m_spot,true,67,222);
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->DrawShackTag(hDC,ST_CODE,m_hotspots[i].m_spot,true);
+                  }
                }
                break;
             case HST_LOLTAG:
@@ -3238,6 +3389,9 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                         break;
                      case HST_SCROLLBAR:
                         {               
+                           int scrollwidth = 16;
+                           if(theApp.BigSkin()) scrollwidth = 32;
+
                            if(m_mousepoint.x >= m_uptrackrect.left &&
                               m_mousepoint.x < m_uptrackrect.right &&
                               m_mousepoint.y >= m_uptrackrect.top &&
@@ -3253,7 +3407,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               else
                               {
                                  // goto spot
-                                 m_gotopos = ((int)((float)(m_mousepoint.y - 16 - m_ScrollRectangle.top) * (1.0f / m_scrollscale))) - ((m_ScrollRectangle.bottom - m_ScrollRectangle.top) >> 1);
+                                 m_gotopos = ((int)((float)(m_mousepoint.y - scrollwidth - m_ScrollRectangle.top) * (1.0f / m_scrollscale))) - ((m_ScrollRectangle.bottom - m_ScrollRectangle.top) >> 1);
                                  MakePosLegal();
                                  InvalidateEverythingPan();
                               }
@@ -3276,7 +3430,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               else
                               {
                                  // goto spot
-                                 m_gotopos = ((int)((float)(m_mousepoint.y - 16 - m_ScrollRectangle.top) * (1.0f / m_scrollscale))) - ((m_ScrollRectangle.bottom - m_ScrollRectangle.top) >> 1);
+                                 m_gotopos = ((int)((float)(m_mousepoint.y - scrollwidth - m_ScrollRectangle.top) * (1.0f / m_scrollscale))) - ((m_ScrollRectangle.bottom - m_ScrollRectangle.top) >> 1);
                                  MakePosLegal();
                                  InvalidateEverythingPan();
                               }
@@ -6437,6 +6591,63 @@ void CLampView::OnUpdateSkinWorksafeShack(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(theApp.GetSkinFolder() == L"worksafe")
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnSkinRoundShack2()
+{
+   theApp.SetSkinFolder(L"roundshack_2");
+}
+
+void CLampView::OnUpdateSkinRoundShack2(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.GetSkinFolder() == L"roundshack_2")
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnSkinSquareShack2()
+{
+   theApp.SetSkinFolder(L"default_2");
+}
+
+void CLampView::OnUpdateSkinSquareShack2(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.GetSkinFolder() == L"default_2")
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnSkinWorksafeShack2()
+{
+   theApp.SetSkinFolder(L"worksafe_2");
+}
+
+void CLampView::OnUpdateSkinWorksafeShack2(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.GetSkinFolder() == L"worksafe_2")
    {
       pCmdUI->SetCheck(TRUE);
    }

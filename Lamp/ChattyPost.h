@@ -436,10 +436,12 @@ public:
                 UCString &author,
                 UCString &body);
 
+   void SetFromText(const UCChar *text, int &width);
+
    int DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
    int DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, int indent, unsigned int current_id, int &trunkatingposts, const UCString &rootauthor, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
    int DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id);
-   void DrawTextOnly(HDC hDC, RECT &DeviceRectangle, int pos);
+   void DrawTextOnly(HDC hDC, RECT &DeviceRectangle, int pos, bool bCenter);
    int DrawProfile(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots);
    void SetupPreviewShades(bool bDoingNewFlags);
    void DrawReplyPreview(HDC hDC, RECT &DeviceRectangle, int top, int bottom, const UCString &rootauthor);

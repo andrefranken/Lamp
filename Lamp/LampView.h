@@ -332,6 +332,12 @@ public:
    afx_msg void OnUpdateSkinSquareShack(CCmdUI *pCmdUI);
    afx_msg void OnSkinWorksafeShack();
    afx_msg void OnUpdateSkinWorksafeShack(CCmdUI *pCmdUI);
+   afx_msg void OnSkinRoundShack2();
+   afx_msg void OnUpdateSkinRoundShack2(CCmdUI *pCmdUI);
+   afx_msg void OnSkinSquareShack2();
+   afx_msg void OnUpdateSkinSquareShack2(CCmdUI *pCmdUI);
+   afx_msg void OnSkinWorksafeShack2();
+   afx_msg void OnUpdateSkinWorksafeShack2(CCmdUI *pCmdUI);
    afx_msg void OnSkinCustom();
    afx_msg void OnUpdateSkinCustom(CCmdUI *pCmdUI);
    afx_msg void OnHighlightOP();
