@@ -5178,6 +5178,26 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                GetDocument()->RefreshThread(GetDocument()->GetRootId(GetCurrentId()), GetCurrentId());
             }
          }
+         else if((nChar == 'w' ||
+                  nChar == 'W') &&
+                  (GetDocument()->GetDataType() == DDT_STORY ||
+                   GetDocument()->GetDataType() == DDT_THREAD) &&
+                   GetCurrentId() != 0)
+         {
+            ChattyPost *post = GetDocument()->FindPost(GetCurrentId());
+            if(post != NULL)
+            {
+               if(post->HasOpenImageLinks())
+               {
+                  post->CloseAllImageLinks();
+               }
+               else
+               {
+                  post->LoadAllImageLinks();
+               }
+               InvalidateEverything();
+            }
+         }
       }
    }
 

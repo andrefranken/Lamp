@@ -505,6 +505,7 @@ public:
 
    void LoadAllImageLinks();
    void CloseAllImageLinks();
+   bool HasOpenImageLinks();
    void OpenAllLinks();
    void OpenAllGifs();
 

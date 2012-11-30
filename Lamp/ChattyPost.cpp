@@ -1826,6 +1826,29 @@ void ChattyPost::CloseAllImageLinks()
    m_lasttextrectwidth = 0;
 }
 
+bool ChattyPost::HasOpenImageLinks()
+{
+   bool result = false;
+
+   // see if any of the links should be converted to image links
+   int begin = -1;
+   int end = -1;
+
+   shacktag type = ST_RED;
+
+   for(size_t i=0; i < m_shacktags.size(); i++)
+   {
+      if(m_shacktags[i].m_tag == ST_IMAGE/* ||
+         m_shacktags[i].m_tag == ST_THUMB*/)
+      {
+         result = true;
+         break;
+      }
+   }
+
+   return result;
+}
+
 
 void ChattyPost::SetupBodyText(RECT &textrect)
 {
