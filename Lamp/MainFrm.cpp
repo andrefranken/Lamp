@@ -35,6 +35,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
    ON_UPDATE_COMMAND_UI(ID_BOOKMARK_MENU, OnUpdateBookmarkMenu)
    ON_COMMAND_RANGE(ID_BOOKMARK_MENUITEM, ID_BOOKMARK_MENUITEM + 100, &CMainFrame::OnBookmark)
 	ON_UPDATE_COMMAND_UI_RANGE(ID_BOOKMARK_MENUITEM, ID_BOOKMARK_MENUITEM + 100, &CMainFrame::OnUpdateBookmark)
+
+   ON_MESSAGE(WM_DWMCOMPOSITIONCHANGED, &CMainFrame::OnDWMCompositionChanged)
                     
    ON_MESSAGE(WM_MENURBUTTONUP, &CMainFrame::OnMenuRBUMessage)
 
@@ -511,6 +513,19 @@ void CMainFrame::CloseFindDlg()
    {
       pView->CloseFindDlg();
    }
+}
+
+LRESULT CMainFrame::OnDWMCompositionChanged(WPARAM,LPARAM)
+{
+   OnApplicationLook(theApp.m_nAppLook);
+   /*
+   MARGINS margins = {0,0,0,25};
+   HRESULT hr = S_OK;
+
+   // Extend frame on the bottom of client area
+   hr = DwmExtendFrameIntoClientArea(GetSafeHwnd(),&margins);
+   */
+   return 0;
 }
 
 /*
