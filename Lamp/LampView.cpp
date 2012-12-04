@@ -121,6 +121,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_DO_UGH, &CLampView::OnUpdateDoUGH)
    ON_COMMAND(ID_CHECK_SPELLING, &CLampView::OnCheckSpelling)
    ON_UPDATE_COMMAND_UI(ID_CHECK_SPELLING, &CLampView::OnUpdateCheckSpelling)
+   ON_COMMAND(ID_LEFTMOUSEPAN, &CLampView::OnLeftMousePan)
+   ON_UPDATE_COMMAND_UI(ID_LEFTMOUSEPAN, &CLampView::OnUpdateLeftMousePan)
    ON_COMMAND(ID_FILTER_ENABLE_NWS, &CLampView::OnFilterNWS)
    ON_UPDATE_COMMAND_UI(ID_FILTER_ENABLE_NWS, &CLampView::OnUpdateFilterNWS)
    ON_COMMAND(ID_FILTER_ENABLE_INF, &CLampView::OnFilterINF)
@@ -305,9 +307,14 @@ CLampView::CLampView()
    m_banneroffset = 0;
    m_bModToolIsUp = false;
    m_PREVIEW_TIMER_id = 0;
+   m_leftmouse_timer_active = false;
    m_mouseOverClientArea = false;
+   m_indent_panning = false;
    m_hover_preview_percent = 1.0f;
    m_history_it = m_history_list.end();
+   m_panning_reply = false;
+   m_lmb_in_reply = false;
+   m_bLBDownOnDblClkable = false;
    
    m_pFindDlg = NULL;
 
@@ -3243,17 +3250,9 @@ void CLampView::CloseReplyDialog()
    }
 }
 
-void CLampView::OnLButtonDown(UINT nFlags, CPoint point) 
+
+void CLampView::OnClick(CPoint point) 
 {
-   SetFocus();
-   SetCapture();   
-   m_gotopos = m_pos;
-   CancelInertiaPanning();
-   m_bStartedTrackingMouse = true;
-   m_lastmousetime = ::GetTickCount();
-   m_mousepoint = point;
-   m_bDrawMButtonDownIcon = false;
-   m_bDoubleClickDragging = false;
    bool bJustPutUpModTool = false;
 
    if(!m_brakes)
@@ -3265,7 +3264,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
          if(m_pReplyDlg != NULL)
          {
             bool bCloseReplyDlg = false;
-            bContinue = !m_pReplyDlg->OnLButtonDown(nFlags, point, bCloseReplyDlg);
+            bContinue = !m_pReplyDlg->OnLButtonDown(0, point, bCloseReplyDlg);
 
             if(bCloseReplyDlg)
             {
@@ -3646,6 +3645,8 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               m_textselectionpost = 0;
                               m_selectionstart = 0;
                               m_selectionend = 0;
+                              m_hover_preview_percent = 1.0;
+                              m_hover_preview_id = 0;
                               // force a draw so that positions are updated
                               MakeCurrentPostLegal(false,true,m_mousepoint.y,true);
                            }
@@ -3914,6 +3915,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
                               m_bDraggingTextSelection = true;
                               m_lastcharpos = m_selectionend_actual = m_selectionstart_actual = m_selectionend = m_selectionstart;
                               InvalidateEverything();
+                              m_bLBDownOnDblClkable = true;
                            }
                         }
                         break;
@@ -4191,7 +4193,63 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
       m_bModToolIsUp = false;
       InvalidateEverything();
    }
+}
 
+
+void CLampView::OnLButtonDown(UINT nFlags, CPoint point) 
+{
+   SetFocus();
+   SetCapture();   
+   m_gotopos = m_pos;
+   CancelInertiaPanning();
+   m_bStartedTrackingMouse = true;
+   m_lastmousetime = ::GetTickCount();
+   m_mousepoint = point;
+   m_bDrawMButtonDownIcon = false;
+   m_bDoubleClickDragging = false;
+   m_bLBDownOnDblClkable = false;
+
+   CHotSpot *hotspot = GetHotspot(point);
+   
+   if(theApp.LeftMousePan() &&
+      (hotspot == NULL ||
+      (hotspot->m_type != HST_SCROLLBAR &&
+       hotspot->m_type != HST_SCROLLBAR_UP &&
+       hotspot->m_type != HST_SCROLLBAR_DOWN &&
+       hotspot->m_type != HST_SCROLLBAR_THUMB &&
+       hotspot->m_type != HST_SCROLLBAR_REPLYTEXT_DLG &&
+       hotspot->m_type != HST_SCROLLBAR_UP_REPLYTEXT_DLG &&
+       hotspot->m_type != HST_SCROLLBAR_DOWN_REPLYTEXT_DLG &&
+       hotspot->m_type != HST_SCROLLBAR_THUMB_REPLYTEXT_DLG)))
+   {
+      // start left mouse timer
+      if(m_leftmouse_timer_active)
+      {
+         KillTimer(LEFTMOUSE_TIMER);
+         m_leftmouse_timer_active = false;
+      }
+      SetTimer(LEFTMOUSE_TIMER,500,NULL);
+      m_leftmouse_timer_active = true;
+
+      m_panpoint = point;
+
+      if(hotspot != NULL &&
+         hotspot->m_type == HST_REPLYTEXT &&
+         m_pReplyDlg != NULL)
+      {
+         m_reply_start_pan_pos = m_pReplyDlg->m_gotopos;
+         m_lmb_in_reply = true;
+      }
+      else
+      {
+         m_panpos = m_pos;
+      }
+   }
+   else
+   {
+      OnClick(point);
+   }
+   
    CView::OnLButtonDown(nFlags, point);
 }
 
@@ -4230,6 +4288,23 @@ void CLampView::OnLButtonUp(UINT nFlags, CPoint point)
 {
    ReleaseCapture();
    TrackMouse(point);
+   m_indent_panning = false;
+   m_lmb_in_reply = false;
+
+   if(m_leftmouse_timer_active)
+   {
+      KillTimer(LEFTMOUSE_TIMER);
+      m_leftmouse_timer_active = false;
+
+      if(!m_bPanning && !m_panning_reply)
+      {
+         CPoint temppoint = m_mousepoint;
+         m_mousepoint = m_panpoint;
+         OnClick(m_panpoint);
+         OnMouseMove(0,point);
+         m_mousepoint = temppoint;
+      }
+   }
 
    if(!m_brakes)
    {
@@ -4238,7 +4313,18 @@ void CLampView::OnLButtonUp(UINT nFlags, CPoint point)
          if(m_pReplyDlg == NULL ||
             !m_pReplyDlg->OnLButtonUp(nFlags, point))
          {
-            if(m_bLButtonDownOnScrollArrow)
+            if(m_panning_reply)
+            {
+               if(m_pReplyDlg != NULL)
+               {
+                  m_pReplyDlg->m_gotopos = m_reply_start_pan_pos - (point.y - m_panpoint.y);
+                  m_pReplyDlg->MakePosLegal();
+                  m_pReplyDlg->m_pos = m_pReplyDlg->m_gotopos;
+                  InvalidateEverything();
+               }
+               m_panning_reply = false;
+            }
+            else if(m_bLButtonDownOnScrollArrow)
             {
                m_bLButtonDownOnScrollArrow = false;
                InvalidateEverything();
@@ -4347,258 +4433,356 @@ void CLampView::OnMouseMove(UINT nFlags, CPoint point)
 
    TrackMouse(point);
 
-   if(!m_brakes)
+   if(m_leftmouse_timer_active)
    {
-      if(!GetDocument()->IsBusy())
+      if(abs(m_panpoint.x - point.x) > 20 ||
+         abs(m_panpoint.y - point.y) > 10)
       {
-         if(m_pReplyDlg == NULL ||
-            !m_pReplyDlg->OnMouseMove(nFlags, point))
+         // panning
+         KillTimer(LEFTMOUSE_TIMER);
+         m_leftmouse_timer_active = false;
+         m_hover_preview_percent = 1.0;
+         m_hover_preview_id = 0;
+
+         if(abs(m_panpoint.y - point.y) > 10)
          {
-            if((m_bMButtonDown ||
-               m_bDrawMButtonDownIcon) &&
-               abs(m_MButtonDownPoint.y - m_mousepoint.y) > 13)
+            if(m_lmb_in_reply)
             {
-               m_bDrawMButtonDownIcon = true;
+               if(m_pReplyDlg != NULL)
+               {
+                  m_panning_reply = true;
+                  m_pReplyDlg->m_gotopos = m_reply_start_pan_pos - (point.y - m_panpoint.y);
+                  m_pReplyDlg->MakePosLegal();
+                  m_pReplyDlg->m_pos = m_pReplyDlg->m_gotopos;
+                  InvalidateEverything();
+               }
+            }
+            else
+            {
+               m_bPanning = true;
+               int ydiff = m_panpoint.y - point.y;
+               m_gotopos = m_panpos + ydiff;
+               MakePosLegal();
+               m_pos = m_gotopos;// no smooth on pan
                InvalidateEverythingPan();
             }
-            else if(m_bTrackingThumb)
+         }
+         else
+         {
+            bool bCtrlPressed = false;
+            if(GetAsyncKeyState(VK_CONTROL) & 0xFF00)
             {
-               m_gotopos = m_thumbdownpos + (int)((float)(m_mousepoint.y - m_thumbdownpoint.y) * (1.0f / m_scrollscale));
-               InvalidateEverythingPan();
+               bCtrlPressed = true;
             }
-            else if(m_bDraggingTextSelection)
+
+            if(bCtrlPressed)
             {
-               ChattyPost *pPost = GetDocument()->FindPost(m_textselectionpost);
+               ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
                if(pPost != NULL)
                {
-                  if(m_bDoubleClickDragging)
+                  ChattyPost *pRoot = pPost->GetRoot();
+                  if(pRoot != NULL)
                   {
-                     int selstart, selend;
-                     pPost->GetCharPosesForWord(m_mousepoint.x, m_mousepoint.y, selstart, selend);
-                     m_selectionstart = __min(m_doubleclickselectionstart, selstart);
-                     m_selectionend = __max(m_doubleclickselectionend, selend);
+                     m_indent_down = pRoot->GetIndentOffset();
+                     pRoot->SetIndentOffset(m_indent_down + (point.x - m_panpoint.x));
+                     InvalidateEverything();
+                     m_indent_panning = true;
                   }
-                  else
+               }
+            }
+            else
+            {
+               CPoint temppoint = m_mousepoint;
+               m_mousepoint = m_panpoint;
+               OnClick(m_panpoint);
+               OnMouseMove(0,point);
+               m_mousepoint = temppoint;
+            }
+         }
+      }
+      else
+      {
+         // clicking
+      }
+   }
+   else
+   {
+      if(!m_brakes)
+      {
+         if(!GetDocument()->IsBusy())
+         {
+            if(m_pReplyDlg == NULL ||
+               !m_pReplyDlg->OnMouseMove(nFlags, point))
+            {
+               if(m_indent_panning)
+               {
+                  ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+                  if(pPost != NULL)
                   {
-                     bool off_end;
-                     m_selectionend_actual = pPost->GetCharPos(m_mousepoint.x, m_mousepoint.y, off_end);
-
-                     //m_selectionend = m_selectionend_actual;
-                     //= m_selectionstart_actual = 
-
-                     //////////////////////////////
-                     // at this point, the enhanced text selection logic happens
-                     // try to move the carets away from eachother towards word boundries
-
-                     if((size_t)m_selectionend_actual != m_lastcharpos)
+                     ChattyPost *pRoot = pPost->GetRoot();
+                     if(pRoot != NULL)
                      {
-                        bool bMovingAway = false;
-
-                        if((m_selectionend_actual > m_selectionstart_actual &&
-                            m_selectionend_actual > m_lastcharpos) ||
-                           (m_selectionend_actual < m_selectionstart_actual &&
-                            m_selectionend_actual < m_lastcharpos))
-                        {
-                           bMovingAway = true;
-                        }
-
-                        m_lastcharpos = m_selectionend_actual;
-                        m_selectionstart = m_selectionstart_actual;
-                        m_selectionend = m_selectionend_actual;
+                        pRoot->SetIndentOffset( m_indent_down + (point.x - m_panpoint.x));
+                        InvalidateEverything();
                      }
-                        /*
-                        IDLDocument *pDoc = pView->GetIDoc();
-                        if(pDoc != NULL &&
-                           m_ETSS != ETSS_RETURN_INSIDE_ORIGIN)
+                  }
+               }
+               else if(m_panning_reply)
+               {
+                  if(m_pReplyDlg != NULL)
+                  {
+                     m_pReplyDlg->m_gotopos = m_reply_start_pan_pos - (point.y - m_panpoint.y);
+                     m_pReplyDlg->MakePosLegal();
+                     m_pReplyDlg->m_pos = m_pReplyDlg->m_gotopos;
+                     InvalidateEverything();
+                  }
+               }
+               else if((m_bMButtonDown ||
+                        m_bDrawMButtonDownIcon) &&
+                        abs(m_MButtonDownPoint.y - m_mousepoint.y) > 13)
+               {
+                  m_bDrawMButtonDownIcon = true;
+                  InvalidateEverythingPan();
+               }
+               else if(m_bTrackingThumb)
+               {
+                  m_gotopos = m_thumbdownpos + (int)((float)(m_mousepoint.y - m_thumbdownpoint.y) * (1.0f / m_scrollscale));
+                  InvalidateEverythingPan();
+               }
+               else if(m_bDraggingTextSelection)
+               {
+                  ChattyPost *pPost = GetDocument()->FindPost(m_textselectionpost);
+                  if(pPost != NULL)
+                  {
+                     if(m_bDoubleClickDragging)
+                     {
+                        int selstart, selend;
+                        pPost->GetCharPosesForWord(m_mousepoint.x, m_mousepoint.y, selstart, selend);
+                        m_selectionstart = __min(m_doubleclickselectionstart, selstart);
+                        m_selectionend = __max(m_doubleclickselectionend, selend);
+                     }
+                     else
+                     {
+                        bool off_end;
+                        m_selectionend_actual = pPost->GetCharPos(m_mousepoint.x, m_mousepoint.y, off_end);
+
+                        //m_selectionend = m_selectionend_actual;
+                        //= m_selectionstart_actual = 
+
+                        //////////////////////////////
+                        // at this point, the enhanced text selection logic happens
+                        // try to move the carets away from eachother towards word boundries
+
+                        if((size_t)m_selectionend_actual != m_lastcharpos)
                         {
-                           CDLTextSearchDocument *pTextSearchDocument = pDoc->GetTextSearchDocument();
-                           if(pTextSearchDocument != NULL)
+                           bool bMovingAway = false;
+
+                           if((m_selectionend_actual > m_selectionstart_actual &&
+                               m_selectionend_actual > m_lastcharpos) ||
+                              (m_selectionend_actual < m_selectionstart_actual &&
+                               m_selectionend_actual < m_lastcharpos))
                            {
-                              CDLTextIndex *pTextIndex = pTextSearchDocument->GetTextIndex();
-                              if(pTextIndex != NULL)
+                              bMovingAway = true;
+                           }
+
+                           m_lastcharpos = m_selectionend_actual;
+                           m_selectionstart = m_selectionstart_actual;
+                           m_selectionend = m_selectionend_actual;
+                        }
+                           /*
+                           IDLDocument *pDoc = pView->GetIDoc();
+                           if(pDoc != NULL &&
+                              m_ETSS != ETSS_RETURN_INSIDE_ORIGIN)
+                           {
+                              CDLTextSearchDocument *pTextSearchDocument = pDoc->GetTextSearchDocument();
+                              if(pTextSearchDocument != NULL)
                               {
-                                 bool bForward = true;
-                                 if(m_anchorCharPosition_used > m_currentCharPosition_used)
+                                 CDLTextIndex *pTextIndex = pTextSearchDocument->GetTextIndex();
+                                 if(pTextIndex != NULL)
                                  {
-                                    bForward = false;
-                                 }
-
-                                 if(bMovingAway)
-                                 {
-                                    if(charpos >= (int)m_originword_min &&
-                                       charpos <= (int)m_originword_max)
+                                    bool bForward = true;
+                                    if(m_anchorCharPosition_used > m_currentCharPosition_used)
                                     {
-                                       // use raw values
-                                       // make the precise word harmless
-                                       m_preciseword_min = m_originword_min;
-                                       m_preciseword_max = m_originword_max;
-
-                                       if(m_ETSS == ETSS_OUTSIDE_ORIGIN)
-                                       {
-                                          m_ETSS = ETSS_RETURN_INSIDE_ORIGIN;
-                                       }
+                                       bForward = false;
                                     }
-                                    else 
+
+                                    if(bMovingAway)
                                     {
-                                       if(charpos >= (int)m_preciseword_min &&
-                                          charpos <= (int)m_preciseword_max)
+                                       if(charpos >= (int)m_originword_min &&
+                                          charpos <= (int)m_originword_max)
                                        {
-                                          // use raw value for current
-                                          // but snap anchor
-                                          m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
+                                          // use raw values
+                                          // make the precise word harmless
+                                          m_preciseword_min = m_originword_min;
+                                          m_preciseword_max = m_originword_max;
+
+                                          if(m_ETSS == ETSS_OUTSIDE_ORIGIN)
+                                          {
+                                             m_ETSS = ETSS_RETURN_INSIDE_ORIGIN;
+                                          }
+                                       }
+                                       else 
+                                       {
+                                          if(charpos >= (int)m_preciseword_min &&
+                                             charpos <= (int)m_preciseword_max)
+                                          {
+                                             // use raw value for current
+                                             // but snap anchor
+                                             m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
+
+                                             if(m_ETSS == ETSS_START_INSIDE_ORIGIN)
+                                             {
+                                                m_ETSS = ETSS_OUTSIDE_ORIGIN;
+                                             }
+                                          }
+                                          else
+                                          {
+                                             // do both
+                                             m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
+                                             m_currentCharPosition_used = pTextIndex->FindWordEdge((int)m_currentCharPosition_used, page, bForward);
+
+                                             // make the precise word harmless
+                                             m_preciseword_min = m_originword_min;
+                                             m_preciseword_max = m_originword_max;
+                                          }
 
                                           if(m_ETSS == ETSS_START_INSIDE_ORIGIN)
                                           {
                                              m_ETSS = ETSS_OUTSIDE_ORIGIN;
                                           }
                                        }
-                                       else
-                                       {
-                                          // do both
-                                          m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
-                                          m_currentCharPosition_used = pTextIndex->FindWordEdge((int)m_currentCharPosition_used, page, bForward);
-
-                                          // make the precise word harmless
-                                          m_preciseword_min = m_originword_min;
-                                          m_preciseword_max = m_originword_max;
-                                       }
-
-                                       if(m_ETSS == ETSS_START_INSIDE_ORIGIN)
-                                       {
-                                          m_ETSS = ETSS_OUTSIDE_ORIGIN;
-                                       }
-                                    }
-                                 }
-                                 else
-                                 {
-                                    if(charpos >= (int)m_originword_min &&
-                                       charpos <= (int)m_originword_max)
-                                    {
-                                       // use raw values
-                                       // make the precise word harmless
-                                       m_preciseword_min = m_originword_min;
-                                       m_preciseword_max = m_originword_max;
-
-                                       if(m_ETSS == ETSS_OUTSIDE_ORIGIN)
-                                       {
-                                          m_ETSS = ETSS_RETURN_INSIDE_ORIGIN;
-                                       }
                                     }
                                     else
                                     {
-                                       // use raw value for current
-                                       // but snap anchor
-                                       m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
-
-                                       // record the word we are in so that we can move forward in it precisly later.
-                                       int begin, end;
-                                       pTextIndex->FindWord(charpos, page, begin, end);
-                                       m_preciseword_min = (size_t)begin;
-                                       m_preciseword_max = (size_t)end;
-
-                                       if(m_ETSS == ETSS_START_INSIDE_ORIGIN)
+                                       if(charpos >= (int)m_originword_min &&
+                                          charpos <= (int)m_originword_max)
                                        {
-                                          m_ETSS = ETSS_OUTSIDE_ORIGIN;
+                                          // use raw values
+                                          // make the precise word harmless
+                                          m_preciseword_min = m_originword_min;
+                                          m_preciseword_max = m_originword_max;
+
+                                          if(m_ETSS == ETSS_OUTSIDE_ORIGIN)
+                                          {
+                                             m_ETSS = ETSS_RETURN_INSIDE_ORIGIN;
+                                          }
+                                       }
+                                       else
+                                       {
+                                          // use raw value for current
+                                          // but snap anchor
+                                          m_anchorCharPosition_used = pTextIndex->FindWordEdge((int)m_anchorCharPosition_used, page, !bForward);
+
+                                          // record the word we are in so that we can move forward in it precisly later.
+                                          int begin, end;
+                                          pTextIndex->FindWord(charpos, page, begin, end);
+                                          m_preciseword_min = (size_t)begin;
+                                          m_preciseword_max = (size_t)end;
+
+                                          if(m_ETSS == ETSS_START_INSIDE_ORIGIN)
+                                          {
+                                             m_ETSS = ETSS_OUTSIDE_ORIGIN;
+                                          }
                                        }
                                     }
                                  }
                               }
                            }
                         }
+                        */
+                        //////////////////////////////
                      }
-                     */
-                     //////////////////////////////
-                  }
 
-                  InvalidateEverything();
+                     InvalidateEverything();
+                  }
                }
-            }
-            else if(m_bPanning)
-            {
-               int ydiff = m_panpoint.y - point.y;
-               m_gotopos = m_panpos + ydiff;
-               MakePosLegal();
-               m_pos = m_gotopos;// no smooth on pan
-               InvalidateEverythingPan();
-            }   
-            else
-            {
-               if(theApp.ExpandPreviews())
+               else if(m_bPanning)
                {
-                  if(GetDocument()->GetDataType() != DDT_THREAD &&
-                     m_mousepoint.x >= m_BannerRectangle.left &&
-                     m_mousepoint.x < m_BannerRectangle.right &&
-                     m_mousepoint.y >= m_BannerRectangle.top &&
-                     m_mousepoint.y < m_BannerRectangle.bottom)
+                  int ydiff = m_panpoint.y - point.y;
+                  m_gotopos = m_panpos + ydiff;
+                  MakePosLegal();
+                  m_pos = m_gotopos;// no smooth on pan
+                  InvalidateEverythingPan();
+               }   
+               else
+               {
+                  if(theApp.ExpandPreviews())
                   {
-                     // mouse is over banner
-                     if(m_PREVIEW_TIMER_id != 0)
+                     if(GetDocument()->GetDataType() != DDT_THREAD &&
+                        m_mousepoint.x >= m_BannerRectangle.left &&
+                        m_mousepoint.x < m_BannerRectangle.right &&
+                        m_mousepoint.y >= m_BannerRectangle.top &&
+                        m_mousepoint.y < m_BannerRectangle.bottom)
                      {
-                        KillTimer(PREVIEW_TIMER);
-                     }
-                     m_PREVIEW_TIMER_id = 0;
-                     SetHoverPreviewId(0);
-                  }
-                  else
-                  {
-                     bool bSameHoverReply = false;
-                     for(size_t i = 0; i < m_hotspots.size(); i++)
-                     {
-                        if(m_hotspots[i].m_type == HST_REPLYPREVIEW &&
-                           m_hotspots[i].m_id != 0 &&
-                           m_mousepoint.x >= m_hotspots[i].m_spot.left &&
-                           m_mousepoint.x < m_hotspots[i].m_spot.right &&
-                           m_mousepoint.y >= m_hotspots[i].m_spot.top &&
-                           m_mousepoint.y < m_hotspots[i].m_spot.bottom)
+                        // mouse is over banner
+                        if(m_PREVIEW_TIMER_id != 0)
                         {
-                           if(m_hotspots[i].m_id == m_hover_preview_id ||
-                              m_hotspots[i].m_id == m_PREVIEW_TIMER_id)
-                           {
-                              // just hovering over hte same guy.
-                              // do nothing
-                              bSameHoverReply = true;
-                              break;
-                           }
-                           else
-                           {
-                              // start hover timer on this guy
-                              if(m_PREVIEW_TIMER_id != 0)
-                              {
-                                 KillTimer(PREVIEW_TIMER);
-                              }
-                              m_PREVIEW_TIMER_id = m_hotspots[i].m_id;
-                              SetTimer(PREVIEW_TIMER,theApp.GetMSecondsPreviewTimer(),NULL);
-                              break;
-                           }
+                           KillTimer(PREVIEW_TIMER);
                         }
-                     }
-
-                     if(!bSameHoverReply &&
-                        m_hover_preview_id != 0 &&
-                        m_hotspots.size() > 0)
-                     {
-                        // cancel the previous preview
+                        m_PREVIEW_TIMER_id = 0;
                         SetHoverPreviewId(0);
                      }
+                     else
+                     {
+                        bool bSameHoverReply = false;
+                        for(size_t i = 0; i < m_hotspots.size(); i++)
+                        {
+                           if(m_hotspots[i].m_type == HST_REPLYPREVIEW &&
+                              m_hotspots[i].m_id != 0 &&
+                              m_mousepoint.x >= m_hotspots[i].m_spot.left &&
+                              m_mousepoint.x < m_hotspots[i].m_spot.right &&
+                              m_mousepoint.y >= m_hotspots[i].m_spot.top &&
+                              m_mousepoint.y < m_hotspots[i].m_spot.bottom)
+                           {
+                              if(m_hotspots[i].m_id == m_hover_preview_id ||
+                                 m_hotspots[i].m_id == m_PREVIEW_TIMER_id)
+                              {
+                                 // just hovering over hte same guy.
+                                 // do nothing
+                                 bSameHoverReply = true;
+                                 break;
+                              }
+                              else
+                              {
+                                 // start hover timer on this guy
+                                 if(m_PREVIEW_TIMER_id != 0)
+                                 {
+                                    KillTimer(PREVIEW_TIMER);
+                                 }
+                                 m_PREVIEW_TIMER_id = m_hotspots[i].m_id;
+                                 SetTimer(PREVIEW_TIMER,theApp.GetMSecondsPreviewTimer(),NULL);
+                                 break;
+                              }
+                           }
+                        }
+
+                        if(!bSameHoverReply &&
+                           m_hover_preview_id != 0 &&
+                           m_hotspots.size() > 0)
+                        {
+                           // cancel the previous preview
+                           SetHoverPreviewId(0);
+                        }
+                     }
                   }
+               
+                  UpdateHotspotPosition();
                }
-            
+            }
+            else
+            {
                UpdateHotspotPosition();
             }
          }
-         else
-         {
-            UpdateHotspotPosition();
-         }
       }
-   }
-   else if(m_bPanning)
-   {
-      int ydiff = m_panpoint.y - point.y;
-      m_gotopos = m_panpos + ydiff;
-      MakePosLegal();
-      m_pos = m_gotopos;// no smooth on pan
-      InvalidateEverythingPan();
+      else if(m_bPanning)
+      {
+         int ydiff = m_panpoint.y - point.y;
+         m_gotopos = m_panpos + ydiff;
+         MakePosLegal();
+         m_pos = m_gotopos;// no smooth on pan
+         InvalidateEverythingPan();
+      }
    }
 
    CView::OnMouseMove(nFlags, point);
@@ -4606,40 +4790,47 @@ void CLampView::OnMouseMove(UINT nFlags, CPoint point)
 
 void CLampView::OnLButtonDblClk(UINT nFlags, CPoint point) 
 {
-   m_mousepoint = point;
-
-   if(!GetDocument()->IsBusy())
+   if(m_bLBDownOnDblClkable)
    {
-      if(m_pReplyDlg == NULL ||
-         !m_pReplyDlg->OnLButtonDblClk(nFlags, point))
+      m_mousepoint = point;
+
+      if(!GetDocument()->IsBusy())
       {
-         m_doubleclicktime = 0;
-         for(size_t i = 0; i < m_hotspots.size(); i++)
+         if(m_pReplyDlg == NULL ||
+            !m_pReplyDlg->OnLButtonDblClk(nFlags, point))
          {
-            if(m_mousepoint.x >= m_hotspots[i].m_spot.left &&
-               m_mousepoint.x < m_hotspots[i].m_spot.right &&
-               m_mousepoint.y >= m_hotspots[i].m_spot.top &&
-               m_mousepoint.y < m_hotspots[i].m_spot.bottom)
+            m_doubleclicktime = 0;
+            for(size_t i = 0; i < m_hotspots.size(); i++)
             {
-               if(m_hotspots[i].m_type == HST_TEXT)
+               if(m_mousepoint.x >= m_hotspots[i].m_spot.left &&
+                  m_mousepoint.x < m_hotspots[i].m_spot.right &&
+                  m_mousepoint.y >= m_hotspots[i].m_spot.top &&
+                  m_mousepoint.y < m_hotspots[i].m_spot.bottom)
                {
-                  ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
-                  if(pPost != NULL)
+                  if(m_hotspots[i].m_type == HST_TEXT)
                   {
-                     pPost->GetCharPosesForWord(m_mousepoint.x, m_mousepoint.y, m_selectionstart, m_selectionend);
-                     m_doubleclickselectionstart = m_selectionstart;
-                     m_doubleclickselectionend = m_selectionend;
-                     m_textselectionpost = m_hotspots[i].m_id;
-                     m_doubleclicktime = ::GetTickCount();
-                     m_bDoubleClickDragging = true;
-                     m_bDraggingTextSelection = true;
-                     InvalidateEverything();
+                     ChattyPost *pPost = GetDocument()->FindPost(m_hotspots[i].m_id);
+                     if(pPost != NULL)
+                     {
+                        pPost->GetCharPosesForWord(m_mousepoint.x, m_mousepoint.y, m_selectionstart, m_selectionend);
+                        m_doubleclickselectionstart = m_selectionstart;
+                        m_doubleclickselectionend = m_selectionend;
+                        m_textselectionpost = m_hotspots[i].m_id;
+                        m_doubleclicktime = ::GetTickCount();
+                        m_bDoubleClickDragging = true;
+                        m_bDraggingTextSelection = true;
+                        InvalidateEverything();
+                     }
                   }
+                  break;
                }
-               break;
             }
          }
       }
+   }
+   else
+   {
+      OnLButtonDown(0, point);
    }
 }
 
@@ -4929,7 +5120,7 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                if(pRoot != NULL &&
                   pRoot->GetIndentOffset() < 0)
                {
-                  pRoot->SetIndentOffset( pRoot->GetIndentOffset() + 1);
+                  pRoot->SetIndentOffset( pRoot->GetIndentOffset() + 20);
                   InvalidateEverything();
                }
             }
@@ -4942,7 +5133,7 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                ChattyPost *pRoot = pPost->GetRoot();
                if(pRoot != NULL)
                {
-                  pRoot->SetIndentOffset( pRoot->GetIndentOffset() - 1);
+                  pRoot->SetIndentOffset( pRoot->GetIndentOffset() - 20);
                   InvalidateEverything();
                }
             }
@@ -5291,7 +5482,17 @@ BOOL CLampView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
             case HST_TEXT:
             case HST_REPLYTEXT:
                {
-                  SetCursor(::LoadCursor(NULL, IDC_IBEAM));
+                  /*
+                  if(m_bDraggingTextSelection ||
+                     (m_pReplyDlg != NULL &&
+                      m_pReplyDlg->m_bSelectingText))
+                  {
+                     SetCursor(::LoadCursor(NULL, IDC_CROSS));
+                  }
+                  else
+                  {*/
+                     SetCursor(::LoadCursor(NULL, IDC_IBEAM));
+                  //}
                }
                break;
             case HST_NULL_BACKGROUND:
@@ -5879,6 +6080,26 @@ void CLampView::OnTimer(UINT nIDEvent)
          InvalidateHotspots();
       }
    }
+   else if(nIDEvent == LEFTMOUSE_TIMER)
+   {
+      if(m_leftmouse_timer_active)
+      {
+         KillTimer(LEFTMOUSE_TIMER);
+         m_leftmouse_timer_active = false;
+
+         CPoint temppoint = m_mousepoint;
+         m_rbuttondownpoint = m_mousepoint;
+         ClientToScreen(&temppoint);
+         OnContextMenu(this, temppoint);
+         
+         /*
+            m_mousepoint = m_panpoint;
+            OnClick(m_panpoint);
+            m_mousepoint = temppoint;
+            OnMouseMove(0,m_mousepoint);
+         */
+      }
+   }
    else if(nIDEvent == PREVIEW_TIMER)
    {
       if(m_hotspots.size() == 0)
@@ -6459,6 +6680,26 @@ void CLampView::OnUpdateCheckSpelling(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(theApp.IsSpellCheckerEnabled())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnLeftMousePan()
+{
+   theApp.LeftMousePan(!theApp.LeftMousePan());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateLeftMousePan(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.LeftMousePan())
    {
       pCmdUI->SetCheck(TRUE);
    }
@@ -8456,4 +8697,23 @@ void CLampView::OnUpdateAllowGDIPlus(CCmdUI *pCmdUI)
    {
       pCmdUI->SetCheck(FALSE);
    }
+}
+
+CHotSpot *CLampView::GetHotspot(CPoint &point)
+{
+   CHotSpot *result = NULL;
+
+   for(size_t i = 0; i < m_hotspots.size(); i++)
+   {
+      if(point.x >= m_hotspots[i].m_spot.left &&
+         point.x < m_hotspots[i].m_spot.right &&
+         point.y >= m_hotspots[i].m_spot.top &&
+         point.y < m_hotspots[i].m_spot.bottom)
+      {
+         result = &(m_hotspots[i]);
+         break;
+      }
+   }
+
+   return result;
 }

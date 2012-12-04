@@ -1333,7 +1333,8 @@ bool CReplyDlg::OnLButtonDown(UINT nFlags, CPoint point, bool &bCloseReplyDlg)
          m_bHaveFocus = true;
          m_bSelectingText = true;
          m_pView->SetCapture();
-         
+         m_pView->m_bLBDownOnDblClkable = true;
+
          bool bContinue = true;
          if(m_doubleclicktime != 0)
          {

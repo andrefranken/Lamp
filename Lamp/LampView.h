@@ -110,6 +110,10 @@ public:
 
    void MakeMousePointInvalid(){m_mousepoint.x = -1000; m_mousepoint.y = -1000;}
 
+   CHotSpot *GetHotspot(CPoint &point);
+
+   bool m_bLBDownOnDblClkable;
+
 protected:
    void DrawHotSpots(HDC hDC);
    bool DrawCurrentHotSpots(HDC hDC);
@@ -122,6 +126,8 @@ protected:
    void CancelInertiaPanning();
    void TrackMouse(CPoint &point);
    void UpdateCurrentIdAsRoot(unsigned int id);
+
+   void OnClick(CPoint point);
 
    ChattyPost *GetRMBLink(UCString &link);
       
@@ -197,6 +203,9 @@ protected:
 
    bool m_dlgup;
 
+   bool m_indent_panning;
+   int m_indent_down;
+
    CPoint m_MButtonDownPoint;
    DWORD m_mbuttondowntime;
    bool m_bMButtonDown;
@@ -210,6 +219,10 @@ protected:
    DWORD m_lastmousetime;
    bool m_brakes;
 
+   bool m_panning_reply;
+   bool m_lmb_in_reply;
+   int m_reply_start_pan_pos;
+
    CFindTextDlg *m_pFindDlg;
 
    RECT m_ScrollRectangle;
@@ -221,6 +234,8 @@ protected:
    unsigned int m_ModToolPostID;
 
    unsigned int m_PREVIEW_TIMER_id;
+
+   bool m_leftmouse_timer_active;
 
    bool m_mouseOverClientArea;
 
@@ -316,6 +331,8 @@ public:
    afx_msg void OnUpdateDoUGH(CCmdUI *pCmdUI);
    afx_msg void OnCheckSpelling();
    afx_msg void OnUpdateCheckSpelling(CCmdUI *pCmdUI);
+   afx_msg void OnLeftMousePan();
+   afx_msg void OnUpdateLeftMousePan(CCmdUI *pCmdUI);
    afx_msg void OnFilterNWS();
    afx_msg void OnUpdateFilterNWS(CCmdUI *pCmdUI);
    afx_msg void OnFilterINF();

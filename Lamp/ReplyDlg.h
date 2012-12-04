@@ -170,7 +170,8 @@ public:
    RECT m_textsizerect;
    RECT m_ScrollRectangle;
 
-protected:
+   bool m_bSelectingText;
+
    void RecalcCharWidths();
    void RecalcLines();
 
@@ -204,7 +205,6 @@ protected:
    bool m_bHaveFocus;
 
    bool m_bLButtonDown;
-   bool m_bSelectingText;
    DWORD m_doubleclicktime;
 
    UCString m_replytext;

@@ -278,6 +278,7 @@ BEGIN
         MENUITEM "Use Alternate Post Hotkeys",  ID_ALT_POSTKEYS
         MENUITEM "Auto-Check Inbox",            ID_AUTOCHECKINBOX
         MENUITEM "Show Root As Selected",       ID_SHOW_ROOT_SELECTED
+        MENUITEM "Allow Panning With Left Mouse Button", ID_LEFTMOUSEPAN
         MENUITEM SEPARATOR
         POPUP "Fonts"
         BEGIN

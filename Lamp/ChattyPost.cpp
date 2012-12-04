@@ -3053,7 +3053,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          }
 
          // draw children
-         int indent = 1 + m_indent_offset;
+         int indent = 20 + m_indent_offset;
          std::list<ChattyPost*>::iterator it = m_children.begin();
          std::list<ChattyPost*>::iterator end = m_children.end();
          while(it != end)
@@ -3102,7 +3102,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
          {
             // draw expanded
             RECT textrect = DeviceRectangle;
-            textrect.left += (20 + iconsize) + (indent * 20);
+            textrect.left += (20 + iconsize) + indent;
             textrect.right -= (20 + iconsize);
             textrect.top = 0;
             textrect.bottom = 0;
@@ -3675,7 +3675,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
             {
                m_pDoc->FillBackground(hDC,myrect);
 
-               myrect.left += 20 + (indent * 20);
+               myrect.left += 20 + indent;
 
                m_last_left = myrect.left;
             
@@ -3884,7 +3884,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
          if(m_pReplyDlg != NULL)
          {
             RECT replydlgrect;
-            replydlgrect.left = DeviceRectangle.left + 20 + (indent * 20);
+            replydlgrect.left = DeviceRectangle.left + 20 + indent;
             replydlgrect.right = DeviceRectangle.right - 20;
             replydlgrect.top = pos;
             replydlgrect.bottom = pos + m_pReplyDlg->GetHeight();
@@ -3947,7 +3947,7 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
       }
 
       // draw children
-      indent++;
+      indent+=20;
       std::list<ChattyPost*>::iterator it = m_children.begin();
       std::list<ChattyPost*>::iterator end = m_children.end();
       while(it != end)

@@ -724,8 +724,12 @@ public:
    void SetCodeFontName(const UCChar *value){m_code_fontname = value;InvalidateSkinAllViews();}
 
    bool RoundedPosts(){return m_rounded_posts;}
+   
    bool UseAuthorColorForPreview(){return m_bUseAuthorColorForPreview;}
    void UseAuthorColorForPreview(bool value){m_bUseAuthorColorForPreview = value;}
+
+   bool LeftMousePan(){return m_left_mouse_pan;}
+   void LeftMousePan(bool value){m_left_mouse_pan = value;}
 
    bool StrokeRootEdges(){return m_stroke_root_edges;}
    bool StrokePreviewEdges(){return m_stroke_preview_edges;}
@@ -1441,6 +1445,8 @@ protected:
    bool m_bUseAuthorColorForPreview;   
 
    bool m_bigskin;
+
+   bool m_left_mouse_pan;
 
 public:
    afx_msg void OnFileSetuplogininfo();

@@ -573,7 +573,7 @@ public:
 
    CReplyDlg *FindReplyDlgInPostRecurse(unsigned int &who_id);
 
-   void SetIndentOffset(int value){m_indent_offset = value;}
+   void SetIndentOffset(int value){m_indent_offset = __min(0,value);}
    int GetIndentOffset(){return m_indent_offset;}
 
    void InitImageLinks();

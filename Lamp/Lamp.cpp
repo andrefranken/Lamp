@@ -862,6 +862,8 @@ CLampApp::CLampApp()
 
    m_numshow_truncated = 10;
 
+   m_left_mouse_pan = true;
+
    m_line_thickness = 1;
 
    m_bPinningInStories = true;
@@ -1782,6 +1784,10 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"UseAuthorColorForPreview");
    if(setting!=NULL) m_bUseAuthorColorForPreview = setting->GetValue();
    else m_bUseAuthorColorForPreview = false;
+
+   setting = hostxml.FindChildElement(L"left_mouse_pan");
+   if(setting!=NULL) m_left_mouse_pan = setting->GetValue();
+   else m_left_mouse_pan = true;
    
    setting = hostxml.FindChildElement(L"AlwaysOnTopWhenNotDocked");
    if(setting!=NULL) m_bAlwaysOnTopWhenNotDocked = setting->GetValue();
@@ -2247,6 +2253,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"inverted_lol_previews",UCString(m_inverted_lol_previews));
    settingsxml.AddChildElement(L"show_raw_date",UCString(m_show_raw_date));
    settingsxml.AddChildElement(L"UseAuthorColorForPreview",UCString(m_bUseAuthorColorForPreview));
+   settingsxml.AddChildElement(L"left_mouse_pan",UCString(m_left_mouse_pan));
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
    settingsxml.AddChildElement(L"num_minutes_check_inbox",UCString(m_num_minutes_check_inbox));
    settingsxml.AddChildElement(L"enable_spell_checker",UCString(m_enable_spell_checker));

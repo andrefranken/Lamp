@@ -11,6 +11,7 @@
 #define REFRESH_LOL_TIMER 18
 #define IMAGE_EXPIRE_TIMER 19
 #define PREVIEW_TIMER 20
+#define LEFTMOUSE_TIMER 21
 
 class CBMMenu : public CMenu
 {
