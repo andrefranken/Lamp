@@ -596,17 +596,6 @@ void CLampView::BeginInertiaPanning()
                break;
             }
          }
-
-         /*
-         int diff = m_mousehistory[i];
-         int time = m_mousetimehistory[i];
-         if(time < 25) time = 1;
-         if(diff != 0 && time != 0)
-         {
-            m_inertia += (float)(diff * time);
-         }
-         numused += time;
-         */
       }
       
       if(biggestdiff != 0)
@@ -1924,28 +1913,28 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
             case HST_NEWTHREAD:
                {
                   ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
-                  theApp.GetNewThreadImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,20,20);
+                  theApp.GetNewThreadImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,0,0);
                   ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
                }
                break;
             case HST_COMPOSE_MESSAGE:
                {
                   ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
-                  theApp.GetComposeImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,20,20);
+                  theApp.GetComposeImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,0,0);
                   ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
                }
                break;
             case HST_SEARCH_DLG:
                {
                   ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
-                  theApp.GetSearchImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,20,20);
+                  theApp.GetSearchImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,0,0);
                   ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
                }
                break;
             case HST_REFRESHSTORY:
                {
                   ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
-                  theApp.GetRefreshStoryImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,34,20);
+                  theApp.GetRefreshStoryImage(false)->Blit(hDC,m_hotspots[i].m_spot,true,0,0);
                   ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
                }
                break;
@@ -6087,6 +6076,8 @@ void CLampView::OnTimer(UINT nIDEvent)
          KillTimer(LEFTMOUSE_TIMER);
          m_leftmouse_timer_active = false;
 
+         ReleaseCapture();
+
          CPoint temppoint = m_mousepoint;
          m_rbuttondownpoint = m_mousepoint;
          ClientToScreen(&temppoint);
@@ -6964,7 +6955,10 @@ void CLampView::OnUpdateSkinCustom(CCmdUI *pCmdUI)
 
    if(theApp.GetSkinFolder() != L"roundshack" &&
       theApp.GetSkinFolder() != L"default" &&
-      theApp.GetSkinFolder() != L"worksafe")
+      theApp.GetSkinFolder() != L"worksafe" &&
+      theApp.GetSkinFolder() != L"roundshack_2" &&
+      theApp.GetSkinFolder() != L"default_2" &&
+      theApp.GetSkinFolder() != L"worksafe_2" )
    {
       pCmdUI->SetCheck(TRUE);
    }

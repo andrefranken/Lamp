@@ -3865,14 +3865,11 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             }
             else if(bDrawSearch)
             {
-               imagerect.right = imagerect.left + pComposeImage->GetWidth();
+               imagerect.right = imagerect.left + pSearchImage->GetWidth();
                pSearchImage->Blit(hDC,imagerect);
                hotspot.m_type = HST_SEARCH_DLG;
             }
-            hotspot.m_spot.left = imagerect.left + 20;
-            hotspot.m_spot.top = imagerect.top + 20;
-            hotspot.m_spot.right = hotspot.m_spot.left + 144;
-            hotspot.m_spot.bottom = hotspot.m_spot.top + 28;
+            hotspot.m_spot = imagerect;
             hotspot.m_id = 0;
             hotspots.push_back(hotspot);
 
@@ -3886,10 +3883,7 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          pRefreshStoryImage->Blit(hDC,imagerect);
                      
          hotspot.m_type = HST_REFRESHSTORY;
-         hotspot.m_spot.right = imagerect.right - 20;
-         hotspot.m_spot.top = imagerect.top + 20;
-         hotspot.m_spot.left = hotspot.m_spot.right - 144;
-         hotspot.m_spot.bottom = hotspot.m_spot.top + 28;
+         hotspot.m_spot = imagerect;
          hotspot.m_id = 0;
          hotspots.push_back(hotspot);
 
