@@ -4376,6 +4376,15 @@ void CLampView::OnLButtonUp(UINT nFlags, CPoint point)
             }
          }
       }
+      else if(m_bPanning)
+      {
+         m_bPanning = false;
+         int ydiff = m_panpoint.y - point.y;
+         m_gotopos = m_panpos + ydiff;
+         MakePosLegal();
+         m_pos = m_gotopos;// no smooth on pan
+         BeginInertiaPanning();
+      }
    }
    else if(m_bPanning)
    {
