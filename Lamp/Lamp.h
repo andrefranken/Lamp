@@ -541,6 +541,75 @@ public:
       }
    }   
 
+   CDCSurface *GetNavImage(bool bThread, bool bNext, bool bHover, bool bInactive)
+   {
+      if(bThread)
+      {
+         if(bNext)
+         {
+            if(bInactive)
+            {
+               return &m_thread_next_inactive;
+            }
+            else if(bHover)
+            {
+               return &m_thread_next_hover;
+            }
+            else
+            {
+               return &m_thread_next_active;
+            }
+         }
+         else
+         {
+            if(bInactive)
+            {
+               return &m_thread_prev_inactive;
+            }
+            else if(bHover)
+            {
+               return &m_thread_prev_hover;
+            }
+            else
+            {
+               return &m_thread_prev_active;
+            }
+         }
+      }
+      else
+      {
+         if(bNext)
+         {
+            if(bInactive)
+            {
+               return &m_post_next_inactive;
+            }
+            else if(bHover)
+            {
+               return &m_post_next_hover;
+            }
+            else
+            {
+               return &m_post_next_active;
+            }
+         }
+         else
+         {
+            if(bInactive)
+            {
+               return &m_post_prev_inactive;
+            }
+            else if(bHover)
+            {
+               return &m_post_prev_hover;
+            }
+            else
+            {
+               return &m_post_prev_active;
+            }
+         }
+      }
+   }   
 
    CDCSurface *GetPinImage(bool on, bool bHover)
    {
@@ -730,6 +799,9 @@ public:
 
    bool LeftMousePan(){return m_left_mouse_pan;}
    void LeftMousePan(bool value){m_left_mouse_pan = value;}
+
+   bool ShowNavButtons(){return m_show_nav_buttons;}
+   void ShowNavButtons(bool value){m_show_nav_buttons = value;}
 
    bool StrokeRootEdges(){return m_stroke_root_edges;}
    bool StrokePreviewEdges(){return m_stroke_preview_edges;}
@@ -1181,6 +1253,19 @@ protected:
    CDCSurface m_preview_hover;
    CDCSurface m_docktabimage;
 
+   CDCSurface m_thread_next_inactive;
+   CDCSurface m_thread_next_active;
+   CDCSurface m_thread_next_hover;
+   CDCSurface m_thread_prev_inactive;
+   CDCSurface m_thread_prev_active;
+   CDCSurface m_thread_prev_hover;
+   CDCSurface m_post_next_inactive;
+   CDCSurface m_post_next_active;
+   CDCSurface m_post_next_hover;
+   CDCSurface m_post_prev_inactive;
+   CDCSurface m_post_prev_active;
+   CDCSurface m_post_prev_hover;
+
    CDCSurface m_pin_hover;
    CDCSurface m_pin_on;
    CDCSurface m_pin_off;
@@ -1447,6 +1532,8 @@ protected:
    bool m_bigskin;
 
    bool m_left_mouse_pan;
+
+   bool m_show_nav_buttons;
 
 public:
    afx_msg void OnFileSetuplogininfo();

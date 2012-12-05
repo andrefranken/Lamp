@@ -864,6 +864,8 @@ CLampApp::CLampApp()
 
    m_left_mouse_pan = true;
 
+   m_show_nav_buttons = true;
+
    m_line_thickness = 1;
 
    m_bPinningInStories = true;
@@ -1788,6 +1790,10 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"left_mouse_pan");
    if(setting!=NULL) m_left_mouse_pan = setting->GetValue();
    else m_left_mouse_pan = true;
+
+   setting = hostxml.FindChildElement(L"show_nav_buttons");
+   if(setting!=NULL) m_show_nav_buttons = setting->GetValue();
+   else m_show_nav_buttons = true;
    
    setting = hostxml.FindChildElement(L"AlwaysOnTopWhenNotDocked");
    if(setting!=NULL) m_bAlwaysOnTopWhenNotDocked = setting->GetValue();
@@ -2254,6 +2260,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"show_raw_date",UCString(m_show_raw_date));
    settingsxml.AddChildElement(L"UseAuthorColorForPreview",UCString(m_bUseAuthorColorForPreview));
    settingsxml.AddChildElement(L"left_mouse_pan",UCString(m_left_mouse_pan));
+   settingsxml.AddChildElement(L"show_nav_buttons",UCString(m_show_nav_buttons));
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
    settingsxml.AddChildElement(L"num_minutes_check_inbox",UCString(m_num_minutes_check_inbox));
    settingsxml.AddChildElement(L"enable_spell_checker",UCString(m_enable_spell_checker));
@@ -2660,6 +2667,18 @@ void CLampApp::ReadSkinFiles()
    m_preview.Resize(0,0);
    m_preview_hover.Resize(0,0);
    m_docktabimage.Resize(0,0);
+   m_thread_next_inactive.Resize(0,0);
+   m_thread_next_active.Resize(0,0);
+   m_thread_next_hover.Resize(0,0);
+   m_thread_prev_inactive.Resize(0,0);
+   m_thread_prev_active.Resize(0,0);
+   m_thread_prev_hover.Resize(0,0);
+   m_post_next_inactive.Resize(0,0);
+   m_post_next_active.Resize(0,0);
+   m_post_next_hover.Resize(0,0);
+   m_post_prev_inactive.Resize(0,0);
+   m_post_prev_active.Resize(0,0);
+   m_post_prev_hover.Resize(0,0);
    m_pin_hover.Resize(0,0);
    m_pin_on.Resize(0,0);
    m_pin_off.Resize(0,0);
@@ -3013,6 +3032,78 @@ void CLampApp::ReadSkinFiles()
    imagefilename += L"\\docktab.png";
    imagepath.PathToMe(imagefilename);
    m_docktabimage.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\thread_next_inactive.png";
+   imagepath.PathToMe(imagefilename);
+   m_thread_next_inactive.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\thread_next.png";
+   imagepath.PathToMe(imagefilename);
+   m_thread_next_active.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\thread_next_hover.png";
+   imagepath.PathToMe(imagefilename);
+   m_thread_next_hover.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\thread_prev_inactive.png";
+   imagepath.PathToMe(imagefilename);
+   m_thread_prev_inactive.ReadPNG(imagepath);
+   
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\thread_prev.png";
+   imagepath.PathToMe(imagefilename);
+   m_thread_prev_active.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\thread_prev_hover.png";
+   imagepath.PathToMe(imagefilename);
+   m_thread_prev_hover.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\post_next_inactive.png";
+   imagepath.PathToMe(imagefilename);
+   m_post_next_inactive.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\post_next.png";
+   imagepath.PathToMe(imagefilename);
+   m_post_next_active.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\post_next_hover.png";
+   imagepath.PathToMe(imagefilename);
+   m_post_next_hover.ReadPNG(imagepath);
+   
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\post_prev_inactive.png";
+   imagepath.PathToMe(imagefilename);
+   m_post_prev_inactive.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\post_prev.png";
+   imagepath.PathToMe(imagefilename);
+   m_post_prev_active.ReadPNG(imagepath);
+      
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\post_prev_hover.png";
+   imagepath.PathToMe(imagefilename);
+   m_post_prev_hover.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;

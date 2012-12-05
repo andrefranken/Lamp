@@ -84,7 +84,12 @@ typedef enum
    HST_SEND,
    HST_MSG_INFO,
    HST_POST_AREA,
-   HST_SEARCH_DLG
+   HST_SEARCH_DLG,
+
+   HST_NAV_PREV_THREAD,
+   HST_NAV_PREV_POST,
+   HST_NAV_NEXT_POST,
+   HST_NAV_NEXT_THREAD   
 
 }hotspottype;
 

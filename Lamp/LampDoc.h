@@ -256,7 +256,7 @@ public:
 
    bool FetchNextPage();
 
-   int DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, bool bDrawNewThread, bool bDrawCompose, bool bDrawSearch);
+   int DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, bool bDrawNewThread, bool bDrawCompose, bool bDrawSearch, CLampView *pView);
 
    HFONT MySelectFont(HDC hdc, HFONT hfont)
    {
@@ -296,6 +296,9 @@ public:
       m_search_filter        = search_filter;
       m_search_sort          = search_sort;
    }
+
+   unsigned int GetRootCount(){return m_rootposts.size();}
+
 // Implementation
 public:
 	virtual ~CLampDoc();

@@ -112,6 +112,12 @@ public:
 
    CHotSpot *GetHotspot(CPoint &point);
 
+   bool HaveNextPost();
+   bool HavePrevPost();
+
+   bool HaveNextThread();
+   bool HavePrevThread();
+
    bool m_bLBDownOnDblClkable;
 
 protected:
@@ -333,6 +339,8 @@ public:
    afx_msg void OnUpdateCheckSpelling(CCmdUI *pCmdUI);
    afx_msg void OnLeftMousePan();
    afx_msg void OnUpdateLeftMousePan(CCmdUI *pCmdUI);
+   afx_msg void OnShowNavButtons();
+   afx_msg void OnUpdateShowNavButtons(CCmdUI *pCmdUI);
    afx_msg void OnFilterNWS();
    afx_msg void OnUpdateFilterNWS(CCmdUI *pCmdUI);
    afx_msg void OnFilterINF();

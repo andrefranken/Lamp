@@ -123,6 +123,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_CHECK_SPELLING, &CLampView::OnUpdateCheckSpelling)
    ON_COMMAND(ID_LEFTMOUSEPAN, &CLampView::OnLeftMousePan)
    ON_UPDATE_COMMAND_UI(ID_LEFTMOUSEPAN, &CLampView::OnUpdateLeftMousePan)
+   ON_COMMAND(ID_SHOWNAVBUTTONS, &CLampView::OnShowNavButtons)
+   ON_UPDATE_COMMAND_UI(ID_SHOWNAVBUTTONS, &CLampView::OnUpdateShowNavButtons)
    ON_COMMAND(ID_FILTER_ENABLE_NWS, &CLampView::OnFilterNWS)
    ON_UPDATE_COMMAND_UI(ID_FILTER_ENABLE_NWS, &CLampView::OnUpdateFilterNWS)
    ON_COMMAND(ID_FILTER_ENABLE_INF, &CLampView::OnFilterINF)
@@ -977,20 +979,27 @@ void CLampView::OnDraw(CDC* pDC)
             switch(pDoc->GetDataType())
             {
             case DDT_STORY:
-               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, true, false, false);
+               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, true, false, false, this);
                bDrewBanner = true;
                break;
             case DDT_LOLS:
-               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, false, false);
+               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, false, false, this);
                bDrewBanner = true;
                break;
             case DDT_SEARCH:
-               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, false, true);
+               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, false, true, this);
                bDrewBanner = true;
                break;
             case DDT_SHACKMSG:
-               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, true, false);
+               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, true, false, this);
                bDrewBanner = true;
+               break;
+            case DDT_THREAD:
+               if(theApp.ShowNavButtons())
+               {
+                  pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, false, false, this);
+                  bDrewBanner = true;
+               }
                break;
             }            
 
@@ -1877,6 +1886,34 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
                   theApp.GetPinImage(m_hotspots[i].m_bOn,false)->Blit(hDC,m_hotspots[i].m_spot);
                }
                break;
+            case HST_NAV_PREV_THREAD:
+               {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
+                  theApp.GetNavImage(true, false, false, false)->Blit(hDC,m_hotspots[i].m_spot);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
+               }
+               break;
+            case HST_NAV_PREV_POST:
+               {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
+                  theApp.GetNavImage(false, false, false, false)->Blit(hDC,m_hotspots[i].m_spot);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
+               }
+               break;
+            case HST_NAV_NEXT_POST:
+               {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
+                  theApp.GetNavImage(false, true, false, false)->Blit(hDC,m_hotspots[i].m_spot);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
+               }
+               break;
+            case HST_NAV_NEXT_THREAD:
+               {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
+                  theApp.GetNavImage(true, true, false, false)->Blit(hDC,m_hotspots[i].m_spot);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
+               }
+               break;
             case HST_MOD_TOOL:
                {
                   switch(m_hotspots[i].m_cat_type)
@@ -2308,6 +2345,34 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
             case HST_PIN:
                {
                   theApp.GetPinImage(m_hotspots[i].m_bOn,true)->Blit(hDC,m_hotspots[i].m_spot);
+               }
+               break;
+            case HST_NAV_PREV_THREAD:
+               {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
+                  theApp.GetNavImage(true, false, true, false)->Blit(hDC,m_hotspots[i].m_spot);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
+               }
+               break;
+            case HST_NAV_PREV_POST:
+               {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
+                  theApp.GetNavImage(false, false, true, false)->Blit(hDC,m_hotspots[i].m_spot);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
+               }
+               break;
+            case HST_NAV_NEXT_POST:
+               {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
+                  theApp.GetNavImage(false, true, true, false)->Blit(hDC,m_hotspots[i].m_spot);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
+               }
+               break;
+            case HST_NAV_NEXT_THREAD:
+               {
+                  ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
+                  theApp.GetNavImage(true, true, true, false)->Blit(hDC,m_hotspots[i].m_spot);
+                  ::IntersectClipRect(hDC,DeviceRectangle.left,DeviceRectangle.top + m_banneroffset,DeviceRectangle.right,DeviceRectangle.bottom);
                }
                break;
             case HST_MOD_TOOL:
@@ -3001,6 +3066,26 @@ void CLampView::UpdateHotspotPosition()
                theApp.SetStatusBarText(L"Pin This Thread",this);
             }
             break;
+         case HST_NAV_PREV_THREAD:
+            {
+               theApp.SetStatusBarText(L"Previous Thread",this);
+            }
+            break;
+         case HST_NAV_PREV_POST:
+            {
+               theApp.SetStatusBarText(L"Previous Post",this);
+            }
+            break;
+         case HST_NAV_NEXT_POST:
+            {
+               theApp.SetStatusBarText(L"Next Post",this);
+            }
+            break;
+         case HST_NAV_NEXT_THREAD:
+            {
+               theApp.SetStatusBarText(L"Next Thread",this);
+            }
+            break;
          case HST_MOD_TOOL:
             {
                theApp.SetStatusBarText(L"Set Category",this);
@@ -3535,6 +3620,77 @@ void CLampView::OnClick(CPoint point)
                               post->SetPinned(!post->IsPinned());
                               InvalidateEverything();
                            }
+                        }
+                        break;
+                     case HST_NAV_PREV_THREAD:
+                        {
+                           if(GetCurrentId() != 0)
+                           {
+                              ChattyPost *pParent = NULL;
+                              ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+                              if(pPost != NULL)
+                              {            
+                                 pParent = pPost;
+                                 while(pParent->GetParent() != NULL) pParent = pParent->GetParent();
+                              }
+                              // select prev reply
+                              SetCurrentId(GetDocument()->GetPrevRoot(pParent));
+                              MakeCurrentPostLegal(true);
+                           }
+                           m_textselectionpost = 0;
+                           m_selectionstart = 0;
+                           m_selectionend = 0;
+                        }
+                        break;
+                     case HST_NAV_PREV_POST:
+                        {
+                           if(GetCurrentId() != 0)
+                           {
+                              // select prev reply
+                              ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+                              if(pPost != NULL)
+                              {            
+                                 SetCurrentId(pPost->GetPrevReply());
+                                 MakeCurrentPostLegal();
+                              }
+                           }
+                           m_textselectionpost = 0;
+                           m_selectionstart = 0;
+                           m_selectionend = 0;
+                        }
+                        break;
+                     case HST_NAV_NEXT_POST:
+                        {
+                           if(GetCurrentId() != 0)
+                           {
+                              // select next reply
+                              ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+                              if(pPost != NULL)
+                              {            
+                                 SetCurrentId(pPost->GetNextReply());
+                                 MakeCurrentPostLegal();
+                              }
+                           }
+                           m_textselectionpost = 0;
+                           m_selectionstart = 0;
+                           m_selectionend = 0;
+                        }
+                        break;
+                     case HST_NAV_NEXT_THREAD:
+                        {
+                           ChattyPost *pParent = NULL;
+                           ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+                           if(pPost != NULL)
+                           {            
+                              pParent = pPost;
+                              while(pParent->GetParent() != NULL) pParent = pParent->GetParent();
+                           }
+                           // select prev reply
+                           SetCurrentId(GetDocument()->GetNextRoot(pParent));
+                           MakeCurrentPostLegal(true);
+                           m_textselectionpost = 0;
+                           m_selectionstart = 0;
+                           m_selectionend = 0;
                         }
                         break;
                      case HST_MOD_TOOL:
@@ -4209,7 +4365,12 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
        hotspot->m_type != HST_SCROLLBAR_REPLYTEXT_DLG &&
        hotspot->m_type != HST_SCROLLBAR_UP_REPLYTEXT_DLG &&
        hotspot->m_type != HST_SCROLLBAR_DOWN_REPLYTEXT_DLG &&
-       hotspot->m_type != HST_SCROLLBAR_THUMB_REPLYTEXT_DLG)))
+       hotspot->m_type != HST_SCROLLBAR_THUMB_REPLYTEXT_DLG &&
+       
+       hotspot->m_type != HST_NAV_PREV_THREAD &&
+       hotspot->m_type != HST_NAV_PREV_POST &&
+       hotspot->m_type != HST_NAV_NEXT_POST &&
+       hotspot->m_type != HST_NAV_NEXT_THREAD)))
    {
       // start left mouse timer
       if(m_leftmouse_timer_active)
@@ -4706,7 +4867,8 @@ void CLampView::OnMouseMove(UINT nFlags, CPoint point)
                {
                   if(theApp.ExpandPreviews())
                   {
-                     if(GetDocument()->GetDataType() != DDT_THREAD &&
+                     if((GetDocument()->GetDataType() != DDT_THREAD ||
+                        theApp.ShowNavButtons()) &&
                         m_mousepoint.x >= m_BannerRectangle.left &&
                         m_mousepoint.x < m_BannerRectangle.right &&
                         m_mousepoint.y >= m_BannerRectangle.top &&
@@ -5272,18 +5434,21 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                     nChar == 's' ||
                     nChar == 'S')
             {
-               ChattyPost *pParent = NULL;
-               ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
-               if(pPost != NULL)
-               {            
-                  pParent = pPost;
-                  while(pParent->GetParent() != NULL) pParent = pParent->GetParent();
+               if(GetCurrentId() != 0)
+               {
+                  ChattyPost *pParent = NULL;
+                  ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+                  if(pPost != NULL)
+                  {            
+                     pParent = pPost;
+                     while(pParent->GetParent() != NULL) pParent = pParent->GetParent();
+                  }
+                  // select next reply
+                  SetCurrentId(GetDocument()->GetPrevRoot(pParent));
+                  m_textselectionpost = 0;
+                  m_selectionstart = 0;
+                  m_selectionend = 0;
                }
-               // select next reply
-               SetCurrentId(GetDocument()->GetPrevRoot(pParent));
-               m_textselectionpost = 0;
-               m_selectionstart = 0;
-               m_selectionend = 0;
             }
 
             MakeCurrentPostLegal(true);
@@ -5412,6 +5577,10 @@ BOOL CLampView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
             case HST_REPLIESTOROOTPOSTHINT:
             case HST_OPENINTAB:
             case HST_PIN:
+            case HST_NAV_PREV_THREAD:
+            case HST_NAV_PREV_POST:
+            case HST_NAV_NEXT_POST:
+            case HST_NAV_NEXT_THREAD:
             case HST_REPLYPREVIEW:
             case HST_CREATEREPLY:
             case HST_REPLY_TO_MESSAGE:
@@ -6700,6 +6869,26 @@ void CLampView::OnUpdateLeftMousePan(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(theApp.LeftMousePan())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnShowNavButtons()
+{
+   theApp.ShowNavButtons(!theApp.ShowNavButtons());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateShowNavButtons(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.ShowNavButtons())
    {
       pCmdUI->SetCheck(TRUE);
    }
@@ -8720,3 +8909,95 @@ CHotSpot *CLampView::GetHotspot(CPoint &point)
 
    return result;
 }
+
+bool CLampView::HaveNextPost()
+{
+   if(GetCurrentId() != 0)
+   {
+      ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+      if(pPost != NULL)
+      {            
+         unsigned int id = pPost->GetNextReply();
+         if(id != GetCurrentId())
+         {
+            return true;
+         }
+      }
+   }
+
+   return false;
+}
+
+bool CLampView::HavePrevPost()
+{
+   if(GetCurrentId() != 0)
+   {
+      ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+      if(pPost != NULL)
+      {            
+         unsigned int id = pPost->GetPrevReply();
+         if(id != GetCurrentId())
+         {
+            return true;
+         }
+      }
+   }
+
+   return false;
+}
+
+bool CLampView::HaveNextThread()
+{
+   if(GetDocument()->GetRootCount() > 0)
+   {
+      ChattyPost *pParent = NULL;
+
+      if(GetCurrentId() != 0)
+      {
+         ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+         if(pPost != NULL)
+         {            
+            pParent = pPost;
+            while(pParent->GetParent() != NULL) pParent = pParent->GetParent();
+         }
+      }
+      // select next root thread
+      unsigned int id = GetDocument()->GetNextRoot(pParent);
+
+      if(id != GetCurrentId() &&
+         id != 0)
+      {
+         return true;
+      }
+   }
+
+   return false;
+}
+
+bool CLampView::HavePrevThread()
+{
+   if(GetDocument()->GetRootCount() > 0 &&
+      GetCurrentId() != 0)
+   {
+      ChattyPost *pParent = NULL;
+
+      ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+      if(pPost != NULL)
+      {            
+         pParent = pPost;
+         while(pParent->GetParent() != NULL) pParent = pParent->GetParent();
+      }
+
+      // select next root thread
+      unsigned int id = GetDocument()->GetPrevRoot(pParent);
+
+      if(id != GetCurrentId() &&
+         id != 0)
+      {
+         return true;
+      }
+   }
+
+   return false;
+}
+
