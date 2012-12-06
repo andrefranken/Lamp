@@ -2533,11 +2533,16 @@ void CLampDoc::PerformSearch()
    if(theApp.UseShack())
    {
       // http://www.shacknews.com/search?chatty=1&type=4&chatty_term=lamp&chatty_user=CRasterImage&chatty_author=electroly&chatty_filter=all
-
+      
       UCString path = L"/search?chatty=1&type=4&chatty_term=";
       UCString temp = m_search_terms;
       temp.ReplaceAll(L' ',L'+');
-      path += temp;
+
+      char *enc_to = url_encode((char*)temp.str8(false,CET_UTF8));
+      path += enc_to;
+      free(enc_to);
+
+      //path += temp;
       path += L"&chatty_user=";
       temp = m_search_author;
       temp.ReplaceAll(L' ',L'+');
