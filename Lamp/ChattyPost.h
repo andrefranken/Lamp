@@ -85,12 +85,10 @@ typedef enum
    HST_MSG_INFO,
    HST_POST_AREA,
    HST_SEARCH_DLG,
-
    HST_NAV_PREV_THREAD,
    HST_NAV_PREV_POST,
    HST_NAV_NEXT_POST,
    HST_NAV_NEXT_THREAD   
-
 }hotspottype;
 
 typedef enum 
@@ -543,8 +541,8 @@ public:
    void SetPinned(bool bValue){m_bPinned = bValue;}
    bool IsPinned(){return m_bPinned;}
 
-   unsigned int GetPrevReply(bool bSkipSelf = false);
-   unsigned int GetNextReply(bool bSkipSelf = false);
+   unsigned int GetPrevReply(bool bSkipSelf = false, bool bAllowExpandedTruncation = true);
+   unsigned int GetNextReply(bool bSkipSelf = false, bool bAllowExpandedTruncation = true);
 
    void UpdateRootReplyList(std::vector<unsigned int> *list = NULL);
 

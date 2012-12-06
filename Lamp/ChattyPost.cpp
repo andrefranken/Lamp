@@ -7225,14 +7225,17 @@ void ChattyPost::UpdateRootReplyList(std::vector<unsigned int> *list/* = NULL*/)
    }
 }
 
-unsigned int ChattyPost::GetPrevReply(bool bSkipSelf /*= false*/)
+unsigned int ChattyPost::GetPrevReply(bool bSkipSelf /*= false*/, bool bAllowExpandedTruncation/* = true*/)
 {
    unsigned int result = GetId();
 
    ChattyPost *pParent = this;
    while(pParent->m_pParent != NULL)pParent = pParent->m_pParent;
 
-   pParent->UnShowAsTruncated();
+   if(bAllowExpandedTruncation)
+   {
+      pParent->UnShowAsTruncated();
+   }
    
    for(int i = 0; i < (int)pParent->m_root_reply_list.size(); i++)
    {
@@ -7250,20 +7253,27 @@ unsigned int ChattyPost::GetPrevReply(bool bSkipSelf /*= false*/)
       m_pParent != NULL)
    {
       // then the prev is my parent
-      m_pParent->UnShowAsTruncated();
+      if(bAllowExpandedTruncation)
+      {
+         m_pParent->UnShowAsTruncated();
+      }
       result = m_pParent->GetId();
    }
 
    return result;
 }
 
-unsigned int ChattyPost::GetNextReply(bool bSkipSelf /*= false*/)
+unsigned int ChattyPost::GetNextReply(bool bSkipSelf /*= false*/, bool bAllowExpandedTruncation/* = true*/)
 {
    unsigned int result = GetId();
 
    if(m_pParent == NULL)
    {
-      UnShowAsTruncated();
+      if(bAllowExpandedTruncation)
+      {
+         UnShowAsTruncated();
+      }
+
       if(m_root_reply_list.size() > 0)
       {
          result = m_root_reply_list[0];
@@ -7274,7 +7284,10 @@ unsigned int ChattyPost::GetNextReply(bool bSkipSelf /*= false*/)
       ChattyPost *pParent = this;
       while(pParent->m_pParent != NULL)pParent = pParent->m_pParent;
 
-      pParent->UnShowAsTruncated();
+      if(bAllowExpandedTruncation)
+      {
+         pParent->UnShowAsTruncated();
+      }
       
       for(int i = 0; i < (int)pParent->m_root_reply_list.size(); i++)
       {

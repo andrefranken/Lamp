@@ -4345,18 +4345,35 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
 {
    SetFocus();
    SetCapture();   
-   m_gotopos = m_pos;
-   CancelInertiaPanning();
+
+   CHotSpot *hotspot = GetHotspot(point);
+
+   bool takeit = false;
+
+   if(hotspot != NULL &&
+     (hotspot->m_type == HST_NAV_PREV_THREAD ||
+      hotspot->m_type == HST_NAV_PREV_POST ||
+      hotspot->m_type == HST_NAV_NEXT_POST ||
+      hotspot->m_type == HST_NAV_NEXT_THREAD ||
+      hotspot->m_type == HST_NULL_BACKGROUND))
+   {
+      takeit = true;
+   }
+   else
+   {
+      m_gotopos = m_pos;
+      CancelInertiaPanning();
+   }
    m_bStartedTrackingMouse = true;
    m_lastmousetime = ::GetTickCount();
    m_mousepoint = point;
    m_bDrawMButtonDownIcon = false;
    m_bDoubleClickDragging = false;
    m_bLBDownOnDblClkable = false;
-
-   CHotSpot *hotspot = GetHotspot(point);
+     
    
-   if(theApp.LeftMousePan() &&
+   if(!takeit &&
+      theApp.LeftMousePan() &&
       (hotspot == NULL ||
       (hotspot->m_type != HST_SCROLLBAR &&
        hotspot->m_type != HST_SCROLLBAR_UP &&
@@ -6573,6 +6590,25 @@ void CLampView::MakeCurrentPosVisible()
             m_whitebuffer.Resize(width, height);
             m_whitebuffer.Fill(GetRValue(theApp.GetHoverColor()),GetGValue(theApp.GetHoverColor()),GetBValue(theApp.GetHoverColor()));
             theApp.UpdateTabSizes();
+               
+            int bannerheight = 71;
+            CDCSurface *pNTImage = theApp.GetNewThreadImage(false);
+            if(pNTImage != NULL)
+            {
+               bannerheight = pNTImage->GetHeight();
+            }
+            m_bannerbuffer.Resize(width, bannerheight);
+            m_BannerRectangle.left = m_BannerRectangle.top = 0;
+            m_BannerRectangle.right = width;
+            m_BannerRectangle.bottom = bannerheight;
+
+            if(m_pReplyDlg != NULL &&
+               m_pReplyDlg->IsMessage())
+            {
+               m_replybuffer.Resize(width, m_pReplyDlg->GetHeight());
+               m_whitereplybuffer.Resize(width, m_pReplyDlg->GetHeight());
+               m_whitereplybuffer.Fill(GetRValue(theApp.GetHoverColor()),GetGValue(theApp.GetHoverColor()),GetBValue(theApp.GetHoverColor()));
+            }
          }
          // force a draw so that positions are updated
          m_gotopos = m_pos = 0;
@@ -8917,7 +8953,7 @@ bool CLampView::HaveNextPost()
       ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
       if(pPost != NULL)
       {            
-         unsigned int id = pPost->GetNextReply();
+         unsigned int id = pPost->GetNextReply(false,false);
          if(id != GetCurrentId())
          {
             return true;
@@ -8935,7 +8971,7 @@ bool CLampView::HavePrevPost()
       ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
       if(pPost != NULL)
       {            
-         unsigned int id = pPost->GetPrevReply();
+         unsigned int id = pPost->GetPrevReply(false,false);
          if(id != GetCurrentId())
          {
             return true;
