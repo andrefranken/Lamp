@@ -125,6 +125,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_LEFTMOUSEPAN, &CLampView::OnUpdateLeftMousePan)
    ON_COMMAND(ID_SHOWNAVBUTTONS, &CLampView::OnShowNavButtons)
    ON_UPDATE_COMMAND_UI(ID_SHOWNAVBUTTONS, &CLampView::OnUpdateShowNavButtons)
+   ON_COMMAND(ID_MOVEREFRESHTOTOP, &CLampView::OnMoveRefreshToTop)
+   ON_UPDATE_COMMAND_UI(ID_MOVEREFRESHTOTOP, &CLampView::OnUpdateMoveRefreshToTop)
    ON_COMMAND(ID_FILTER_ENABLE_NWS, &CLampView::OnFilterNWS)
    ON_UPDATE_COMMAND_UI(ID_FILTER_ENABLE_NWS, &CLampView::OnUpdateFilterNWS)
    ON_COMMAND(ID_FILTER_ENABLE_INF, &CLampView::OnFilterINF)
@@ -317,6 +319,7 @@ CLampView::CLampView()
    m_panning_reply = false;
    m_lmb_in_reply = false;
    m_bLBDownOnDblClkable = false;
+   m_mousepoint.SetPoint(9999,9999);
    
    m_pFindDlg = NULL;
 
@@ -6925,6 +6928,26 @@ void CLampView::OnUpdateShowNavButtons(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(theApp.ShowNavButtons())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnMoveRefreshToTop()
+{
+   theApp.MoveRefreshToTop(!theApp.MoveRefreshToTop());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateMoveRefreshToTop(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.MoveRefreshToTop())
    {
       pCmdUI->SetCheck(TRUE);
    }

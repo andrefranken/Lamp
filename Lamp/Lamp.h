@@ -803,6 +803,9 @@ public:
    bool ShowNavButtons(){return m_show_nav_buttons;}
    void ShowNavButtons(bool value){m_show_nav_buttons = value;}
 
+   bool MoveRefreshToTop(){return m_move_refresh_to_top;}
+   void MoveRefreshToTop(bool value){m_move_refresh_to_top = value;}
+
    bool StrokeRootEdges(){return m_stroke_root_edges;}
    bool StrokePreviewEdges(){return m_stroke_preview_edges;}
    void SetStrokePreviewEdges(bool value){m_stroke_preview_edges = value;}
@@ -1534,6 +1537,8 @@ protected:
    bool m_left_mouse_pan;
 
    bool m_show_nav_buttons;
+
+   bool m_move_refresh_to_top;
 
 public:
    afx_msg void OnFileSetuplogininfo();

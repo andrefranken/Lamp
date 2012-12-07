@@ -7039,10 +7039,13 @@ bool CLampDoc::FindNext(const UCChar *search, unsigned int &textselectionpost, i
 
    while(it != end)
    {
-      bFound = (*it)->FindNext(search, textselectionpost, selectionstart, selectionend);
-      if(bFound)
+      if(!(*it)->IsCollapsed())
       {
-         break;
+         bFound = (*it)->FindNext(search, textselectionpost, selectionstart, selectionend);
+         if(bFound)
+         {
+            break;
+         }
       }
       it++;
    }

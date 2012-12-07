@@ -2786,7 +2786,7 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                   hotspot.m_spot.left = myrect.left;
                   hotspot.m_spot.top = myrect.top + iconsize;
                   hotspot.m_spot.right = myrect.left + iconsize;
-                  hotspot.m_spot.bottom = myrect.top + iconsize + iconsize;
+                  hotspot.m_spot.bottom = hotspot.m_spot.top + iconsize;
                   hotspot.m_id = m_id;
                   hotspots.push_back(hotspot);
                   hotspot.m_bAnim = false;
@@ -2819,9 +2819,22 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                      hotspot.m_bAnim = true;
                   }
                   hotspot.m_spot.left = myrect.left;
-                  hotspot.m_spot.top = myrect.top;
                   hotspot.m_spot.right = myrect.left + iconsize;
-                  hotspot.m_spot.bottom = myrect.top + iconsize;
+
+                  if(theApp.MoveRefreshToTop())
+                  {
+                     hotspot.m_spot.top = myrect.top;
+                  }
+                  else
+                  {
+                     hotspot.m_spot.top = myrect.top + iconsize;
+                     if(hotspot.m_spot.top + iconsize > myrect.bottom)
+                     {
+                        hotspot.m_spot.top = myrect.bottom - iconsize;
+                     }
+                  }
+                                    
+                  hotspot.m_spot.bottom = hotspot.m_spot.top + iconsize;
                   hotspot.m_id = m_id;
                   hotspots.push_back(hotspot);
                   hotspot.m_bAnim = false;
@@ -3400,8 +3413,20 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                }
                else
                {
-                  hotspot.m_spot.top = myrect.top;
-                  hotspot.m_spot.bottom = myrect.top + iconsize;
+                  if(theApp.MoveRefreshToTop())
+                  {
+                     hotspot.m_spot.top = myrect.top;
+                  }
+                  else
+                  {
+                     hotspot.m_spot.top = myrect.top + iconsize;
+                     if(hotspot.m_spot.top + iconsize > myrect.bottom)
+                     {
+                        hotspot.m_spot.top = myrect.bottom - iconsize;
+                     }
+                  }
+                                    
+                  hotspot.m_spot.bottom = hotspot.m_spot.top + iconsize;
                   hotspots.push_back(hotspot);
                   hotspot.m_bAnim = false;
                }

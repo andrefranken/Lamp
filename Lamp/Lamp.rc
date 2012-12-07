@@ -288,6 +288,7 @@ BEGIN
             MENUITEM "Show Dates instead of time difference", ID_SHOW_RAW_DATE
             MENUITEM "Show Root As Selected",       ID_SHOW_ROOT_SELECTED
             MENUITEM "Show Nav Buttons",            ID_SHOWNAVBUTTONS
+            MENUITEM "Move Refresh Button to Top",  ID_MOVEREFRESHTOTOP
         
            POPUP "Fonts"
            BEGIN
