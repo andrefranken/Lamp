@@ -6390,10 +6390,16 @@ void ChattyPost::GetTextSelectionRects(int selectionstart, int selectionend, std
          max >= 0 &&
          max <= m_author.Length())
       {
+         int iconsize = 20;
+         if(theApp.BigSkin())
+         {
+            iconsize = 40;
+         }
+
          RECT rect;
-         rect.top = m_drewtextpos - theApp.GetTextHeight();
-         rect.bottom = m_drewtextpos;
          rect.left = m_drewtextedge + theApp.GetCellHeight() + 5;
+         rect.top = m_drewtextpos - (((__max(theApp.GetCellHeight(), iconsize)) - theApp.GetTextHeight()) / 2) - theApp.GetTextHeight();
+         rect.bottom = rect.top + theApp.GetTextHeight();
 
          if(m_pFlaggedUser != NULL &&
             m_pFlaggedUser->m_flag_image != NULL)
