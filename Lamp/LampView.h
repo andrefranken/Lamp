@@ -217,6 +217,8 @@ protected:
    bool m_bMButtonDown;
    bool m_bDrawMButtonDownIcon;
 
+   bool m_bLButtonDown;
+
    bool m_bInertialPanning;
    bool m_bStartedTrackingMouse;
    float m_inertia;

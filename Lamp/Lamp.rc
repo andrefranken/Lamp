@@ -405,6 +405,7 @@ BEGIN
         MENUITEM "Wolfram",                     ID_WOLFRAM_SELECTED
         MENUITEM "IMDb",                        ID_IMDB_SELECTED
         MENUITEM SEPARATOR
+        MENUITEM "&Refresh\tF5",                ID_EDIT_REFRESH
         MENUITEM "&Bookmark This Post",         ID_EDIT_BOOKMARK_THIS_POST
         MENUITEM SEPARATOR
         MENUITEM "Load All Images",             ID_EDIT_LOADALLIMAGES
@@ -430,6 +431,7 @@ BEGIN
         MENUITEM "Wolfram",                     ID_WOLFRAM_SELECTED
         MENUITEM "IMDb",                        ID_IMDB_SELECTED
         MENUITEM SEPARATOR
+        MENUITEM "&Refresh\tF5",                ID_EDIT_REFRESH
         MENUITEM "&Bookmark This Post",         ID_EDIT_BOOKMARK_THIS_POST
         MENUITEM SEPARATOR
         MENUITEM "Load All Images",             ID_EDIT_LOADALLIMAGES
@@ -437,6 +439,14 @@ BEGIN
         MENUITEM "Open All GIFs In Browser",    ID_OPENALLGIFS
         MENUITEM SEPARATOR
         MENUITEM "Open All Links In Browser",   ID_OPENALLLINKS
+    END
+END
+
+IDR_POPUP_DEFAULT MENU 
+BEGIN
+    POPUP "Default"
+    BEGIN
+        MENUITEM "&Refresh\tF5",                ID_EDIT_REFRESH
     END
 END
 

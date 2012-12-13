@@ -1471,6 +1471,9 @@ void CLampApp::PreLoadState()
    
    strName = L"NoSel";
    GetContextMenuManager()->AddMenu(strName, IDR_POPUP_NOSEL);
+
+   strName = L"Default";
+   GetContextMenuManager()->AddMenu(strName, IDR_POPUP_DEFAULT);
 }
 
 void CLampApp::LoadCustomState()

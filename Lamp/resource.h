@@ -215,13 +215,14 @@
 #define ID_LEFTMOUSEPAN                 32928
 #define ID_SHOWNAVBUTTONS               32929
 #define ID_MOVEREFRESHTOTOP             32930
+#define IDR_POPUP_DEFAULT               32931
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        329
-#define _APS_NEXT_COMMAND_VALUE         32931
+#define _APS_NEXT_COMMAND_VALUE         32932
 #define _APS_NEXT_CONTROL_VALUE         1023
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

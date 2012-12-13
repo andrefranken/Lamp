@@ -4029,12 +4029,13 @@ int ChattyPost::GetReplyPreviewHeight(RECT &DeviceRectangle)
       {
          m_lasttextrectwidth = textrect.right - textrect.left;
          SetupBodyText(textrect);
-         m_textrectheight = textrect.bottom - 8;
+         m_textrectheight = textrect.bottom;
          //m_textrectheight = theApp.GetTextHeight() * m_lines_of_text.size();
       }
    }
 
-   return m_textrectheight;
+   // don't include the 8 pixel bonus
+   return m_textrectheight - 8;
 }
 
 void ChattyPost::DrawReplyPreview(HDC hDC, RECT &DeviceRectangle, int top, int bottom, const UCString &rootauthor)

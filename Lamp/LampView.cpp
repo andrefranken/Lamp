@@ -293,6 +293,7 @@ CLampView::CLampView()
    m_doubleclicktime = 0;
    m_bTrackingThumb = false;
    m_bLButtonDownOnScrollArrow = false;
+   m_bLButtonDown = false;
    m_bPanning = false;
    m_panpos = 0;
    m_rbuttonmenufromid = 0;
@@ -747,6 +748,10 @@ void CLampView::OnContextMenu(CWnd* pWnd, CPoint point)
       {
          theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_EDIT_NOSEL, point.x, point.y, this, TRUE);
       }
+   }
+   else
+   {
+      theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_DEFAULT, point.x, point.y, this, TRUE);
    }
 }
 
@@ -4346,6 +4351,7 @@ void CLampView::OnClick(CPoint point)
 
 void CLampView::OnLButtonDown(UINT nFlags, CPoint point) 
 {
+   m_bLButtonDown = true;
    SetFocus();
    SetCapture();   
 
@@ -4456,6 +4462,7 @@ void CLampView::UpdateCurrentIdAsRoot(unsigned int id)
 
 void CLampView::OnLButtonUp(UINT nFlags, CPoint point) 
 {
+   m_bLButtonDown = false;
    ReleaseCapture();
    TrackMouse(point);
    m_indent_panning = false;
@@ -9023,7 +9030,8 @@ bool CLampView::HaveNextThread()
       // select next root thread
       unsigned int id = GetDocument()->GetNextRoot(pParent);
 
-      if(id != GetCurrentId() &&
+      if((pParent == NULL ||
+         id != pParent->GetId()) &&
          id != 0)
       {
          return true;
@@ -9050,7 +9058,8 @@ bool CLampView::HavePrevThread()
       // select next root thread
       unsigned int id = GetDocument()->GetPrevRoot(pParent);
 
-      if(id != GetCurrentId() &&
+      if(pParent != NULL && 
+         id != pParent->GetId() &&
          id != 0)
       {
          return true;
