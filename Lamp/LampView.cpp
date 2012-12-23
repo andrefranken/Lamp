@@ -269,6 +269,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_SAFARI_DEF_NWS, &CLampView::OnUpdateSafariDef_nws)
    ON_COMMAND(ID_ALLOW_GDIPLUS, &CLampView::OnAllowGDIPlus)
    ON_UPDATE_COMMAND_UI(ID_ALLOW_GDIPLUS, &CLampView::OnUpdateAllowGDIPlus)
+   ON_COMMAND(ID_AUTO_REFRESH, &CLampView::OnAutoRefresh)
+   ON_UPDATE_COMMAND_UI(ID_AUTO_REFRESH, &CLampView::OnUpdateAutoRefresh)
 
    END_MESSAGE_MAP()
 
@@ -321,6 +323,8 @@ CLampView::CLampView()
    m_lmb_in_reply = false;
    m_bLBDownOnDblClkable = false;
    m_mousepoint.SetPoint(9999,9999);
+
+   m_last_user_activity = ::GetTickCount();
    
    m_pFindDlg = NULL;
 
@@ -475,7 +479,7 @@ void CLampView::OnRButtonDown(UINT nFlags, CPoint point)
    SetCapture();   
    CancelInertiaPanning();
    m_bStartedTrackingMouse = true;
-   m_lastmousetime = ::GetTickCount();
+   m_lastmousetime = m_last_user_activity = ::GetTickCount();
    m_mousepoint = point;
 
    if(!m_brakes)
@@ -550,11 +554,12 @@ void CLampView::OnRButtonUp(UINT nFlags, CPoint point)
 
 void CLampView::TrackMouse(CPoint &point)
 {
+   m_last_user_activity = ::GetTickCount();
    if(m_bStartedTrackingMouse)
    {
       m_mousehistory.push_back(point.y - m_mousepoint.y);
       while(m_mousehistory.size() > 5) m_mousehistory.pop_front();
-      DWORD thistime = ::GetTickCount();
+      DWORD thistime = m_last_user_activity;
       m_mousetimehistory.push_back(thistime - m_lastmousetime);
       while(m_mousetimehistory.size() > 5) m_mousetimehistory.pop_front();
       m_lastmousetime = thistime;
@@ -1003,11 +1008,8 @@ void CLampView::OnDraw(CDC* pDC)
                bDrewBanner = true;
                break;
             case DDT_THREAD:
-               if(theApp.ShowNavButtons())
-               {
-                  pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, false, false, this);
-                  bDrewBanner = true;
-               }
+               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, false, false, this);
+               bDrewBanner = true;
                break;
             }            
 
@@ -1044,6 +1046,12 @@ void CLampView::OnDraw(CDC* pDC)
             if(m_pos != m_gotopos)
             {
                InvalidateEverythingPan();
+            }
+
+            bool bDrawNewIndicators = false;
+            if(pDoc->GetDataType() == DDT_THREAD && !m_bPanOnly)
+            {
+               bDrawNewIndicators = true;
             }
                         
             if(!m_bPanOnly)
@@ -1142,6 +1150,112 @@ void CLampView::OnDraw(CDC* pDC)
             }
 
             m_lastdrawnpos = m_pos;
+
+            // draw new post indicators
+            if(bDrawNewIndicators)
+            {
+               if(m_newpostabove)
+               {
+                  TRIVERTEX tripoints[3];
+                  memset(tripoints,0,sizeof(TRIVERTEX) * 3);
+                                    
+                  tripoints[0].x = 0;
+                  tripoints[0].y = m_banneroffset;
+                  tripoints[1].x = 20;
+                  tripoints[1].y = m_banneroffset;
+                  tripoints[2].x = 0;
+                  tripoints[2].y = m_banneroffset + 20;
+
+                  tripoints[0].Red = 0;
+                  tripoints[0].Green = 255 << 8;
+                  tripoints[0].Blue = 255 << 8;
+                  tripoints[0].Alpha = 0xFFFF;
+
+                  tripoints[1].Red = GetRValue(theApp.GetBackgroundColor()) << 8;
+                  tripoints[1].Green = GetGValue(theApp.GetBackgroundColor()) << 8;
+                  tripoints[1].Blue = GetBValue(theApp.GetBackgroundColor()) << 8;
+                  tripoints[1].Alpha = 0xFFFF;
+
+                  tripoints[2].Red = GetRValue(theApp.GetBackgroundColor()) << 8;
+                  tripoints[2].Green = GetGValue(theApp.GetBackgroundColor()) << 8;
+                  tripoints[2].Blue = GetBValue(theApp.GetBackgroundColor()) << 8;
+                  tripoints[2].Alpha = 0xFFFF;
+                  
+                  GRADIENT_TRIANGLE triangles[1];
+                  triangles[0].Vertex1 = 0;
+                  triangles[0].Vertex2 = 1;
+                  triangles[0].Vertex3 = 2;
+
+                  GradientFill(hDC,
+                               tripoints,
+                               3,
+                               triangles,
+                               1,
+                               GRADIENT_FILL_TRIANGLE);
+
+                  tripoints[0].x = DocRectangle.right;
+                  tripoints[1].x = DocRectangle.right - 20;
+                  tripoints[2].x = DocRectangle.right;
+
+                  GradientFill(hDC,
+                               tripoints,
+                               3,
+                               triangles,
+                               1,
+                               GRADIENT_FILL_TRIANGLE);
+               }
+
+               if(m_newpostbelow)
+               {
+                  TRIVERTEX tripoints[3];
+                  memset(tripoints,0,sizeof(TRIVERTEX) * 3);
+                                    
+                  tripoints[0].x = 0;
+                  tripoints[0].y = DeviceRectangle.bottom;
+                  tripoints[1].x = 20;
+                  tripoints[1].y = DeviceRectangle.bottom;
+                  tripoints[2].x = 0;
+                  tripoints[2].y = DeviceRectangle.bottom - 20;
+
+                  tripoints[0].Red = 0;
+                  tripoints[0].Green = 255 << 8;
+                  tripoints[0].Blue = 255 << 8;
+                  tripoints[0].Alpha = 0xFFFF;
+
+                  tripoints[1].Red = GetRValue(theApp.GetBackgroundColor()) << 8;
+                  tripoints[1].Green = GetGValue(theApp.GetBackgroundColor()) << 8;
+                  tripoints[1].Blue = GetBValue(theApp.GetBackgroundColor()) << 8;
+                  tripoints[1].Alpha = 0xFFFF;
+
+                  tripoints[2].Red = GetRValue(theApp.GetBackgroundColor()) << 8;
+                  tripoints[2].Green = GetGValue(theApp.GetBackgroundColor()) << 8;
+                  tripoints[2].Blue = GetBValue(theApp.GetBackgroundColor()) << 8;
+                  tripoints[2].Alpha = 0xFFFF;
+                  
+                  GRADIENT_TRIANGLE triangles[1];
+                  triangles[0].Vertex1 = 0;
+                  triangles[0].Vertex2 = 1;
+                  triangles[0].Vertex3 = 2;
+
+                  GradientFill(hDC,
+                               tripoints,
+                               3,
+                               triangles,
+                               1,
+                               GRADIENT_FILL_TRIANGLE);
+
+                  tripoints[0].x = DocRectangle.right;
+                  tripoints[1].x = DocRectangle.right - 20;
+                  tripoints[2].x = DocRectangle.right;
+
+                  GradientFill(hDC,
+                               tripoints,
+                               3,
+                               triangles,
+                               1,
+                               GRADIENT_FILL_TRIANGLE);
+               }
+            }
             
             if(m_pos == m_gotopos &&
                m_bPanOnly &&
@@ -1306,7 +1420,27 @@ void CLampView::DrawEverythingToBuffer(CDCSurface *pSurface/* = NULL*/,
          device_height += m_pReplyDlg->GetHeight();
       }
 
-      GetDocument()->Draw(pSurface->GetDC(), device_height,DeviceRectangle, m_pos, m_hotspots, GetCurrentId(), m_bModToolIsUp, m_ModToolRect, m_ModToolPostID);
+      m_newpostabove = false;
+      m_newpostbelow = false;
+
+      int topclip = 0;
+      if(GetDocument()->GetDataType() != DDT_PROFILE)
+      {
+         topclip = m_bannerbuffer.GetHeight();
+      }
+
+      GetDocument()->Draw(pSurface->GetDC(), 
+                          device_height,
+                          DeviceRectangle, 
+                          m_pos, 
+                          m_hotspots, 
+                          GetCurrentId(), 
+                          m_bModToolIsUp, 
+                          m_ModToolRect, 
+                          m_ModToolPostID,
+                          m_newpostabove,
+                          m_newpostbelow,
+                          topclip);
    
       if(m_pReplyDlg != NULL &&
          !m_pReplyDlg->IsMessage())
@@ -2772,6 +2906,46 @@ bool CLampView::DrawCurrentHotSpots(HDC hDC)
    ::ExtSelectClipRgn(hDC,NULL,RGN_COPY);
 
    return bDrewNewMessagesTab;
+}
+
+int CLampView::GetViewPosition()
+{
+   int result = INT32_MAX;
+
+   if(GetCurrentId() != 0)
+   {
+      // force a draw so that positions are updated
+      ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+      if(pPost != NULL)
+      {            
+         CancelInertiaPanning();
+         m_brakes = false;
+
+         result = pPost->GetPos();
+      }
+   }
+
+   return result;
+}
+
+void CLampView::UpdateViewPosition(int pos)
+{
+   if(GetCurrentId() != 0 && pos != INT32_MAX)
+   {
+      // force a draw so that positions are updated
+      ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+      if(pPost != NULL)
+      {            
+         DrawEverythingToBuffer();
+         int newpos = pPost->GetPos();         
+         m_gotopos = m_pos;
+         int offset = newpos - pos;
+         m_gotopos += offset;
+         MakePosLegal();
+         m_pos = m_gotopos;
+         InvalidateEverything();
+      }
+   }
 }
 
 void CLampView::MakeCurrentPostLegal(bool bTopOnly/* = false*/, bool bKeepInSameLocation/* = false*/, int y/* = 0*/, bool bInstant/* = false*/)
@@ -4374,7 +4548,7 @@ void CLampView::OnLButtonDown(UINT nFlags, CPoint point)
       CancelInertiaPanning();
    }
    m_bStartedTrackingMouse = true;
-   m_lastmousetime = ::GetTickCount();
+   m_lastmousetime = m_last_user_activity = ::GetTickCount();
    m_mousepoint = point;
    m_bDrawMButtonDownIcon = false;
    m_bDoubleClickDragging = false;
@@ -5028,7 +5202,7 @@ void CLampView::OnMButtonDown(UINT nFlags, CPoint point)
       SetCapture();   
       CancelInertiaPanning();
       m_bStartedTrackingMouse = true;
-      m_lastmousetime = ::GetTickCount();
+      m_lastmousetime = m_last_user_activity = ::GetTickCount();
       m_mousepoint = point;
 
       if(!m_brakes)
@@ -5036,7 +5210,7 @@ void CLampView::OnMButtonDown(UINT nFlags, CPoint point)
          if(m_bDrawMButtonDownIcon == false)
          {
             m_MButtonDownPoint = point;
-            m_mbuttondowntime = ::GetTickCount();
+            m_mbuttondowntime = m_last_user_activity;
             m_bMButtonDown = true;
          }
          m_bDrawMButtonDownIcon = false;
@@ -5224,6 +5398,8 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
 
 void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
+   m_last_user_activity = ::GetTickCount();
+
    if(m_bModToolIsUp)
    {
       m_bModToolIsUp = false;
@@ -5249,6 +5425,14 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
          }
 
          InvalidateEverything();
+      }
+      else if(nChar == VK_F8)
+      {
+         theApp.UpdateTabNames();
+      }
+      else if(nChar == VK_F9)
+      {
+         theApp.RefreshATab();
       }
       else
       {
@@ -5378,6 +5562,8 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
+   m_last_user_activity = ::GetTickCount();
+
    if(m_bModToolIsUp)
    {
       m_bModToolIsUp = false;
@@ -5402,7 +5588,11 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                if(nChar == 'a' ||
                   nChar == 'A'||
                   nChar == 'z' ||
-                  nChar == 'Z')
+                  nChar == 'Z' ||
+                  nChar == 'd' ||
+                  nChar == 'D'||
+                  nChar == 'c' ||
+                  nChar == 'C')
                {
                   if(nChar == 'a' ||
                      nChar == 'A')
@@ -5418,6 +5608,24 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                   {
                      // select next reply
                      SetCurrentId(pPost->GetNextReply());
+                     m_textselectionpost = 0;
+                     m_selectionstart = 0;
+                     m_selectionend = 0;
+                  }
+                  else if(nChar == 'd' ||
+                          nChar == 'D')
+                  {
+                     // select prev reply
+                     SetCurrentId(pPost->GetPrevNewReply());
+                     m_textselectionpost = 0;
+                     m_selectionstart = 0;
+                     m_selectionend = 0;
+                  }
+                  else if(nChar == 'c' ||
+                          nChar == 'C')
+                  {
+                     // select next reply
+                     SetCurrentId(pPost->GetNextNewReply());
                      m_textselectionpost = 0;
                      m_selectionstart = 0;
                      m_selectionend = 0;
@@ -6370,6 +6578,8 @@ void CLampView::OnKillFocus(CWnd* pNewWnd)
          
          AttachThreadInput(GetWindowThreadProcessId(::GetForegroundWindow(),NULL),GetCurrentThreadId(),FALSE);
       }
+
+      theApp.UpdateTabNames();
    }
 }
 
@@ -6380,6 +6590,11 @@ void CLampView::OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDea
    {
       ((CMainFrame*)theApp.GetMainWnd())->SetActiveLampView(this);
       InvalidateEverything();
+
+      if(GetDocument() != NULL)
+      {
+         GetDocument()->Viewed();
+      }
    }
 }
 
@@ -8957,6 +9172,23 @@ void CLampView::OnUpdateAllowGDIPlus(CCmdUI *pCmdUI)
    }
 }
 
+void CLampView::OnAutoRefresh()
+{
+   theApp.AutoRefresh(!theApp.AutoRefresh());
+}
+
+void CLampView::OnUpdateAutoRefresh(CCmdUI *pCmdUI)
+{
+   if(theApp.AutoRefresh())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
 CHotSpot *CLampView::GetHotspot(CPoint &point)
 {
    CHotSpot *result = NULL;
@@ -9069,3 +9301,10 @@ bool CLampView::HavePrevThread()
    return false;
 }
 
+void CLampView::SoftRefresh()
+{
+   if(GetDocument() != NULL)
+   {
+      GetDocument()->Refresh(true);
+   }
+}

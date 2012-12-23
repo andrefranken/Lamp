@@ -204,7 +204,6 @@
 #define ID_LOL_UGH                      32917
 #define ID_DO_UGH                       32918
 #define ID_UGH_THRESH                   32919
-#define ID_BOOKMARK_MENUITEM            32920
 #define IDR_POPUP_EDIT_SEL              32921
 #define IDR_POPUP_EDIT_NOSEL            32922
 #define IDR_POPUP_SEL                   32923
@@ -216,13 +215,16 @@
 #define ID_SHOWNAVBUTTONS               32929
 #define ID_MOVEREFRESHTOTOP             32930
 #define IDR_POPUP_DEFAULT               32931
+#define ID_AUTO_REFRESH                 32932
+
+#define ID_BOOKMARK_MENUITEM            33000
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        329
-#define _APS_NEXT_COMMAND_VALUE         32932
+#define _APS_NEXT_COMMAND_VALUE         32933
 #define _APS_NEXT_CONTROL_VALUE         1023
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

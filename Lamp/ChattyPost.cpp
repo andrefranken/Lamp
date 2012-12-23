@@ -427,6 +427,50 @@ void ChattyPost::ReadRootChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_itera
    InitImageLinks();
 }
 
+bool ChattyPost::CheckForChildrenFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &root_it)
+{
+   bool result = false;
+
+   tree<htmlcxx::HTML::Node>::sibling_iterator it;
+
+   if(HTML_FindChild(root_it, it, "ul"))
+   {
+      if(HTML_FindChild(it, it, "li"))
+      {
+         tree<htmlcxx::HTML::Node>::sibling_iterator replies_it;
+
+         if(HTML_FindChild_HasAttribute(it, replies_it, "div", "class", "capcontainer"))
+         {
+            if(HTML_FindChild(replies_it, replies_it, "ul"))
+            {
+               tree<htmlcxx::HTML::Node>::sibling_iterator child_it = replies_it.begin();
+               tree<htmlcxx::HTML::Node>::sibling_iterator child_end = replies_it.end();
+
+               ChattyPost *lastpost = NULL;
+
+               while(child_it != child_end)
+               {
+                  if(child_it->tagName() == "li")
+                  {
+                     unsigned int child_id = HTML_GetIDAttribute(child_it);
+
+                     if(child_id != 0)
+                     {
+                        result = true;
+                        break;
+                     }
+                  }
+
+                  child_it++;
+               }
+            }
+         }
+      }
+   }
+
+   return result;
+}
+
 void ChattyPost::ReadPostPreviewChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &post_it, 
                                                CLampDoc *pDoc,
                                                unsigned int id)
@@ -2354,7 +2398,19 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
 }
 
 
-int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
+int ChattyPost::DrawRoot(HDC hDC, 
+                         RECT &DeviceRectangle, 
+                         int pos, 
+                         std::vector<CHotSpot> &hotspots, 
+                         unsigned int current_id, 
+                         bool bLinkOnly, 
+                         bool bAllowModTools, 
+                         bool bModToolIsUp, 
+                         RECT &ModToolRect, 
+                         unsigned int ModToolPostID, 
+                         bool &newpostabove, 
+                         bool &newpostbelow,
+                         int topclip)
 {
    int iconsize = 20;
    int replybuttonwidth = 60;
@@ -3078,7 +3134,21 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                {
                   rootauthor = m_author;
                }                  
-               pos = (*it)->DrawReply(hDC, DeviceRectangle, pos, hotspots, indent, current_id, trunkatingposts, rootauthor, bAllowModTools, bModToolIsUp, ModToolRect, ModToolPostID);
+               pos = (*it)->DrawReply(hDC, 
+                                      DeviceRectangle, 
+                                      pos, 
+                                      hotspots, 
+                                      indent, 
+                                      current_id, 
+                                      trunkatingposts, 
+                                      rootauthor, 
+                                      bAllowModTools, 
+                                      bModToolIsUp, 
+                                      ModToolRect, 
+                                      ModToolPostID, 
+                                      newpostabove, 
+                                      newpostbelow,
+                                      topclip);
             }
             it++;
          }
@@ -3088,7 +3158,21 @@ int ChattyPost::DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
    return pos;
 }
 
-int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, int indent, unsigned int current_id, int &trunkatingposts, const UCString &rootauthor, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
+int ChattyPost::DrawReply(HDC hDC, 
+                          RECT &DeviceRectangle, 
+                          int pos, 
+                          std::vector<CHotSpot> &hotspots, 
+                          int indent, 
+                          unsigned int current_id, 
+                          int &trunkatingposts, 
+                          const UCString &rootauthor, 
+                          bool bAllowModTools, 
+                          bool bModToolIsUp, 
+                          RECT &ModToolRect, 
+                          unsigned int ModToolPostID, 
+                          bool &newpostabove, 
+                          bool &newpostbelow,
+                          int topclip)
 {
    int iconsize = 20;
    int replybuttonwidth = 60;
@@ -3902,8 +3986,20 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
                }
             }
          }
-
+         
          m_height = pos - m_pos;
+
+         if(GetNewness() == N_NEW)
+         {
+            if(m_pos + m_height < topclip)
+            {
+               newpostabove = true;
+            }
+            else if(m_pos > DeviceRectangle.bottom)
+            {
+               newpostbelow = true;
+            }
+         }
 
          // reserve space for reply dialog
          if(m_pReplyDlg != NULL)
@@ -3979,7 +4075,21 @@ int ChattyPost::DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<C
       {
          if((*it) != NULL)
          {
-            pos = (*it)->DrawReply(hDC, DeviceRectangle, pos, hotspots, indent, current_id, trunkatingposts, rootauthor, bAllowModTools, bModToolIsUp, ModToolRect, ModToolPostID);
+            pos = (*it)->DrawReply(hDC, 
+                                   DeviceRectangle, 
+                                   pos, 
+                                   hotspots, 
+                                   indent, 
+                                   current_id, 
+                                   trunkatingposts, 
+                                   rootauthor, 
+                                   bAllowModTools, 
+                                   bModToolIsUp, 
+                                   ModToolRect, 
+                                   ModToolPostID, 
+                                   newpostabove, 
+                                   newpostbelow,
+                                   topclip);
          }
          it++;
       }
@@ -6081,6 +6191,7 @@ void ChattyPost::GetTitle(UCString &title)
 
 void ChattyPost::UpdateDate()
 {
+   m_expired = false;
    UCString datetext_backup = m_datetext;
 
    if(m_datetext.Length() > 0 ||
@@ -6232,6 +6343,7 @@ void ChattyPost::UpdateDate()
       if(ago_seconds > (theApp.GetHoursExpire() * 60 * 60))
       {
          m_ago_color = theApp.GetExpiredTextColor();
+         m_expired = true;
       }
       else if(ago_seconds > ((theApp.GetHoursExpire() - 1) * 60 * 60))
       {
@@ -7236,7 +7348,7 @@ bool ChattyPost::IsFiltered()
    return result;
 }
 
-void ChattyPost::UpdateRootReplyList(std::vector<unsigned int> *list/* = NULL*/)
+void ChattyPost::UpdateRootReplyList(std::vector<CPostListEntry> *list/* = NULL*/)
 {
    if(list == NULL)
    {
@@ -7250,7 +7362,7 @@ void ChattyPost::UpdateRootReplyList(std::vector<unsigned int> *list/* = NULL*/)
    {
       if((*it) != NULL)
       {
-         list->push_back((*it)->GetId());
+         list->push_back(CPostListEntry((*it)->GetId(), (*it)->IsNew()));
          (*it)->UpdateRootReplyList(list);
       }
       it++;
@@ -7271,11 +7383,11 @@ unsigned int ChattyPost::GetPrevReply(bool bSkipSelf /*= false*/, bool bAllowExp
    
    for(int i = 0; i < (int)pParent->m_root_reply_list.size(); i++)
    {
-      if(pParent->m_root_reply_list[i] == result)
+      if(pParent->m_root_reply_list[i].m_id == result)
       {
          if(i-1 >= 0)
          {
-            result = pParent->m_root_reply_list[i-1];
+            result = pParent->m_root_reply_list[i-1].m_id;
          }
          break;
       }
@@ -7308,7 +7420,7 @@ unsigned int ChattyPost::GetNextReply(bool bSkipSelf /*= false*/, bool bAllowExp
 
       if(m_root_reply_list.size() > 0)
       {
-         result = m_root_reply_list[0];
+         result = m_root_reply_list[0].m_id;
       }
    }
    else
@@ -7323,16 +7435,86 @@ unsigned int ChattyPost::GetNextReply(bool bSkipSelf /*= false*/, bool bAllowExp
       
       for(int i = 0; i < (int)pParent->m_root_reply_list.size(); i++)
       {
-         if(pParent->m_root_reply_list[i] == result)
+         if(pParent->m_root_reply_list[i].m_id == result)
          {
             if(i+1 < (int)pParent->m_root_reply_list.size())
             {
-               result = pParent->m_root_reply_list[i+1];
+               result = pParent->m_root_reply_list[i+1].m_id;
             }
             break;
          }
       }
    }
+   return result;
+}
+
+unsigned int ChattyPost::GetPrevNewReply(bool bSkipSelf /*= false*/, bool bAllowExpandedTruncation/* = true*/)
+{
+   unsigned int result = GetId();
+
+   ChattyPost *pParent = this;
+   while(pParent->m_pParent != NULL)pParent = pParent->m_pParent;
+
+   if(bAllowExpandedTruncation)
+   {
+      pParent->UnShowAsTruncated();
+   }
+   
+   bool foundme = false;
+   for(int i = (int)pParent->m_root_reply_list.size() - 1; i > -1; i--)
+   {
+      if(foundme)
+      {
+         if(pParent->m_root_reply_list[i].m_isnew)
+         {
+            result = pParent->m_root_reply_list[i].m_id;
+            break;
+         }
+      }
+      else if(pParent->m_root_reply_list[i].m_id == result)
+      {
+         foundme = true;
+      }
+   }
+
+   return result;
+}
+
+unsigned int ChattyPost::GetNextNewReply(bool bSkipSelf /*= false*/, bool bAllowExpandedTruncation/* = true*/)
+{
+   unsigned int result = GetId();
+
+   ChattyPost *pParent = this;
+   while(pParent->m_pParent != NULL)pParent = pParent->m_pParent;
+
+   if(bAllowExpandedTruncation)
+   {
+      pParent->UnShowAsTruncated();
+   }
+   
+   bool foundme = false;
+   if(pParent->GetId() == result)
+   {
+      // root post selections can look forward from the start
+      foundme = true;
+   }
+
+   for(int i = 0; i < (int)pParent->m_root_reply_list.size(); i++)
+   {
+      if(foundme)
+      {
+         if(pParent->m_root_reply_list[i].m_isnew)
+         {
+            result = pParent->m_root_reply_list[i].m_id;
+            break;
+         }
+      }
+      else if(pParent->m_root_reply_list[i].m_id == result)
+      {
+         foundme = true;
+      }
+   }
+
    return result;
 }
 
@@ -7600,13 +7782,16 @@ void ChattyPost::RecordNewness(std::map<unsigned int,newness> &post_newness)
    }
 }
 
-void ChattyPost::EstablishNewness(std::map<unsigned int,newness> &post_newness)
+void ChattyPost::EstablishNewness(std::map<unsigned int,newness> &post_newness, bool bumpdown /*= true*/)
 {
    std::map<unsigned int,newness>::iterator me = post_newness.find(m_id);
    if(me != post_newness.end())
    {
       m_Newness = me->second;
-      BumpNewnessDown();
+      if(bumpdown)
+      {
+         BumpNewnessDown();
+      }
    }   
    else
    {
@@ -7626,7 +7811,7 @@ void ChattyPost::EstablishNewness(std::map<unsigned int,newness> &post_newness)
    {
       if((*it) != NULL)
       {
-         (*it)->EstablishNewness(post_newness);
+         (*it)->EstablishNewness(post_newness,bumpdown);
       }
       it++;
    }

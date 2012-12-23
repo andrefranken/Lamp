@@ -22,7 +22,7 @@
 #define WM_WAKEUP (WM_USER + 102)
 
 #define LAMP_VERSION_MAJOR 3
-#define LAMP_VERSION_MINOR 3
+#define LAMP_VERSION_MINOR 4
 
 chattyerror download(const char* host, const char* path, char** out_response, int *psize=NULL);
 
@@ -52,31 +52,34 @@ typedef enum
    DT_SEARCH       = 2,
    DT_THREAD_START = 3,
    DT_LOL          = 4,
-   DT_AUTHOR       = 5,
-   DT_POST         = 6,
-   DT_STORY_2      = 7,
-   DT_SHACKMSG     = 8,
-   DT_READMSG      = 9,
-   DT_SENDMSG      = 10,
-   DT_CHECK_UPDATE = 11,
-   DT_REFRESH_LOLS = 12,
+   DT_LOL_SOFT     = 5,
+   DT_AUTHOR       = 6,
+   DT_POST         = 7,
+   DT_STORY_2      = 8,
+   DT_SHACKMSG     = 9,
+   DT_READMSG      = 10,
+   DT_SENDMSG      = 11,
+   DT_CHECK_UPDATE = 12,
+   DT_REFRESH_LOLS = 13,
 
-   DT_SHACK_CHATTY = 13,
-   DT_SHACK_THREAD = 14,
-   DT_SHACK_THREAD_CONTENTS = 15,
-   DT_SHACK_POST   = 16,
-   DT_SHACK_SEARCH = 17,
-   DT_SHACK_SHACKMSG = 18,
-   DT_SHACK_READMSG = 19,
-   DT_SHACK_SENDMSG = 20,
-   DT_SHACK_DELETEMSG = 21,
-   DT_SHACK_CHATTY_INFINATE_PAGE = 22,
-   DT_SHACK_MOD_CATEGORY_CHANGE = 23,
-
-   DT_SUBMIT_LOLVOTE = 24,
-   DT_GET_IMAGE = 25,
-   DT_GET_THUMB = 26,
-   DT_GET_PROFILE = 27
+   DT_SHACK_CHATTY = 14,
+   DT_SHACK_THREAD = 15,
+   DT_SHACK_THREAD_SOFT = 16,
+   DT_SHACK_THREAD_CONTENTS = 17,
+   DT_SHACK_POST   = 18,
+   DT_SHACK_SEARCH = 19,
+   DT_SHACK_SEARCH_SOFT = 20,
+   DT_SHACK_SHACKMSG = 21,
+   DT_SHACK_READMSG = 22,
+   DT_SHACK_SENDMSG = 23,
+   DT_SHACK_DELETEMSG = 24,
+   DT_SHACK_CHATTY_INFINATE_PAGE = 25,
+   DT_SHACK_MOD_CATEGORY_CHANGE = 26,
+   
+   DT_SUBMIT_LOLVOTE = 27,
+   DT_GET_IMAGE = 28,
+   DT_GET_THUMB = 29,
+   DT_GET_PROFILE = 30
 } DownloadType;
 
 class CLampView;
@@ -806,6 +809,9 @@ public:
    bool MoveRefreshToTop(){return m_move_refresh_to_top;}
    void MoveRefreshToTop(bool value){m_move_refresh_to_top = value;}
 
+   bool AutoRefresh(){return m_auto_refresh;}
+   void AutoRefresh(bool value);
+
    bool StrokeRootEdges(){return m_stroke_root_edges;}
    bool StrokePreviewEdges(){return m_stroke_preview_edges;}
    void SetStrokePreviewEdges(bool value){m_stroke_preview_edges = value;}
@@ -819,8 +825,8 @@ public:
    bool GetSmoothScroll(){return m_smooth_scroll;}
    float GetSmoothScrollScale(){return m_smoothscrollscale;}
    float GetMouseWheelScale(){return m_mouse_wheel_scale;}
-   int GetNumMinutesCheckInbox(){return m_num_minutes_check_inbox;}
-   void SetNumMinutesCheckInbox(int value);
+   int GetNumMinutesUpdateTab(){return m_num_minutes_update_tab;}
+   void SetNumMinutesUpdateTab(int value);
    
    int GetNumMinutesCheckLOL(){return m_num_minutes_check_lol;}
    void SetNumMinutesCheckLOL(int value){m_num_minutes_check_lol = value;}
@@ -964,6 +970,9 @@ public:
    void SetLastPost(const UCString &post){m_lastpost = post;}
 
    void UpdateInbox();
+   void RefreshATab();
+   void UpdateTabNames();
+   DWORD GetRecentUserActivity();
 
    void CheckForUpdates(bool bManual);
 
@@ -1450,7 +1459,7 @@ protected:
 
    UCString m_lastpost;
 
-   int m_num_minutes_check_inbox;
+   int m_num_minutes_update_tab;
 
    int m_num_minutes_check_lol;
 
@@ -1539,6 +1548,8 @@ protected:
    bool m_show_nav_buttons;
 
    bool m_move_refresh_to_top;
+
+   bool m_auto_refresh;
 
 public:
    afx_msg void OnFileSetuplogininfo();

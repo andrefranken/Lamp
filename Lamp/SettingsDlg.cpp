@@ -78,7 +78,7 @@ void CSettingsDlg::OnBnClickedOk()
 
       pNumMinsInbox->GetWindowTextW(temp);
       temp2 = temp;
-      theApp.SetNumMinutesCheckInbox(temp2);
+      theApp.SetNumMinutesUpdateTab(temp2);
 
       pInertia->GetWindowTextW(temp);
       temp2 = temp;
@@ -197,7 +197,7 @@ BOOL CSettingsDlg::OnInitDialog()
       pMouseWheelSpeed->SetWindowTextW(UCString(theApp.GetMouseWheelScale()));
       pMBPanSpeed->SetWindowTextW(UCString(theApp.GetMBPanScale()));
       pNumShowTrunc->SetWindowTextW(UCString(theApp.GetNumToShowWhenTruncated()));
-      pNumMinsInbox->SetWindowTextW(UCString(theApp.GetNumMinutesCheckInbox()));
+      pNumMinsInbox->SetWindowTextW(UCString(theApp.GetNumMinutesUpdateTab()));
       pInertia->SetWindowTextW(UCString(theApp.GetInertiaFriction()));
       pHoursExpire->SetWindowTextW(UCString(theApp.GetHoursExpire()));
       ptMSecondsPreviewTimer->SetWindowTextW(UCString(theApp.GetMSecondsPreviewTimer()));

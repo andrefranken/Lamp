@@ -70,6 +70,8 @@ public:
 
    void CloseReplyDialog();
 
+   bool IsReplyDialogOpen(){if(m_pReplyDlg != NULL)return true;return false;}
+
    void SetDLGUp(bool value){m_dlgup = value;}
    bool GetDLGUp(){return m_dlgup;}
 
@@ -106,11 +108,19 @@ public:
       
    void MakeCurrentPostLegal(bool bTopOnly = false, bool bKeepInSameLocation = false, int y = 0, bool bInstant = false);
 
+   int GetViewPosition();
+
+   void UpdateViewPosition(int pos);
+
    void SetPos(int pos){m_gotopos = m_pos = pos;}
 
    void MakeMousePointInvalid(){m_mousepoint.x = -1000; m_mousepoint.y = -1000;}
 
    CHotSpot *GetHotspot(CPoint &point);
+
+   void SoftRefresh();
+
+   DWORD GetLastUserActivity(){return m_last_user_activity;}
 
    bool HaveNextPost();
    bool HavePrevPost();
@@ -119,7 +129,7 @@ public:
    bool HavePrevThread();
 
    bool m_bLBDownOnDblClkable;
-
+   
 protected:
    void DrawHotSpots(HDC hDC);
    bool DrawCurrentHotSpots(HDC hDC);
@@ -250,6 +260,11 @@ protected:
    float m_hover_preview_percent;
 
    UCString m_authorname_clicked;
+
+   DWORD m_last_user_activity;
+      
+   bool m_newpostabove;
+   bool m_newpostbelow;
 
 // Generated message map functions
 protected:
@@ -481,7 +496,6 @@ public:
    afx_msg void OnUpdateIEDef(CCmdUI *pCmdUI);
    afx_msg void OnUpdateIEPrivateDef(CCmdUI *pCmdUI);
    afx_msg void OnUpdateSafariDef(CCmdUI *pCmdUI);
-
    afx_msg void OnSystemDef_nws();
    afx_msg void OnChromeDef_nws();
    afx_msg void OnChromeIncognitoDef_nws();
@@ -489,7 +503,6 @@ public:
    afx_msg void OnIEDef_nws();
    afx_msg void OnIEPrivateDef_nws();
    afx_msg void OnSafariDef_nws();
-
    afx_msg void OnUpdateSystemDef_nws(CCmdUI *pCmdUI);
    afx_msg void OnUpdateChromeDef_nws(CCmdUI *pCmdUI);
    afx_msg void OnUpdateChromeIncognitoDef_nws(CCmdUI *pCmdUI);
@@ -497,9 +510,10 @@ public:
    afx_msg void OnUpdateIEDef_nws(CCmdUI *pCmdUI);
    afx_msg void OnUpdateIEPrivateDef_nws(CCmdUI *pCmdUI);
    afx_msg void OnUpdateSafariDef_nws(CCmdUI *pCmdUI);
-
    afx_msg void OnAllowGDIPlus();
    afx_msg void OnUpdateAllowGDIPlus(CCmdUI *pCmdUI);
+   afx_msg void OnAutoRefresh();
+   afx_msg void OnUpdateAutoRefresh(CCmdUI *pCmdUI);
    
 };
 

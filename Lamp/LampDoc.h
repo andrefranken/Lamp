@@ -99,7 +99,18 @@ public:
 
    DocDataType GetDataType(void){return m_datatype;}
 
-   void Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
+   void Draw(HDC hDC, 
+             int device_height, 
+             RECT &DeviceRectangle, 
+             int pos, 
+             std::vector<CHotSpot> &hotspots, 
+             unsigned int current_id, 
+             bool bModToolIsUp, 
+             RECT &ModToolRect, 
+             unsigned int ModToolPostID,
+             bool &newpostabove, 
+             bool &newpostbelow,
+             int topclip);
 
    void DoBoldFont(HDC hDC){::SelectObject(hDC, m_boldfont);}
    void FillBackground(HDC hDC, RECT &rect){::FillRect(hDC, &rect, m_backgroundbrush);}
@@ -187,6 +198,10 @@ public:
       SetTitle(m_actualtitle);
    }
 
+   void Viewed();
+   void NewContent();
+   void UpdateTabName();
+
    void StartDownload(const UCChar *host,
                       const UCChar *path,
                       DownloadType dt,
@@ -222,8 +237,12 @@ public:
 
    void MySetTitle(LPCTSTR lpszTitle);
 
-   bool RefreshThread(unsigned int id, unsigned int refresh_id, bool bStarting = false, unsigned int reply_to_id = 0);
-   bool Refresh();
+   bool RefreshThread(unsigned int id, 
+                      unsigned int refresh_id, 
+                      bool bStarting = false, 
+                      unsigned int reply_to_id = 0, 
+                      bool soft = false);
+   bool Refresh(bool soft = false);
    void ProcessLOLData(char *data, int datasize);
 
    ChattyPost *FindRootPost(unsigned int id);
@@ -299,6 +318,10 @@ public:
 
    unsigned int GetRootCount(){return m_rootposts.size();}
 
+   DWORD GetLastRefreshTime(){return m_last_refresh_time;}
+
+   bool IsExpired(){if(m_rootposts.size() == 1)return (*m_rootposts.begin())->IsExpired();return false;}
+
 // Implementation
 public:
 	virtual ~CLampDoc();
@@ -311,15 +334,27 @@ protected:
    void SetDataType(DocDataType datatype){m_datatype = datatype;}
    bool ReadFromRoot(CXMLTree &xmldata, std::vector<unsigned int> &existing_threads);
    bool ReadSearchResultsFromRoot(CXMLTree &xmldata);
-   void ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsigned int> &existing_threads, bool bCheckForPages, bool bSkipExistingThreads = false);
+   void ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsigned int> &existing_threads, bool bCheckForPages, bool bSkipExistingThreads = false, bool preservenewness = false);
    void ReadLatestChatty();
    void ReadLatestChattyPart2();   
-   void ReadLOL();
+   void ReadLOL(bool soft = false);
    void ReadProfile(const char *pText, int datasize);
-   void PerformSearch();
+   void PerformSearch(bool soft = false);
    void GetProfile();
    bool ReadExistingThreadFromRoot(CXMLTree &xmldata, unsigned int id, bool bDoingNewFlags);
-   int DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
+   int DrawFromRoot(HDC hDC, 
+                    RECT &DeviceRectangle, 
+                    int pos, 
+                    std::vector<CHotSpot> &hotspots, 
+                    unsigned int current_id, 
+                    bool bLinkOnly, 
+                    bool bAllowModTools, 
+                    bool bModToolIsUp, 
+                    RECT &ModToolRect, 
+                    unsigned int ModToolPostID, 
+                    bool &newpostabove, 
+                    bool &newpostbelow,
+                    int topclip);
    int DrawMessages(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id);
    
    void CalcLineTags(std::vector<shacktagpos> &shacktags, std::vector<shacktagpos> &thislinetags, int beginpos, int endpos);
@@ -415,6 +450,9 @@ protected:
    COLORREF m_link_color;
    COLORREF m_image_link_color;
 
+   DWORD m_last_refresh_time;
+
+   UCString m_last_result_text;
 // Generated message map functions
 protected:
 	DECLARE_MESSAGE_MAP()

@@ -275,6 +275,14 @@ typedef enum
    LTT_UGH = 32
 }loltagtype;
 
+class CPostListEntry
+{
+public:
+   CPostListEntry(unsigned int id, bool isnew){m_id = id; m_isnew = isnew;}
+   unsigned int m_id;
+   bool m_isnew;
+};
+
 void FindLinksInStringAndTagThem(UCString &body);
 
 size_t HTML_GetIDAttribute(tree<htmlcxx::HTML::Node>::sibling_iterator &it, const char *attr_name = NULL);
@@ -380,6 +388,7 @@ public:
       m_bIsProfileGroup = false;
       m_pFlaggedUser = NULL;
       m_bUserHasPostedInThread = false;
+      m_expired = false;
    }
    virtual ~ChattyPost();
 
@@ -417,6 +426,8 @@ public:
                                CLampDoc *pDoc,
                                unsigned int id);
 
+   bool CheckForChildrenFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &root_it);
+
    void ReadPostPreviewChattyFromHTML(tree<htmlcxx::HTML::Node>::sibling_iterator &post_it, 
                                       CLampDoc *pDoc,
                                       unsigned int id);
@@ -441,8 +452,34 @@ public:
 
    void SetFromText(const UCChar *text, int &width);
 
-   int DrawRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
-   int DrawReply(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, int indent, unsigned int current_id, int &trunkatingposts, const UCString &rootauthor, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID);
+   int DrawRoot(HDC hDC, 
+                RECT &DeviceRectangle, 
+                int pos, 
+                std::vector<CHotSpot> &hotspots, 
+                unsigned int current_id, 
+                bool bLinkOnly, 
+                bool bAllowModTools, 
+                bool bModToolIsUp, 
+                RECT &ModToolRect, 
+                unsigned int ModToolPostID, 
+                bool &newpostabove, 
+                bool &newpostbelow,
+                int topclip);
+   int DrawReply(HDC hDC, 
+                 RECT &DeviceRectangle, 
+                 int pos, 
+                 std::vector<CHotSpot> &hotspots, 
+                 int indent, 
+                 unsigned int current_id, 
+                 int &trunkatingposts, 
+                 const UCString &rootauthor, 
+                 bool bAllowModTools, 
+                 bool bModToolIsUp, 
+                 RECT &ModToolRect, 
+                 unsigned int ModToolPostID, 
+                 bool &newpostabove, 
+                 bool &newpostbelow,
+                 int topclip);
    int DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id);
    void DrawTextOnly(HDC hDC, RECT &DeviceRectangle, int pos, bool bCenter);
    int DrawProfile(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots);
@@ -531,6 +568,7 @@ public:
    void UnShowAsTruncated(){m_bShowTruncated = false;}
 
    void CountFamilySize();
+   void AddToFamilySize(size_t &familysize);
 
    void UpdateAuthorInfo();
 
@@ -544,7 +582,10 @@ public:
    unsigned int GetPrevReply(bool bSkipSelf = false, bool bAllowExpandedTruncation = true);
    unsigned int GetNextReply(bool bSkipSelf = false, bool bAllowExpandedTruncation = true);
 
-   void UpdateRootReplyList(std::vector<unsigned int> *list = NULL);
+   unsigned int GetPrevNewReply(bool bSkipSelf = false, bool bAllowExpandedTruncation = true);
+   unsigned int GetNextNewReply(bool bSkipSelf = false, bool bAllowExpandedTruncation = true);
+
+   void UpdateRootReplyList(std::vector<CPostListEntry> *list = NULL);
 
    bool GetHaveRead(){return m_bHaveRead;}
    void SetHaveRead(bool value){m_bHaveRead = value;}
@@ -561,7 +602,7 @@ public:
    ChattyPost *GetRoot();
 
    void RecordNewness(std::map<unsigned int,newness> &post_newness);
-   void EstablishNewness(std::map<unsigned int,newness> &post_newness);
+   void EstablishNewness(std::map<unsigned int,newness> &post_newness, bool bumpdown = true);
 
    void RecordTags(std::map<unsigned int,std::vector<shacktagpos>> &post_tags);
    void EstablishTags(std::map<unsigned int,std::vector<shacktagpos>> &post_tags);
@@ -584,6 +625,8 @@ public:
    const UCChar *GetNote();
 
    void DetermineIfUserHasPostedInThread();
+
+   bool IsExpired(){return m_expired;}
 protected:
    void SetupCharWidths();
    void SetupBodyText(RECT &textrect);
@@ -591,7 +634,6 @@ protected:
    void DecodeString(UCString &from, UCString &to, std::vector<shacktagpos> &shacktags);
    void GatherIds(std::list<unsigned int> &ids);
    void RemoveSomeTags(UCString &str, bool safe = false);
-   void AddToFamilySize(size_t &familysize);
    void UpdateDate();
    bool IsRoot(){if(m_pParent != NULL)return false;return true;}
    void IfUserHasPostedInThread(bool &result);
@@ -649,8 +691,9 @@ protected:
    bool                    m_bPinned;
 
    COLORREF                m_ago_color;
+   bool                    m_expired;
 
-   std::vector<unsigned int> m_root_reply_list;
+   std::vector<CPostListEntry> m_root_reply_list;
 
    bool                    m_bHaveRead;
    bool                    m_bIsInbox;

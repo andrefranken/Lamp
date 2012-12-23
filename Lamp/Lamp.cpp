@@ -36,6 +36,8 @@ bool g_bIsXP = false;
 
 bool g_bSingleThreadStyle = false;
 
+UCChar g_newstuff_char = 0x25CF;
+
 #include <gdiplus.h>
 using namespace Gdiplus;
 GdiplusStartupInput g_gdiplusStartupInput;
@@ -176,20 +178,26 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                         msg += L'.';
                         msg += minorversion;
                         msg += L") available.\r\nWould you like to update?";
-                        int ret = GetMainWnd()->MessageBox(msg,L"Lamp",MB_YESNO);
-                        if(ret == IDYES)
+                        if(GetMainWnd() != NULL)
                         {
-                           //UCString link(L"http://shackwiki.com/wiki/Lamp#-_Download");
-                           //OpenShackLink(link);
-                           UCString update_filename;
-                           update_filename.PathToMe(L"LampUpdate.exe");
+                           int ret = GetMainWnd()->MessageBox(msg,L"Lamp",MB_YESNO);
+                           if(ret == IDYES)
+                           {
+                              //UCString link(L"http://shackwiki.com/wiki/Lamp#-_Download");
+                              //OpenShackLink(link);
+                              UCString update_filename;
+                              update_filename.PathToMe(L"LampUpdate.exe");
 
-                           ShellExecuteW(NULL,L"open",update_filename, NULL, NULL, SW_SHOW);
+                              ShellExecuteW(NULL,L"open",update_filename, NULL, NULL, SW_SHOW);
+                           }
                         }
                      }                     
                      else if(pDD->m_postrootid == 1)
                      {
-                        GetMainWnd()->MessageBox(L"Your version is up-to-date.",L"Lamp",MB_OK);
+                        if(GetMainWnd() != NULL)
+                        {
+                           GetMainWnd()->MessageBox(L"Your version is up-to-date.",L"Lamp",MB_OK);
+                        }
                      }
 
                      int minutes = xmldata.GetElementValue(L"CheckLOLMinutes");
@@ -198,7 +206,10 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                         theApp.GetNumMinutesCheckLOL() != minutes)
                      {
                         theApp.SetNumMinutesCheckLOL(minutes);
-                        ((CMainFrame*)GetMainWnd())->UpdateLOLTimer();
+                        if(GetMainWnd() != NULL)
+                        {
+                           ((CMainFrame*)GetMainWnd())->UpdateLOLTimer();
+                        }
                      }
 
                      UCString lolserver = xmldata.GetElementValue(L"ForceLOLServer");
@@ -424,10 +435,13 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                         it++;
                      }
 
-                     CLampView *pView = ((CMainFrame*)GetMainWnd())->GetActiveLampView();
-                     if(pView != NULL)
+                     if(GetMainWnd() != NULL)
                      {
-                        pView->InvalidateEverything();
+                        CLampView *pView = ((CMainFrame*)GetMainWnd())->GetActiveLampView();
+                        if(pView != NULL)
+                        {
+                           pView->InvalidateEverything();
+                        }
                      }
                   }
                }
@@ -511,14 +525,22 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                            !(*vit)->GetDLGUp())
                         {
                            (*vit)->GetDocument()->ReadShackMessagesHTML(pDD->m_stdstring);
+
+                           if(m_unreadmessagecount > 0)
+                           {
+                              (*vit)->GetDocument()->NewContent();
+                           }
                         }
                         vit++;
                      }
 
-                     CLampView *pView = ((CMainFrame*)GetMainWnd())->GetActiveLampView();
-                     if(pView != NULL)
+                     if(GetMainWnd() != NULL)
                      {
-                        pView->InvalidateEverything();
+                        CLampView *pView = ((CMainFrame*)GetMainWnd())->GetActiveLampView();
+                        if(pView != NULL)
+                        {
+                           pView->InvalidateEverything();
+                        }
                      }
                   }
                }
@@ -862,10 +884,11 @@ CLampApp::CLampApp()
 
    m_numshow_truncated = 10;
 
-   m_left_mouse_pan = true;
+   m_left_mouse_pan = false;
 
    m_show_nav_buttons = true;
    m_move_refresh_to_top = true;
+   m_auto_refresh = false;
 
    m_line_thickness = 1;
 
@@ -885,7 +908,7 @@ CLampApp::CLampApp()
    m_quoted_fontname = L"Times New Roman";
    m_code_fontname = L"Courier New";
 
-   m_num_minutes_check_inbox = 3;
+   m_num_minutes_update_tab = 3;
 
    m_num_minutes_check_lol = 5;
 
@@ -1793,7 +1816,7 @@ void CLampApp::ReadSettingsFile()
 
    setting = hostxml.FindChildElement(L"left_mouse_pan");
    if(setting!=NULL) m_left_mouse_pan = setting->GetValue();
-   else m_left_mouse_pan = true;
+   else m_left_mouse_pan = false;
 
    setting = hostxml.FindChildElement(L"show_nav_buttons");
    if(setting!=NULL) m_show_nav_buttons = setting->GetValue();
@@ -1802,14 +1825,19 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"move_refresh_to_top");
    if(setting!=NULL) m_move_refresh_to_top = setting->GetValue();
    else m_move_refresh_to_top = true;
+
+   setting = hostxml.FindChildElement(L"auto_refresh");
+   if(setting!=NULL) m_auto_refresh = setting->GetValue();
+   else m_auto_refresh = false;
    
    setting = hostxml.FindChildElement(L"AlwaysOnTopWhenNotDocked");
    if(setting!=NULL) m_bAlwaysOnTopWhenNotDocked = setting->GetValue();
    else m_bAlwaysOnTopWhenNotDocked = false;
 
-   setting = hostxml.FindChildElement(L"num_minutes_check_inbox");
-   if(setting!=NULL) m_num_minutes_check_inbox = setting->GetValue();
-   else m_num_minutes_check_inbox = 3;
+   setting = hostxml.FindChildElement(L"num_minutes_update_tab");
+   if(setting==NULL) setting = hostxml.FindChildElement(L"num_minutes_check_inbox");
+   if(setting!=NULL) m_num_minutes_update_tab = setting->GetValue();
+   else m_num_minutes_update_tab = 3;
 
    setting = hostxml.FindChildElement(L"enable_spell_checker");
    if(setting!=NULL) m_enable_spell_checker = setting->GetValue();
@@ -2270,8 +2298,9 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"left_mouse_pan",UCString(m_left_mouse_pan));
    settingsxml.AddChildElement(L"show_nav_buttons",UCString(m_show_nav_buttons));
    settingsxml.AddChildElement(L"move_refresh_to_top",UCString(m_move_refresh_to_top));
+   settingsxml.AddChildElement(L"auto_refresh",UCString(m_auto_refresh));
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
-   settingsxml.AddChildElement(L"num_minutes_check_inbox",UCString(m_num_minutes_check_inbox));
+   settingsxml.AddChildElement(L"num_minutes_update_tab",UCString(m_num_minutes_update_tab));
    settingsxml.AddChildElement(L"enable_spell_checker",UCString(m_enable_spell_checker));
    settingsxml.AddChildElement(L"highlight_OP",UCString(m_highlight_OP));
    settingsxml.AddChildElement(L"authorglow",UCString(m_authorglow));
@@ -3487,17 +3516,20 @@ bool CLampApp::HaveLogin()
 bool CLampApp::Login()
 {
    bool have = false;
-   CLoginDlg logindlg(GetMainWnd());
-   logindlg.m_username = m_username;
-   logindlg.m_password = m_password;
-   if(logindlg.DoModal() == IDOK)
+   if(GetMainWnd() != NULL)
    {
-      m_username = logindlg.m_username;
-      m_password = logindlg.m_password;
-      have = true;
-   }
+      CLoginDlg logindlg(GetMainWnd());
+      logindlg.m_username = m_username;
+      logindlg.m_password = m_password;
+      if(logindlg.DoModal() == IDOK)
+      {
+         m_username = logindlg.m_username;
+         m_password = logindlg.m_password;
+         have = true;
+      }
 
-   CheckForModMode();
+      CheckForModMode();
+   }
 
    return have;
 }
@@ -3544,6 +3576,117 @@ void CLampApp::RefreshLOLs()
    pDD->m_postrootid = 0;
 
    AfxBeginThread(DownloadThreadProc, pDD);
+}
+
+void CLampApp::UpdateTabNames()
+{
+   if(GetMainWnd() != NULL)
+   {
+      CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+
+      std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
+      std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
+
+      while(it != end)
+      {
+         (*it)->UpdateTabName();
+         it++;
+      }
+   }
+}
+
+DWORD CLampApp::GetRecentUserActivity()
+{
+   DWORD result = 0;
+
+   if(GetMainWnd() != NULL)
+   {
+      CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+
+      std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
+      std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
+
+      while(it != end)
+      {
+         DWORD then = (*it)->GetView()->GetLastUserActivity();
+         if(then > result)
+            result = then;
+         it++;
+      }
+   }
+
+   return result;
+}
+
+void CLampApp::RefreshATab()
+{
+   if(GetMainWnd() != NULL)
+   {
+      CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+
+      std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
+      std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
+
+      DWORD now = ::GetTickCount();
+      DWORD threshold = (DWORD)(GetNumMinutesUpdateTab() * 60000);
+      DWORD recent = theApp.GetRecentUserActivity();
+
+      if(now - recent > (60000 * 5))
+      {
+         threshold *= 2;
+      }
+      if(now - recent > (60000 * 10))
+      {
+         threshold *= 2;
+      }
+
+      DWORD longago = 0;
+      std::list<CLampDoc*>::iterator who = end;
+
+      while(it != end)
+      {
+         DWORD ago = now - (*it)->GetLastRefreshTime();
+         DocDataType dt = (*it)->GetDataType();
+         CLampView *view = (*it)->GetView();
+
+         if(
+            // is not of a type that doesn't handle auto refresh
+            dt != DDT_STORY &&
+            dt != DDT_PROFILE &&
+            dt != DDT_EPICFAILD &&
+            dt != DDT_SHACKMSG &&
+            dt != DDT_LOLS &&
+
+            // enough time has passed since it was last refreshed.
+            ago > threshold &&
+
+            // does not have the reply dialog open
+            view != NULL &&
+            !view->IsReplyDialogOpen() &&
+
+            // if it is a thread, don't refresh if it is expired
+            dt == DDT_THREAD &&
+            !(*it)->IsExpired()
+           )
+         {
+            if(ago > longago)
+            {
+               longago = ago;
+               who = it;
+            }
+         }
+         it++;
+      }
+
+      if(who != end)
+      {
+         (*who)->GetView()->SoftRefresh();
+      }
+      /*else
+      {*/
+         //UpdateTabNames();
+      //}
+   }
 }
 
 void CLampApp::UpdateInbox()
@@ -3777,10 +3920,13 @@ void CLampApp::UpdateNewMessages()
 
 void CLampApp::OnFileOpenthread()
 {
-   COpenThreadDlg openDlg(GetMainWnd());
-	if(openDlg.DoModal() == IDOK)
+   if(GetMainWnd() != NULL)
    {
-      OpenShackLink(openDlg.m_path);
+      COpenThreadDlg openDlg(GetMainWnd());
+	   if(openDlg.DoModal() == IDOK)
+      {
+         OpenShackLink(openDlg.m_path);
+      }
    }
 }
 
@@ -3795,16 +3941,19 @@ void CLampApp::OnFileOpen()
 }
 void CLampApp::OnFileSetuplogininfo()
 {
-   CLoginDlg logindlg(GetMainWnd());
-   logindlg.m_username = m_username;
-   logindlg.m_password = m_password;
-   if(logindlg.DoModal() == IDOK)
+   if(GetMainWnd() != NULL)
    {
-      m_username = logindlg.m_username;
-      m_password = logindlg.m_password;
-   }
+      CLoginDlg logindlg(GetMainWnd());
+      logindlg.m_username = m_username;
+      logindlg.m_password = m_password;
+      if(logindlg.DoModal() == IDOK)
+      {
+         m_username = logindlg.m_username;
+         m_password = logindlg.m_password;
+      }
 
-   CheckForModMode();
+      CheckForModMode();
+   }
 }
 
 void CLampApp::OnUpdateFileSetuplogininfo(CCmdUI *pCmdUI)
@@ -4046,19 +4195,22 @@ bool CLampApp::GetMyCollapse(unsigned int post_id)
 
 void CLampApp::OnAlwaysOnTopWhenNotDocked()
 {
-   RECT framerect;
-   ((CMainFrame*)GetMainWnd())->GetWindowRect(&framerect);
-
-   const CWnd *pWndInsertAfter = &CWnd::wndNoTopMost;
-
-   m_bAlwaysOnTopWhenNotDocked = !m_bAlwaysOnTopWhenNotDocked;
-
-   if(m_bAlwaysOnTopWhenNotDocked)
+   if(GetMainWnd() != NULL)
    {
-      pWndInsertAfter = &CWnd::wndTopMost;
-   }
+      RECT framerect;
+      ((CMainFrame*)GetMainWnd())->GetWindowRect(&framerect);
 
-   GetMainWnd()->SetWindowPos(pWndInsertAfter, framerect.left, framerect.top, framerect.right - framerect.left, framerect.bottom - framerect.top, 0);   
+      const CWnd *pWndInsertAfter = &CWnd::wndNoTopMost;
+
+      m_bAlwaysOnTopWhenNotDocked = !m_bAlwaysOnTopWhenNotDocked;
+
+      if(m_bAlwaysOnTopWhenNotDocked)
+      {
+         pWndInsertAfter = &CWnd::wndTopMost;
+      }
+
+      GetMainWnd()->SetWindowPos(pWndInsertAfter, framerect.left, framerect.top, framerect.right - framerect.left, framerect.bottom - framerect.top, 0);   
+   }
 }
 
 void CLampApp::OnUpdateAlwaysOnTopWhenNotDocked(CCmdUI *pCmdUI)
@@ -4084,96 +4236,99 @@ void CLampApp::OnUpdateAlwaysOnTopWhenNotDocked(CCmdUI *pCmdUI)
 
 void CLampApp::OnViewDocktop()
 {
-   if(m_bDockedMode)
+   if(GetMainWnd() != NULL)
    {
-      m_bDockedMode = false;
-      m_bCollapsed = false;
-      m_bWasInDockedMode = false;
-      //GetMainWnd()->ModifyStyle(0, WS_SIZEBOX);
-      //GetMainWnd()->SetWindowPos(&CWnd::wndBottom, m_restoredrect.left, m_restoredrect.top, m_restoredrect.right - m_restoredrect.left, m_restoredrect.bottom - m_restoredrect.top, 0);
-      //GetMainWnd()->SetWindowPos(&CWnd::wndTop, m_restoredrect.left, m_restoredrect.top, m_restoredrect.right - m_restoredrect.left, m_restoredrect.bottom - m_restoredrect.top, 0);
-
-      RECT framerect;
-      ((CMainFrame*)GetMainWnd())->GetWindowRect(&framerect);
-
-      const CWnd *pWndInsertAfter = &CWnd::wndNoTopMost;
-
-      if(m_bAlwaysOnTopWhenNotDocked)
+      if(m_bDockedMode)
       {
-         pWndInsertAfter = &CWnd::wndTopMost;
+         m_bDockedMode = false;
+         m_bCollapsed = false;
+         m_bWasInDockedMode = false;
+         //GetMainWnd()->ModifyStyle(0, WS_SIZEBOX);
+         //GetMainWnd()->SetWindowPos(&CWnd::wndBottom, m_restoredrect.left, m_restoredrect.top, m_restoredrect.right - m_restoredrect.left, m_restoredrect.bottom - m_restoredrect.top, 0);
+         //GetMainWnd()->SetWindowPos(&CWnd::wndTop, m_restoredrect.left, m_restoredrect.top, m_restoredrect.right - m_restoredrect.left, m_restoredrect.bottom - m_restoredrect.top, 0);
+
+         RECT framerect;
+         ((CMainFrame*)GetMainWnd())->GetWindowRect(&framerect);
+
+         const CWnd *pWndInsertAfter = &CWnd::wndNoTopMost;
+
+         if(m_bAlwaysOnTopWhenNotDocked)
+         {
+            pWndInsertAfter = &CWnd::wndTopMost;
+         }
+
+         GetMainWnd()->SetWindowPos(pWndInsertAfter, framerect.left, framerect.top, framerect.right - framerect.left, framerect.bottom - framerect.top, SWP_NOMOVE|SWP_NOSIZE);   
+
+         GetMainWnd()->ModifyStyle(0,WS_MAXIMIZEBOX|WS_MINIMIZEBOX);
+
+         if(m_pDockTab != NULL)
+         {
+            delete m_pDockTab;
+            m_pDockTab = NULL;
+         }
       }
-
-      GetMainWnd()->SetWindowPos(pWndInsertAfter, framerect.left, framerect.top, framerect.right - framerect.left, framerect.bottom - framerect.top, SWP_NOMOVE|SWP_NOSIZE);   
-
-      GetMainWnd()->ModifyStyle(0,WS_MAXIMIZEBOX|WS_MINIMIZEBOX);
-
-      if(m_pDockTab != NULL)
+      else
       {
-         delete m_pDockTab;
-         m_pDockTab = NULL;
-      }
-   }
-   else
-   {
-      m_bDockedMode = true;
-      m_bCollapsed = false;
-      m_bWasInDockedMode = true;
+         m_bDockedMode = true;
+         m_bCollapsed = false;
+         m_bWasInDockedMode = true;
 
-      RECT framerect;
-      ((CMainFrame*)GetMainWnd())->GetWindowRect(&framerect);
+         RECT framerect;
+         ((CMainFrame*)GetMainWnd())->GetWindowRect(&framerect);
 
-      RECT menurect;
-      ((CMainFrame*)GetMainWnd())->GetMenuBar()->GetWindowRect(&menurect);
+         RECT menurect;
+         ((CMainFrame*)GetMainWnd())->GetMenuBar()->GetWindowRect(&menurect);
 
-      m_dockedrect.left = framerect.left;
-      m_dockedrect.right = framerect.right;
-      m_dockedrect.top = framerect.top - menurect.top; // about -30;
-      m_dockedrect.bottom = m_dockedrect.top + (framerect.bottom - framerect.top);
+         m_dockedrect.left = framerect.left;
+         m_dockedrect.right = framerect.right;
+         m_dockedrect.top = framerect.top - menurect.top; // about -30;
+         m_dockedrect.bottom = m_dockedrect.top + (framerect.bottom - framerect.top);
 
-      m_restoredrect = framerect;
+         m_restoredrect = framerect;
 
-      //GetMainWnd()->ModifyStyle(WS_SIZEBOX, 0);
+         //GetMainWnd()->ModifyStyle(WS_SIZEBOX, 0);
 
-      //GetMainWnd()->SetWindowPos(&CWnd::wndTopMost, m_dockedrect.left, m_dockedrect.top, m_dockedrect.right - m_dockedrect.left, m_dockedrect.bottom - m_dockedrect.top, 0);   
-      GetMainWnd()->SetWindowPos(&CWnd::wndTopMost, framerect.left, framerect.top, framerect.right - framerect.left, framerect.bottom - framerect.top, 0);   
+         //GetMainWnd()->SetWindowPos(&CWnd::wndTopMost, m_dockedrect.left, m_dockedrect.top, m_dockedrect.right - m_dockedrect.left, m_dockedrect.bottom - m_dockedrect.top, 0);   
+         GetMainWnd()->SetWindowPos(&CWnd::wndTopMost, framerect.left, framerect.top, framerect.right - framerect.left, framerect.bottom - framerect.top, 0);   
 
-      GetMainWnd()->ModifyStyle(WS_MAXIMIZEBOX|WS_MINIMIZEBOX,0);
+         GetMainWnd()->ModifyStyle(WS_MAXIMIZEBOX|WS_MINIMIZEBOX,0);
 
-      m_pDockTab = new DockTab((CMainFrame*)GetMainWnd());
-      m_pDockTab->m_pFrameWnd = (CMainFrame*)GetMainWnd();
+         m_pDockTab = new DockTab((CMainFrame*)GetMainWnd());
+         m_pDockTab->m_pFrameWnd = (CMainFrame*)GetMainWnd();
 
-      m_pDockTab->Create( IDD_DOCKTAB, (CMainFrame*)GetMainWnd());
+         m_pDockTab->Create( IDD_DOCKTAB, (CMainFrame*)GetMainWnd());
 
-      RECT docktabrect;
-      docktabrect.left = ((m_dockedrect.right + m_dockedrect.left) / 2) - (m_docktabimage.GetWidth() / 2);
-      docktabrect.right = docktabrect.left + m_docktabimage.GetWidth();
-      docktabrect.top = 0;
-      docktabrect.bottom = m_docktabimage.GetHeight();
-      m_pDockTab->MoveWindow(&docktabrect);
+         RECT docktabrect;
+         docktabrect.left = ((m_dockedrect.right + m_dockedrect.left) / 2) - (m_docktabimage.GetWidth() / 2);
+         docktabrect.right = docktabrect.left + m_docktabimage.GetWidth();
+         docktabrect.top = 0;
+         docktabrect.bottom = m_docktabimage.GetHeight();
+         m_pDockTab->MoveWindow(&docktabrect);
 
-      HWND hWnd = GetMainWnd()->m_hWnd;
-      //relation time of SetForegroundWindow lock	
-      DWORD lockTimeOut = 0;	
-      HWND  hCurrWnd = ::GetForegroundWindow();	
-      DWORD dwThisTID = ::GetCurrentThreadId(),	      
-            dwCurrTID = ::GetWindowThreadProcessId(hCurrWnd,0);	
-      
-      //we need to bypass some limitations from Microsoft :)	
-      if(dwThisTID != dwCurrTID)	
-      {		
-         ::AttachThreadInput(dwThisTID, dwCurrTID, TRUE);
-         ::SystemParametersInfo(SPI_GETFOREGROUNDLOCKTIMEOUT,0,&lockTimeOut,0);		
-         ::SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT,0,0,SPIF_SENDWININICHANGE | SPIF_UPDATEINIFILE);		
-         ::AllowSetForegroundWindow(ASFW_ANY);	
-      }	
-      
-      ::SetForegroundWindow(hWnd);	
-      ::SetFocus(hWnd);
-      
-      if(dwThisTID != dwCurrTID)	
-      {		
-         ::SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT,0,(PVOID)lockTimeOut,SPIF_SENDWININICHANGE | SPIF_UPDATEINIFILE);		
-         ::AttachThreadInput(dwThisTID, dwCurrTID, FALSE);	
+         HWND hWnd = GetMainWnd()->m_hWnd;
+         //relation time of SetForegroundWindow lock	
+         DWORD lockTimeOut = 0;	
+         HWND  hCurrWnd = ::GetForegroundWindow();	
+         DWORD dwThisTID = ::GetCurrentThreadId(),	      
+               dwCurrTID = ::GetWindowThreadProcessId(hCurrWnd,0);	
+         
+         //we need to bypass some limitations from Microsoft :)	
+         if(dwThisTID != dwCurrTID)	
+         {		
+            ::AttachThreadInput(dwThisTID, dwCurrTID, TRUE);
+            ::SystemParametersInfo(SPI_GETFOREGROUNDLOCKTIMEOUT,0,&lockTimeOut,0);		
+            ::SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT,0,0,SPIF_SENDWININICHANGE | SPIF_UPDATEINIFILE);		
+            ::AllowSetForegroundWindow(ASFW_ANY);	
+         }	
+         
+         ::SetForegroundWindow(hWnd);	
+         ::SetFocus(hWnd);
+         
+         if(dwThisTID != dwCurrTID)	
+         {		
+            ::SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT,0,(PVOID)lockTimeOut,SPIF_SENDWININICHANGE | SPIF_UPDATEINIFILE);		
+            ::AttachThreadInput(dwThisTID, dwCurrTID, FALSE);	
+         }
       }
    }
 }
@@ -4356,43 +4511,46 @@ void CLampApp::OnUpdateRepliesToMe(CCmdUI *pCmdUI)
 
 void CLampApp::OnShackSearch()
 {
-   CCustomSearchDlg csdlg(GetMainWnd());
-   csdlg.m_user = m_last_search_author;
-   csdlg.m_parent = m_last_search_parent_author;
-   csdlg.m_terms = m_last_search_terms;
-   csdlg.m_filter = m_last_search_filter;
-   csdlg.m_sort = m_last_search_sort;
-
-   if(csdlg.DoModal() == IDOK)
+   if(GetMainWnd() != NULL)
    {
-      m_last_search_author = csdlg.m_user;
-      m_last_search_parent_author = csdlg.m_parent;
-      m_last_search_terms = csdlg.m_terms;
-      m_last_search_filter = csdlg.m_filter;
-      m_last_search_sort = csdlg.m_sort;
+      CCustomSearchDlg csdlg(GetMainWnd());
+      csdlg.m_user = m_last_search_author;
+      csdlg.m_parent = m_last_search_parent_author;
+      csdlg.m_terms = m_last_search_terms;
+      csdlg.m_filter = m_last_search_filter;
+      csdlg.m_sort = m_last_search_sort;
 
-      UCString path = L"CUSTOMSEARCH:";
-      char *enc = url_encode(m_last_search_author.str8());
-      path += enc;
-      free(enc);
-      path += L":";
-      enc = url_encode(m_last_search_parent_author.str8());
-      path += enc;
-      free(enc);
-      path += L":";
-      enc = url_encode(m_last_search_terms.str8());
-      path += enc;
-      free(enc);
-      path += L":";
-      enc = url_encode(m_last_search_filter.str8());
-      path += enc;
-      free(enc);
-      path += L":";
-      enc = url_encode(m_last_search_sort.str8());
-      path += enc;
-      free(enc);
+      if(csdlg.DoModal() == IDOK)
+      {
+         m_last_search_author = csdlg.m_user;
+         m_last_search_parent_author = csdlg.m_parent;
+         m_last_search_terms = csdlg.m_terms;
+         m_last_search_filter = csdlg.m_filter;
+         m_last_search_sort = csdlg.m_sort;
 
-      OpenDocumentFile(path);
+         UCString path = L"CUSTOMSEARCH:";
+         char *enc = url_encode(m_last_search_author.str8());
+         path += enc;
+         free(enc);
+         path += L":";
+         enc = url_encode(m_last_search_parent_author.str8());
+         path += enc;
+         free(enc);
+         path += L":";
+         enc = url_encode(m_last_search_terms.str8());
+         path += enc;
+         free(enc);
+         path += L":";
+         enc = url_encode(m_last_search_filter.str8());
+         path += enc;
+         free(enc);
+         path += L":";
+         enc = url_encode(m_last_search_sort.str8());
+         path += enc;
+         free(enc);
+
+         OpenDocumentFile(path);
+      }
    }
 }
 
@@ -5262,13 +5420,16 @@ void CLampApp::ClearAllPinnedThreads()
    }
 }
 
-void CLampApp::SetNumMinutesCheckInbox(int value)
+void CLampApp::SetNumMinutesUpdateTab(int value)
 {
-   m_num_minutes_check_inbox = value;
-   CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
-   if(pMainFrame != NULL)
+   if(GetMainWnd() != NULL)
    {
-      pMainFrame->UpdateInboxTimer();
+      m_num_minutes_update_tab = value;
+      CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+      if(pMainFrame != NULL)
+      {
+         pMainFrame->UpdateInboxTimer();
+      }
    }
 }
 
@@ -5806,3 +5967,13 @@ void CLampApp::DeleteFlaggedUser(const UCString &username)
 
    WriteSettingsFile();
 }
+
+void CLampApp::AutoRefresh(bool value)
+{
+   m_auto_refresh = value;
+   if(GetMainWnd() != NULL)
+   {
+      ((CMainFrame*)GetMainWnd())->UpdateRefreshTimer();
+   }
+}
+

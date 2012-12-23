@@ -12,6 +12,7 @@
 #define IMAGE_EXPIRE_TIMER 19
 #define PREVIEW_TIMER 20
 #define LEFTMOUSE_TIMER 21
+#define TAB_REFRESH_TIMER 22
 
 class CBMMenu : public CMenu
 {
@@ -42,6 +43,7 @@ public:
    void CloseFindDlg();
 
    void UpdateInboxTimer();
+   void UpdateRefreshTimer();
    void UpdateLOLTimer();
 
    void RecordSession();

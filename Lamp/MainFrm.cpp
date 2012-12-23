@@ -16,8 +16,6 @@
 #endif
 
 
-extern DWORD g_LastPostTime;
-
 // CMainFrame
 
 IMPLEMENT_DYNAMIC(CMainFrame, CMDIFrameWndEx)
@@ -134,14 +132,16 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
    CMFCMenuBar::SetShowAllCommands();
 
-   SetTimer(INBOX_TIMER,(UINT)60000 * (UINT)theApp.GetNumMinutesCheckInbox(),NULL);
+   UpdateInboxTimer();
+
+   UpdateRefreshTimer();
 
    SetTimer(IMAGE_EXPIRE_TIMER,(UINT)60000 * 60,NULL);
 
    m_bFirstUpdate = true;
    SetTimer(UPDATE_TIMER,(UINT)60000 * 1,NULL); // check for updates starting in 1 minutes
 
-   SetTimer(REFRESH_LOL_TIMER,(UINT)60000 * (UINT)theApp.GetNumMinutesCheckLOL(),NULL); // check for updates in 5 minutes
+   UpdateLOLTimer();
       
 	return 0;
 }
@@ -149,9 +149,17 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 void CMainFrame::UpdateInboxTimer()
 {
    KillTimer(INBOX_TIMER);
-   SetTimer(INBOX_TIMER,(UINT)60000 * (UINT)theApp.GetNumMinutesCheckInbox(),NULL);
+   SetTimer(INBOX_TIMER,(UINT)60000 * (UINT)theApp.GetNumMinutesUpdateTab(),NULL);
 }
 
+void CMainFrame::UpdateRefreshTimer()
+{
+   KillTimer(TAB_REFRESH_TIMER);
+   if(theApp.AutoRefresh())
+   {
+      SetTimer(TAB_REFRESH_TIMER,(UINT)5000,NULL);
+   }
+}
 
 void CMainFrame::UpdateLOLTimer()
 {
@@ -452,6 +460,10 @@ LRESULT CMainFrame::OnMenuRBUMessage(WPARAM wparam, LPARAM lparam)
 
 void CMainFrame::OnTimer(UINT nIDEvent) 
 {
+   DWORD now = ::GetTickCount();
+
+   assert(now >= theApp.GetRecentUserActivity());
+
    if(nIDEvent == UPDATE_TIMER)
    {
       if(m_bFirstUpdate)
@@ -462,7 +474,7 @@ void CMainFrame::OnTimer(UINT nIDEvent)
       }
       theApp.CheckForUpdates(false);
    }
-   else if(::GetTickCount() < g_LastPostTime + ((UINT)60000 * 15))
+   else if(now - theApp.GetRecentUserActivity() < (60000 * 15))
    {
       // ^^^ If the user hasn't done anything web-wise in the past 15 minutes,
       // assume they walked away.   Don't hammer the servers with automated
@@ -470,6 +482,10 @@ void CMainFrame::OnTimer(UINT nIDEvent)
       if(nIDEvent == INBOX_TIMER)
       {
          theApp.UpdateInbox();
+      }   
+      else if(nIDEvent == TAB_REFRESH_TIMER)
+      {
+         theApp.RefreshATab();
       }   
       else if(nIDEvent == REFRESH_LOL_TIMER)
       {

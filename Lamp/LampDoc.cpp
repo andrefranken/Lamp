@@ -27,8 +27,6 @@ extern CRITICAL_SECTION g_ThreadAccess;
 
 extern bool g_bIsXP;
 
-DWORD g_LastPostTime = 0;
-
 DWORD g_LastShackLoginTime = 0;
 
 char g_ShackLoginCookie[1024];
@@ -38,6 +36,8 @@ DWORD g_LastUserShackLoginTime = 0;
 char g_UserShackLoginCookie[1024];
 
 extern bool g_bSingleThreadStyle;
+
+extern UCChar g_newstuff_char;
 
 UINT DownloadThreadProc( LPVOID pParam )
 {
@@ -55,14 +55,17 @@ UINT DownloadThreadProc( LPVOID pParam )
          pDD->m_dt == DT_SHACK_CHATTY_INFINATE_PAGE ||
          pDD->m_dt == DT_SHACK_THREAD_CONTENTS || 
          pDD->m_dt == DT_SHACK_THREAD ||
+         pDD->m_dt == DT_SHACK_THREAD_SOFT ||
          pDD->m_dt == DT_SHACK_POST ||
          pDD->m_dt == DT_SHACK_SEARCH ||
+         pDD->m_dt == DT_SHACK_SEARCH_SOFT ||
          pDD->m_dt == DT_SHACK_SHACKMSG ||
          pDD->m_dt == DT_SHACK_READMSG ||
          pDD->m_dt == DT_SHACK_SENDMSG ||
          pDD->m_dt == DT_SHACK_DELETEMSG ||
          pDD->m_dt == DT_SHACK_MOD_CATEGORY_CHANGE ||
          pDD->m_dt == DT_LOL ||
+         pDD->m_dt == DT_LOL_SOFT ||
          pDD->m_dt == DT_GET_PROFILE)
       {
          pDD->getchatty(3);
@@ -570,6 +573,7 @@ void CLampDoc::StartDownload(const UCChar *host,
    if(dt != DT_THREAD_START &&
       dt != DT_THREAD &&
       dt != DT_SHACK_THREAD &&
+      dt != DT_SHACK_THREAD_SOFT &&
       dt != DT_SHACK_THREAD_CONTENTS &&
       dt != DT_READMSG &&
       dt != DT_SHACK_DELETEMSG &&
@@ -589,14 +593,17 @@ void CLampDoc::StartDownload(const UCChar *host,
        dt == DT_SHACK_CHATTY_INFINATE_PAGE ||
        dt == DT_SHACK_THREAD_CONTENTS || 
        dt == DT_SHACK_THREAD ||
+       dt == DT_SHACK_THREAD_SOFT ||
        dt == DT_SHACK_POST ||
        dt == DT_SHACK_SEARCH ||
+       dt == DT_SHACK_SEARCH_SOFT ||
        dt == DT_SHACK_SHACKMSG ||
        dt == DT_SHACK_READMSG ||
        dt == DT_SHACK_SENDMSG ||
        dt == DT_SHACK_DELETEMSG ||
        dt == DT_SHACK_MOD_CATEGORY_CHANGE ||
-       dt == DT_LOL) &&
+       dt == DT_LOL ||
+       dt == DT_LOL_SOFT) &&
       (username == NULL ||
        password == NULL))
    {
@@ -621,11 +628,6 @@ void CLampDoc::StartDownload(const UCChar *host,
       dt == DT_SHACK_POST)
    {
       pDD->m_postrootid = GetRootId(id);
-   }
-
-   if(!bIgnoreTimeStamp)
-   {
-      g_LastPostTime = ::GetTickCount();
    }
 
    AfxBeginThread(DownloadThreadProc, pDD);
@@ -692,6 +694,7 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             {
                bDoingNewFlags = false;
             }
+            m_last_refresh_time = ::GetTickCount();
          }
          // fall through
       case DT_THREAD:
@@ -796,10 +799,14 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                if(m_pView)
                   m_pView->InvalidateEverything();
             }
+
+            m_last_refresh_time = ::GetTickCount();
          }
          break;
       case DT_SHACK_THREAD:
+      case DT_SHACK_THREAD_SOFT:
          {
+            size_t postcount = 0;
             unsigned int whohasreplydlg_id = 0;
             CReplyDlg *pReplyDlg = NULL;
             std::vector<unsigned int> existing_threads;
@@ -807,28 +814,57 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             ChattyPost *post = FindRootPost(pDD->m_id);
             if(post != NULL)
             {
+               post->AddToFamilySize(postcount);
                existing_threads.push_back(pDD->m_id);
 
                pReplyDlg = post->FindReplyDlgInPostRecurse(whohasreplydlg_id);
             }
 
-            // scrape HTML
-            ReadChattyPageFromHTML(pDD->m_stdstring, existing_threads, false);
-
-            if(m_datatype == DDT_THREAD &&
-               m_title == L"loading")
+            int oldpos = INT32_MAX;
+            if(m_pView != NULL)
             {
-               m_title = L"";
-               if(m_rootposts.size() == 1)
-               {
-                  (*m_rootposts.begin())->GetTitle(m_title);
-               }
-               else
-               {
-                  m_title = L"FAIL'D";
-               }
+               oldpos = m_pView->GetViewPosition();
+            }
 
-               MySetTitle(m_title);
+            bool preservenewness = false;
+            if(pDD->m_dt == DT_SHACK_THREAD_SOFT)
+            {
+               preservenewness = true;
+            }
+
+            // scrape HTML
+            ReadChattyPageFromHTML(pDD->m_stdstring, existing_threads, false, false, preservenewness);
+
+            if(m_datatype == DDT_THREAD)
+            {
+               if(m_title == L"loading")
+               {
+                  m_title = L"";
+                  if(m_rootposts.size() == 1)
+                  {
+                     (*m_rootposts.begin())->GetTitle(m_title);
+                  }
+                  else
+                  {
+                     m_title = L"FAIL'D";
+                  }
+
+                  MySetTitle(m_title);
+               }
+               else if(post != NULL)
+               {
+                  size_t newpostcount = 0;
+            
+                  post->AddToFamilySize(newpostcount);
+
+                  if(pDD->m_dt == DT_SHACK_THREAD_SOFT &&
+                     newpostcount != postcount &&
+                     theApp.GetMainWnd() != NULL &&
+                     GetView() != ((CMainFrame*)theApp.GetMainWnd())->GetActiveLampView())
+                  {
+                     NewContent();
+                  }
+               }
             }
 
             if(whohasreplydlg_id != 0 &&
@@ -908,6 +944,10 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                   //assert(0);
                }
             }
+            else if(m_pView != NULL)
+            {
+               m_pView->UpdateViewPosition(oldpos);
+            }
 
             post = FindPost(pDD->m_refreshid);
             if(post != NULL)
@@ -918,6 +958,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             }
 
             DetermineIfUserHasPostedInThreads();
+
+            m_last_refresh_time = ::GetTickCount();
          }
          break;
       case DT_SHACK_CHATTY:
@@ -976,6 +1018,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             }
 
             DetermineIfUserHasPostedInThreads();
+
+            m_last_refresh_time = ::GetTickCount();
          }
          break;
       case DT_SHACK_CHATTY_INFINATE_PAGE:
@@ -1034,6 +1078,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             }
 
             m_bFetchingNextPage = false;
+
+            m_last_refresh_time = ::GetTickCount();
          }
          break;
       case DT_SHACK_THREAD_CONTENTS:
@@ -1213,6 +1259,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             {
                RefreshAllRoots();
             }
+
+            m_last_refresh_time = ::GetTickCount();
          }
          break;
       case DT_STORY_2:
@@ -1252,9 +1300,12 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             }
 
             RefreshAllRoots();
+
+            m_last_refresh_time = ::GetTickCount();
          }
          break;
       case DT_SHACK_SEARCH:
+      case DT_SHACK_SEARCH_SOFT:
          {
             htmlcxx::HTML::ParserDom parser;
             tree<htmlcxx::HTML::Node> dom;
@@ -1359,6 +1410,26 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                   }
                }
             }
+
+            if(pDD->m_dt == DT_SHACK_SEARCH_SOFT)
+            {
+               if(m_rootposts.size() > 0)
+               {
+                  std::list<ChattyPost*>::iterator sample = m_rootposts.begin();
+                  if((*sample)->GetBodyText().Length() == 0 &&
+                     m_rootposts.size() > 1)
+                  {
+                     sample++;
+                  }
+
+                  if(m_last_result_text != (*sample)->GetBodyText())
+                  {
+                     NewContent();
+                  }
+               }
+            }
+
+            m_last_refresh_time = ::GetTickCount();
          }
          break;
       case DT_SEARCH:
@@ -1371,21 +1442,37 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                   ReadSearchResultsFromRoot(xmldata);
                }
             }
+
+            m_last_refresh_time = ::GetTickCount();
          }
          break;
       case DT_LOL:
+      case DT_LOL_SOFT:
          {
-            /*
-            if(pDD->m_data != NULL)
-            {
-               ProcessLOLData((char *)pDD->m_data, pDD->m_datasize);
-            }
-            */
-
             if(pDD->m_stdstring.length() > 0)
             {
                ProcessLOLData((char *)pDD->m_stdstring.data(), pDD->m_stdstring.length());
             }
+
+            if(pDD->m_dt == DT_LOL_SOFT)
+            {
+               if(m_rootposts.size() > 0)
+               {
+                  std::list<ChattyPost*>::iterator sample = m_rootposts.begin();
+                  if((*sample)->GetBodyText().Length() == 0 &&
+                     m_rootposts.size() > 1)
+                  {
+                     sample++;
+                  }
+
+                  if(m_last_result_text != (*sample)->GetBodyText())
+                  {
+                     NewContent();
+                  }
+               }
+            }
+
+            m_last_refresh_time = ::GetTickCount();
          }
          break;
       case DT_AUTHOR:
@@ -1530,7 +1617,7 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
 
                      if(pDD->m_id)
                      {
-                        RefreshThread(GetRootId(pDD->m_id),pDD->m_id,false,pDD->m_id);
+                        RefreshThread(GetRootId(pDD->m_id),pDD->m_id,false,pDD->m_id,true);
                      }
                      else
                      {
@@ -1598,7 +1685,7 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
 
                      if(pDD->m_id)
                      {
-                        RefreshThread(GetRootId(pDD->m_id),pDD->m_id,false,pDD->m_id);
+                        RefreshThread(GetRootId(pDD->m_id),pDD->m_id,false,pDD->m_id,true);
                      }
                      else
                      {
@@ -1633,6 +1720,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                   theApp.SetUserID(userid);
                }
             }
+
+            m_last_refresh_time = ::GetTickCount();
          }
          break;
       case DT_SHACKMSG:
@@ -1646,6 +1735,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                   UpdateUnreadShackMessagesCount();
                }
             }
+
+            m_last_refresh_time = ::GetTickCount();
          }
          break;
       case DT_SHACK_SENDMSG:
@@ -1678,7 +1769,7 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
          break;
       case DT_SHACK_MOD_CATEGORY_CHANGE:
          {
-            RefreshThread(GetRootId(pDD->m_id), pDD->m_id);
+            RefreshThread(GetRootId(pDD->m_id), pDD->m_id,false,0,true);
          }
          break;
       }
@@ -2479,7 +2570,7 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
          }
       }
 
-      RefreshThread(rootid, m_initialpostid,true);
+      RefreshThread(rootid, m_initialpostid,true,0,true);
    }
    
    return result;
@@ -2513,8 +2604,22 @@ void CLampDoc::GetProfile()
                  0);
 }
 
-void CLampDoc::PerformSearch()
+void CLampDoc::PerformSearch(bool soft /*= false*/)
 {
+   m_last_result_text = L"";
+
+   if(m_rootposts.size() > 0)
+   {
+      // skip the first entry
+      std::list<ChattyPost*>::iterator sample = m_rootposts.begin();
+      if((*sample)->GetBodyText().Length() == 0 &&
+         m_rootposts.size() > 1)
+      {
+         sample++;
+      }
+      m_last_result_text = (*sample)->GetBodyText();
+   }
+
    std::list<ChattyPost*>::iterator it = m_rootposts.begin();
    std::list<ChattyPost*>::iterator end = m_rootposts.end();
    while(it != end)
@@ -2564,9 +2669,15 @@ void CLampDoc::PerformSearch()
       path += L"&page=";
       path += m_page;
 
+      DownloadType dt = DT_SHACK_SEARCH;
+      if(soft)
+      {
+         dt = DT_SHACK_SEARCH_SOFT;
+      }
+
       StartDownload(L"www.shacknews.com",
                     path,
-                    DT_SHACK_SEARCH,
+                    dt,
                     0);
    }
    else
@@ -2903,8 +3014,35 @@ void CLampDoc::SetCategory_Mod(unsigned int id, postcategorytype type)
    }
 }
 
-void CLampDoc::ReadLOL()
+void CLampDoc::ReadLOL(bool soft/* = false*/)
 {
+   m_last_result_text = L"";
+
+   if(m_rootposts.size() > 0)
+   {
+      // skip the first entry
+      std::list<ChattyPost*>::iterator sample = m_rootposts.begin();
+      if((*sample)->GetBodyText().Length() == 0 &&
+         m_rootposts.size() > 1)
+      {
+         sample++;
+      }
+      m_last_result_text = (*sample)->GetBodyText();
+   }
+
+   std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+   std::list<ChattyPost*>::iterator end = m_rootposts.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         delete (*it);
+         (*it) = NULL;
+      }
+      it++;
+   }   
+   m_rootposts.clear();
+
    UCString LOLup = m_loltag;
    LOLup.MakeUpper();
 
@@ -2962,9 +3100,15 @@ void CLampDoc::ReadLOL()
 
    path.ReplaceAll(L' ',L'+');
 
+   DownloadType dt = DT_LOL;
+   if(soft)
+   {
+      dt = DT_LOL_SOFT;
+   }
+
    StartDownload(theApp.GetLolHostName(),
                  path,
-                 DT_LOL,
+                 dt,
                  0);
 }
 
@@ -3265,7 +3409,7 @@ void CLampDoc::ReadLatestChattyPart2()
 }
 
 
-bool CLampDoc::Refresh()
+bool CLampDoc::Refresh(bool soft/* = false*/)
 {
    bool bResetPos = false;
 
@@ -3275,12 +3419,15 @@ bool CLampDoc::Refresh()
       break;
    case DDT_STORY:
       {
-         if(theApp.UseShack() && theApp.InfinatePaging())
+         if(!soft)
          {
-            m_page = 1;
+            if(theApp.UseShack() && theApp.InfinatePaging())
+            {
+               m_page = 1;
+            }
+            ReadLatestChatty();
+            bResetPos = true;
          }
-         ReadLatestChatty();
-         bResetPos = true;
       }
       break;
    case DDT_SHACKMSG:
@@ -3291,25 +3438,16 @@ bool CLampDoc::Refresh()
    case DDT_THREAD:
       if(m_rootposts.size() > 0)
       {
-         RefreshThread((*m_rootposts.begin())->GetId(),m_pView->GetCurrentId());
+         RefreshThread((*m_rootposts.begin())->GetId(),m_pView->GetCurrentId(),false,0,soft);
       }
       break;
    case DDT_LOLS:
       {
-         std::list<ChattyPost*>::iterator it = m_rootposts.begin();
-         std::list<ChattyPost*>::iterator end = m_rootposts.end();
-         while(it != end)
+         ReadLOL(soft);
+         if(!soft)
          {
-            if((*it) != NULL)
-            {
-               delete (*it);
-               (*it) = NULL;
-            }
-            it++;
+            bResetPos = true;
          }
-         m_rootposts.clear();
-         ReadLOL();
-         bResetPos = true;
       }
       break;
    case DDT_PROFILE:
@@ -3331,15 +3469,22 @@ bool CLampDoc::Refresh()
       }
       break;
    case DDT_SEARCH:
-      PerformSearch();
-      bResetPos = true;
+      PerformSearch(soft);
+      if(!soft)
+      {
+         bResetPos = true;
+      }
       break;
    }
 
    return bResetPos;
 }
 
-bool CLampDoc::RefreshThread(unsigned int id, unsigned int refresh_id, bool bStarting/* = false*/, unsigned int reply_to_id/* = 0*/)
+bool CLampDoc::RefreshThread(unsigned int id, 
+                             unsigned int refresh_id, 
+                             bool bStarting/* = false*/, 
+                             unsigned int reply_to_id/* = 0*/, 
+                             bool soft /*= false*/)
 {
    ChattyPost *pPost = FindPost(refresh_id);
    if(pPost != NULL)
@@ -3356,9 +3501,13 @@ bool CLampDoc::RefreshThread(unsigned int id, unsigned int refresh_id, bool bSta
       story += L"#itemanchor_";
       story += id;
 
+      DownloadType dt = DT_SHACK_THREAD;
+      if(soft)
+         dt = DT_SHACK_THREAD_SOFT;
+
       StartDownload(L"www.shacknews.com",
                     story,
-                    DT_SHACK_THREAD,
+                    dt,
                     id,
                     refresh_id,
                     reply_to_id);
@@ -3563,12 +3712,23 @@ void CLampDoc::Dump(CDumpContext& dc) const
 
 
 // CLampDoc commands
-void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
+void CLampDoc::Draw(HDC hDC, 
+                    int device_height, 
+                    RECT &DeviceRectangle, 
+                    int pos, 
+                    std::vector<CHotSpot> &hotspots, 
+                    unsigned int current_id, 
+                    bool bModToolIsUp, 
+                    RECT &ModToolRect, 
+                    unsigned int ModToolPostID,
+                    bool &newpostabove, 
+                    bool &newpostbelow,
+                    int topclip)
 {
    pos = -pos;
 
    int startpos = pos;
-
+   
    int bannerheight = 71;
    CDCSurface *pNTImage = theApp.GetNewThreadImage(false);
    if(pNTImage != NULL)
@@ -3726,7 +3886,19 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
                }
             }
 
-            pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, false, theApp.IsModMode(), bModToolIsUp, ModToolRect, ModToolPostID);
+            pos = DrawFromRoot(hDC, 
+                               DeviceRectangle, 
+                               pos, 
+                               hotspots, 
+                               current_id, 
+                               false, 
+                               theApp.IsModMode(), 
+                               bModToolIsUp, 
+                               ModToolRect, 
+                               ModToolPostID, 
+                               newpostabove, 
+                               newpostbelow,
+                               topclip);
 
             RECT backrect = DeviceRectangle;
             backrect.top = pos;
@@ -3748,8 +3920,20 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
          backrect.bottom = pos + 20;
          FillBackground(hDC,backrect);
          pos += 20;
-         
-         pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, false, theApp.IsModMode(), bModToolIsUp, ModToolRect, ModToolPostID);
+                  
+         pos = DrawFromRoot(hDC, 
+                            DeviceRectangle, 
+                            pos, 
+                            hotspots, 
+                            current_id, 
+                            false, 
+                            theApp.IsModMode(), 
+                            bModToolIsUp, 
+                            ModToolRect, 
+                            ModToolPostID, 
+                            newpostabove, 
+                            newpostbelow,
+                            topclip);
 
          backrect.top = pos;
          backrect.bottom = pos + (device_height / 2);
@@ -3763,7 +3947,19 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
          {
             pos += bannerheight;
             
-            pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, true, false, false, ModToolRect, 0);
+            pos = DrawFromRoot(hDC, 
+                               DeviceRectangle, 
+                               pos, 
+                               hotspots, 
+                               current_id, 
+                               true, 
+                               false, 
+                               false, 
+                               ModToolRect, 
+                               0, 
+                               newpostabove, 
+                               newpostbelow, 
+                               topclip);
 
             RECT backrect = DeviceRectangle;
             backrect.top = pos;
@@ -3777,7 +3973,19 @@ void CLampDoc::Draw(HDC hDC, int device_height, RECT &DeviceRectangle, int pos, 
       {
          pos += bannerheight;
          
-         pos = DrawFromRoot(hDC, DeviceRectangle, pos, hotspots, current_id, true, false, false, ModToolRect, 0);
+         pos = DrawFromRoot(hDC, 
+                            DeviceRectangle, 
+                            pos, 
+                            hotspots, 
+                            current_id, 
+                            true, 
+                            false, 
+                            false, 
+                            ModToolRect, 
+                            0, 
+                            newpostabove, 
+                            newpostbelow,
+                            topclip);
 
          RECT backrect = DeviceRectangle;
          backrect.top = pos;
@@ -4157,7 +4365,19 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
    return bannerrect.bottom;
 }
 
-int CLampDoc::DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CHotSpot> &hotspots, unsigned int current_id, bool bLinkOnly, bool bAllowModTools, bool bModToolIsUp, RECT &ModToolRect, unsigned int ModToolPostID)
+int CLampDoc::DrawFromRoot(HDC hDC, 
+                           RECT &DeviceRectangle, 
+                           int pos, 
+                           std::vector<CHotSpot> &hotspots, 
+                           unsigned int current_id, 
+                           bool bLinkOnly, 
+                           bool bAllowModTools, 
+                           bool bModToolIsUp, 
+                           RECT &ModToolRect, 
+                           unsigned int ModToolPostID, 
+                           bool &newpostabove, 
+                           bool &newpostbelow,
+                           int topclip)
 {
    std::list<ChattyPost*>::iterator begin = m_rootposts.begin();
    std::list<ChattyPost*>::iterator end = m_rootposts.end();
@@ -4165,7 +4385,19 @@ int CLampDoc::DrawFromRoot(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<
 
    while(it != end)
    {
-      pos = (*it)->DrawRoot(hDC,DeviceRectangle,pos,hotspots, current_id, bLinkOnly, bAllowModTools, bModToolIsUp, ModToolRect, ModToolPostID);
+      pos = (*it)->DrawRoot(hDC,
+                            DeviceRectangle,
+                            pos,
+                            hotspots, 
+                            current_id, 
+                            bLinkOnly, 
+                            bAllowModTools, 
+                            bModToolIsUp, 
+                            ModToolRect, 
+                            ModToolPostID, 
+                            newpostabove, 
+                            newpostbelow,
+                            topclip);
       it++;
 
       if(it != end)
@@ -4257,7 +4489,7 @@ bool GetXMLDataFromString(CXMLTree &xmldata, const char *data, int datasize)
 }
 
 
-void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsigned int> &existing_threads, bool bCheckForPages, bool bSkipExistingThreads/*=false*/)
+void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsigned int> &existing_threads, bool bCheckForPages, bool bSkipExistingThreads/*=false*/, bool preservenewness /*= false*/)
 {
    if(bCheckForPages)
    {
@@ -4320,7 +4552,10 @@ void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsign
                                        post = FindRootPost(root_id);
                                        post->RecordNewness(post_newness);
                                        post->RecordTags(post_tags);
-                                       post->ClearChildren();
+                                       if(post->CheckForChildrenFromHTML(sit))
+                                       {
+                                          post->ClearChildren();
+                                       }
                                     }
                                     bAlreadyHadIt = true;                                 
                                     break;
@@ -4337,7 +4572,7 @@ void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsign
                                  }
 
                                  post->ReadRootChattyFromHTML(sit, this, root_id);
-                                 post->EstablishNewness(post_newness);
+                                 post->EstablishNewness(post_newness, !preservenewness);
                                  post->EstablishTags(post_tags);
                                  post->SetupPreviewShades(false);
                                  post->CountFamilySize();
@@ -8186,5 +8421,51 @@ void CLampDoc::DetermineIfUserHasPostedInThreads()
          }
          it++;
       }
+   }
+}
+
+void CLampDoc::Viewed()
+{
+   if(m_title.Length() != 0 &&
+      m_title[0] == g_newstuff_char)
+   {
+      UCString newtitle = m_title.Str() + 2;
+      m_title = newtitle;
+      
+      if(m_title.Length() > m_actualtitle.Length())
+      {
+         newtitle.TrimEnd((m_title.Length() - m_actualtitle.Length()) + 2);
+      }
+      MySetTitle(newtitle);
+   }
+}
+
+void CLampDoc::NewContent()
+{
+   if(m_title.Length() == 0 ||
+      m_title[0] != g_newstuff_char)
+   {
+      UCString newtitle;
+      newtitle = g_newstuff_char;
+      newtitle += L' ';
+      newtitle += m_title;
+      m_title = newtitle;
+
+      newtitle = g_newstuff_char;
+      newtitle += L' ';
+      newtitle += m_actualtitle;
+
+      //theApp.UpdateTabNames();
+      MySetTitle(newtitle);
+   }
+}
+
+
+void CLampDoc::UpdateTabName()
+{
+   if(m_title.Length() != 0)
+   {
+      //theApp.UpdateTabNames();
+      MySetTitle(m_actualtitle);
    }
 }
