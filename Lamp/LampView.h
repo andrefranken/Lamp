@@ -356,8 +356,6 @@ public:
    afx_msg void OnUpdateCheckSpelling(CCmdUI *pCmdUI);
    afx_msg void OnLeftMousePan();
    afx_msg void OnUpdateLeftMousePan(CCmdUI *pCmdUI);
-   afx_msg void OnShowNavButtons();
-   afx_msg void OnUpdateShowNavButtons(CCmdUI *pCmdUI);
    afx_msg void OnMoveRefreshToTop();
    afx_msg void OnUpdateMoveRefreshToTop(CCmdUI *pCmdUI);
    afx_msg void OnFilterNWS();

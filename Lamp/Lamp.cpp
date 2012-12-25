@@ -886,7 +886,6 @@ CLampApp::CLampApp()
 
    m_left_mouse_pan = false;
 
-   m_show_nav_buttons = true;
    m_move_refresh_to_top = true;
    m_auto_refresh = false;
 
@@ -1818,10 +1817,6 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_left_mouse_pan = setting->GetValue();
    else m_left_mouse_pan = false;
 
-   setting = hostxml.FindChildElement(L"show_nav_buttons");
-   if(setting!=NULL) m_show_nav_buttons = setting->GetValue();
-   else m_show_nav_buttons = true;
-
    setting = hostxml.FindChildElement(L"move_refresh_to_top");
    if(setting!=NULL) m_move_refresh_to_top = setting->GetValue();
    else m_move_refresh_to_top = true;
@@ -2296,7 +2291,6 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"show_raw_date",UCString(m_show_raw_date));
    settingsxml.AddChildElement(L"UseAuthorColorForPreview",UCString(m_bUseAuthorColorForPreview));
    settingsxml.AddChildElement(L"left_mouse_pan",UCString(m_left_mouse_pan));
-   settingsxml.AddChildElement(L"show_nav_buttons",UCString(m_show_nav_buttons));
    settingsxml.AddChildElement(L"move_refresh_to_top",UCString(m_move_refresh_to_top));
    settingsxml.AddChildElement(L"auto_refresh",UCString(m_auto_refresh));
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
@@ -3665,9 +3659,10 @@ void CLampApp::RefreshATab()
             !view->IsReplyDialogOpen() &&
 
             // if it is a thread, don't refresh if it is expired
-            dt == DDT_THREAD &&
-            !(*it)->IsExpired()
-           )
+            (dt != DDT_THREAD ||
+             (dt == DDT_THREAD &&
+             !(*it)->IsExpired()))
+            )
          {
             if(ago > longago)
             {

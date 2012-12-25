@@ -22,7 +22,7 @@
 #define WM_WAKEUP (WM_USER + 102)
 
 #define LAMP_VERSION_MAJOR 3
-#define LAMP_VERSION_MINOR 4
+#define LAMP_VERSION_MINOR 5
 
 chattyerror download(const char* host, const char* path, char** out_response, int *psize=NULL);
 
@@ -803,9 +803,6 @@ public:
    bool LeftMousePan(){return m_left_mouse_pan;}
    void LeftMousePan(bool value){m_left_mouse_pan = value;}
 
-   bool ShowNavButtons(){return m_show_nav_buttons;}
-   void ShowNavButtons(bool value){m_show_nav_buttons = value;}
-
    bool MoveRefreshToTop(){return m_move_refresh_to_top;}
    void MoveRefreshToTop(bool value){m_move_refresh_to_top = value;}
 
@@ -1544,8 +1541,6 @@ protected:
    bool m_bigskin;
 
    bool m_left_mouse_pan;
-
-   bool m_show_nav_buttons;
 
    bool m_move_refresh_to_top;
 

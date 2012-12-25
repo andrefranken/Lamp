@@ -63,6 +63,7 @@ public:
 
    UCString m_host;
    UCString m_path;
+   UCString m_contenttrigger;
    UCString m_errmsg;
    UCString m_post_data;
    UCString m_username;
@@ -204,6 +205,7 @@ public:
 
    void StartDownload(const UCChar *host,
                       const UCChar *path,
+                      const UCChar *contenttrigger,
                       DownloadType dt,
                       unsigned int id,
                       unsigned int refresh_id = 0,
@@ -321,6 +323,8 @@ public:
    DWORD GetLastRefreshTime(){return m_last_refresh_time;}
 
    bool IsExpired(){if(m_rootposts.size() == 1)return (*m_rootposts.begin())->IsExpired();return false;}
+
+   void DemoteNewness(unsigned int id);
 
 // Implementation
 public:
@@ -451,8 +455,6 @@ protected:
    COLORREF m_image_link_color;
 
    DWORD m_last_refresh_time;
-
-   UCString m_last_result_text;
 // Generated message map functions
 protected:
 	DECLARE_MESSAGE_MAP()

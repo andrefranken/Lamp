@@ -123,8 +123,6 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_CHECK_SPELLING, &CLampView::OnUpdateCheckSpelling)
    ON_COMMAND(ID_LEFTMOUSEPAN, &CLampView::OnLeftMousePan)
    ON_UPDATE_COMMAND_UI(ID_LEFTMOUSEPAN, &CLampView::OnUpdateLeftMousePan)
-   ON_COMMAND(ID_SHOWNAVBUTTONS, &CLampView::OnShowNavButtons)
-   ON_UPDATE_COMMAND_UI(ID_SHOWNAVBUTTONS, &CLampView::OnUpdateShowNavButtons)
    ON_COMMAND(ID_MOVEREFRESHTOTOP, &CLampView::OnMoveRefreshToTop)
    ON_UPDATE_COMMAND_UI(ID_MOVEREFRESHTOTOP, &CLampView::OnUpdateMoveRefreshToTop)
    ON_COMMAND(ID_FILTER_ENABLE_NWS, &CLampView::OnFilterNWS)
@@ -3511,6 +3509,8 @@ void CLampView::OnClick(CPoint point)
 {
    bool bJustPutUpModTool = false;
 
+   GetDocument()->Viewed();
+
    if(!m_brakes)
    {
       bool bContinue = true;
@@ -5068,9 +5068,7 @@ void CLampView::OnMouseMove(UINT nFlags, CPoint point)
                {
                   if(theApp.ExpandPreviews())
                   {
-                     if((GetDocument()->GetDataType() != DDT_THREAD ||
-                        theApp.ShowNavButtons()) &&
-                        m_mousepoint.x >= m_BannerRectangle.left &&
+                     if(m_mousepoint.x >= m_BannerRectangle.left &&
                         m_mousepoint.x < m_BannerRectangle.right &&
                         m_mousepoint.y >= m_BannerRectangle.top &&
                         m_mousepoint.y < m_BannerRectangle.bottom)
@@ -5586,13 +5584,15 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
             if(pPost != NULL)
             {            
                if(nChar == 'a' ||
-                  nChar == 'A'||
+                  nChar == 'A' ||
                   nChar == 'z' ||
                   nChar == 'Z' ||
                   nChar == 'd' ||
-                  nChar == 'D'||
+                  nChar == 'D' ||
                   nChar == 'c' ||
-                  nChar == 'C')
+                  nChar == 'C' ||
+                  nChar == 'e' ||
+                  nChar == 'E' )
                {
                   if(nChar == 'a' ||
                      nChar == 'A')
@@ -5602,6 +5602,8 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                      m_textselectionpost = 0;
                      m_selectionstart = 0;
                      m_selectionend = 0;
+                     // force a draw so that positions are updated
+                     MakeCurrentPostLegal();
                   }
                   else if(nChar == 'z' ||
                           nChar == 'Z')
@@ -5611,6 +5613,8 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                      m_textselectionpost = 0;
                      m_selectionstart = 0;
                      m_selectionend = 0;
+                     // force a draw so that positions are updated
+                     MakeCurrentPostLegal();
                   }
                   else if(nChar == 'd' ||
                           nChar == 'D')
@@ -5620,6 +5624,8 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                      m_textselectionpost = 0;
                      m_selectionstart = 0;
                      m_selectionend = 0;
+                     // force a draw so that positions are updated
+                     MakeCurrentPostLegal();
                   }
                   else if(nChar == 'c' ||
                           nChar == 'C')
@@ -5629,9 +5635,16 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                      m_textselectionpost = 0;
                      m_selectionstart = 0;
                      m_selectionend = 0;
+                     // force a draw so that positions are updated
+                     MakeCurrentPostLegal();
                   }
-                  // force a draw so that positions are updated
-                  MakeCurrentPostLegal();
+                  else if(nChar == 'e' ||
+                          nChar == 'E')
+                  {
+                     GetDocument()->DemoteNewness(pPost->GetId());
+                     GetDocument()->Viewed();
+                     InvalidateEverything();
+                  }
                }
             }
          }
@@ -7130,26 +7143,6 @@ void CLampView::OnUpdateLeftMousePan(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(theApp.LeftMousePan())
-   {
-      pCmdUI->SetCheck(TRUE);
-   }
-   else
-   {
-      pCmdUI->SetCheck(FALSE);
-   }
-}
-
-void CLampView::OnShowNavButtons()
-{
-   theApp.ShowNavButtons(!theApp.ShowNavButtons());
-   InvalidateEverything();
-}
-
-void CLampView::OnUpdateShowNavButtons(CCmdUI *pCmdUI)
-{
-   pCmdUI->Enable(TRUE);
-
-   if(theApp.ShowNavButtons())
    {
       pCmdUI->SetCheck(TRUE);
    }

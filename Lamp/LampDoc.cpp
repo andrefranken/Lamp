@@ -561,6 +561,7 @@ void CDownloadData::post(int numtries)
 
 void CLampDoc::StartDownload(const UCChar *host,
                              const UCChar *path,
+                             const UCChar *contenttrigger,
                              DownloadType dt,
                              unsigned int id,
                              unsigned int refresh_id/* = 0*/,
@@ -615,6 +616,7 @@ void CLampDoc::StartDownload(const UCChar *host,
 
    pDD->m_host = host;
    pDD->m_path = path;
+   pDD->m_contenttrigger = contenttrigger;
    pDD->m_WhoWants = this;
    pDD->m_dt = dt;
    pDD->m_id = id;
@@ -857,10 +859,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             
                   post->AddToFamilySize(newpostcount);
 
-                  if(pDD->m_dt == DT_SHACK_THREAD_SOFT &&
-                     newpostcount != postcount &&
-                     theApp.GetMainWnd() != NULL &&
-                     GetView() != ((CMainFrame*)theApp.GetMainWnd())->GetActiveLampView())
+                  if(theApp.AutoRefresh() &&//pDD->m_dt == DT_SHACK_THREAD_SOFT &&
+                     newpostcount != postcount)
                   {
                      NewContent();
                   }
@@ -1411,18 +1411,14 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                }
             }
 
-            if(pDD->m_dt == DT_SHACK_SEARCH_SOFT)
+            if(theApp.AutoRefresh())//pDD->m_dt == DT_SHACK_SEARCH_SOFT)
             {
                if(m_rootposts.size() > 0)
                {
                   std::list<ChattyPost*>::iterator sample = m_rootposts.begin();
-                  if((*sample)->GetBodyText().Length() == 0 &&
-                     m_rootposts.size() > 1)
-                  {
-                     sample++;
-                  }
-
-                  if(m_last_result_text != (*sample)->GetBodyText())
+                  if(!(*sample)->GetSubject().IsEmpty() &&
+                     !pDD->m_contenttrigger.IsEmpty() &&
+                      pDD->m_contenttrigger != (*sample)->GetSubject())
                   {
                      NewContent();
                   }
@@ -1454,18 +1450,14 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                ProcessLOLData((char *)pDD->m_stdstring.data(), pDD->m_stdstring.length());
             }
 
-            if(pDD->m_dt == DT_LOL_SOFT)
+            if(theApp.AutoRefresh())
             {
                if(m_rootposts.size() > 0)
                {
                   std::list<ChattyPost*>::iterator sample = m_rootposts.begin();
-                  if((*sample)->GetBodyText().Length() == 0 &&
-                     m_rootposts.size() > 1)
-                  {
-                     sample++;
-                  }
-
-                  if(m_last_result_text != (*sample)->GetBodyText())
+                  if(!(*sample)->GetBodyText().IsEmpty() &&
+                     !pDD->m_contenttrigger.IsEmpty() &&
+                      pDD->m_contenttrigger != (*sample)->GetBodyText())
                   {
                      NewContent();
                   }
@@ -2578,6 +2570,8 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
 
 void CLampDoc::GetProfile()
 {
+   m_last_refresh_time = ::GetTickCount();
+
    std::list<ChattyPost*>::iterator it = m_rootposts.begin();
    std::list<ChattyPost*>::iterator end = m_rootposts.end();
    while(it != end)
@@ -2599,25 +2593,26 @@ void CLampDoc::GetProfile()
    path.Replace(L" ",L"%20");
 
    StartDownload(theApp.GetProfileHost(),
-                 path,
+                 path, 
+                 NULL,
                  DT_GET_PROFILE,
                  0);
 }
 
 void CLampDoc::PerformSearch(bool soft /*= false*/)
 {
-   m_last_result_text = L"";
+   m_last_refresh_time = ::GetTickCount();
+   UCString last_result_text = L"";
 
-   if(m_rootposts.size() > 0)
+   if(soft &&
+      m_rootposts.size() > 0)
    {
       // skip the first entry
       std::list<ChattyPost*>::iterator sample = m_rootposts.begin();
-      if((*sample)->GetBodyText().Length() == 0 &&
-         m_rootposts.size() > 1)
+      if(!(*sample)->GetSubject().IsEmpty())
       {
-         sample++;
+         last_result_text = (*sample)->GetSubject();
       }
-      m_last_result_text = (*sample)->GetBodyText();
    }
 
    std::list<ChattyPost*>::iterator it = m_rootposts.begin();
@@ -2674,9 +2669,10 @@ void CLampDoc::PerformSearch(bool soft /*= false*/)
       {
          dt = DT_SHACK_SEARCH_SOFT;
       }
-
+            
       StartDownload(L"www.shacknews.com",
-                    path,
+                    path, 
+                    last_result_text,
                     dt,
                     0);
    }
@@ -2695,6 +2691,7 @@ void CLampDoc::PerformSearch(bool soft /*= false*/)
 
       StartDownload(L"shackapi.stonedonkey.com",
                     path,
+                    last_result_text,
                     DT_SEARCH,
                     0);
    }
@@ -2702,6 +2699,8 @@ void CLampDoc::PerformSearch(bool soft /*= false*/)
 
 void CLampDoc::GetShackMessages()
 {
+   m_last_refresh_time = ::GetTickCount();
+
    if(theApp.UseShack())
    {
       std::list<ChattyPost*>::iterator it = m_rootposts.begin();
@@ -2730,6 +2729,7 @@ void CLampDoc::GetShackMessages()
 
       StartDownload(L"www.shacknews.com",
                     path,
+                    NULL,
                     DT_SHACK_SHACKMSG,
                     0,
                     0,
@@ -2764,6 +2764,7 @@ void CLampDoc::GetShackMessages()
 
       StartDownload(L"shackapi.stonedonkey.com",
                     path,
+                    NULL,
                     DT_SHACKMSG,
                     0,
                     0,
@@ -2793,6 +2794,7 @@ void CLampDoc::MarkShackMessageRead(unsigned int id)
 
       StartDownload(L"www.shacknews.com",
                     path,
+                    NULL,
                     DT_SHACK_READMSG,
                     0,
                     0,
@@ -2810,6 +2812,7 @@ void CLampDoc::MarkShackMessageRead(unsigned int id)
 
       StartDownload(L"shackapi.stonedonkey.com",
                     path,
+                    NULL,
                     DT_READMSG,
                     0,
                     0,
@@ -2857,6 +2860,7 @@ void CLampDoc::DeleteShackMessage(unsigned int id)
 
       StartDownload(L"www.shacknews.com",
                     path,
+                    NULL,
                     DT_SHACK_DELETEMSG,
                     0,
                     0,
@@ -2904,6 +2908,7 @@ void CLampDoc::SendMessage(const UCString &to, const UCString &subject, const UC
       
       StartDownload(L"www.shacknews.com",
                     path,
+                    NULL,
                     DT_SHACK_SENDMSG,
                     0,
                     0,
@@ -2953,6 +2958,7 @@ void CLampDoc::SendMessage(const UCString &to, const UCString &subject, const UC
       
       StartDownload(L"shackapi.stonedonkey.com",
                     path,
+                    NULL,
                     DT_SENDMSG,
                     0,
                     0,
@@ -3002,6 +3008,7 @@ void CLampDoc::SetCategory_Mod(unsigned int id, postcategorytype type)
             
             StartDownload(L"www.shacknews.com",
                           path,
+                          NULL,
                           DT_SHACK_MOD_CATEGORY_CHANGE,
                           id,
                           0,
@@ -3016,18 +3023,18 @@ void CLampDoc::SetCategory_Mod(unsigned int id, postcategorytype type)
 
 void CLampDoc::ReadLOL(bool soft/* = false*/)
 {
-   m_last_result_text = L"";
+   m_last_refresh_time = ::GetTickCount();
 
-   if(m_rootposts.size() > 0)
+   UCString last_result_text = L"";
+
+   if(soft && 
+      m_rootposts.size() > 0)
    {
-      // skip the first entry
       std::list<ChattyPost*>::iterator sample = m_rootposts.begin();
-      if((*sample)->GetBodyText().Length() == 0 &&
-         m_rootposts.size() > 1)
+      if(!(*sample)->GetBodyText().IsEmpty())
       {
-         sample++;
+         last_result_text = (*sample)->GetBodyText();
       }
-      m_last_result_text = (*sample)->GetBodyText();
    }
 
    std::list<ChattyPost*>::iterator it = m_rootposts.begin();
@@ -3108,6 +3115,7 @@ void CLampDoc::ReadLOL(bool soft/* = false*/)
 
    StartDownload(theApp.GetLolHostName(),
                  path,
+                 last_result_text,
                  dt,
                  0);
 }
@@ -3361,6 +3369,7 @@ void CLampDoc::ReadLatestChatty()
 
       StartDownload(L"www.shacknews.com",
                     story,
+                    NULL,
                     DT_SHACK_CHATTY,
                     0);
    }
@@ -3387,6 +3396,7 @@ void CLampDoc::ReadLatestChatty()
    
       StartDownload(L"shackapi.stonedonkey.com",
                     story,
+                    NULL,
                     DT_STORY,
                     0);
    }
@@ -3404,6 +3414,7 @@ void CLampDoc::ReadLatestChattyPart2()
 
    StartDownload(L"shackapi.stonedonkey.com",
                  story,
+                 NULL,
                  DT_STORY_2,
                  0);
 }
@@ -3486,6 +3497,13 @@ bool CLampDoc::RefreshThread(unsigned int id,
                              unsigned int reply_to_id/* = 0*/, 
                              bool soft /*= false*/)
 {
+   m_last_refresh_time = ::GetTickCount();
+
+   if(!soft)
+   {
+      Viewed();
+   }
+
    ChattyPost *pPost = FindPost(refresh_id);
    if(pPost != NULL)
    {
@@ -3507,6 +3525,7 @@ bool CLampDoc::RefreshThread(unsigned int id,
 
       StartDownload(L"www.shacknews.com",
                     story,
+                    NULL,
                     dt,
                     id,
                     refresh_id,
@@ -3527,6 +3546,7 @@ bool CLampDoc::RefreshThread(unsigned int id,
 
       StartDownload(L"shackapi.stonedonkey.com",
                     path,
+                    NULL,
                     dt,
                     id,
                     refresh_id,
@@ -3637,6 +3657,7 @@ bool CLampDoc::PostReply(const UCString &replytext, unsigned int to_id)
       
       StartDownload(L"www.shacknews.com",
                     story,
+                    NULL,
                     DT_SHACK_POST,
                     to_id,
                     0,
@@ -3684,6 +3705,7 @@ bool CLampDoc::PostReply(const UCString &replytext, unsigned int to_id)
       
       StartDownload(L"shackapi.stonedonkey.com",
                     path,
+                    NULL,
                     DT_POST,
                     to_id,
                     0,
@@ -3910,10 +3932,7 @@ void CLampDoc::Draw(HDC hDC,
       break;
    case DDT_THREAD:
       {
-         if(theApp.ShowNavButtons())
-         {
-            pos += bannerheight;
-         }
+         pos += bannerheight;
 
          RECT backrect = DeviceRectangle;
          backrect.top = pos;
@@ -4105,91 +4124,88 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          ::FillRect(hDC,&restrect,m_backgroundbrush);
 
          // draw nav buttons
+                  
+         restrect.left += 20;
+         imagerect.left = restrect.left;
+         imagerect.right = imagerect.left + pagebuttonwidth;
 
-         if(theApp.ShowNavButtons())
+         imagerect.top = restrect.top + (((restrect.bottom - restrect.top) - pagebuttonwidth) / 2);
+         imagerect.bottom = imagerect.top + pagebuttonwidth;
+
+         // pagebuttonsize = pagebuttonwidth + pagebuttongap;
+
+         if(GetDataType() == DDT_STORY ||
+            GetDataType() == DDT_LOLS ||
+            GetDataType() == DDT_SEARCH)
          {
-            restrect.left += 20;
-            imagerect.left = restrect.left;
-            imagerect.right = imagerect.left + pagebuttonwidth;
-
-            imagerect.top = restrect.top + (((restrect.bottom - restrect.top) - pagebuttonwidth) / 2);
-            imagerect.bottom = imagerect.top + pagebuttonwidth;
-
-            // pagebuttonsize = pagebuttonwidth + pagebuttongap;
-
-            if(GetDataType() == DDT_STORY ||
-               GetDataType() == DDT_LOLS ||
-               GetDataType() == DDT_SEARCH)
+            hotspot.m_type = HST_NAV_PREV_THREAD;
+            hotspot.m_spot = imagerect;
+            if(pView->HavePrevThread())
             {
-               hotspot.m_type = HST_NAV_PREV_THREAD;
-               hotspot.m_spot = imagerect;
-               if(pView->HavePrevThread())
-               {
-                  hotspots.push_back(hotspot);
-                  theApp.GetNavImage(true, false, false, false)->Blit(hDC,imagerect);
-               }
-               else
-               {
-                  theApp.GetNavImage(true, false, false, true)->Blit(hDC,imagerect);
-               }
-               imagerect.left += pagebuttonsize;
-               imagerect.right += pagebuttonsize;
-               restrect.left += pagebuttonsize;
+               hotspots.push_back(hotspot);
+               theApp.GetNavImage(true, false, false, false)->Blit(hDC,imagerect);
             }
-
-            if(GetDataType() == DDT_STORY ||
-               GetDataType() == DDT_THREAD)
+            else
             {
-               hotspot.m_type = HST_NAV_PREV_POST;
-               hotspot.m_spot = imagerect;
-               if(pView->HavePrevPost())
-               {
-                  hotspots.push_back(hotspot);
-                  theApp.GetNavImage(false, false, false, false)->Blit(hDC,imagerect);
-               }
-               else
-               {
-                  theApp.GetNavImage(false, false, false, true)->Blit(hDC,imagerect);
-               }
-               imagerect.left += pagebuttonsize;
-               imagerect.right += pagebuttonsize;
-               restrect.left += pagebuttonsize;
-
-               hotspot.m_type = HST_NAV_NEXT_POST;
-               hotspot.m_spot = imagerect;
-               if(pView->HaveNextPost())
-               {
-                  hotspots.push_back(hotspot);
-                  theApp.GetNavImage(false, true, false, false)->Blit(hDC,imagerect);
-               }
-               else
-               {
-                  theApp.GetNavImage(false, true, false, true)->Blit(hDC,imagerect);
-               }
-               imagerect.left += pagebuttonsize;
-               imagerect.right += pagebuttonsize;
-               restrect.left += pagebuttonsize;
+               theApp.GetNavImage(true, false, false, true)->Blit(hDC,imagerect);
             }
+            imagerect.left += pagebuttonsize;
+            imagerect.right += pagebuttonsize;
+            restrect.left += pagebuttonsize;
+         }
 
-            if(GetDataType() == DDT_STORY ||
-               GetDataType() == DDT_LOLS ||
-               GetDataType() == DDT_SEARCH)
+         if(GetDataType() == DDT_STORY ||
+            GetDataType() == DDT_THREAD)
+         {
+            hotspot.m_type = HST_NAV_PREV_POST;
+            hotspot.m_spot = imagerect;
+            if(pView->HavePrevPost())
             {
-               hotspot.m_type = HST_NAV_NEXT_THREAD;
-               hotspot.m_spot = imagerect;
-               if(pView->HaveNextThread())
-               {
-                  hotspots.push_back(hotspot);
-                  theApp.GetNavImage(true, true, false, false)->Blit(hDC,imagerect);
-               }
-               else
-               {
-                  theApp.GetNavImage(true, true, false, true)->Blit(hDC,imagerect);
-               }
-               imagerect.left += pagebuttonsize;
-               imagerect.right += pagebuttonsize;
-               restrect.left += pagebuttonsize;
+               hotspots.push_back(hotspot);
+               theApp.GetNavImage(false, false, false, false)->Blit(hDC,imagerect);
             }
+            else
+            {
+               theApp.GetNavImage(false, false, false, true)->Blit(hDC,imagerect);
+            }
+            imagerect.left += pagebuttonsize;
+            imagerect.right += pagebuttonsize;
+            restrect.left += pagebuttonsize;
+
+            hotspot.m_type = HST_NAV_NEXT_POST;
+            hotspot.m_spot = imagerect;
+            if(pView->HaveNextPost())
+            {
+               hotspots.push_back(hotspot);
+               theApp.GetNavImage(false, true, false, false)->Blit(hDC,imagerect);
+            }
+            else
+            {
+               theApp.GetNavImage(false, true, false, true)->Blit(hDC,imagerect);
+            }
+            imagerect.left += pagebuttonsize;
+            imagerect.right += pagebuttonsize;
+            restrect.left += pagebuttonsize;
+         }
+
+         if(GetDataType() == DDT_STORY ||
+            GetDataType() == DDT_LOLS ||
+            GetDataType() == DDT_SEARCH)
+         {
+            hotspot.m_type = HST_NAV_NEXT_THREAD;
+            hotspot.m_spot = imagerect;
+            if(pView->HaveNextThread())
+            {
+               hotspots.push_back(hotspot);
+               theApp.GetNavImage(true, true, false, false)->Blit(hDC,imagerect);
+            }
+            else
+            {
+               theApp.GetNavImage(true, true, false, true)->Blit(hDC,imagerect);
+            }
+            imagerect.left += pagebuttonsize;
+            imagerect.right += pagebuttonsize;
+            restrect.left += pagebuttonsize;
          }
 
          // draw page bar
@@ -4573,7 +4589,7 @@ void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsign
 
                                  post->ReadRootChattyFromHTML(sit, this, root_id);
                                  post->EstablishNewness(post_newness, !preservenewness);
-                                 post->EstablishTags(post_tags);
+                                 post->EstablishTags(post_tags, !preservenewness);
                                  post->SetupPreviewShades(false);
                                  post->CountFamilySize();
                                  post->UpdateRootReplyList();
@@ -7369,6 +7385,7 @@ bool CLampDoc::LolTagPost(unsigned int post_id, loltagtype tag)
 
          StartDownload(theApp.GetLolHostName(),
                        path,
+                       NULL,
                        DT_SUBMIT_LOLVOTE,
                        0);
 
@@ -7395,6 +7412,7 @@ bool CLampDoc::GetAuthorInfo(unsigned int post_id)
 
       StartDownload(theApp.GetUserHostName(),
                     path,
+                    NULL,
                     DT_AUTHOR,
                     post_id);
    }
@@ -7989,6 +8007,7 @@ void CLampDoc::MakePostAvailable(unsigned int id)
 
             StartDownload(L"www.shacknews.com",
                           story,
+                          NULL,
                           DT_SHACK_THREAD_CONTENTS,
                           rootpost->GetId(),
                           id);
@@ -8083,6 +8102,7 @@ bool CLampDoc::FetchNextPage()
 
       StartDownload(L"www.shacknews.com",
                     story,
+                    NULL,
                     DT_SHACK_CHATTY_INFINATE_PAGE,
                     0);
 
@@ -8469,3 +8489,18 @@ void CLampDoc::UpdateTabName()
       MySetTitle(m_actualtitle);
    }
 }
+
+void CLampDoc::DemoteNewness(unsigned int id)
+{
+   ChattyPost *post = FindPost(id);
+   if(post != NULL)
+   {
+      ChattyPost *root = post->GetRoot();
+      if(root != NULL)
+      {
+         root->DemoteNewness();
+         root->UpdateRootReplyList();
+      }
+   }
+}
+

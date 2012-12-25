@@ -7817,6 +7817,22 @@ void ChattyPost::EstablishNewness(std::map<unsigned int,newness> &post_newness, 
    }
 }
 
+void ChattyPost::DemoteNewness()
+{
+   BumpNewnessDown();
+
+   std::list<ChattyPost*>::iterator it = m_children.begin();
+   std::list<ChattyPost*>::iterator end = m_children.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         (*it)->DemoteNewness();
+      }
+      it++;
+   }
+}
+
 void ChattyPost::RecordTags(std::map<unsigned int,std::vector<shacktagpos>> &post_tags)
 {
    post_tags[m_id] = m_shacktags;
@@ -7833,7 +7849,7 @@ void ChattyPost::RecordTags(std::map<unsigned int,std::vector<shacktagpos>> &pos
    }
 }
 
-void ChattyPost::EstablishTags(std::map<unsigned int,std::vector<shacktagpos>> &post_tags)
+void ChattyPost::EstablishTags(std::map<unsigned int,std::vector<shacktagpos>> &post_tags, bool bResetSpoilers)
 {
    std::map<unsigned int,std::vector<shacktagpos>>::iterator me = post_tags.find(m_id);
    if(me != post_tags.end() &&
@@ -7841,16 +7857,19 @@ void ChattyPost::EstablishTags(std::map<unsigned int,std::vector<shacktagpos>> &
    {
       m_shacktags = me->second;
 
-      for(size_t i=0; i < m_shacktags.size(); i++)
+      if(bResetSpoilers)
       {
-         if(m_shacktags[i].m_tag == ST_UNSPOILER)
+         for(size_t i=0; i < m_shacktags.size(); i++)
          {
-            m_shacktags[i].m_tag = ST_SPOILER;
-         }
+            if(m_shacktags[i].m_tag == ST_UNSPOILER)
+            {
+               m_shacktags[i].m_tag = ST_SPOILER;
+            }
 
-         if(m_shacktags[i].m_tag == ST_UNSPOILER_END)
-         {
-            m_shacktags[i].m_tag = ST_SPOILER_END;
+            if(m_shacktags[i].m_tag == ST_UNSPOILER_END)
+            {
+               m_shacktags[i].m_tag = ST_SPOILER_END;
+            }
          }
       }
    }
@@ -7861,7 +7880,7 @@ void ChattyPost::EstablishTags(std::map<unsigned int,std::vector<shacktagpos>> &
    {
       if((*it) != NULL)
       {
-         (*it)->EstablishTags(post_tags);
+         (*it)->EstablishTags(post_tags, bResetSpoilers);
       }
       it++;
    }

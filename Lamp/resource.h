@@ -212,7 +212,6 @@
 #define ID_SKIN_DEFAULT_2               32926
 #define ID_SKIN_WORKSAFE_2              32927
 #define ID_LEFTMOUSEPAN                 32928
-#define ID_SHOWNAVBUTTONS               32929
 #define ID_MOVEREFRESHTOTOP             32930
 #define IDR_POPUP_DEFAULT               32931
 #define ID_AUTO_REFRESH                 32932

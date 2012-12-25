@@ -603,9 +603,10 @@ public:
 
    void RecordNewness(std::map<unsigned int,newness> &post_newness);
    void EstablishNewness(std::map<unsigned int,newness> &post_newness, bool bumpdown = true);
+   void DemoteNewness();
 
    void RecordTags(std::map<unsigned int,std::vector<shacktagpos>> &post_tags);
-   void EstablishTags(std::map<unsigned int,std::vector<shacktagpos>> &post_tags);
+   void EstablishTags(std::map<unsigned int,std::vector<shacktagpos>> &post_tags, bool bResetSpoilers);
 
    void SetAsPageBreak(size_t page);
 
