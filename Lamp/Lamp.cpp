@@ -2711,6 +2711,15 @@ void CLampApp::ReadSkinFiles()
    m_post_prev_inactive.Resize(0,0);
    m_post_prev_active.Resize(0,0);
    m_post_prev_hover.Resize(0,0);
+   m_post_new_next_inactive.Resize(0,0);
+   m_post_new_next_active.Resize(0,0);
+   m_post_new_next_hover.Resize(0,0);
+   m_post_new_prev_inactive.Resize(0,0);
+   m_post_new_prev_active.Resize(0,0);
+   m_post_new_prev_hover.Resize(0,0);
+   m_demote_inactive.Resize(0,0);
+   m_demote_active.Resize(0,0);
+   m_demote_hover.Resize(0,0);
    m_pin_hover.Resize(0,0);
    m_pin_on.Resize(0,0);
    m_pin_off.Resize(0,0);
@@ -3136,6 +3145,60 @@ void CLampApp::ReadSkinFiles()
    imagefilename += L"\\post_prev_hover.png";
    imagepath.PathToMe(imagefilename);
    m_post_prev_hover.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\post_new_next_inactive.png";
+   imagepath.PathToMe(imagefilename);
+   m_post_new_next_inactive.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\post_new_next.png";
+   imagepath.PathToMe(imagefilename);
+   m_post_new_next_active.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\post_new_next_hover.png";
+   imagepath.PathToMe(imagefilename);
+   m_post_new_next_hover.ReadPNG(imagepath);
+   
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\post_new_prev_inactive.png";
+   imagepath.PathToMe(imagefilename);
+   m_post_new_prev_inactive.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\post_new_prev.png";
+   imagepath.PathToMe(imagefilename);
+   m_post_new_prev_active.ReadPNG(imagepath);
+      
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\post_new_prev_hover.png";
+   imagepath.PathToMe(imagefilename);
+   m_post_new_prev_hover.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\demote.png";
+   imagepath.PathToMe(imagefilename);
+   m_demote_active.ReadPNG(imagepath);
+      
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\demote_hover.png";
+   imagepath.PathToMe(imagefilename);
+   m_demote_hover.ReadPNG(imagepath);
+
+   imagefilename = L"skins\\";
+   imagefilename += m_skinname;
+   imagefilename += L"\\demote_inactive.png";
+   imagepath.PathToMe(imagefilename);
+   m_demote_inactive.ReadPNG(imagepath);
 
    imagefilename = L"skins\\";
    imagefilename += m_skinname;

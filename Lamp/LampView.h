@@ -128,6 +128,11 @@ public:
    bool HaveNextThread();
    bool HavePrevThread();
 
+   bool HaveNextNewPost();
+   bool HavePrevNewPost();
+
+   bool CanDemote();
+
    bool m_bLBDownOnDblClkable;
    
 protected:

@@ -7518,6 +7518,25 @@ unsigned int ChattyPost::GetNextNewReply(bool bSkipSelf /*= false*/, bool bAllow
    return result;
 }
 
+bool ChattyPost::CanDemote()
+{
+   bool result = false;
+
+   ChattyPost *pParent = this;
+   while(pParent->m_pParent != NULL)pParent = pParent->m_pParent;
+   
+   for(int i = 0; i < (int)pParent->m_root_reply_list.size(); i++)
+   {
+      if(pParent->m_root_reply_list[i].m_isnew)
+      {
+         result = true;
+         break;
+      }
+   }
+
+   return result;
+}
+
 void ChattyPost::UpdateLOLsRecurse()
 {
    UpdateLOLs();

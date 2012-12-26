@@ -88,7 +88,10 @@ typedef enum
    HST_NAV_PREV_THREAD,
    HST_NAV_PREV_POST,
    HST_NAV_NEXT_POST,
-   HST_NAV_NEXT_THREAD   
+   HST_NAV_NEXT_THREAD,
+   HST_NAV_PREV_NEW_POST,
+   HST_NAV_NEXT_NEW_POST,
+   HST_DEMOTE,
 }hotspottype;
 
 typedef enum 
@@ -584,6 +587,8 @@ public:
 
    unsigned int GetPrevNewReply(bool bSkipSelf = false, bool bAllowExpandedTruncation = true);
    unsigned int GetNextNewReply(bool bSkipSelf = false, bool bAllowExpandedTruncation = true);
+
+   bool CanDemote();
 
    void UpdateRootReplyList(std::vector<CPostListEntry> *list = NULL);
 

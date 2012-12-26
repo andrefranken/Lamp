@@ -4134,39 +4134,41 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
 
          // pagebuttonsize = pagebuttonwidth + pagebuttongap;
 
-         if(GetDataType() == DDT_STORY ||
-            GetDataType() == DDT_LOLS ||
-            GetDataType() == DDT_SEARCH)
+         if((GetDataType() == DDT_STORY ||
+             GetDataType() == DDT_LOLS ||
+             GetDataType() == DDT_SEARCH) &&
+             (restrect.right - restrect.left) > pagebuttonsize)
          {
             hotspot.m_type = HST_NAV_PREV_THREAD;
             hotspot.m_spot = imagerect;
             if(pView->HavePrevThread())
             {
                hotspots.push_back(hotspot);
-               theApp.GetNavImage(true, false, false, false)->Blit(hDC,imagerect);
+               theApp.GetNavImage(true, false, false, false, false)->Blit(hDC,imagerect);
             }
             else
             {
-               theApp.GetNavImage(true, false, false, true)->Blit(hDC,imagerect);
+               theApp.GetNavImage(true, false, false, false, true)->Blit(hDC,imagerect);
             }
             imagerect.left += pagebuttonsize;
             imagerect.right += pagebuttonsize;
             restrect.left += pagebuttonsize;
          }
 
-         if(GetDataType() == DDT_STORY ||
-            GetDataType() == DDT_THREAD)
+         if((GetDataType() == DDT_STORY ||
+             GetDataType() == DDT_THREAD) &&
+             (restrect.right - restrect.left) > (pagebuttonsize * 2))
          {
             hotspot.m_type = HST_NAV_PREV_POST;
             hotspot.m_spot = imagerect;
             if(pView->HavePrevPost())
             {
                hotspots.push_back(hotspot);
-               theApp.GetNavImage(false, false, false, false)->Blit(hDC,imagerect);
+               theApp.GetNavImage(false, false, false, false, false)->Blit(hDC,imagerect);
             }
             else
             {
-               theApp.GetNavImage(false, false, false, true)->Blit(hDC,imagerect);
+               theApp.GetNavImage(false, false, false, false, true)->Blit(hDC,imagerect);
             }
             imagerect.left += pagebuttonsize;
             imagerect.right += pagebuttonsize;
@@ -4177,35 +4179,90 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             if(pView->HaveNextPost())
             {
                hotspots.push_back(hotspot);
-               theApp.GetNavImage(false, true, false, false)->Blit(hDC,imagerect);
+               theApp.GetNavImage(false, false, true, false, false)->Blit(hDC,imagerect);
             }
             else
             {
-               theApp.GetNavImage(false, true, false, true)->Blit(hDC,imagerect);
+               theApp.GetNavImage(false, false, true, false, true)->Blit(hDC,imagerect);
             }
             imagerect.left += pagebuttonsize;
             imagerect.right += pagebuttonsize;
             restrect.left += pagebuttonsize;
          }
 
-         if(GetDataType() == DDT_STORY ||
-            GetDataType() == DDT_LOLS ||
-            GetDataType() == DDT_SEARCH)
+         if((GetDataType() == DDT_STORY ||
+             GetDataType() == DDT_LOLS ||
+             GetDataType() == DDT_SEARCH) &&
+            (restrect.right - restrect.left) > pagebuttonsize)
          {
             hotspot.m_type = HST_NAV_NEXT_THREAD;
             hotspot.m_spot = imagerect;
             if(pView->HaveNextThread())
             {
                hotspots.push_back(hotspot);
-               theApp.GetNavImage(true, true, false, false)->Blit(hDC,imagerect);
+               theApp.GetNavImage(true, false, true, false, false)->Blit(hDC,imagerect);
             }
             else
             {
-               theApp.GetNavImage(true, true, false, true)->Blit(hDC,imagerect);
+               theApp.GetNavImage(true, false, true, false, true)->Blit(hDC,imagerect);
             }
             imagerect.left += pagebuttonsize;
             imagerect.right += pagebuttonsize;
             restrect.left += pagebuttonsize;
+         }
+
+         if((GetDataType() == DDT_STORY ||
+            GetDataType() == DDT_THREAD) &&
+            (restrect.right - restrect.left) > (pagebuttonsize * 2))
+         {
+            hotspot.m_type = HST_NAV_PREV_NEW_POST;
+            hotspot.m_spot = imagerect;
+            if(pView->HavePrevNewPost())
+            {
+               hotspots.push_back(hotspot);
+               theApp.GetNavImage(false, true, false, false, false)->Blit(hDC,imagerect);
+            }
+            else
+            {
+               theApp.GetNavImage(false, true, false, false, true)->Blit(hDC,imagerect);
+            }
+            imagerect.left += pagebuttonsize;
+            imagerect.right += pagebuttonsize;
+            restrect.left += pagebuttonsize;
+
+            hotspot.m_type = HST_NAV_NEXT_NEW_POST;
+            hotspot.m_spot = imagerect;
+            if(pView->HaveNextNewPost())
+            {
+               hotspots.push_back(hotspot);
+               theApp.GetNavImage(false, true, true, false, false)->Blit(hDC,imagerect);
+            }
+            else
+            {
+               theApp.GetNavImage(false, true, true, false, true)->Blit(hDC,imagerect);
+            }
+            imagerect.left += pagebuttonsize;
+            imagerect.right += pagebuttonsize;
+            restrect.left += pagebuttonsize;
+
+            if(theApp.AutoRefresh() &&
+               (restrect.right - restrect.left) > pagebuttonsize)
+            {
+               hotspot.m_type = HST_DEMOTE;
+               hotspot.m_spot = imagerect;
+               if(pView->CanDemote() != 0)
+               {
+                  hotspots.push_back(hotspot);
+                  theApp.GetDemoteImage(true, false)->Blit(hDC,imagerect);
+               }
+               else
+               {
+                  theApp.GetDemoteImage(false, false)->Blit(hDC,imagerect);
+               }
+               imagerect.left += pagebuttonsize;
+               imagerect.right += pagebuttonsize;
+               restrect.left += pagebuttonsize;
+            }
          }
 
          // draw page bar
@@ -4213,161 +4270,180 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          FillBackground(hDC,restrect);
 
          RECT pagingrect = restrect;
-         pagingrect.left += 20;
-         pagingrect.right -= 20;
-
-         if(GetDataType() == DDT_STORY && theApp.InfinatePaging() && theApp.UseShack())
+         
+         if(GetDataType() == DDT_STORY ||
+            GetDataType() == DDT_SEARCH ||
+            GetDataType() == DDT_SHACKMSG)
          {
-            ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
-            MySelectFont(hDC,m_pagecountfont);
-            ::SetTextColor(hDC,theApp.GetPostTextColor());
-
-            UCString pagenote = L"Have ";
-            pagenote += m_page;
-            pagenote += L" page";
-            if(m_page > 1)
+            if(GetDataType() == DDT_STORY && 
+               theApp.InfinatePaging() && 
+               theApp.UseShack())
             {
-               pagenote += L"s";
-            }
-            pagenote += L" loaded.  Out of ";
-            pagenote += m_lastpage;
-            pagenote += L".";
-
-            ::ExtTextOut(hDC, pagingrect.left + 15, pagingrect.top + ((pagingrect.bottom - pagingrect.top) / 2) + 6, 0, NULL, pagenote.Str(), pagenote.Length(), NULL);
-         }
-         else
-         {
-            int pagingwidth = pagingrect.right - pagingrect.left;
-
-            // each square needs 20 + 10
-            int howmanycanihave = m_lastpage + 2;
-
-            while(howmanycanihave * pagebuttonsize > pagingwidth)
-            {
-               howmanycanihave--;
-            }
-
-            // don't even bother if i cant' do at least 3
-            if(howmanycanihave > 3)
-            {
-               howmanycanihave -= 2;  // reserve 2 for next and previous page
-
-               int first = 1;
-               int last = m_lastpage;
-
-               if(howmanycanihave < (int)m_lastpage)
+               if(pagingrect.right - pagingrect.left > 20)
                {
-                  if((int)m_page < howmanycanihave / 2)
+                  ::SetTextAlign(hDC,TA_CENTER/*TA_LEFT*/|TA_BOTTOM);
+                  MySelectFont(hDC,m_pagecountfont);
+                  ::SetTextColor(hDC,theApp.GetPostTextColor());
+
+                  UCString pagenote; 
+
+                  if(pagingrect.right - pagingrect.left > 200)
                   {
-                     // we can trim off the upper end
-                     first = 1;
-                     last = howmanycanihave;
-                  }
-                  else if((int)m_lastpage - (int)m_page < howmanycanihave / 2)
-                  {
-                     // we can trim off the lower end
-                     first = ((int)m_lastpage - howmanycanihave) + 1;
-                     last = m_lastpage;
+                     pagenote = L"Have ";
+                     pagenote += m_page;
+                     pagenote += L" page";
+                     if(m_page > 1)
+                     {
+                        pagenote += L"s";
+                     }
+                     pagenote += L" loaded.  Out of ";
+                     pagenote += m_lastpage;
+                     pagenote += L".";
                   }
                   else
                   {
-                     // we trim both ends
-                     first = __max(1,(int)m_page - (howmanycanihave / 2));
-                     last = (first + howmanycanihave) - 1;
+                     pagenote = m_page;
+                     pagenote += L" / ";
+                     pagenote += m_lastpage;
                   }
+
+                  ::ExtTextOut(hDC, (pagingrect.right + pagingrect.left) / 2, pagingrect.top + ((pagingrect.bottom - pagingrect.top) / 2) + 6, 0, NULL, pagenote.Str(), pagenote.Length(), NULL);
+               }
+            }
+            else
+            {
+               int pagingwidth = pagingrect.right - pagingrect.left;
+
+               // each square needs 20 + 10
+               int howmanycanihave = m_lastpage + 2;
+
+               while(howmanycanihave * pagebuttonsize > pagingwidth)
+               {
+                  howmanycanihave--;
                }
 
-               int x = ((pagingrect.right + pagingrect.left) / 2) - (int)(((float)(howmanycanihave + 2) /2.0f) * (float)pagebuttonsize);
-               int y = ((bannerrect.bottom + bannerrect.top) / 2) + pagebuttongap;
-
-               ::SetTextAlign(hDC,TA_CENTER|TA_BOTTOM);
-               MySelectFont(hDC,m_pagefont);
-               HBRUSH oldbrush = (HBRUSH)::SelectObject(hDC,m_rootbackgroundbrush);
-               HPEN oldpen = (HPEN)::SelectObject(hDC,m_roottoppen);
-               HPEN nullpen = ::CreatePen(PS_NULL,0,0);
-               ::SetTextColor(hDC,theApp.GetPostTextColor());
-
-               RECT pagebut;
-               pagebut.left = x + 5;
-               pagebut.top = y - pagebuttonwidth;
-               pagebut.right = x + 5 + pagebuttonwidth;
-               pagebut.bottom = y;
-
-               // draw the previous
-               if(m_page == 1)
+               // don't even bother if i cant' do at least 2
+               if(howmanycanihave >= 2)
                {
-                  // draw greyed out
-                  ::SelectObject(hDC,nullpen);
-                  ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-                  ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, L"<", 1, NULL);
-                  ::SelectObject(hDC,m_roottoppen);
-               }
-               else
-               {
-                  ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-                  ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, L"<", 1, NULL);
-                  
-                  hotspot.m_type = HST_PREV_PAGE;
-                  hotspot.m_spot = pagebut;
-                  hotspot.m_id = 0;
-                  hotspots.push_back(hotspot);
-               }
-               pagebut.left += pagebuttonsize;
-               pagebut.right += pagebuttonsize;
-               x += pagebuttonsize;
+                  howmanycanihave -= 2;  // reserve 2 for next and previous page
 
-               for(int i = first; i <= last; i++)
-               {
-                  UCString pagenum = i;
+                  int first = 1;
+                  int last = m_lastpage;
+
+                  if(howmanycanihave < (int)m_lastpage)
+                  {
+                     if((int)m_page < howmanycanihave / 2)
+                     {
+                        // we can trim off the upper end
+                        first = 1;
+                        last = howmanycanihave;
+                     }
+                     else if((int)m_lastpage - (int)m_page < howmanycanihave / 2)
+                     {
+                        // we can trim off the lower end
+                        first = ((int)m_lastpage - howmanycanihave) + 1;
+                        last = m_lastpage;
+                     }
+                     else
+                     {
+                        // we trim both ends
+                        first = __max(1,(int)m_page - (howmanycanihave / 2));
+                        last = (first + howmanycanihave) - 1;
+                     }
+                  }
+
+                  int x = ((pagingrect.right + pagingrect.left) / 2) - (int)(((float)(howmanycanihave + 2) /2.0f) * (float)pagebuttonsize);
+                  int y = ((bannerrect.bottom + bannerrect.top) / 2) + pagebuttongap;
+
+                  ::SetTextAlign(hDC,TA_CENTER|TA_BOTTOM);
+                  MySelectFont(hDC,m_pagefont);
+                  HBRUSH oldbrush = (HBRUSH)::SelectObject(hDC,m_rootbackgroundbrush);
+                  HPEN oldpen = (HPEN)::SelectObject(hDC,m_roottoppen);
+                  HPEN nullpen = ::CreatePen(PS_NULL,0,0);
+                  ::SetTextColor(hDC,theApp.GetPostTextColor());
+
+                  RECT pagebut;
+                  pagebut.left = x + 5;
+                  pagebut.top = y - pagebuttonwidth;
+                  pagebut.right = x + 5 + pagebuttonwidth;
+                  pagebut.bottom = y;
+
                   // draw the previous
-                  if(i == m_page)
+                  if(m_page == 1)
                   {
                      // draw greyed out
                      ::SelectObject(hDC,nullpen);
                      ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-                     ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, pagenum, pagenum.Length(), NULL);
+                     ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, L"<", 1, NULL);
                      ::SelectObject(hDC,m_roottoppen);
                   }
                   else
                   {
                      ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-                     ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, pagenum, pagenum.Length(), NULL);
-                  }   
-
-                  hotspot.m_type = HST_PAGE;
-                  hotspot.m_spot = pagebut;
-                  hotspot.m_id = i;
-                  hotspots.push_back(hotspot);
-                  
+                     ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, L"<", 1, NULL);
+                     
+                     hotspot.m_type = HST_PREV_PAGE;
+                     hotspot.m_spot = pagebut;
+                     hotspot.m_id = 0;
+                     hotspots.push_back(hotspot);
+                  }
                   pagebut.left += pagebuttonsize;
                   pagebut.right += pagebuttonsize;
                   x += pagebuttonsize;
-               }
-               
-               // draw the next
-               if(m_page == m_lastpage)
-               {
-                  // draw greyed out
-                  ::SelectObject(hDC,nullpen);
-                  ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-                  ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, L">", 1, NULL);
-                  ::SelectObject(hDC,m_roottoppen);
-               }
-               else
-               {
-                  ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
-                  ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, L">", 1, NULL);
-                  
-                  hotspot.m_type = HST_NEXT_PAGE;
-                  hotspot.m_spot = pagebut;
-                  hotspot.m_id = 0;
-                  hotspots.push_back(hotspot);
-               }
 
-               ::SelectObject(hDC,oldbrush);
-               ::SelectObject(hDC,oldpen);
-               ::DeleteObject(nullpen);
-               ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
+                  for(int i = first; i <= last; i++)
+                  {
+                     UCString pagenum = i;
+                     // draw the previous
+                     if(i == m_page)
+                     {
+                        // draw greyed out
+                        ::SelectObject(hDC,nullpen);
+                        ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
+                        ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, pagenum, pagenum.Length(), NULL);
+                        ::SelectObject(hDC,m_roottoppen);
+                     }
+                     else
+                     {
+                        ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
+                        ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, pagenum, pagenum.Length(), NULL);
+                     }   
+
+                     hotspot.m_type = HST_PAGE;
+                     hotspot.m_spot = pagebut;
+                     hotspot.m_id = i;
+                     hotspots.push_back(hotspot);
+                     
+                     pagebut.left += pagebuttonsize;
+                     pagebut.right += pagebuttonsize;
+                     x += pagebuttonsize;
+                  }
+                  
+                  // draw the next
+                  if(m_page == m_lastpage)
+                  {
+                     // draw greyed out
+                     ::SelectObject(hDC,nullpen);
+                     ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
+                     ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, L">", 1, NULL);
+                     ::SelectObject(hDC,m_roottoppen);
+                  }
+                  else
+                  {
+                     ::Rectangle(hDC, pagebut.left, pagebut.top, pagebut.right, pagebut.bottom);
+                     ::ExtTextOut(hDC, x + pagetxtoff_x, y - pagetxtoff_y , 0, NULL, L">", 1, NULL);
+                     
+                     hotspot.m_type = HST_NEXT_PAGE;
+                     hotspot.m_spot = pagebut;
+                     hotspot.m_id = 0;
+                     hotspots.push_back(hotspot);
+                  }
+
+                  ::SelectObject(hDC,oldbrush);
+                  ::SelectObject(hDC,oldpen);
+                  ::DeleteObject(nullpen);
+                  ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
+               }
             }
          }
 

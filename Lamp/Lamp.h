@@ -22,7 +22,7 @@
 #define WM_WAKEUP (WM_USER + 102)
 
 #define LAMP_VERSION_MAJOR 3
-#define LAMP_VERSION_MINOR 5
+#define LAMP_VERSION_MINOR 7
 
 chattyerror download(const char* host, const char* path, char** out_response, int *psize=NULL);
 
@@ -544,7 +544,7 @@ public:
       }
    }   
 
-   CDCSurface *GetNavImage(bool bThread, bool bNext, bool bHover, bool bInactive)
+   CDCSurface *GetNavImage(bool bThread, bool bNew, bool bNext, bool bHover, bool bInactive)
    {
       if(bThread)
       {
@@ -576,6 +576,39 @@ public:
             else
             {
                return &m_thread_prev_active;
+            }
+         }
+      }
+      else if(bNew)
+      {
+         if(bNext)
+         {
+            if(bInactive)
+            {
+               return &m_post_new_next_inactive;
+            }
+            else if(bHover)
+            {
+               return &m_post_new_next_hover;
+            }
+            else
+            {
+               return &m_post_new_next_active;
+            }
+         }
+         else
+         {
+            if(bInactive)
+            {
+               return &m_post_new_prev_inactive;
+            }
+            else if(bHover)
+            {
+               return &m_post_new_prev_hover;
+            }
+            else
+            {
+               return &m_post_new_prev_active;
             }
          }
       }
@@ -613,6 +646,25 @@ public:
          }
       }
    }   
+
+   CDCSurface *GetDemoteImage(bool enabled, bool bHover)
+   {
+      if(bHover)
+      {
+         return &m_demote_hover;
+      }
+      else
+      {
+         if(enabled)
+         {
+            return &m_demote_active;
+         }
+         else
+         {
+            return &m_demote_inactive;
+         }
+      }
+   }
 
    CDCSurface *GetPinImage(bool on, bool bHover)
    {
@@ -1274,6 +1326,17 @@ protected:
    CDCSurface m_post_prev_inactive;
    CDCSurface m_post_prev_active;
    CDCSurface m_post_prev_hover;
+
+   CDCSurface m_demote_inactive;
+   CDCSurface m_demote_active;
+   CDCSurface m_demote_hover;
+
+   CDCSurface m_post_new_next_inactive;
+   CDCSurface m_post_new_next_active;
+   CDCSurface m_post_new_next_hover;
+   CDCSurface m_post_new_prev_inactive;
+   CDCSurface m_post_new_prev_active;
+   CDCSurface m_post_new_prev_hover;
 
    CDCSurface m_pin_hover;
    CDCSurface m_pin_on;
