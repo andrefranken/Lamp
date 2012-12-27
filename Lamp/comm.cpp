@@ -266,6 +266,7 @@ void client::handle_read_status_line(const boost::system::error_code& err)
 
          if(m_stlstring != NULL)
          {
+            for(size_t i = 0; i < m_datasize; i++){if(m_data[i] == 0)m_data[i] = ' ';}
             size_t size_before = m_stlstring->length();
             (*m_stlstring) += m_data;
             if(m_stlstring->length() - size_before != m_datasize)
@@ -333,6 +334,7 @@ void client::handle_read_headers(const boost::system::error_code& err)
 
          if(m_stlstring != NULL)
          {
+            for(size_t i = 0; i < m_datasize; i++){if(m_data[i] == 0)m_data[i] = ' ';}
             size_t size_before = m_stlstring->length();
             (*m_stlstring) += m_data;
             if(m_stlstring->length() - size_before != m_datasize)
@@ -377,6 +379,7 @@ void client::handle_read_headers(const boost::system::error_code& err)
 
          if(m_stlstring != NULL)
          {
+            for(size_t i = 0; i < m_datasize; i++){if(m_data[i] == 0)m_data[i] = ' ';}
             size_t size_before = m_stlstring->length();
             (*m_stlstring) += m_data;
             if(m_stlstring->length() - size_before != m_datasize)
@@ -439,6 +442,7 @@ void client::handle_read_content(const boost::system::error_code& err)
 
          if(m_stlstring != NULL)
          {
+            for(size_t i = 0; i < m_datasize; i++){if(m_data[i] == 0)m_data[i] = ' ';}
             size_t size_before = m_stlstring->length();
             (*m_stlstring) += m_data;
             if(m_stlstring->length() - size_before != m_datasize)
