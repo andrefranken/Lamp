@@ -6248,19 +6248,20 @@ void ChattyPost::UpdateDate()
       tm tm_now;
       localtime_s(&tm_now,&bar);
 
-      int now_seconds = tm_now.tm_sec;
-      now_seconds += (tm_now.tm_min * 60);
-      now_seconds += (tm_now.tm_hour * 60 * 60);
-      now_seconds += (tm_now.tm_yday * 60 * 60 * 24);
-      now_seconds += (tm_now.tm_year * 60 * 60 * 24 * 365);
+      
+      UINT64 now_seconds =  ((UINT64)tm_now.tm_year * (UINT64)60 * (UINT64)60 * (UINT64)24 * (UINT64)366);
+      now_seconds +=        ((UINT64)tm_now.tm_yday * (UINT64)60 * (UINT64)60 * (UINT64)24);
+      now_seconds +=        ((UINT64)tm_now.tm_hour * (UINT64)60 * (UINT64)60);
+      now_seconds +=        ((UINT64)tm_now.tm_min  * (UINT64)60);
+      now_seconds +=        (UINT64)tm_now.tm_sec;
+      
+      UINT64 post_seconds = ((UINT64)m_tm_posttime.tm_year * (UINT64)60 * (UINT64)60 * (UINT64)24 * (UINT64)366);
+      post_seconds +=       ((UINT64)m_tm_posttime.tm_yday * (UINT64)60 * (UINT64)60 * (UINT64)24);
+      post_seconds +=       ((UINT64)m_tm_posttime.tm_hour * (UINT64)60 * (UINT64)60);
+      post_seconds +=       ((UINT64)m_tm_posttime.tm_min  * (UINT64)60);
+      post_seconds +=       (UINT64)m_tm_posttime.tm_sec;
 
-      int post_seconds = m_tm_posttime.tm_sec;
-      post_seconds += (m_tm_posttime.tm_min * 60);
-      post_seconds += (m_tm_posttime.tm_hour * 60 * 60);
-      post_seconds += (m_tm_posttime.tm_yday * 60 * 60 * 24);
-      post_seconds += (m_tm_posttime.tm_year * 60 * 60 * 24 * 365);
-
-      int ago_seconds = now_seconds - post_seconds;
+      UINT64 ago_seconds = now_seconds - post_seconds;
       double diff = (double)ago_seconds;
 
       m_datetext = L"";

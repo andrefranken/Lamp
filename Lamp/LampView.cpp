@@ -125,6 +125,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_LEFTMOUSEPAN, &CLampView::OnUpdateLeftMousePan)
    ON_COMMAND(ID_MOVEREFRESHTOTOP, &CLampView::OnMoveRefreshToTop)
    ON_UPDATE_COMMAND_UI(ID_MOVEREFRESHTOTOP, &CLampView::OnUpdateMoveRefreshToTop)
+   ON_COMMAND(ID_SHOW_NAV_BUTTONS, &CLampView::OnShowNavButtons)
+   ON_UPDATE_COMMAND_UI(ID_SHOW_NAV_BUTTONS, &CLampView::OnUpdateShowNavButtons)
    ON_COMMAND(ID_FILTER_ENABLE_NWS, &CLampView::OnFilterNWS)
    ON_UPDATE_COMMAND_UI(ID_FILTER_ENABLE_NWS, &CLampView::OnUpdateFilterNWS)
    ON_COMMAND(ID_FILTER_ENABLE_INF, &CLampView::OnFilterINF)
@@ -1164,9 +1166,9 @@ void CLampView::OnDraw(CDC* pDC)
                   tripoints[2].x = 0;
                   tripoints[2].y = m_banneroffset + 20;
 
-                  tripoints[0].Red = 0;
-                  tripoints[0].Green = 255 << 8;
-                  tripoints[0].Blue = 255 << 8;
+                  tripoints[0].Red = GetRValue(theApp.GetBranchColorShade(10, N_NEW)) << 8;
+                  tripoints[0].Green = GetGValue(theApp.GetBranchColorShade(10, N_NEW)) << 8;
+                  tripoints[0].Blue = GetBValue(theApp.GetBranchColorShade(10, N_NEW)) << 8;
                   tripoints[0].Alpha = 0xFFFF;
 
                   tripoints[1].Red = GetRValue(theApp.GetBackgroundColor()) << 8;
@@ -1215,9 +1217,9 @@ void CLampView::OnDraw(CDC* pDC)
                   tripoints[2].x = 0;
                   tripoints[2].y = DeviceRectangle.bottom - 20;
 
-                  tripoints[0].Red = 0;
-                  tripoints[0].Green = 255 << 8;
-                  tripoints[0].Blue = 255 << 8;
+                  tripoints[0].Red = GetRValue(theApp.GetBranchColorShade(10, N_NEW)) << 8;
+                  tripoints[0].Green = GetGValue(theApp.GetBranchColorShade(10, N_NEW)) << 8;
+                  tripoints[0].Blue = GetBValue(theApp.GetBranchColorShade(10, N_NEW)) << 8;
                   tripoints[0].Alpha = 0xFFFF;
 
                   tripoints[1].Red = GetRValue(theApp.GetBackgroundColor()) << 8;
@@ -7281,6 +7283,26 @@ void CLampView::OnUpdateMoveRefreshToTop(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(theApp.MoveRefreshToTop())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnShowNavButtons()
+{
+   theApp.ShowNavButtons(!theApp.ShowNavButtons());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateShowNavButtons(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.ShowNavButtons())
    {
       pCmdUI->SetCheck(TRUE);
    }

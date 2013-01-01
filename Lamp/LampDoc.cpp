@@ -1382,6 +1382,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                            }
                         }
 
+                        m_lastpage = 1;
+
                         tree<htmlcxx::HTML::Node>::sibling_iterator pagination_it;
                         if(HTML_FindChild_HasAttribute(it,pagination_it, "div", "class", "pagination"))
                         {
@@ -1405,6 +1407,10 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                               }
                               sit++;
                            }                              
+                        }
+                        else if(m_page > m_lastpage)
+                        {
+                           m_page = m_lastpage;
                         }
                      }
                   }
@@ -4123,145 +4129,150 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
 
          ::FillRect(hDC,&restrect,m_backgroundbrush);
 
-         // draw nav buttons
-                  
          restrect.left += 20;
-         imagerect.left = restrect.left;
-         imagerect.right = imagerect.left + pagebuttonwidth;
+         restrect.right -= 20;
 
-         imagerect.top = restrect.top + (((restrect.bottom - restrect.top) - pagebuttonwidth) / 2);
-         imagerect.bottom = imagerect.top + pagebuttonwidth;
+         // draw nav buttons
 
-         // pagebuttonsize = pagebuttonwidth + pagebuttongap;
-
-         if((GetDataType() == DDT_STORY ||
-             GetDataType() == DDT_LOLS ||
-             GetDataType() == DDT_SEARCH) &&
-             (restrect.right - restrect.left) > pagebuttonsize)
+         if(theApp.ShowNavButtons())
          {
-            hotspot.m_type = HST_NAV_PREV_THREAD;
-            hotspot.m_spot = imagerect;
-            if(pView->HavePrevThread())
-            {
-               hotspots.push_back(hotspot);
-               theApp.GetNavImage(true, false, false, false, false)->Blit(hDC,imagerect);
-            }
-            else
-            {
-               theApp.GetNavImage(true, false, false, false, true)->Blit(hDC,imagerect);
-            }
-            imagerect.left += pagebuttonsize;
-            imagerect.right += pagebuttonsize;
-            restrect.left += pagebuttonsize;
-         }
+            imagerect.left = restrect.left;
+            imagerect.right = imagerect.left + pagebuttonwidth;
 
-         if((GetDataType() == DDT_STORY ||
-             GetDataType() == DDT_THREAD) &&
-             (restrect.right - restrect.left) > (pagebuttonsize * 2))
-         {
-            hotspot.m_type = HST_NAV_PREV_POST;
-            hotspot.m_spot = imagerect;
-            if(pView->HavePrevPost())
-            {
-               hotspots.push_back(hotspot);
-               theApp.GetNavImage(false, false, false, false, false)->Blit(hDC,imagerect);
-            }
-            else
-            {
-               theApp.GetNavImage(false, false, false, false, true)->Blit(hDC,imagerect);
-            }
-            imagerect.left += pagebuttonsize;
-            imagerect.right += pagebuttonsize;
-            restrect.left += pagebuttonsize;
+            imagerect.top = restrect.top + (((restrect.bottom - restrect.top) - pagebuttonwidth) / 2);
+            imagerect.bottom = imagerect.top + pagebuttonwidth;
 
-            hotspot.m_type = HST_NAV_NEXT_POST;
-            hotspot.m_spot = imagerect;
-            if(pView->HaveNextPost())
-            {
-               hotspots.push_back(hotspot);
-               theApp.GetNavImage(false, false, true, false, false)->Blit(hDC,imagerect);
-            }
-            else
-            {
-               theApp.GetNavImage(false, false, true, false, true)->Blit(hDC,imagerect);
-            }
-            imagerect.left += pagebuttonsize;
-            imagerect.right += pagebuttonsize;
-            restrect.left += pagebuttonsize;
-         }
+            // pagebuttonsize = pagebuttonwidth + pagebuttongap;
 
-         if((GetDataType() == DDT_STORY ||
-             GetDataType() == DDT_LOLS ||
-             GetDataType() == DDT_SEARCH) &&
-            (restrect.right - restrect.left) > pagebuttonsize)
-         {
-            hotspot.m_type = HST_NAV_NEXT_THREAD;
-            hotspot.m_spot = imagerect;
-            if(pView->HaveNextThread())
+            if((GetDataType() == DDT_STORY ||
+                GetDataType() == DDT_LOLS ||
+                GetDataType() == DDT_SEARCH) &&
+                (restrect.right - restrect.left) > pagebuttonsize)
             {
-               hotspots.push_back(hotspot);
-               theApp.GetNavImage(true, false, true, false, false)->Blit(hDC,imagerect);
-            }
-            else
-            {
-               theApp.GetNavImage(true, false, true, false, true)->Blit(hDC,imagerect);
-            }
-            imagerect.left += pagebuttonsize;
-            imagerect.right += pagebuttonsize;
-            restrect.left += pagebuttonsize;
-         }
-
-         if((GetDataType() == DDT_STORY ||
-            GetDataType() == DDT_THREAD) &&
-            (restrect.right - restrect.left) > (pagebuttonsize * 2))
-         {
-            hotspot.m_type = HST_NAV_PREV_NEW_POST;
-            hotspot.m_spot = imagerect;
-            if(pView->HavePrevNewPost())
-            {
-               hotspots.push_back(hotspot);
-               theApp.GetNavImage(false, true, false, false, false)->Blit(hDC,imagerect);
-            }
-            else
-            {
-               theApp.GetNavImage(false, true, false, false, true)->Blit(hDC,imagerect);
-            }
-            imagerect.left += pagebuttonsize;
-            imagerect.right += pagebuttonsize;
-            restrect.left += pagebuttonsize;
-
-            hotspot.m_type = HST_NAV_NEXT_NEW_POST;
-            hotspot.m_spot = imagerect;
-            if(pView->HaveNextNewPost())
-            {
-               hotspots.push_back(hotspot);
-               theApp.GetNavImage(false, true, true, false, false)->Blit(hDC,imagerect);
-            }
-            else
-            {
-               theApp.GetNavImage(false, true, true, false, true)->Blit(hDC,imagerect);
-            }
-            imagerect.left += pagebuttonsize;
-            imagerect.right += pagebuttonsize;
-            restrect.left += pagebuttonsize;
-
-            if(theApp.AutoRefresh() &&
-               (restrect.right - restrect.left) > pagebuttonsize)
-            {
-               hotspot.m_type = HST_DEMOTE;
+               hotspot.m_type = HST_NAV_PREV_THREAD;
                hotspot.m_spot = imagerect;
-               if(pView->CanDemote() != 0)
+               if(pView->HavePrevThread())
                {
                   hotspots.push_back(hotspot);
-                  theApp.GetDemoteImage(true, false)->Blit(hDC,imagerect);
+                  theApp.GetNavImage(true, false, false, false, false)->Blit(hDC,imagerect);
                }
                else
                {
-                  theApp.GetDemoteImage(false, false)->Blit(hDC,imagerect);
+                  theApp.GetNavImage(true, false, false, false, true)->Blit(hDC,imagerect);
                }
                imagerect.left += pagebuttonsize;
                imagerect.right += pagebuttonsize;
                restrect.left += pagebuttonsize;
+            }
+
+            if((GetDataType() == DDT_STORY ||
+                GetDataType() == DDT_THREAD) &&
+                (restrect.right - restrect.left) > (pagebuttonsize * 2))
+            {
+               hotspot.m_type = HST_NAV_PREV_POST;
+               hotspot.m_spot = imagerect;
+               if(pView->HavePrevPost())
+               {
+                  hotspots.push_back(hotspot);
+                  theApp.GetNavImage(false, false, false, false, false)->Blit(hDC,imagerect);
+               }
+               else
+               {
+                  theApp.GetNavImage(false, false, false, false, true)->Blit(hDC,imagerect);
+               }
+               imagerect.left += pagebuttonsize;
+               imagerect.right += pagebuttonsize;
+               restrect.left += pagebuttonsize;
+
+               hotspot.m_type = HST_NAV_NEXT_POST;
+               hotspot.m_spot = imagerect;
+               if(pView->HaveNextPost())
+               {
+                  hotspots.push_back(hotspot);
+                  theApp.GetNavImage(false, false, true, false, false)->Blit(hDC,imagerect);
+               }
+               else
+               {
+                  theApp.GetNavImage(false, false, true, false, true)->Blit(hDC,imagerect);
+               }
+               imagerect.left += pagebuttonsize;
+               imagerect.right += pagebuttonsize;
+               restrect.left += pagebuttonsize;
+            }
+
+            if((GetDataType() == DDT_STORY ||
+                GetDataType() == DDT_LOLS ||
+                GetDataType() == DDT_SEARCH) &&
+               (restrect.right - restrect.left) > pagebuttonsize)
+            {
+               hotspot.m_type = HST_NAV_NEXT_THREAD;
+               hotspot.m_spot = imagerect;
+               if(pView->HaveNextThread())
+               {
+                  hotspots.push_back(hotspot);
+                  theApp.GetNavImage(true, false, true, false, false)->Blit(hDC,imagerect);
+               }
+               else
+               {
+                  theApp.GetNavImage(true, false, true, false, true)->Blit(hDC,imagerect);
+               }
+               imagerect.left += pagebuttonsize;
+               imagerect.right += pagebuttonsize;
+               restrect.left += pagebuttonsize;
+            }
+
+            if((GetDataType() == DDT_STORY ||
+               GetDataType() == DDT_THREAD) &&
+               (restrect.right - restrect.left) > (pagebuttonsize * 2))
+            {
+               hotspot.m_type = HST_NAV_PREV_NEW_POST;
+               hotspot.m_spot = imagerect;
+               if(pView->HavePrevNewPost())
+               {
+                  hotspots.push_back(hotspot);
+                  theApp.GetNavImage(false, true, false, false, false)->Blit(hDC,imagerect);
+               }
+               else
+               {
+                  theApp.GetNavImage(false, true, false, false, true)->Blit(hDC,imagerect);
+               }
+               imagerect.left += pagebuttonsize;
+               imagerect.right += pagebuttonsize;
+               restrect.left += pagebuttonsize;
+
+               hotspot.m_type = HST_NAV_NEXT_NEW_POST;
+               hotspot.m_spot = imagerect;
+               if(pView->HaveNextNewPost())
+               {
+                  hotspots.push_back(hotspot);
+                  theApp.GetNavImage(false, true, true, false, false)->Blit(hDC,imagerect);
+               }
+               else
+               {
+                  theApp.GetNavImage(false, true, true, false, true)->Blit(hDC,imagerect);
+               }
+               imagerect.left += pagebuttonsize;
+               imagerect.right += pagebuttonsize;
+               restrect.left += pagebuttonsize;
+
+               if(theApp.AutoRefresh() &&
+                  (restrect.right - restrect.left) > pagebuttonsize)
+               {
+                  hotspot.m_type = HST_DEMOTE;
+                  hotspot.m_spot = imagerect;
+                  if(pView->CanDemote() != 0)
+                  {
+                     hotspots.push_back(hotspot);
+                     theApp.GetDemoteImage(true, false)->Blit(hDC,imagerect);
+                  }
+                  else
+                  {
+                     theApp.GetDemoteImage(false, false)->Blit(hDC,imagerect);
+                  }
+                  imagerect.left += pagebuttonsize;
+                  imagerect.right += pagebuttonsize;
+                  restrect.left += pagebuttonsize;
+               }
             }
          }
 
@@ -4271,9 +4282,10 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
 
          RECT pagingrect = restrect;
          
-         if(GetDataType() == DDT_STORY ||
-            GetDataType() == DDT_SEARCH ||
-            GetDataType() == DDT_SHACKMSG)
+         if((GetDataType() == DDT_STORY ||
+             GetDataType() == DDT_SEARCH ||
+             GetDataType() == DDT_SHACKMSG) &&
+             m_lastpage > 1)
          {
             if(GetDataType() == DDT_STORY && 
                theApp.InfinatePaging() && 
@@ -6038,7 +6050,7 @@ void CLampDoc::GDIPLUS_TextOut( HDC hdc, int x, int y, bool bSampleText, UINT op
       height = theApp.GetTextHeight();
    }
 
-   RectF rectf(x, y + theApp.GetFontHeight(), 100000.0f, height);
+   RectF rectf((Gdiplus::REAL)x, (Gdiplus::REAL)(y + theApp.GetFontHeight()), 100000.0f, (Gdiplus::REAL)height);
    
    Gdiplus::Font font(hdc, m_currentfont);
 
@@ -6054,7 +6066,7 @@ void CLampDoc::GDIPLUS_TextOut( HDC hdc, int x, int y, bool bSampleText, UINT op
       while(c > 0)
       {
          graphics.DrawString(lpString, 1, &font, rectf, &format, &textcolor);
-         rectf.Offset(*lpDx,0);
+         rectf.Offset((Gdiplus::REAL)*lpDx,0.0f);
          lpDx++;
          lpString++;
          c--;

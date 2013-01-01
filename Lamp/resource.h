@@ -215,6 +215,7 @@
 #define ID_MOVEREFRESHTOTOP             32930
 #define IDR_POPUP_DEFAULT               32931
 #define ID_AUTO_REFRESH                 32932
+#define ID_SHOW_NAV_BUTTONS             32933
 
 #define ID_BOOKMARK_MENUITEM            33000
 

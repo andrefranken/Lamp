@@ -22,7 +22,7 @@
 #define WM_WAKEUP (WM_USER + 102)
 
 #define LAMP_VERSION_MAJOR 3
-#define LAMP_VERSION_MINOR 7
+#define LAMP_VERSION_MINOR 8
 
 chattyerror download(const char* host, const char* path, char** out_response, int *psize=NULL);
 
@@ -861,6 +861,9 @@ public:
    bool AutoRefresh(){return m_auto_refresh;}
    void AutoRefresh(bool value);
 
+   bool ShowNavButtons(){return m_show_nav_buttons;}
+   void ShowNavButtons(bool value){m_show_nav_buttons = value;}
+
    bool StrokeRootEdges(){return m_stroke_root_edges;}
    bool StrokePreviewEdges(){return m_stroke_preview_edges;}
    void SetStrokePreviewEdges(bool value){m_stroke_preview_edges = value;}
@@ -1608,6 +1611,8 @@ protected:
    bool m_move_refresh_to_top;
 
    bool m_auto_refresh;
+
+   bool m_show_nav_buttons;
 
 public:
    afx_msg void OnFileSetuplogininfo();

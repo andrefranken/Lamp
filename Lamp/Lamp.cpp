@@ -888,6 +888,7 @@ CLampApp::CLampApp()
 
    m_move_refresh_to_top = true;
    m_auto_refresh = false;
+   m_show_nav_buttons = true;
 
    m_line_thickness = 1;
 
@@ -1824,6 +1825,10 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"auto_refresh");
    if(setting!=NULL) m_auto_refresh = setting->GetValue();
    else m_auto_refresh = false;
+
+   setting = hostxml.FindChildElement(L"show_nav_buttons");
+   if(setting!=NULL) m_show_nav_buttons = setting->GetValue();
+   else m_show_nav_buttons = true;
    
    setting = hostxml.FindChildElement(L"AlwaysOnTopWhenNotDocked");
    if(setting!=NULL) m_bAlwaysOnTopWhenNotDocked = setting->GetValue();
@@ -2293,6 +2298,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"left_mouse_pan",UCString(m_left_mouse_pan));
    settingsxml.AddChildElement(L"move_refresh_to_top",UCString(m_move_refresh_to_top));
    settingsxml.AddChildElement(L"auto_refresh",UCString(m_auto_refresh));
+   settingsxml.AddChildElement(L"show_nav_buttons",UCString(m_show_nav_buttons));
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
    settingsxml.AddChildElement(L"num_minutes_update_tab",UCString(m_num_minutes_update_tab));
    settingsxml.AddChildElement(L"enable_spell_checker",UCString(m_enable_spell_checker));
