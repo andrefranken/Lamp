@@ -216,6 +216,8 @@
 #define IDR_POPUP_DEFAULT               32931
 #define ID_AUTO_REFRESH                 32932
 #define ID_SHOW_NAV_BUTTONS             32933
+#define ID_LATESTCHATTY_SUMMARY_MODE    32934
+#define IDC_NUM_SUMMARY_LINES           32935
 
 #define ID_BOOKMARK_MENUITEM            33000
 
@@ -224,7 +226,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        329
-#define _APS_NEXT_COMMAND_VALUE         32933
+#define _APS_NEXT_COMMAND_VALUE         32936
 #define _APS_NEXT_CONTROL_VALUE         1023
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

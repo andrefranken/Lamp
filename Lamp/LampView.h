@@ -131,7 +131,21 @@ public:
    bool HaveNextNewPost();
    bool HavePrevNewPost();
 
+
+   void NextPost();
+   void PrevPost();
+   void NextNewPost();
+   void PrevNewPost();
+   void DemoteNewness();
+   void NextThread();
+   void PrevThread();
+
    bool CanDemote();
+
+   void CloseReplyOnlyDlg();
+   void CloseNonReplyOnlyDlg();
+
+   void OnMouseWheelImpl(UINT nFlags, short zDelta, CPoint pt);
 
    bool m_bLBDownOnDblClkable;
    
@@ -365,6 +379,8 @@ public:
    afx_msg void OnUpdateMoveRefreshToTop(CCmdUI *pCmdUI);
    afx_msg void OnShowNavButtons();
    afx_msg void OnUpdateShowNavButtons(CCmdUI *pCmdUI);
+   afx_msg void OnLatestChattySummaryMode();
+   afx_msg void OnUpdateLatestChattySummaryMode(CCmdUI *pCmdUI);
    afx_msg void OnFilterNWS();
    afx_msg void OnUpdateFilterNWS(CCmdUI *pCmdUI);
    afx_msg void OnFilterINF();

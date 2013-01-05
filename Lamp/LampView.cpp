@@ -127,6 +127,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_MOVEREFRESHTOTOP, &CLampView::OnUpdateMoveRefreshToTop)
    ON_COMMAND(ID_SHOW_NAV_BUTTONS, &CLampView::OnShowNavButtons)
    ON_UPDATE_COMMAND_UI(ID_SHOW_NAV_BUTTONS, &CLampView::OnUpdateShowNavButtons)
+   ON_COMMAND(ID_LATESTCHATTY_SUMMARY_MODE, &CLampView::OnLatestChattySummaryMode)
+   ON_UPDATE_COMMAND_UI(ID_LATESTCHATTY_SUMMARY_MODE, &CLampView::OnUpdateLatestChattySummaryMode)
    ON_COMMAND(ID_FILTER_ENABLE_NWS, &CLampView::OnFilterNWS)
    ON_UPDATE_COMMAND_UI(ID_FILTER_ENABLE_NWS, &CLampView::OnUpdateFilterNWS)
    ON_COMMAND(ID_FILTER_ENABLE_INF, &CLampView::OnFilterINF)
@@ -349,6 +351,24 @@ CLampView::~CLampView()
    theApp.RemoveView(this);
 }
 
+void CLampView::CloseReplyOnlyDlg()
+{
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->GetReplyId() != 0)
+   {
+      CloseReplyDialog();
+   }
+}
+
+void CLampView::CloseNonReplyOnlyDlg()
+{
+   if(m_pReplyDlg != NULL &&
+      m_pReplyDlg->GetReplyId() == 0)
+   {
+      CloseReplyDialog();
+   }
+}
+
 BOOL CLampView::PreCreateWindow(CREATESTRUCT& cs)
 {
 	// TODO: Modify the Window class or styles here by modifying
@@ -425,7 +445,31 @@ void CLampView::SetCurrentId(unsigned int id)
       
       if(m_current_id != 0)
       {
-         GetDocument()->MakePostAvailable(id);
+         if(GetDocument()->GetDataType() == DDT_STORY &&
+            theApp.LatestChattySummaryMode())
+         {
+            // find and tell the active view to display this thread
+            UCString path;
+            path += L"ACTIVE:";
+            path += id;
+            path += L'_';
+            path += id;
+            ReleaseCapture();
+            theApp.OpenActiveDocumentFile(path);
+         }
+         else
+         {
+            GetDocument()->MakePostAvailable(id);
+         }
+      }
+   }
+   else
+   {
+      if(GetDocument()->GetDataType() == DDT_STORY &&
+         theApp.LatestChattySummaryMode())
+      {
+         // find and tell the active view to display this thread
+         theApp.ActivateActiveThread();
       }
    }
 }
@@ -992,7 +1036,14 @@ void CLampView::OnDraw(CDC* pDC)
             switch(pDoc->GetDataType())
             {
             case DDT_STORY:
-               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, true, false, false, this);
+               if(theApp.LatestChattySummaryMode())
+               {
+                  pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, false, false, this);
+               }
+               else
+               {
+                  pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, true, false, false, this);
+               }
                bDrewBanner = true;
                break;
             case DDT_LOLS:
@@ -1009,6 +1060,10 @@ void CLampView::OnDraw(CDC* pDC)
                break;
             case DDT_THREAD:
                pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, false, false, false, this);
+               bDrewBanner = true;
+               break;
+            case DDT_ACTIVE_THREAD:
+               pDoc->DrawBanner(m_bannerbuffer.GetDC(), m_BannerRectangle, 0, m_hotspots, true, false, false, this);
                bDrewBanner = true;
                break;
             }            
@@ -1049,7 +1104,9 @@ void CLampView::OnDraw(CDC* pDC)
             }
 
             bool bDrawNewIndicators = false;
-            if(pDoc->GetDataType() == DDT_THREAD && !m_bPanOnly)
+            if((pDoc->GetDataType() == DDT_THREAD || 
+                pDoc->GetDataType() == DDT_ACTIVE_THREAD) && 
+               !m_bPanOnly)
             {
                bDrawNewIndicators = true;
             }
@@ -3521,6 +3578,22 @@ void CLampView::UpdateHotspotPosition()
 
 BOOL CLampView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt) 
 {
+   CLampView *targetview = ((CMainFrame*)theApp.GetMainWnd())->GetTargetView();
+
+   if(targetview != NULL)
+   {
+      targetview->OnMouseWheelImpl(nFlags, zDelta, pt); 
+   }
+   else
+   {
+      OnMouseWheelImpl(nFlags, zDelta, pt); 
+   }
+
+   return CView::OnMouseWheel(nFlags, zDelta, pt);
+}
+
+void CLampView::OnMouseWheelImpl(UINT nFlags, short zDelta, CPoint pt) 
+{
    m_bDrawMButtonDownIcon = false;
    m_bMButtonDown = false;
    //m_bStartedTrackingMouse = false;
@@ -3533,8 +3606,6 @@ BOOL CLampView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
       InvalidateEverythingPan();
       MakeMousePointInvalid();
    }
-   
-   return CView::OnMouseWheel(nFlags, zDelta, pt);
 }
 
 void CLampView::CloseReplyDialog()
@@ -3865,122 +3936,37 @@ void CLampView::OnClick(CPoint point)
                         break;
                      case HST_NAV_PREV_THREAD:
                         {
-                           if(GetCurrentId() != 0)
-                           {
-                              ChattyPost *pParent = NULL;
-                              ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
-                              if(pPost != NULL)
-                              {            
-                                 pParent = pPost;
-                                 while(pParent->GetParent() != NULL) pParent = pParent->GetParent();
-                              }
-                              // select prev reply
-                              SetCurrentId(GetDocument()->GetPrevRoot(pParent));
-                              MakeCurrentPostLegal(true);
-                           }
-                           m_textselectionpost = 0;
-                           m_selectionstart = 0;
-                           m_selectionend = 0;
+                           PrevThread();
                         }
                         break;
                      case HST_NAV_PREV_POST:
                         {
-                           if(GetCurrentId() != 0)
-                           {
-                              // select prev reply
-                              ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
-                              if(pPost != NULL)
-                              {            
-                                 SetCurrentId(pPost->GetPrevReply());
-                                 MakeCurrentPostLegal();
-                              }
-                           }
-                           m_textselectionpost = 0;
-                           m_selectionstart = 0;
-                           m_selectionend = 0;
+                           PrevPost();
                         }
                         break;
                      case HST_NAV_NEXT_POST:
                         {
-                           if(GetCurrentId() != 0)
-                           {
-                              // select next reply
-                              ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
-                              if(pPost != NULL)
-                              {            
-                                 SetCurrentId(pPost->GetNextReply());
-                                 MakeCurrentPostLegal();
-                              }
-                           }
-                           m_textselectionpost = 0;
-                           m_selectionstart = 0;
-                           m_selectionend = 0;
+                           NextPost();
                         }
                         break;
                      case HST_NAV_NEXT_THREAD:
                         {
-                           ChattyPost *pParent = NULL;
-                           ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
-                           if(pPost != NULL)
-                           {            
-                              pParent = pPost;
-                              while(pParent->GetParent() != NULL) pParent = pParent->GetParent();
-                           }
-                           // select prev reply
-                           SetCurrentId(GetDocument()->GetNextRoot(pParent));
-                           MakeCurrentPostLegal(true);
-                           m_textselectionpost = 0;
-                           m_selectionstart = 0;
-                           m_selectionend = 0;
+                           NextThread();
                         }
                         break;
                      case HST_NAV_PREV_NEW_POST:
                         {
-                           if(GetCurrentId() != 0)
-                           {
-                              // select prev reply
-                              ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
-                              if(pPost != NULL)
-                              {            
-                                 SetCurrentId(pPost->GetPrevNewReply());
-                                 MakeCurrentPostLegal();
-                              }
-                           }
-                           m_textselectionpost = 0;
-                           m_selectionstart = 0;
-                           m_selectionend = 0;
+                           PrevNewPost();
                         }
                         break;
                      case HST_NAV_NEXT_NEW_POST:
                         {
-                           if(GetCurrentId() != 0)
-                           {
-                              // select next reply
-                              ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
-                              if(pPost != NULL)
-                              {            
-                                 SetCurrentId(pPost->GetNextNewReply());
-                                 MakeCurrentPostLegal();
-                              }
-                           }
-                           m_textselectionpost = 0;
-                           m_selectionstart = 0;
-                           m_selectionend = 0;
+                           NextNewPost();
                         }
                         break;
                      case HST_DEMOTE:
                         {
-                           if(GetCurrentId() != 0)
-                           {
-                              // select next reply
-                              ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
-                              if(pPost != NULL)
-                              {            
-                                 GetDocument()->DemoteNewness(pPost->GetId());
-                                 GetDocument()->Viewed();
-                                 InvalidateEverything();
-                              }
-                           }
+                           DemoteNewness();
                         }
                         break;
                      case HST_MOD_TOOL:
@@ -4185,6 +4171,8 @@ void CLampView::OnClick(CPoint point)
                         break;
                      case HST_CREATEREPLY:
                         {
+                           CloseNonReplyOnlyDlg();
+
                            if(m_pReplyDlg != NULL)
                            {
                               ChattyPost *post = GetDocument()->FindPost(m_pReplyDlg->GetReplyId());
@@ -4894,6 +4882,8 @@ void CLampView::OnMouseLeave()
 
 void CLampView::OnMouseMove(UINT nFlags, CPoint point) 
 {
+   ((CMainFrame*)theApp.GetMainWnd())->SetTargetView(this);
+
    if(!m_mouseOverClientArea)
    {
       m_mouseOverClientArea = true;
@@ -5672,6 +5662,135 @@ void CLampView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
    CView::OnKeyDown(nChar, nRepCnt, nFlags);
 }
 
+void CLampView::NextPost()
+{
+   ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+   if(pPost != NULL &&
+      GetDocument()->GetDataType() != DDT_STORY ||
+      !theApp.LatestChattySummaryMode())
+   {
+      // select next reply
+      SetCurrentId(pPost->GetNextReply());
+      m_textselectionpost = 0;
+      m_selectionstart = 0;
+      m_selectionend = 0;
+      // force a draw so that positions are updated
+      MakeCurrentPostLegal();
+   }
+}
+
+void CLampView::PrevPost()
+{
+   ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+   if(pPost != NULL &&
+      GetDocument()->GetDataType() != DDT_STORY ||
+      !theApp.LatestChattySummaryMode())
+   {
+      // select prev reply
+      SetCurrentId(pPost->GetPrevReply());
+      m_textselectionpost = 0;
+      m_selectionstart = 0;
+      m_selectionend = 0;
+      // force a draw so that positions are updated
+      MakeCurrentPostLegal();
+   }
+}
+
+void CLampView::NextThread()
+{
+   if(GetDocument()->GetDataType() != DDT_THREAD &&
+      GetDocument()->GetDataType() != DDT_ACTIVE_THREAD &&
+      GetDocument()->GetDataType() != DDT_SHACKMSG)
+   {
+      ChattyPost *pParent = NULL;
+      ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+      if(pPost != NULL)
+      {            
+         pParent = pPost;
+         while(pParent->GetParent() != NULL) pParent = pParent->GetParent();
+      }
+      // select prev reply
+      SetCurrentId(GetDocument()->GetNextRoot(pParent));
+      m_textselectionpost = 0;
+      m_selectionstart = 0;
+      m_selectionend = 0;
+      MakeCurrentPostLegal(true);
+   }
+}
+
+void CLampView::PrevThread()
+{
+   if(GetCurrentId() != 0 &&
+      GetDocument()->GetDataType() != DDT_THREAD &&
+      GetDocument()->GetDataType() != DDT_ACTIVE_THREAD &&
+      GetDocument()->GetDataType() != DDT_SHACKMSG)
+   {
+      ChattyPost *pParent = NULL;
+      ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+      if(pPost != NULL)
+      {            
+         pParent = pPost;
+         while(pParent->GetParent() != NULL) pParent = pParent->GetParent();
+      }
+      // select next reply
+      SetCurrentId(GetDocument()->GetPrevRoot(pParent));
+      m_textselectionpost = 0;
+      m_selectionstart = 0;
+      m_selectionend = 0;
+      MakeCurrentPostLegal(true);
+   }
+}
+
+void CLampView::NextNewPost()
+{
+   ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+   if(pPost != NULL &&
+      GetDocument()->GetDataType() != DDT_STORY ||
+      !theApp.LatestChattySummaryMode())
+   {
+      // select next reply
+      SetCurrentId(pPost->GetNextNewReply());
+      m_textselectionpost = 0;
+      m_selectionstart = 0;
+      m_selectionend = 0;
+      // force a draw so that positions are updated
+      MakeCurrentPostLegal();
+   }
+}
+
+void CLampView::PrevNewPost()
+{
+   ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+   if(pPost != NULL &&
+      GetDocument()->GetDataType() != DDT_STORY ||
+      !theApp.LatestChattySummaryMode())
+   {
+      // select prev reply
+      SetCurrentId(pPost->GetPrevNewReply());
+      m_textselectionpost = 0;
+      m_selectionstart = 0;
+      m_selectionend = 0;
+      // force a draw so that positions are updated
+      MakeCurrentPostLegal();
+   }
+}
+
+void CLampView::DemoteNewness()
+{
+   ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+   if(pPost != NULL &&
+      GetDocument()->GetDataType() != DDT_STORY ||
+      !theApp.LatestChattySummaryMode())
+   {
+      if(pPost->CanDemote())
+      {
+         GetDocument()->DemoteNewness(pPost->GetId());
+         GetDocument()->Viewed();
+         InvalidateEverything();
+      }
+   }
+}
+
 void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
    m_last_user_activity = ::GetTickCount();
@@ -5694,75 +5813,42 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
       {
          if(GetCurrentId() != 0)
          {
-            ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
-            if(pPost != NULL)
-            {            
+            if(nChar == 'a' ||
+               nChar == 'A' ||
+               nChar == 'z' ||
+               nChar == 'Z' ||
+               nChar == 'd' ||
+               nChar == 'D' ||
+               nChar == 'c' ||
+               nChar == 'C' ||
+               nChar == 'e' ||
+               nChar == 'E' )
+            {
                if(nChar == 'a' ||
-                  nChar == 'A' ||
-                  nChar == 'z' ||
-                  nChar == 'Z' ||
-                  nChar == 'd' ||
-                  nChar == 'D' ||
-                  nChar == 'c' ||
-                  nChar == 'C' ||
-                  nChar == 'e' ||
-                  nChar == 'E' )
+                  nChar == 'A')
                {
-                  if(nChar == 'a' ||
-                     nChar == 'A')
-                  {
-                     // select prev reply
-                     SetCurrentId(pPost->GetPrevReply());
-                     m_textselectionpost = 0;
-                     m_selectionstart = 0;
-                     m_selectionend = 0;
-                     // force a draw so that positions are updated
-                     MakeCurrentPostLegal();
-                  }
-                  else if(nChar == 'z' ||
-                          nChar == 'Z')
-                  {
-                     // select next reply
-                     SetCurrentId(pPost->GetNextReply());
-                     m_textselectionpost = 0;
-                     m_selectionstart = 0;
-                     m_selectionend = 0;
-                     // force a draw so that positions are updated
-                     MakeCurrentPostLegal();
-                  }
-                  else if(nChar == 'd' ||
-                          nChar == 'D')
-                  {
-                     // select prev reply
-                     SetCurrentId(pPost->GetPrevNewReply());
-                     m_textselectionpost = 0;
-                     m_selectionstart = 0;
-                     m_selectionend = 0;
-                     // force a draw so that positions are updated
-                     MakeCurrentPostLegal();
-                  }
-                  else if(nChar == 'c' ||
-                          nChar == 'C')
-                  {
-                     // select next reply
-                     SetCurrentId(pPost->GetNextNewReply());
-                     m_textselectionpost = 0;
-                     m_selectionstart = 0;
-                     m_selectionend = 0;
-                     // force a draw so that positions are updated
-                     MakeCurrentPostLegal();
-                  }
-                  else if(nChar == 'e' ||
-                          nChar == 'E')
-                  {
-                     if(pPost->CanDemote())
-                     {
-                        GetDocument()->DemoteNewness(pPost->GetId());
-                        GetDocument()->Viewed();
-                        InvalidateEverything();
-                     }
-                  }
+                  PrevPost();
                }
+               else if(nChar == 'z' ||
+                       nChar == 'Z')
+               {
+                  NextPost();
+               }
+               else if(nChar == 'd' ||
+                       nChar == 'D')
+               {
+                  PrevNewPost();
+               }
+               else if(nChar == 'c' ||
+                       nChar == 'C')
+               {
+                  NextNewPost();
+               }
+               else if(nChar == 'e' ||
+                       nChar == 'E')
+               {
+                  DemoteNewness();
+               }               
             }
          }
 
@@ -5781,50 +5867,26 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
                nChar == 'x' ||
                nChar == 'X')
             {
-               ChattyPost *pParent = NULL;
-               ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
-               if(pPost != NULL)
-               {            
-                  pParent = pPost;
-                  while(pParent->GetParent() != NULL) pParent = pParent->GetParent();
-               }
-               // select prev reply
-               SetCurrentId(GetDocument()->GetNextRoot(pParent));
-               m_textselectionpost = 0;
-               m_selectionstart = 0;
-               m_selectionend = 0;
+               NextThread();
             }
             else if(nChar == 'k' ||
                     nChar == 'K' ||
                     nChar == 's' ||
                     nChar == 'S')
             {
-               if(GetCurrentId() != 0)
-               {
-                  ChattyPost *pParent = NULL;
-                  ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
-                  if(pPost != NULL)
-                  {            
-                     pParent = pPost;
-                     while(pParent->GetParent() != NULL) pParent = pParent->GetParent();
-                  }
-                  // select next reply
-                  SetCurrentId(GetDocument()->GetPrevRoot(pParent));
-                  m_textselectionpost = 0;
-                  m_selectionstart = 0;
-                  m_selectionend = 0;
-               }
+               PrevThread();
             }
-
-            MakeCurrentPostLegal(true);
          }
          else if((nChar == 'r' ||
                   nChar == 'R') &&
                  GetCurrentId() != 0 &&
-                 (GetDocument()->GetDataType() == DDT_STORY ||
-                 GetDocument()->GetDataType() == DDT_THREAD) &&
+                ((GetDocument()->GetDataType() == DDT_STORY && !theApp.LatestChattySummaryMode()) ||
+                  GetDocument()->GetDataType() == DDT_THREAD ||
+                  GetDocument()->GetDataType() == DDT_ACTIVE_THREAD) &&
                  theApp.HaveLogin())
          {
+            CloseNonReplyOnlyDlg();
+
             if(m_pReplyDlg != NULL)
             {
                ChattyPost *post = GetDocument()->FindPost(m_pReplyDlg->GetReplyId());
@@ -5887,8 +5949,9 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
          }
          else if((nChar == 'f' ||
                   nChar == 'F') &&
-                  (GetDocument()->GetDataType() == DDT_STORY ||
-                 GetDocument()->GetDataType() == DDT_THREAD) &&
+                  ((GetDocument()->GetDataType() == DDT_STORY && !theApp.LatestChattySummaryMode()) ||
+                   GetDocument()->GetDataType() == DDT_THREAD ||
+                   GetDocument()->GetDataType() == DDT_ACTIVE_THREAD) &&
                  GetCurrentId() != 0)
          {
             ChattyPost *post = GetDocument()->FindPost(GetCurrentId());
@@ -5899,8 +5962,9 @@ void CLampView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
          }
          else if((nChar == 'w' ||
                   nChar == 'W') &&
-                  (GetDocument()->GetDataType() == DDT_STORY ||
-                   GetDocument()->GetDataType() == DDT_THREAD) &&
+                  ((GetDocument()->GetDataType() == DDT_STORY && !theApp.LatestChattySummaryMode()) ||
+                   GetDocument()->GetDataType() == DDT_THREAD ||
+                   GetDocument()->GetDataType() == DDT_ACTIVE_THREAD) &&
                    GetCurrentId() != 0)
          {
             ChattyPost *post = GetDocument()->FindPost(GetCurrentId());
@@ -6267,7 +6331,8 @@ void CLampView::OnEditRefresh()
    {
       if(GetDocument()->Refresh())
       {
-         if(GetDocument()->GetDataType() != DDT_THREAD)
+         if(GetDocument()->GetDataType() != DDT_THREAD &&
+            GetDocument()->GetDataType() != DDT_ACTIVE_THREAD)
          {
             m_history_list.clear();
             m_history_it = m_history_list.end();
@@ -6298,8 +6363,11 @@ void CLampView::OnUpdateEditRefresh(CCmdUI *pCmdUI)
 
 void CLampView::OnEditNewthread()
 {
+   CloseReplyOnlyDlg();
+
    if(m_pReplyDlg == NULL && 
-      GetDocument()->GetDataType() == DDT_STORY)
+     (GetDocument()->GetDataType() == DDT_STORY ||
+      GetDocument()->GetDataType() == DDT_ACTIVE_THREAD))
    {
       if(theApp.HaveLogin())
       {
@@ -6317,7 +6385,9 @@ void CLampView::OnEditNewthread()
 void CLampView::OnUpdateEditNewthread(CCmdUI *pCmdUI)
 {
    if(m_pReplyDlg == NULL && 
-      GetDocument()->GetDataType() == DDT_STORY)
+     ((GetDocument()->GetDataType() == DDT_STORY && 
+      !theApp.LatestChattySummaryMode()) ||
+      GetDocument()->GetDataType() == DDT_ACTIVE_THREAD))
    {
       pCmdUI->Enable(TRUE);
    }
@@ -6826,7 +6896,8 @@ void CLampView::OnUpdateOpenAllGifs(CCmdUI *pCmdUI)
 void CLampView::OnBookmarkAdd()
 {
    if(GetDocument() != NULL &&
-      GetDocument()->GetDataType() == DDT_THREAD)
+      (GetDocument()->GetDataType() == DDT_THREAD ||
+       GetDocument()->GetDataType() == DDT_ACTIVE_THREAD))
    {
       ChattyPost *pPost = GetDocument()->GetThreadPost();
       if(pPost != NULL)
@@ -6867,7 +6938,8 @@ void CLampView::OnBookmarkAdd()
 void CLampView::OnUpdateBookmarkAdd(CCmdUI *pCmdUI)
 {
    if(GetDocument() != NULL &&
-      GetDocument()->GetDataType() == DDT_THREAD)
+      (GetDocument()->GetDataType() == DDT_THREAD ||
+       GetDocument()->GetDataType() == DDT_ACTIVE_THREAD))
    {
       pCmdUI->Enable(TRUE);
    }
@@ -6881,7 +6953,8 @@ void CLampView::OnBookmarkThisPost()
 {
    if(m_rbuttonmenufromid != 0 &&
      (GetDocument()->GetDataType() == DDT_STORY ||
-      GetDocument()->GetDataType() == DDT_THREAD))
+      GetDocument()->GetDataType() == DDT_THREAD ||
+      GetDocument()->GetDataType() == DDT_ACTIVE_THREAD))
    {
       ChattyPost *pPost = GetDocument()->FindPost(m_rbuttonmenufromid);
       if(pPost != NULL)
@@ -6917,7 +6990,8 @@ void CLampView::OnUpdateBookmarkThisPost(CCmdUI *pCmdUI)
 {
    if(m_rbuttonmenufromid != 0 &&
      (GetDocument()->GetDataType() == DDT_STORY ||
-      GetDocument()->GetDataType() == DDT_THREAD))
+      GetDocument()->GetDataType() == DDT_THREAD ||
+      GetDocument()->GetDataType() == DDT_ACTIVE_THREAD))
    {
       pCmdUI->Enable(TRUE);
    }
@@ -7134,6 +7208,7 @@ void CLampView::OnOpenInTab()
    for(size_t i = 0; i < m_hotspots.size(); i++)
    {
       if(GetDocument()->GetDataType() != DDT_THREAD &&
+         GetDocument()->GetDataType() != DDT_ACTIVE_THREAD &&
          m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
          m_rbuttondownpoint.x < m_hotspots[i].m_spot.right &&
          m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
@@ -7167,6 +7242,7 @@ void CLampView::OnUpdateOpenInTab(CCmdUI *pCmdUI)
    for(size_t i = 0; i < m_hotspots.size(); i++)
    {
       if(GetDocument()->GetDataType() != DDT_THREAD &&
+         GetDocument()->GetDataType() != DDT_ACTIVE_THREAD &&
          m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
          m_rbuttondownpoint.x < m_hotspots[i].m_spot.right &&
          m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
@@ -7303,6 +7379,26 @@ void CLampView::OnUpdateShowNavButtons(CCmdUI *pCmdUI)
    pCmdUI->Enable(TRUE);
 
    if(theApp.ShowNavButtons())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+void CLampView::OnLatestChattySummaryMode()
+{
+   theApp.LatestChattySummaryMode(!theApp.LatestChattySummaryMode());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateLatestChattySummaryMode(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.LatestChattySummaryMode())
    {
       pCmdUI->SetCheck(TRUE);
    }
@@ -8580,6 +8676,8 @@ void CLampView::OnUpdateUnloadAllImages(CCmdUI *pCmdUI)
 
 void CLampView::SendMessageDlg(CLampDoc *pDoc, const UCString &to, const UCString &subject, const UCString &shackmsg)
 {
+   CloseReplyOnlyDlg();
+
    if(m_pReplyDlg == NULL &&
       theApp.HaveLogin())
    {

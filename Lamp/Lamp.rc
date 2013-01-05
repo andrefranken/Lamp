@@ -256,6 +256,7 @@ BEGIN
         END
         POPUP "Feature / Behavior"
         BEGIN
+            MENUITEM "LatestChatty Summary Mode",   ID_LATESTCHATTY_SUMMARY_MODE
             MENUITEM "Auto Refresh",                ID_AUTO_REFRESH
             MENUITEM "Smooth Scroll",               ID_VIEW_SMOOTHSCROLL
             MENUITEM "Allow Pinning",               ID_PINNING_MENUITEM
@@ -269,7 +270,7 @@ BEGIN
             MENUITEM "Allow Panning With Left Mouse Button", ID_LEFTMOUSEPAN
             MENUITEM "Dock Top",                    ID_VIEW_DOCKTOP
             MENUITEM "Always on Top",               ID_ALWAYSONTOP_WHENNOTDOCKED
-        END         
+        END
         POPUP "LOL Settings"
         BEGIN
             MENUITEM "Show LOL Stuff",              ID_SHOW_LOL_BUTTONS
@@ -290,49 +291,49 @@ BEGIN
             MENUITEM "Show Root As Selected",       ID_SHOW_ROOT_SELECTED
             MENUITEM "Move Refresh Button to Top",  ID_MOVEREFRESHTOTOP
             MENUITEM "Show Nav Buttons",            ID_SHOW_NAV_BUTTONS
-           POPUP "Fonts"
-           BEGIN
-               MENUITEM "Font for Normal Text",        ID_NORM_FONT
-               MENUITEM "Font for Quoted Text",        ID_QUOTE_FONT
-               MENUITEM "Font for Code Text",          ID_CODE_FONT
-           END
-           POPUP "Font Size"
-           BEGIN
-               MENUITEM "Increase Font Size\tCtrl+Plus", ID_VIEW_INCREASEFONTSIZE
-               MENUITEM "Decrease Font Size\tCtrl+Minus", ID_VIEW_DECREASEFONTSIZE
-               MENUITEM "Reset Font Size\tCtrl+0",     ID_VIEW_RESETFONTSIZE
-           END
-           POPUP "Line Size"
-           BEGIN
-               MENUITEM "1 Pixel",                     ID_LINE_THICKNESS_1
-               MENUITEM "2 Pixels",                    ID_LINE_THICKNESS_2
-               MENUITEM "3 Pixels",                    ID_LINE_THICKNESS_3
-           END
-           POPUP "Text Select Color"
-           BEGIN
-               MENUITEM "Dark Blue",                   ID_SELECT_DARK_BLUE
-               MENUITEM "Blue",                        ID_SELECT_BLUE
-               MENUITEM "Yellow",                      ID_SELECT_YELLOW
-               MENUITEM "Pale Yellow",                 ID_SELECT_PALE_YELLOW
-               MENUITEM "Custom",                      ID_SELECT_CUSTOM
-           END
-           POPUP "&Skin"
-           BEGIN
-               MENUITEM "Round Shack",                 ID_SKIN_ROUNDSHACK
-               MENUITEM "Square Shack",                ID_SKIN_DEFAULT
-               MENUITEM "Worksafe Shack",              ID_SKIN_WORKSAFE
-               MENUITEM SEPARATOR
-               MENUITEM "Round Shack (large)",         ID_SKIN_ROUNDSHACK_2
-               MENUITEM "Square Shack (large)",        ID_SKIN_DEFAULT_2
-               MENUITEM "Worksafe Shack (large)",      ID_SKIN_WORKSAFE_2
-               MENUITEM SEPARATOR
-               MENUITEM "Custom",                      ID_SKIN_CUSTOM
-           END
+            POPUP "Fonts"
+            BEGIN
+                MENUITEM "Font for Normal Text",        ID_NORM_FONT
+                MENUITEM "Font for Quoted Text",        ID_QUOTE_FONT
+                MENUITEM "Font for Code Text",          ID_CODE_FONT
+            END
+            POPUP "Font Size"
+            BEGIN
+                MENUITEM "Increase Font Size\tCtrl+Plus", ID_VIEW_INCREASEFONTSIZE
+                MENUITEM "Decrease Font Size\tCtrl+Minus", ID_VIEW_DECREASEFONTSIZE
+                MENUITEM "Reset Font Size\tCtrl+0",     ID_VIEW_RESETFONTSIZE
+            END
+            POPUP "Line Size"
+            BEGIN
+                MENUITEM "1 Pixel",                     ID_LINE_THICKNESS_1
+                MENUITEM "2 Pixels",                    ID_LINE_THICKNESS_2
+                MENUITEM "3 Pixels",                    ID_LINE_THICKNESS_3
+            END
+            POPUP "Text Select Color"
+            BEGIN
+                MENUITEM "Dark Blue",                   ID_SELECT_DARK_BLUE
+                MENUITEM "Blue",                        ID_SELECT_BLUE
+                MENUITEM "Yellow",                      ID_SELECT_YELLOW
+                MENUITEM "Pale Yellow",                 ID_SELECT_PALE_YELLOW
+                MENUITEM "Custom",                      ID_SELECT_CUSTOM
+            END
+            POPUP "&Skin"
+            BEGIN
+                MENUITEM "Round Shack",                 ID_SKIN_ROUNDSHACK
+                MENUITEM "Square Shack",                ID_SKIN_DEFAULT
+                MENUITEM "Worksafe Shack",              ID_SKIN_WORKSAFE
+                MENUITEM SEPARATOR
+                MENUITEM "Round Shack (large)",         ID_SKIN_ROUNDSHACK_2
+                MENUITEM "Square Shack (large)",        ID_SKIN_DEFAULT_2
+                MENUITEM "Worksafe Shack (large)",      ID_SKIN_WORKSAFE_2
+                MENUITEM SEPARATOR
+                MENUITEM "Custom",                      ID_SKIN_CUSTOM
+            END
         END
         POPUP "Preview On Hover"
         BEGIN
-            MENUITEM "Show Preview on Hover",             ID_EXPAND_PREVIEWS
-            MENUITEM "Expand Previews Downward",        ID_EXPAND_PREVIEWS_DOWN
+            MENUITEM "Show Preview on Hover",       ID_EXPAND_PREVIEWS
+            MENUITEM "Expand Previews Downward",    ID_EXPAND_PREVIEWS_DOWN
             MENUITEM "Stroke Preview Edges",        ID_STROKE_PREVIEW_EDGES
             MENUITEM "Use Author Color",            ID_USE_AUTHOR_COLOR_PREVIEW
         END
@@ -449,7 +450,6 @@ BEGIN
         MENUITEM "&Refresh\tF5",                ID_EDIT_REFRESH
     END
 END
-
 
 IDR_THEME_MENU MENU 
 BEGIN
@@ -634,19 +634,20 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,259,53,50,14
 END
 
-IDD_SETTINGS_DIALOG DIALOGEX 0, 0, 338, 259
+IDD_SETTINGS_DIALOG DIALOGEX 0, 0, 338, 277
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "More Settings"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,215,239,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,281,239,50,14
+    DEFPUSHBUTTON   "OK",IDOK,215,257,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,281,257,50,14
     EDITTEXT        IDC_MOUSE_WHEEL_SPEED_EDIT,184,15,40,14,ES_AUTOHSCROLL
     EDITTEXT        IDC_MB_PAN_SPEED_EDIT,184,36,40,14,ES_AUTOHSCROLL
     EDITTEXT        IDC_NUM_SHOW_TRUNC_EDIT,184,57,40,14,ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        IDC_NUM_MIN_INBOX_EDIT,184,78,40,14,ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        IDC_INERTIA_EDIT,184,99,40,14,ES_AUTOHSCROLL
     EDITTEXT        IDC_NUM_HOURS_EXPIRE_EDIT,184,120,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_NUM_SUMMARY_LINES,183,204,40,14,ES_AUTOHSCROLL | ES_NUMBER
     RTEXT           "Mouse wheel speed factor",IDC_STATIC,7,17,172,8
     RTEXT           "Mouse middle-button pan speed factor",IDC_STATIC,7,38,172,8
     RTEXT           "Number of replies to show when thread truncated",IDC_STATIC,7,59,172,8
@@ -654,9 +655,9 @@ BEGIN
     RTEXT           "Inertia Friction",IDC_STATIC,7,101,172,8
     RTEXT           "Number of hours in which threads expire",IDC_STATIC,7,122,172,8
     CONTROL         "Use stonedonkey, to get around the shack being blocked.",ID_USE_STONEDONKEY,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,205,201,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,233,201,10
     CONTROL         "Old 1.9.1 single thread style",ID_SINGLE_THREAD_STYLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,229,107,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,257,107,10
     EDITTEXT        IDC_FILTERED_USERS_EDIT,241,31,90,81,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
     EDITTEXT        IDC_FILTERED_PHRASES_EDIT,241,144,90,82,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
     LTEXT           "Usernames to filter out:",IDC_STATIC,243,17,88,8
@@ -667,6 +668,7 @@ BEGIN
     RTEXT           "Preview expansion percentage per frame",IDC_STATIC,7,164,172,8
     EDITTEXT        ID_UGH_THRESH,183,183,40,14,ES_AUTOHSCROLL | ES_NUMBER
     RTEXT           "Threshold of UGH votes to filter",IDC_STATIC,7,186,172,8
+    RTEXT           "Number of lines to show in Summary Mode",IDC_STATIC,7,207,172,8
 END
 
 IDD_FLAG_USER_DIALOG DIALOGEX 0, 0, 337, 235
@@ -791,7 +793,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 331
         TOPMARGIN, 7
-        BOTTOMMARGIN, 253
+        BOTTOMMARGIN, 271
     END
 
     IDD_FLAG_USER_DIALOG, DIALOG

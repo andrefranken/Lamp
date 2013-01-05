@@ -234,6 +234,10 @@ public:
 
    virtual CDocument* OpenDocumentFile(LPCTSTR lpszFileName);
 
+   void OpenActiveDocumentFile(LPCTSTR lpszFileName);
+
+   void ActivateActiveThread();
+
    void OpenShackLink(const UCString &shackpath, bool NWS = false);
 
    void SetStatusBarText(const UCString &text, CLampView *pView);
@@ -244,7 +248,9 @@ public:
    void AddDocToList(CLampDoc *pDoc){m_MyDocuments.push_back(pDoc);}
    void RemoveDocFromList(CLampDoc *pDoc){m_MyDocuments.remove(pDoc);}
 
-   ChattyPost *FindFromAnywhere(unsigned int id);
+   ChattyPost *FindFromLatestChatty(unsigned int id, CLampDoc **pDoc);
+
+   CLampDoc *GetLatestChatty();
 
    void InvalidateContentLayout(unsigned int id);
 
@@ -864,6 +870,12 @@ public:
    bool ShowNavButtons(){return m_show_nav_buttons;}
    void ShowNavButtons(bool value){m_show_nav_buttons = value;}
 
+   bool LatestChattySummaryMode(){return m_latestchatty_summary_mode;}
+   void LatestChattySummaryMode(bool value);
+
+   int MaxSummaryLines(){return m_max_summary_lines;}
+   void MaxSummaryLines(int value);
+
    bool StrokeRootEdges(){return m_stroke_root_edges;}
    bool StrokePreviewEdges(){return m_stroke_preview_edges;}
    void SetStrokePreviewEdges(bool value){m_stroke_preview_edges = value;}
@@ -1043,6 +1055,8 @@ public:
    CLOLFlags &GetKnownLOLFlags(unsigned int post_id);
 
    int GetLOLFieldWidth(){return m_LOLFieldWidth;}
+
+   int GetHintFieldWidth(){return m_HintFieldWidth;}
 
    bool ShowSmallLOL(){return m_bShowSmallLOL;}
    void SetShowSmallLOL(bool value);
@@ -1538,6 +1552,8 @@ protected:
 
    int m_LOLFieldWidth;
 
+   int m_HintFieldWidth;
+
    bool m_bShowSmallLOL;
 
    bool m_bFlaredBranches;
@@ -1613,6 +1629,10 @@ protected:
    bool m_auto_refresh;
 
    bool m_show_nav_buttons;
+
+   bool m_latestchatty_summary_mode;
+
+   int m_max_summary_lines;
 
 public:
    afx_msg void OnFileSetuplogininfo();

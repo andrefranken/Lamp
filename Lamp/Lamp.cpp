@@ -889,6 +889,8 @@ CLampApp::CLampApp()
    m_move_refresh_to_top = true;
    m_auto_refresh = false;
    m_show_nav_buttons = true;
+   m_latestchatty_summary_mode = false;
+   m_max_summary_lines = 4;
 
    m_line_thickness = 1;
 
@@ -1139,6 +1141,10 @@ BOOL CLampApp::InitInstance()
    GetCharWidths(L"www", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
    m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
 
+   GetCharWidths(L"888", widths, 3, false, true, false, GetNormalFontName());
+   m_HintFieldWidth = 4 + widths[0] + widths[1] + widths[2];
+   
+
    UpdateNewMessages();
 
    GenerateLightningBolt();
@@ -1298,6 +1304,200 @@ CDocument* CLampApp::OpenDocumentFile(LPCTSTR lpszFileName)
    UpdateTabSizes();
 
    return pNewDoc;
+}
+
+void CLampApp::OpenActiveDocumentFile(LPCTSTR lpszFileName)
+{
+   CLampDoc *active = NULL;
+
+   std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
+   std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
+
+   while(it != end)
+   {
+      if((*it)->GetDataType() == DDT_ACTIVE_THREAD)
+      {
+         active = (*it);
+         break;
+      }
+      it++;
+   }
+   
+   if(active != NULL)
+   {
+      active->OnOpenDocumentImpl(lpszFileName);
+   }
+   else
+   {
+      OpenDocumentFile(lpszFileName);
+
+      it = m_MyDocuments.begin();
+
+      while(it != end)
+      {
+         if((*it)->GetDataType() == DDT_ACTIVE_THREAD)
+         {
+            active = (*it);
+            break;
+         }
+         it++;
+      }
+   }
+
+   // now set focus to it
+   if(active != NULL)
+   {
+      CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+      if(pMainFrame)
+      {
+         const CObList &TabGroups = pMainFrame->GetCA()->GetMDITabGroups(); 
+         if(TabGroups.GetCount() > 0) 
+         { 
+            POSITION crtPos = TabGroups.GetHeadPosition(); 
+            CHackedTabCtrl * tabctrl;
+
+            do { 
+               tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
+               
+               if(tabctrl != NULL)
+               {
+                  int numtabs = tabctrl->GetTabsNum();
+                  for(int i=0; i < numtabs; i++)
+                  {
+                     CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
+                     if(pFrame != NULL)
+                     {
+                        CLampView *pView = pFrame->GetView();
+                        if(pView != NULL &&
+                           pView->GetDocument() == active)
+                        {
+                           unsigned int id = pView->GetDocument()->GetInitialPostId();
+                           pView->SetCurrentId(id);
+                           pView->SetPos(0);
+                           tabctrl->SetActiveTab(i);
+                           break;
+                        }
+                     }
+                  }
+               }
+            } while(crtPos != NULL);
+
+            // now set focus back to the latest chatty tab
+
+            crtPos = TabGroups.GetHeadPosition(); 
+
+            do { 
+               tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
+               
+               if(tabctrl != NULL)
+               {
+                  int numtabs = tabctrl->GetTabsNum();
+                  for(int i=0; i < numtabs; i++)
+                  {
+                     CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
+                     if(pFrame != NULL)
+                     {
+                        CLampView *pView = pFrame->GetView();
+                        if(pView != NULL &&
+                           pView->GetDocument()->GetDataType() == DDT_STORY)
+                        {
+                           tabctrl->SetActiveTab(i);
+                           break;
+                        }
+                     }
+                  }
+               }
+            } while(crtPos != NULL);
+         }
+      }
+   }
+}
+
+void CLampApp::ActivateActiveThread()
+{
+   CLampDoc *active = NULL;
+
+   std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
+   std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
+
+   while(it != end)
+   {
+      if((*it)->GetDataType() == DDT_ACTIVE_THREAD)
+      {
+         active = (*it);
+         break;
+      }
+      it++;
+   }
+   
+   
+   // now set focus to it
+   if(active != NULL)
+   {
+      CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+      if(pMainFrame)
+      {
+         const CObList &TabGroups = pMainFrame->GetCA()->GetMDITabGroups(); 
+         if(TabGroups.GetCount() > 0) 
+         { 
+            POSITION crtPos = TabGroups.GetHeadPosition(); 
+            CHackedTabCtrl * tabctrl;
+
+            do { 
+               tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
+               
+               if(tabctrl != NULL)
+               {
+                  int numtabs = tabctrl->GetTabsNum();
+                  for(int i=0; i < numtabs; i++)
+                  {
+                     CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
+                     if(pFrame != NULL)
+                     {
+                        CLampView *pView = pFrame->GetView();
+                        if(pView != NULL &&
+                           pView->GetDocument() == active)
+                        {
+                           unsigned int id = pView->GetDocument()->GetInitialPostId();
+                           pView->SetCurrentId(id);
+                           pView->SetPos(0);
+                           tabctrl->SetActiveTab(i);
+                           break;
+                        }
+                     }
+                  }
+               }
+            } while(crtPos != NULL);
+
+            // now set focus back to the latest chatty tab
+
+            crtPos = TabGroups.GetHeadPosition(); 
+
+            do { 
+               tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
+               
+               if(tabctrl != NULL)
+               {
+                  int numtabs = tabctrl->GetTabsNum();
+                  for(int i=0; i < numtabs; i++)
+                  {
+                     CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
+                     if(pFrame != NULL)
+                     {
+                        CLampView *pView = pFrame->GetView();
+                        if(pView != NULL &&
+                           pView->GetDocument()->GetDataType() == DDT_STORY)
+                        {
+                           tabctrl->SetActiveTab(i);
+                           break;
+                        }
+                     }
+                  }
+               }
+            } while(crtPos != NULL);
+         }
+      }
+   }
 }
 
 void CLampApp::OnFileNew()
@@ -1829,6 +2029,14 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"show_nav_buttons");
    if(setting!=NULL) m_show_nav_buttons = setting->GetValue();
    else m_show_nav_buttons = true;
+
+   setting = hostxml.FindChildElement(L"latestchatty_summary_mode");
+   if(setting!=NULL) m_latestchatty_summary_mode = setting->GetValue();
+   else m_latestchatty_summary_mode = false;
+
+   setting = hostxml.FindChildElement(L"max_summary_lines");
+   if(setting!=NULL) m_max_summary_lines = setting->GetValue();
+   else m_max_summary_lines = 4;
    
    setting = hostxml.FindChildElement(L"AlwaysOnTopWhenNotDocked");
    if(setting!=NULL) m_bAlwaysOnTopWhenNotDocked = setting->GetValue();
@@ -2299,6 +2507,8 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"move_refresh_to_top",UCString(m_move_refresh_to_top));
    settingsxml.AddChildElement(L"auto_refresh",UCString(m_auto_refresh));
    settingsxml.AddChildElement(L"show_nav_buttons",UCString(m_show_nav_buttons));
+   settingsxml.AddChildElement(L"latestchatty_summary_mode",UCString(m_latestchatty_summary_mode));
+   settingsxml.AddChildElement(L"max_summary_lines",UCString(m_max_summary_lines));
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
    settingsxml.AddChildElement(L"num_minutes_update_tab",UCString(m_num_minutes_update_tab));
    settingsxml.AddChildElement(L"enable_spell_checker",UCString(m_enable_spell_checker));
@@ -3719,6 +3929,7 @@ void CLampApp::RefreshATab()
             dt != DDT_EPICFAILD &&
             dt != DDT_SHACKMSG &&
             dt != DDT_LOLS &&
+            dt != DDT_ACTIVE_THREAD &&
 
             // enough time has passed since it was last refreshed.
             ago > threshold &&
@@ -3729,7 +3940,7 @@ void CLampApp::RefreshATab()
 
             // if it is a thread, don't refresh if it is expired
             (dt != DDT_THREAD ||
-             (dt == DDT_THREAD &&
+            (dt == DDT_THREAD &&
              !(*it)->IsExpired()))
             )
          {
@@ -3796,6 +4007,9 @@ void CLampApp::SetShowSmallLOL(bool value)
    int widths[4];
    GetCharWidths(L"www", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
    m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
+
+   GetCharWidths(L"888", widths, 3, false, true, false, GetNormalFontName());
+   m_HintFieldWidth = 4 + widths[0] + widths[1] + widths[2];
 
    // have all the tabs update their lol count info
    std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
@@ -3865,6 +4079,9 @@ void CLampApp::InvalidateSkinAllViews()
    int widths[4];
    GetCharWidths(L"www", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
    m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
+
+   GetCharWidths(L"888", widths, 3, false, true, false, GetNormalFontName());
+   m_HintFieldWidth = 4 + widths[0] + widths[1] + widths[2];
 
    UpdateNewMessages();
 
@@ -5419,6 +5636,7 @@ void CLampApp::InvalidateContentLayout(unsigned int id)
       DocDataType ddt = (*it)->GetDataType();
       if(ddt == DDT_STORY ||
          ddt == DDT_THREAD ||
+         ddt == DDT_ACTIVE_THREAD ||
          ddt == DDT_LOLS ||
          ddt == DDT_SHACKMSG ||
          ddt == DDT_PROFILE)
@@ -5439,7 +5657,24 @@ void CLampApp::InvalidateContentLayout(unsigned int id)
    }
 }
 
-ChattyPost *CLampApp::FindFromAnywhere(unsigned int id)
+CLampDoc *CLampApp::GetLatestChatty()
+{
+   std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
+   std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
+
+   while(it != end)
+   {
+      if((*it)->GetDataType() == DDT_STORY)
+      {
+         return (*it);
+      }
+      it++;
+   }
+
+   return NULL;
+}
+
+ChattyPost *CLampApp::FindFromLatestChatty(unsigned int id, CLampDoc **pDoc)
 {
    ChattyPost *result = NULL;
    std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
@@ -5460,6 +5695,7 @@ ChattyPost *CLampApp::FindFromAnywhere(unsigned int id)
                thisparent = thispost->GetParent();
             }
 
+            *pDoc = (*it);
             result = thispost;
             break;
          }
@@ -6041,3 +6277,43 @@ void CLampApp::AutoRefresh(bool value)
    }
 }
 
+void CLampApp::LatestChattySummaryMode(bool value)
+{
+   if(m_latestchatty_summary_mode != value)
+   {
+      m_latestchatty_summary_mode = value;
+
+      std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
+      std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
+
+      while(it != end)
+      {
+         if((*it)->GetDataType() == DDT_STORY)
+         {
+            (*it)->InvalidateContentLayout();
+         }
+         it++;
+      }
+   }
+}
+
+
+void CLampApp::MaxSummaryLines(int value)
+{
+   if(m_max_summary_lines != value)
+   {
+      m_max_summary_lines = value;
+
+      std::list<CLampView*>::iterator it = m_views.begin();
+      std::list<CLampView*>::iterator end = m_views.end();
+
+      while(it != end)
+      {
+         if((*it)->GetDocument()->GetDataType() == DDT_STORY)
+         {
+            (*it)->InvalidateEverything();
+         }
+         it++;
+      }
+   }
+}

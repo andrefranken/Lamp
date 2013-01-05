@@ -47,6 +47,7 @@ void CSettingsDlg::OnBnClickedOk()
    CEdit *ptMSecondsPreviewTimer = (CEdit*)GetDlgItem(IDC_PREVIEW_TIMER);
    CEdit *pPreviewExpandPercentEdit = (CEdit*)GetDlgItem(IDC_PREVIEW_EXCPAND_PERCENT_EDIT);
    CEdit *pUghThreshEdit = (CEdit*)GetDlgItem(ID_UGH_THRESH);
+   CEdit *pNumSumLinesEdit = (CEdit*)GetDlgItem(IDC_NUM_SUMMARY_LINES);
 
    if(pMouseWheelSpeed != NULL &&
       pMBPanSpeed != NULL &&
@@ -60,7 +61,8 @@ void CSettingsDlg::OnBnClickedOk()
       pFilteredPhrasesEdit != NULL &&
       ptMSecondsPreviewTimer != NULL &&
       pPreviewExpandPercentEdit != NULL &&
-      pUghThreshEdit != NULL)
+      pUghThreshEdit != NULL &&
+      pNumSumLinesEdit != NULL)
    {
       CString temp;
       UCString temp2;
@@ -99,6 +101,10 @@ void CSettingsDlg::OnBnClickedOk()
       pUghThreshEdit->GetWindowTextW(temp);
       temp2 = temp;
       theApp.SetUGHThreshold(temp2);
+
+      pNumSumLinesEdit->GetWindowTextW(temp);
+      temp2 = temp;
+      theApp.MaxSummaryLines(temp2);
 
       if(pUseStoneDonkey->GetCheck() == BST_CHECKED)
       {
@@ -179,6 +185,7 @@ BOOL CSettingsDlg::OnInitDialog()
    CEdit *ptMSecondsPreviewTimer = (CEdit*)GetDlgItem(IDC_PREVIEW_TIMER);
    CEdit *pPreviewExpandPercentEdit = (CEdit*)GetDlgItem(IDC_PREVIEW_EXCPAND_PERCENT_EDIT);
    CEdit *pUghThreshEdit = (CEdit*)GetDlgItem(ID_UGH_THRESH);
+   CEdit *pNumSumLinesEdit = (CEdit*)GetDlgItem(IDC_NUM_SUMMARY_LINES);
 
    if(pMouseWheelSpeed != NULL &&
       pMBPanSpeed != NULL &&
@@ -192,7 +199,8 @@ BOOL CSettingsDlg::OnInitDialog()
       pFilteredPhrasesEdit != NULL &&
       ptMSecondsPreviewTimer != NULL &&
       pPreviewExpandPercentEdit != NULL &&
-      pUghThreshEdit != NULL)
+      pUghThreshEdit != NULL &&
+      pNumSumLinesEdit != NULL)
    {
       pMouseWheelSpeed->SetWindowTextW(UCString(theApp.GetMouseWheelScale()));
       pMBPanSpeed->SetWindowTextW(UCString(theApp.GetMBPanScale()));
@@ -203,6 +211,7 @@ BOOL CSettingsDlg::OnInitDialog()
       ptMSecondsPreviewTimer->SetWindowTextW(UCString(theApp.GetMSecondsPreviewTimer()));
       pPreviewExpandPercentEdit->SetWindowTextW(UCString(theApp.GetHoverPreviewPercentStepsize()));
       pUghThreshEdit->SetWindowTextW(UCString(theApp.GetUGHThreshold()));
+      pNumSumLinesEdit->SetWindowTextW(UCString(theApp.MaxSummaryLines()));
 
       if(theApp.UseShack())
       {

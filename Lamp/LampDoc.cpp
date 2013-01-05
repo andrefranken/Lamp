@@ -708,17 +708,18 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                {
                   if(ReadExistingThreadFromRoot(xmldata,pDD->m_id,bDoingNewFlags))
                   {
-                     if(m_datatype == DDT_THREAD &&
+                     if(m_datatype == DDT_THREAD && 
                         m_title == L"loading")
                      {
                         m_title = L"";
+
                         if(m_rootposts.size() == 1)
                         {
                            (*m_rootposts.begin())->GetTitle(m_title);
                         }
                         else
                         {
-                           m_title = L"FAIL'D";
+                           m_title += L"FAIL'D";
                         }
 
                         MySetTitle(m_title);
@@ -726,7 +727,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                      
                      if(m_pView != NULL)
                      {
-                        if(m_datatype == DDT_THREAD &&
+                        if((m_datatype == DDT_THREAD ||
+                            m_datatype == DDT_ACTIVE_THREAD) &&
                            m_pView->GetCurrentId() == 0 &&
                            m_initialpostid != 0)
                         {
@@ -808,158 +810,166 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
       case DT_SHACK_THREAD:
       case DT_SHACK_THREAD_SOFT:
          {
-            size_t postcount = 0;
-            unsigned int whohasreplydlg_id = 0;
-            CReplyDlg *pReplyDlg = NULL;
-            std::vector<unsigned int> existing_threads;
-
-            ChattyPost *post = FindRootPost(pDD->m_id);
-            if(post != NULL)
+            if(m_datatype != DDT_ACTIVE_THREAD ||
+              (m_datatype == DDT_ACTIVE_THREAD &&
+               pDD->m_id == m_initialpostid))
             {
-               post->AddToFamilySize(postcount);
-               existing_threads.push_back(pDD->m_id);
+               size_t postcount = 0;
+               unsigned int whohasreplydlg_id = 0;
+               CReplyDlg *pReplyDlg = NULL;
+               std::vector<unsigned int> existing_threads;
 
-               pReplyDlg = post->FindReplyDlgInPostRecurse(whohasreplydlg_id);
-            }
-
-            int oldpos = INT32_MAX;
-            if(m_pView != NULL)
-            {
-               oldpos = m_pView->GetViewPosition();
-            }
-
-            bool preservenewness = false;
-            if(pDD->m_dt == DT_SHACK_THREAD_SOFT)
-            {
-               preservenewness = true;
-            }
-
-            // scrape HTML
-            ReadChattyPageFromHTML(pDD->m_stdstring, existing_threads, false, false, preservenewness);
-
-            if(m_datatype == DDT_THREAD)
-            {
-               if(m_title == L"loading")
-               {
-                  m_title = L"";
-                  if(m_rootposts.size() == 1)
-                  {
-                     (*m_rootposts.begin())->GetTitle(m_title);
-                  }
-                  else
-                  {
-                     m_title = L"FAIL'D";
-                  }
-
-                  MySetTitle(m_title);
-               }
-               else if(post != NULL)
-               {
-                  size_t newpostcount = 0;
-            
-                  post->AddToFamilySize(newpostcount);
-
-                  if(theApp.AutoRefresh() &&//pDD->m_dt == DT_SHACK_THREAD_SOFT &&
-                     newpostcount != postcount)
-                  {
-                     NewContent();
-                  }
-               }
-            }
-
-            if(whohasreplydlg_id != 0 &&
-               pReplyDlg != NULL)
-            {
-               ChattyPost *post = FindPost(whohasreplydlg_id);
+               ChattyPost *post = FindRootPost(pDD->m_id);
                if(post != NULL)
                {
-                  post->SetReplyDlg(pReplyDlg);
-               }
-            }
-            
-            if(m_pView != NULL)
-            {
-               if(m_datatype == DDT_THREAD &&
-                  m_pView->GetCurrentId() == 0 &&
-                  m_initialpostid != 0)
-               {
-                  m_pView->SetCurrentId(m_initialpostid);
-                  m_pView->MakeCurrentPosVisible();
-                  m_initialpostid = 0;
-               }
-            }
+                  post->AddToFamilySize(postcount);
+                  existing_threads.push_back(pDD->m_id);
 
-            if(pDD->reply_to_id != 0 &&
-               theApp.GotoNewPost())
-            {
-               bool bGotIt = false;
-               // check to see if there is a new post by me on there.
-               ChattyPost *pReplyToPost = FindPost(pDD->reply_to_id);
-               if(pReplyToPost != NULL)
+                  pReplyDlg = post->FindReplyDlgInPostRecurse(whohasreplydlg_id);
+               }
+
+               int oldpos = INT32_MAX;
+               if(m_pView != NULL)
                {
-                  std::list<ChattyPost*> *pChildren = pReplyToPost->GetChildren();
-                  if(pChildren != NULL)
+                  oldpos = m_pView->GetViewPosition();
+               }
+
+               bool preservenewness = false;
+               if(pDD->m_dt == DT_SHACK_THREAD_SOFT)
+               {
+                  preservenewness = true;
+               }
+
+               // scrape HTML
+               ReadChattyPageFromHTML(pDD->m_stdstring, existing_threads, false, false, preservenewness);
+
+               if(m_datatype == DDT_THREAD ||
+                  m_datatype == DDT_ACTIVE_THREAD)
+               {
+                  if(m_title == L"loading")
                   {
-                     std::list<ChattyPost*>::iterator begin = pChildren->begin();
-                     std::list<ChattyPost*>::iterator it = pChildren->end();
-                     if(begin != it)
+                     m_title = L"";
+
+                     if(m_rootposts.size() == 1)
                      {
-                        it--;
-                        unsigned int new_id = 0;
-                        bool bDone = false;
-                        while(!bDone)
-                        {
-                           if(begin == it)
-                           {
-                              bDone = true;
-                           }
-                           
-                           if((*it)->IsNew()  &&
-                              (*it)->GetAuthor() == theApp.GetUsername())
-                           {
-                              new_id = (*it)->GetId();
-                              bDone = true;
-                              break;
-                           }
+                        (*m_rootposts.begin())->GetTitle(m_title);
+                     }
+                     else
+                     {
+                        m_title += L"FAIL'D";
+                     }
 
-                           if(!bDone)
-                           {
-                              it--;
-                           }
-                        }
+                     MySetTitle(m_title);
+                  }
+                  else if(post != NULL)
+                  {
+                     size_t newpostcount = 0;
+               
+                     post->AddToFamilySize(newpostcount);
 
-                        if(new_id != 0 &&
-                           m_pView != NULL)
-                        {
-                           m_pView->SetCurrentId(new_id);
-                           m_pView->MakeCurrentPostLegal();
-                           bGotIt = true;
-                        }
+                     if(theApp.AutoRefresh() &&//pDD->m_dt == DT_SHACK_THREAD_SOFT &&
+                        newpostcount != postcount)
+                     {
+                        NewContent();
                      }
                   }
                }
 
-               if(bGotIt == false)
+               if(whohasreplydlg_id != 0 &&
+                  pReplyDlg != NULL)
                {
-                  //assert(0);
+                  ChattyPost *post = FindPost(whohasreplydlg_id);
+                  if(post != NULL)
+                  {
+                     post->SetReplyDlg(pReplyDlg);
+                  }
                }
-            }
-            else if(m_pView != NULL)
-            {
-               m_pView->UpdateViewPosition(oldpos);
-            }
+               
+               if(m_pView != NULL)
+               {
+                  if((m_datatype == DDT_THREAD ||
+                      m_datatype == DDT_ACTIVE_THREAD) &&
+                     m_pView->GetCurrentId() == 0 &&
+                     m_initialpostid != 0)
+                  {
+                     m_pView->SetCurrentId(m_initialpostid);
+                     m_pView->MakeCurrentPosVisible();
+                     m_initialpostid = 0;
+                  }
+               }
 
-            post = FindPost(pDD->m_refreshid);
-            if(post != NULL)
-            {
-               post->SetRefreshing(false);
-               if(m_pView)
-                  m_pView->InvalidateEverything();
+               if(pDD->reply_to_id != 0 &&
+                  theApp.GotoNewPost())
+               {
+                  bool bGotIt = false;
+                  // check to see if there is a new post by me on there.
+                  ChattyPost *pReplyToPost = FindPost(pDD->reply_to_id);
+                  if(pReplyToPost != NULL)
+                  {
+                     std::list<ChattyPost*> *pChildren = pReplyToPost->GetChildren();
+                     if(pChildren != NULL)
+                     {
+                        std::list<ChattyPost*>::iterator begin = pChildren->begin();
+                        std::list<ChattyPost*>::iterator it = pChildren->end();
+                        if(begin != it)
+                        {
+                           it--;
+                           unsigned int new_id = 0;
+                           bool bDone = false;
+                           while(!bDone)
+                           {
+                              if(begin == it)
+                              {
+                                 bDone = true;
+                              }
+                              
+                              if((*it)->IsNew()  &&
+                                 (*it)->GetAuthor() == theApp.GetUsername())
+                              {
+                                 new_id = (*it)->GetId();
+                                 bDone = true;
+                                 break;
+                              }
+
+                              if(!bDone)
+                              {
+                                 it--;
+                              }
+                           }
+
+                           if(new_id != 0 &&
+                              m_pView != NULL)
+                           {
+                              m_pView->SetCurrentId(new_id);
+                              m_pView->MakeCurrentPostLegal();
+                              bGotIt = true;
+                           }
+                        }
+                     }
+                  }
+
+                  if(bGotIt == false)
+                  {
+                     //assert(0);
+                  }
+               }
+               else if(m_pView != NULL)
+               {
+                  m_pView->UpdateViewPosition(oldpos);
+               }
+
+               post = FindPost(pDD->m_refreshid);
+               if(post != NULL)
+               {
+                  post->SetRefreshing(false);
+                  if(m_pView)
+                     m_pView->InvalidateEverything();
+               }
+
+               DetermineIfUserHasPostedInThreads();
+
+               m_last_refresh_time = ::GetTickCount();
             }
-
-            DetermineIfUserHasPostedInThreads();
-
-            m_last_refresh_time = ::GetTickCount();
          }
          break;
       case DT_SHACK_CHATTY:
@@ -1084,124 +1094,129 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
          break;
       case DT_SHACK_THREAD_CONTENTS:
          {
-            htmlcxx::HTML::ParserDom parser;
-            tree<htmlcxx::HTML::Node> dom;
-            try
+            if(m_datatype != DDT_ACTIVE_THREAD ||
+              (m_datatype == DDT_ACTIVE_THREAD &&
+               pDD->m_id == m_initialpostid))
             {
-               dom = parser.parseTree(pDD->m_stdstring);
-            }
-            catch(...)
-            {
-               // whatever. move on
-            }
-            
-            RemoveContentsRequest(pDD->m_id);
-
-            tree<htmlcxx::HTML::Node>::iterator it = dom.begin();
-            tree<htmlcxx::HTML::Node>::iterator end = dom.end();
-            while(it != end)
-            {
-               if(it->tagName() == "body")break;
-               it++;
-            }
-
-            if(it != end)
-            {
-               int old_top = 0;
-               int old_bottom = 0;
-               int old_center = 0;
-
-               if(m_pView)
+               htmlcxx::HTML::ParserDom parser;
+               tree<htmlcxx::HTML::Node> dom;
+               try
                {
-                  unsigned int hoverpreviewid = m_pView->GetHoverPreviewId();
-                  if(hoverpreviewid != 0)
-                  {
-                     ChattyPost *hoverpost = FindPost(hoverpreviewid);
-                     if(hoverpost != NULL)
-                     {
-                        old_top = hoverpost->GetPos();
-                        old_bottom = old_top + hoverpost->GetHeight();
-                        old_center = (old_top + old_bottom) >> 1;
-                     }
-                  }
+                  dom = parser.parseTree(pDD->m_stdstring);
+               }
+               catch(...)
+               {
+                  // whatever. move on
+               }
+               
+               RemoveContentsRequest(pDD->m_id);
+
+               tree<htmlcxx::HTML::Node>::iterator it = dom.begin();
+               tree<htmlcxx::HTML::Node>::iterator end = dom.end();
+               while(it != end)
+               {
+                  if(it->tagName() == "body")break;
+                  it++;
                }
 
-               tree<htmlcxx::HTML::Node>::sibling_iterator post_it = it.begin();
-               tree<htmlcxx::HTML::Node>::sibling_iterator post_end = it.end();
-               while(post_it != post_end)
+               if(it != end)
                {
-                  if(post_it->tagName() == "div")
-                  {
-                     unsigned int post_id = HTML_GetIDAttribute(post_it);
-
-                     if(post_id != 0)
-                     {
-                        if(!theApp.IsPostKnown(post_id))
-                        {
-                           ChattyPost *post = new ChattyPost();
-                           post->SetNewness(N_OLD);
-
-                           post->ReadKnownPostChattyFromHTML(post_it, post_id);
-
-                           theApp.KnowPost(post_id, post);
-                        }
-                     }
-                  }
-                  post_it++;
-               }
-
-               ChattyPost *root_post = FindRootPost(pDD->m_id);
-               if(root_post != NULL)
-               {
-                  unsigned int root_id = root_post->GetId();
-                  root_post->UpdatePreviewsToKnown();
-
-                  if(root_post->IsFiltered())
-                  {
-                     m_rootposts.remove(root_post);
-
-                     delete(root_post);
-                  }
+                  int old_top = 0;
+                  int old_bottom = 0;
+                  int old_center = 0;
 
                   if(m_pView)
                   {
-                     unsigned int currentid = m_pView->GetCurrentId();
-                     if(currentid != 0 &&
-                        FindPost(currentid) == NULL)
+                     unsigned int hoverpreviewid = m_pView->GetHoverPreviewId();
+                     if(hoverpreviewid != 0)
                      {
-                        m_pView->SetCurrentId(root_id);
+                        ChattyPost *hoverpost = FindPost(hoverpreviewid);
+                        if(hoverpost != NULL)
+                        {
+                           old_top = hoverpost->GetPos();
+                           old_bottom = old_top + hoverpost->GetHeight();
+                           old_center = (old_top + old_bottom) >> 1;
+                        }
                      }
                   }
-               }
 
-               ChattyPost *post = FindPost(pDD->m_refreshid);
-               if(post != NULL)
-               {
-                  post->SetRefreshing(false);
-               }
-
-               DetermineIfUserHasPostedInThreads();
-
-               if(m_pView)
-               {
-                  unsigned int hoverpreviewid = m_pView->GetHoverPreviewId();
-                  if(hoverpreviewid != 0 && old_center != 0)
+                  tree<htmlcxx::HTML::Node>::sibling_iterator post_it = it.begin();
+                  tree<htmlcxx::HTML::Node>::sibling_iterator post_end = it.end();
+                  while(post_it != post_end)
                   {
-                     ChattyPost *hoverpost = FindPost(hoverpreviewid);
-                     if(hoverpost != NULL)
+                     if(post_it->tagName() == "div")
                      {
-                        m_pView->DrawEverythingToBuffer();
-                        int top = hoverpost->GetPos();
-                        int bottom = top + hoverpost->GetHeight();
-                        int center = (top + bottom) >> 1;
+                        unsigned int post_id = HTML_GetIDAttribute(post_it);
 
-                        m_pView->SetPos(m_pView->GetPos() + (center - old_center));
+                        if(post_id != 0)
+                        {
+                           if(!theApp.IsPostKnown(post_id))
+                           {
+                              ChattyPost *post = new ChattyPost();
+                              post->SetNewness(N_OLD);
+
+                              post->ReadKnownPostChattyFromHTML(post_it, post_id);
+
+                              theApp.KnowPost(post_id, post);
+                           }
+                        }
+                     }
+                     post_it++;
+                  }
+
+                  ChattyPost *root_post = FindRootPost(pDD->m_id);
+                  if(root_post != NULL)
+                  {
+                     unsigned int root_id = root_post->GetId();
+                     root_post->UpdatePreviewsToKnown();
+
+                     if(root_post->IsFiltered())
+                     {
+                        m_rootposts.remove(root_post);
+
+                        delete(root_post);
+                     }
+
+                     if(m_pView)
+                     {
+                        unsigned int currentid = m_pView->GetCurrentId();
+                        if(currentid != 0 &&
+                           FindPost(currentid) == NULL)
+                        {
+                           m_pView->SetCurrentId(root_id);
+                        }
                      }
                   }
-               }
 
-               if(m_pView)
-                  m_pView->InvalidateEverything();
+                  ChattyPost *post = FindPost(pDD->m_refreshid);
+                  if(post != NULL)
+                  {
+                     post->SetRefreshing(false);
+                  }
+
+                  DetermineIfUserHasPostedInThreads();
+
+                  if(m_pView)
+                  {
+                     unsigned int hoverpreviewid = m_pView->GetHoverPreviewId();
+                     if(hoverpreviewid != 0 && old_center != 0)
+                     {
+                        ChattyPost *hoverpost = FindPost(hoverpreviewid);
+                        if(hoverpost != NULL)
+                        {
+                           m_pView->DrawEverythingToBuffer();
+                           int top = hoverpost->GetPos();
+                           int bottom = top + hoverpost->GetHeight();
+                           int center = (top + bottom) >> 1;
+
+                           m_pView->SetPos(m_pView->GetPos() + (center - old_center));
+                        }
+                     }
+                  }
+
+                  if(m_pView)
+                     m_pView->InvalidateEverything();
+               }
             }
          }
          break;
@@ -1619,7 +1634,19 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                      }
                      else
                      {
-                        Refresh();
+                        if(m_datatype == DDT_ACTIVE_THREAD)
+                        {
+                           CLampDoc *pLatestChatty = theApp.GetLatestChatty();
+                           if(pLatestChatty != NULL)
+                           {
+                              pLatestChatty->ClearChildren();
+                              pLatestChatty->Refresh();
+                           }
+                        }
+                        else
+                        {
+                           Refresh();
+                        }
                      }
                   }
                }
@@ -2027,7 +2054,21 @@ CLampDoc::~CLampDoc()
    m_rootposts.clear();
 }
 
-   
+void CLampDoc::ClearChildren()
+{
+   std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+   std::list<ChattyPost*>::iterator end = m_rootposts.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         delete (*it);
+         (*it) = NULL;
+      }
+      it++;
+   }
+   m_rootposts.clear();
+}
 
 void CLampDoc::SetPathName(LPCTSTR lpszPathName, BOOL bAddToMRU/* = TRUE*/)
 {
@@ -2082,6 +2123,37 @@ BOOL CLampDoc::OnOpenDocument( LPCTSTR lpszPathName )
 
 BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
 {
+   if(m_datatype == DDT_ACTIVE_THREAD)
+   {
+      if(m_pView != NULL)
+      {
+         m_pView->CloseReplyOnlyDlg();
+      }
+            
+      if(m_initialpostid != 0 &&
+         m_rootposts.size() > 0)
+      {
+         CLampDoc *pDoc = NULL;
+         ChattyPost *pExistingPost = theApp.FindFromLatestChatty(m_initialpostid, &pDoc);
+         if(pExistingPost != NULL)
+         {
+            ChattyPost *post = m_rootposts.front();
+            if(post != NULL)
+            {
+               pExistingPost->ClearChildren();
+               pExistingPost->ReadPost(post,pDoc);
+            }
+         }
+      }
+
+      ClearChildren();
+   }
+   else
+   {
+      ClearChildren();
+   }
+   
+
    BOOL result = TRUE;
 
    UCString rootid;
@@ -2091,6 +2163,8 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
    bool issearch = false;
    bool isshackmsg = false;
    bool isprofile = false;
+   bool isactivethread = false;
+   bool isnewcomment = false;
 
    bool bAllowPreLoadingOfThread = true;
 
@@ -2472,36 +2546,50 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
    }
    else
    {
-      const UCChar *thisid;
-      const UCChar *work = end - 1;
-      
-      while(work >= start &&
-            iswdigit(*work))
+      if(_wcsnicmp(start,L"ACTIVE:",7) == 0)
       {
-         thisid = work;
-         work--;
-      }
-      
-      rootid = thisid;
+         start += 7;
+         isactivethread = true;
 
-      if(work >= start &&
-         *work == L'_')
+         if(_wcsnicmp(start,L"NEW_COMMENT",11) == 0)
+         {
+            isnewcomment = true;
+         }
+      }
+
+      if(!isnewcomment)
       {
-         m_initialpostid = rootid;
-         work--;
-         int numchars = 0;
-         // we have a view id
-         // now find the root id
+         const UCChar *thisid;
+         const UCChar *work = end - 1;
+         
          while(work >= start &&
                iswdigit(*work))
          {
             thisid = work;
             work--;
-            numchars++;
          }
          
-         rootid = L"";
-         rootid.AppendUnicodeString(thisid, numchars);
+         rootid = thisid;
+
+         if(work >= start &&
+            *work == L'_')
+         {
+            m_initialpostid = rootid;
+            work--;
+            int numchars = 0;
+            // we have a view id
+            // now find the root id
+            while(work >= start &&
+                  iswdigit(*work))
+            {
+               thisid = work;
+               work--;
+               numchars++;
+            }
+            
+            rootid = L"";
+            rootid.AppendUnicodeString(thisid, numchars);
+         }
       }
    }
 
@@ -2534,41 +2622,74 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
    }
    else
    {
-      SetDataType(DDT_THREAD);
-      m_title = L"loading";
+      if(isactivethread)
+      {
+         SetDataType(DDT_ACTIVE_THREAD);
+         m_title = L"Active Thread";
+      }
+      else
+      {
+         SetDataType(DDT_THREAD);
+         m_title = L"loading";
+      }
+      
       MySetTitle(m_title);
 
-      // see if we can steal the existing thread from someone first.
-      if(bAllowPreLoadingOfThread)
+      if(isnewcomment)
       {
-         ChattyPost *pExistingPost = theApp.FindFromAnywhere(rootid);
-         if(pExistingPost != NULL)
+         if(m_pView)
          {
-            rootid = pExistingPost->GetId();
-            ChattyPost *post = new ChattyPost();
-            if(post != NULL)
+            m_pView->OnEditNewthread();
+            m_pView->InvalidateEverything();
+         }
+      }
+      else
+      {
+         // see if we can steal the existing thread from someone first.
+         if(bAllowPreLoadingOfThread)
+         {
+            CLampDoc *pDoc = NULL;
+            ChattyPost *pExistingPost = theApp.FindFromLatestChatty(m_initialpostid, &pDoc);
+            if(pExistingPost != NULL)
             {
-               if(theApp.UseShack())
+               rootid = pExistingPost->GetId();
+               ChattyPost *post = new ChattyPost();
+               if(post != NULL)
                {
-                  post->SetNewness(N_OLD);
-               }
-               m_rootposts.push_back(post);
-               post->ReadPost(pExistingPost,this);
-               post->Expand();
-               post->UnShowAsTruncated();
-               
-               ChattyPost *refresh_post = post->FindChild(m_initialpostid);
-               if(refresh_post != NULL)
-               {
-                  refresh_post->SetRefreshing(true);
-                  if(m_pView)
+                  if(theApp.UseShack())
+                  {
+                     post->SetNewness(N_OLD);
+                  }
+                  m_rootposts.push_back(post);
+                  post->ReadPost(pExistingPost,this);
+                  post->Expand();
+                  post->UnShowAsTruncated();
+                  post->SetupPreviewShades(false);
+                  post->CountFamilySize();
+                  post->UpdateRootReplyList();
+                  
+                  if(!isactivethread)
+                  {
+                     ChattyPost *refresh_post = post->FindChild(m_initialpostid);
+                     if(refresh_post != NULL)
+                     {
+                        refresh_post->SetRefreshing(true);
+                     }
+                  }
+
+                  if(m_pView != NULL)
+                  {
                      m_pView->InvalidateEverything();
+                  }
                }
             }
          }
-      }
 
-      RefreshThread(rootid, m_initialpostid,true,0,true);
+         if(!isactivethread)
+         {
+            RefreshThread(rootid, m_initialpostid,true,0,true);
+         }
+      }
    }
    
    return result;
@@ -2578,18 +2699,7 @@ void CLampDoc::GetProfile()
 {
    m_last_refresh_time = ::GetTickCount();
 
-   std::list<ChattyPost*>::iterator it = m_rootposts.begin();
-   std::list<ChattyPost*>::iterator end = m_rootposts.end();
-   while(it != end)
-   {
-      if((*it) != NULL)
-      {
-         delete (*it);
-         (*it) = NULL;
-      }
-      it++;
-   }
-   m_rootposts.clear();
+   ClearChildren();
 
    // http://chattyprofil.es/api/profile/crasterimage
 
@@ -2621,18 +2731,7 @@ void CLampDoc::PerformSearch(bool soft /*= false*/)
       }
    }
 
-   std::list<ChattyPost*>::iterator it = m_rootposts.begin();
-   std::list<ChattyPost*>::iterator end = m_rootposts.end();
-   while(it != end)
-   {
-      if((*it) != NULL)
-      {
-         delete (*it);
-         (*it) = NULL;
-      }
-      it++;
-   }
-   m_rootposts.clear();
+   ClearChildren();
 
    theApp.SetLastSearchParms(m_search_author, m_search_parent_author, m_search_terms, m_search_filter, m_search_sort);
 
@@ -2709,18 +2808,7 @@ void CLampDoc::GetShackMessages()
 
    if(theApp.UseShack())
    {
-      std::list<ChattyPost*>::iterator it = m_rootposts.begin();
-      std::list<ChattyPost*>::iterator end = m_rootposts.end();
-      while(it != end)
-      {
-         if((*it) != NULL)
-         {
-            delete (*it);
-            (*it) = NULL;
-         }
-         it++;
-      }
-      m_rootposts.clear();
+      ClearChildren();
 
       UCString path = L"/messages/";
 
@@ -3043,18 +3131,7 @@ void CLampDoc::ReadLOL(bool soft/* = false*/)
       }
    }
 
-   std::list<ChattyPost*>::iterator it = m_rootposts.begin();
-   std::list<ChattyPost*>::iterator end = m_rootposts.end();
-   while(it != end)
-   {
-      if((*it) != NULL)
-      {
-         delete (*it);
-         (*it) = NULL;
-      }
-      it++;
-   }   
-   m_rootposts.clear();
+   ClearChildren();
 
    UCString LOLup = m_loltag;
    LOLup.MakeUpper();
@@ -3453,6 +3530,7 @@ bool CLampDoc::Refresh(bool soft/* = false*/)
       }
       break;
    case DDT_THREAD:
+   case DDT_ACTIVE_THREAD:
       if(m_rootposts.size() > 0)
       {
          RefreshThread((*m_rootposts.begin())->GetId(),m_pView->GetCurrentId(),false,0,soft);
@@ -3469,18 +3547,7 @@ bool CLampDoc::Refresh(bool soft/* = false*/)
       break;
    case DDT_PROFILE:
       {
-         std::list<ChattyPost*>::iterator it = m_rootposts.begin();
-         std::list<ChattyPost*>::iterator end = m_rootposts.end();
-         while(it != end)
-         {
-            if((*it) != NULL)
-            {
-               delete (*it);
-               (*it) = NULL;
-            }
-            it++;
-         }
-         m_rootposts.clear();
+         ClearChildren();
          GetProfile();
          bResetPos = true;
       }
@@ -3937,9 +4004,44 @@ void CLampDoc::Draw(HDC hDC,
       }
       break;
    case DDT_THREAD:
+   case DDT_ACTIVE_THREAD:
       {
          pos += bannerheight;
 
+         if(m_pReplyDlg != NULL && !m_pReplyDlg->IsMessage())
+         {
+            RECT replydlgrect;
+            replydlgrect.left = DeviceRectangle.left + 20;
+            replydlgrect.right = DeviceRectangle.right - 20;
+            replydlgrect.top = pos;
+            replydlgrect.bottom = pos + m_pReplyDlg->GetHeight();
+            m_pReplyDlg->SetDlgRect(replydlgrect);
+
+            replydlgrect.bottom += 20;
+            pos = replydlgrect.bottom;
+
+            if(replydlgrect.bottom < DeviceRectangle.top ||
+               replydlgrect.top > DeviceRectangle.bottom)
+            {
+               // do nothing, we are not on the screen
+            }
+            else 
+            {
+               RECT backrect = replydlgrect;
+               backrect.left = DeviceRectangle.left;
+               backrect.right = replydlgrect.left;
+               FillBackground(hDC,backrect);
+
+               backrect.left = replydlgrect.right;
+               backrect.right = DeviceRectangle.right;
+               FillBackground(hDC,backrect);
+
+               backrect = replydlgrect;
+               backrect.top = backrect.bottom - 20;
+               FillBackground(hDC,backrect);
+            }
+         }
+         
          RECT backrect = DeviceRectangle;
          backrect.top = pos;
          backrect.bottom = pos + 20;
@@ -4087,47 +4189,54 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
          hotspot.m_bAnim = false;
          RECT imagerect = bannerrect;
          RECT restrect = bannerrect;
+         
+         // draw refresh story button
+         imagerect.left = imagerect.right - pRefreshStoryImage->GetWidth();
+         pRefreshStoryImage->Blit(hDC,imagerect);
+         hotspot.m_type = HST_REFRESHSTORY;
+         hotspot.m_spot = imagerect;
+         hotspot.m_id = 0;
+         hotspots.push_back(hotspot);
+         restrect.right = imagerect.left;
+                  
+         imagerect = bannerrect;
          if(bDrawNewThread || bDrawCompose || bDrawSearch)
          {
+            CDCSurface *pLeftImage = NULL;
+
             if(bDrawNewThread)
             {
                imagerect.right = imagerect.left + pNewThreadImage->GetWidth();
-               pNewThreadImage->Blit(hDC,imagerect);
+               pLeftImage = pNewThreadImage;
                hotspot.m_type = HST_NEWTHREAD;
             }
             else if(bDrawCompose)
             {
                imagerect.right = imagerect.left + pComposeImage->GetWidth();
-               pComposeImage->Blit(hDC,imagerect);
+               pLeftImage = pComposeImage;
                hotspot.m_type = HST_COMPOSE_MESSAGE;
             }
             else if(bDrawSearch)
             {
                imagerect.right = imagerect.left + pSearchImage->GetWidth();
-               pSearchImage->Blit(hDC,imagerect);
+               pLeftImage = pSearchImage;
                hotspot.m_type = HST_SEARCH_DLG;
             }
-            hotspot.m_spot = imagerect;
-            hotspot.m_id = 0;
-            hotspots.push_back(hotspot);
 
-            restrect.left = imagerect.right;
+            if(restrect.right > imagerect.right)
+            {
+               pLeftImage->Blit(hDC,imagerect);
+               hotspot.m_spot = imagerect;
+               hotspot.m_id = 0;
+               hotspots.push_back(hotspot);
+               restrect.left = imagerect.right;
+            }
          }
 
-         // draw refresh story button
-
-         imagerect = bannerrect;
-         imagerect.left = imagerect.right - pRefreshStoryImage->GetWidth();
-         pRefreshStoryImage->Blit(hDC,imagerect);
-                     
-         hotspot.m_type = HST_REFRESHSTORY;
-         hotspot.m_spot = imagerect;
-         hotspot.m_id = 0;
-         hotspots.push_back(hotspot);
-
-         restrect.right = imagerect.left;
-
-         ::FillRect(hDC,&restrect,m_backgroundbrush);
+         if(restrect.right > restrect.left)
+         {
+            ::FillRect(hDC,&restrect,m_backgroundbrush);
+         }
 
          restrect.left += 20;
          restrect.right -= 20;
@@ -4147,7 +4256,7 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
             if((GetDataType() == DDT_STORY ||
                 GetDataType() == DDT_LOLS ||
                 GetDataType() == DDT_SEARCH) &&
-                (restrect.right - restrect.left) > pagebuttonsize)
+                (restrect.right - restrect.left) > (pagebuttonsize * 2))
             {
                hotspot.m_type = HST_NAV_PREV_THREAD;
                hotspot.m_spot = imagerect;
@@ -4165,8 +4274,9 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                restrect.left += pagebuttonsize;
             }
 
-            if((GetDataType() == DDT_STORY ||
-                GetDataType() == DDT_THREAD) &&
+            if(((GetDataType() == DDT_STORY && !theApp.LatestChattySummaryMode()) ||
+                GetDataType() == DDT_THREAD || 
+                GetDataType() == DDT_ACTIVE_THREAD) &&
                 (restrect.right - restrect.left) > (pagebuttonsize * 2))
             {
                hotspot.m_type = HST_NAV_PREV_POST;
@@ -4221,8 +4331,9 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
                restrect.left += pagebuttonsize;
             }
 
-            if((GetDataType() == DDT_STORY ||
-               GetDataType() == DDT_THREAD) &&
+            if(((GetDataType() == DDT_STORY && !theApp.LatestChattySummaryMode()) ||
+               GetDataType() == DDT_THREAD ||
+               GetDataType() == DDT_ACTIVE_THREAD) &&
                (restrect.right - restrect.left) > (pagebuttonsize * 2))
             {
                hotspot.m_type = HST_NAV_PREV_NEW_POST;
@@ -4278,7 +4389,7 @@ int CLampDoc::DrawBanner(HDC hDC, RECT &DeviceRectangle, int pos, std::vector<CH
 
          // draw page bar
 
-         FillBackground(hDC,restrect);
+         //FillBackground(hDC,restrect);
 
          RECT pagingrect = restrect;
          
@@ -4487,11 +4598,20 @@ int CLampDoc::DrawFromRoot(HDC hDC,
    std::list<ChattyPost*>::iterator end = m_rootposts.end();
    std::list<ChattyPost*>::iterator it = begin;
 
+   bool bDrawSummary = false;
+
+   if(GetDataType() == DDT_STORY &&
+      theApp.LatestChattySummaryMode())
+   {
+      bDrawSummary = true;
+   }
+
    while(it != end)
    {
       pos = (*it)->DrawRoot(hDC,
                             DeviceRectangle,
                             pos,
+                            bDrawSummary,
                             hotspots, 
                             current_id, 
                             bLinkOnly, 
@@ -5127,7 +5247,8 @@ bool CLampDoc::ReadExistingThreadFromRoot(CXMLTree &xmldata, unsigned int id, bo
 
 ChattyPost *CLampDoc::GetThreadPost()
 {
-   if(m_datatype == DDT_THREAD &&
+   if((m_datatype == DDT_THREAD ||
+       m_datatype == DDT_ACTIVE_THREAD) &&
       m_rootposts.size() > 0)
    {
       return (*(m_rootposts.begin()));
@@ -5182,7 +5303,8 @@ void CLampDoc::CalcBodyText(RECT &rect,
                             std::vector<const int*> &charsizes, 
                             std::vector<const int> &linesizes,
                             std::vector<std::vector<shacktagpos>> &linetags,
-                            std::vector<linetype> &linetypes)
+                            std::vector<linetype> &linetypes,
+                            bool tight/* = false*/)
 {
    lines_of_text.clear();
    charsizes.clear();
@@ -5407,12 +5529,16 @@ void CLampDoc::CalcBodyText(RECT &rect,
       
       // append char
       thislength += widths[i];
-      if(text[i] == L'\n')
+      if(text[i] == L'\n' && !tight)
       {
          // include char, then break
          breaknext = true;         
       }
       else if(text[i] == L' ')
+      {
+         spacei = i;
+      }
+      else if(tight && iswalnum(text[i]) == 0)
       {
          spacei = i;
       }
@@ -6481,7 +6607,8 @@ void CLampDoc::DrawBodyText(HDC hDC,
                             std::vector<RECT> &thumbs, 
                             bool bComplexShapeText,
                             const RECT *pClipRect/*=NULL*/,
-                            bool bCenterSingleLine/*=false*/)
+                            bool bCenterSingleLine/*=false*/,
+                            int numlinestodraw /*= -1*/)
 {
    if(bCenterSingleLine && lines_of_text.size() > 1)
       bCenterSingleLine = false;
@@ -6530,7 +6657,13 @@ void CLampDoc::DrawBodyText(HDC hDC,
    hPreviousFont = MySelectFont(hDC, m_normalfont);
 
    // loop for every line
-   for(size_t i=0; i < linesizes.size(); i++)
+
+   if(numlinestodraw <= 0)
+   {
+      numlinestodraw = (int)linesizes.size();
+   }
+
+   for(int i=0; i < numlinestodraw; i++)
    {
       if(linetypes[i].m_bIsText)
       {
@@ -7174,21 +7307,28 @@ void CLampDoc::DrawNewMessagesTab(HDC hDC, RECT &rect, const UCChar *pChar, int 
 }
 
 
-void CLampDoc::DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF AuthorColor, CDCSurface *Flag, RECT &flagrect, bool bFade/*= false*/, bool m_bIsInbox/*=true*/)
+void CLampDoc::DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF AuthorColor, CDCSurface *Flag, RECT &flagrect, bool bFade/* = false*/, bool bIsInbox/* = true*/, bool bPrefix/* = true*/, RECT *cliprect/* = NULL*/)
 {
    HFONT oldfont = MySelectFont(hDC,m_miscfont);
    ::SetTextColor(hDC,theApp.GetMiscPostTextColor());
 
-   if(m_bIsInbox)
+   if(bPrefix)
    {
-      ::ExtTextOutW(hDC, rect.left + 5, rect.bottom, 0, NULL, L"By:", 3, NULL);
+      if(bIsInbox)
+      {
+         ::ExtTextOutW(hDC, rect.left + 5, rect.bottom, 0, NULL, L"By:", 3, NULL);
+      }
+      else
+      {
+         ::ExtTextOutW(hDC, rect.left + 5, rect.bottom, 0, NULL, L"To:", 3, NULL);
+      }
+
+      rect.left += theApp.GetCellHeight() + 5;
    }
    else
    {
-      ::ExtTextOutW(hDC, rect.left + 5, rect.bottom, 0, NULL, L"To:", 3, NULL);
+      rect.left += 5;
    }
-
-   rect.left += theApp.GetCellHeight() + 5;
 
    if(Flag != NULL)
    {
@@ -7216,7 +7356,14 @@ void CLampDoc::DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF Aut
       ::SetTextColor(hDC,AuthorColor);
    }
 
-   ::ExtTextOutW(hDC, rect.left, rect.bottom, 0, NULL, author, author.Length(), NULL);
+   if(cliprect == NULL)
+   {
+      ::ExtTextOutW(hDC, rect.left, rect.bottom, 0, NULL, author, author.Length(), NULL);
+   }
+   else
+   {
+      ::ExtTextOutW(hDC, rect.left, rect.bottom, ETO_CLIPPED, cliprect, author, author.Length(), NULL);
+   }
 
    MySelectFont(hDC,oldfont);
 }
@@ -7249,25 +7396,39 @@ void CLampDoc::DrawCollapseNote(HDC hDC, RECT &rect)
    MySelectFont(hDC,oldfont);
 }
 
-void CLampDoc::DrawRepliesHint(HDC hDC, RECT &rect, int m_reportedchildcount)
+void CLampDoc::DrawRepliesHint(HDC hDC, RECT &rect, int m_reportedchildcount, bool numberonly/* = false*/)
 {
-   HFONT oldfont = MySelectFont(hDC,m_miscfont);
-   ::SetTextColor(hDC,theApp.GetMiscPostTextColor());
+   if(numberonly)
+   {
+      HFONT oldfont = MySelectFont(hDC,m_boldfont);
+      ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
+      
+      UCString text = m_reportedchildcount;
+      ::SetTextColor(hDC,theApp.GetMyPostColor());
+      ::ExtTextOutW(hDC, rect.left + 2, rect.bottom, 0, NULL, text, text.Length(), NULL);
 
-   ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM|TA_UPDATECP);
-   ::MoveToEx(hDC, rect.left + 5, rect.bottom - 5, NULL); 
-   ::ExtTextOutW(hDC, rect.left + 5, rect.bottom - 5, 0, NULL, L"Click to see all ", 17, NULL);
-   MySelectFont(hDC,m_miscboldfont);
-   UCString text = m_reportedchildcount;
-   ::SetTextColor(hDC,theApp.GetMyPostColor());
-   ::ExtTextOutW(hDC, rect.left + 5 + (theApp.GetMiscFontHeight() * -7), rect.bottom - 5, 0, NULL, text, text.Length(), NULL);
-   MySelectFont(hDC,m_miscfont);
-   ::SetTextColor(hDC,theApp.GetMiscPostTextColor());
-   ::ExtTextOutW(hDC, rect.left + 5 + (theApp.GetMiscFontHeight() * -7) + ((theApp.GetFontHeight() / -2) * text.Length()), rect.bottom - 5, 0, NULL, L" replies", 8, NULL);
+      MySelectFont(hDC,oldfont);
+   }
+   else
+   {
+      HFONT oldfont = MySelectFont(hDC,m_miscfont);
+      ::SetTextColor(hDC,theApp.GetMiscPostTextColor());
 
-   ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
+      ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM|TA_UPDATECP);
+      ::MoveToEx(hDC, rect.left + 5, rect.bottom - 5, NULL); 
+      ::ExtTextOutW(hDC, rect.left + 5, rect.bottom - 5, 0, NULL, L"Click to see all ", 17, NULL);
+      MySelectFont(hDC,m_miscboldfont);
+      UCString text = m_reportedchildcount;
+      ::SetTextColor(hDC,theApp.GetMyPostColor());
+      ::ExtTextOutW(hDC, rect.left + 5 + (theApp.GetMiscFontHeight() * -7), rect.bottom - 5, 0, NULL, text, text.Length(), NULL);
+      MySelectFont(hDC,m_miscfont);
+      ::SetTextColor(hDC,theApp.GetMiscPostTextColor());
+      ::ExtTextOutW(hDC, rect.left + 5 + (theApp.GetMiscFontHeight() * -7) + ((theApp.GetFontHeight() / -2) * text.Length()), rect.bottom - 5, 0, NULL, L" replies", 8, NULL);
 
-   MySelectFont(hDC,oldfont);
+      ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
+
+      MySelectFont(hDC,oldfont);
+   }
 }
 
 void CLampDoc::DrawBranch(HDC hDC, RECT &rect, indenttype type, int shade, newness Newness)
@@ -7788,18 +7949,7 @@ void CLampDoc::SetPage(int page)
 
    if(m_datatype == DDT_SHACKMSG)
    {
-      std::list<ChattyPost*>::iterator it = m_rootposts.begin();
-      std::list<ChattyPost*>::iterator end = m_rootposts.end();
-      while(it != end)
-      {
-         if((*it) != NULL)
-         {
-            delete (*it);
-            (*it) = NULL;
-         }
-         it++;
-      }
-      m_rootposts.clear();
+      ClearChildren();
    }
 }
 
@@ -7860,6 +8010,10 @@ void CLampDoc::GetLaunchString(UCString &launch, unsigned int current_id)
       launch = L"LATESTCHATTY";
       break;
    case DDT_THREAD:
+      launch = L"chatty?id=";
+      launch += current_id;
+      break;
+   case DDT_ACTIVE_THREAD:
       launch = L"chatty?id=";
       launch += current_id;
       break;
@@ -8589,6 +8743,17 @@ void CLampDoc::DemoteNewness(unsigned int id)
          root->DemoteNewness();
          root->UpdateRootReplyList();
       }
+   }
+}
+
+void CLampDoc::InvalidateContentLayout()
+{
+   std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+   std::list<ChattyPost*>::iterator end = m_rootposts.end();
+   while(it != end)
+   {
+      (*it)->InvalidateContentLayout();
+      it++;
    }
 }
 

@@ -48,6 +48,9 @@ public:
 
    void RecordSession();
 
+   void SetTargetView(CLampView *view){m_pTargetView = view;}
+   CLampView *GetTargetView(){return m_pTargetView;}
+
 // Attributes
 public:
    void SetActiveLampView(CLampView *pView){m_pLastActiveView = pView;}
@@ -73,6 +76,7 @@ protected:  // control bar embedded members
    CMFCStatusBar     m_wndStatusBar;
 
    CLampView *m_pLastActiveView;
+   CLampView *m_pTargetView;
 
    bool m_bFirstUpdate;
 

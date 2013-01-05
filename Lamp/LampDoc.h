@@ -24,7 +24,8 @@ typedef enum
    DDT_LOLS          = 3,
    DDT_SEARCH        = 4,
    DDT_SHACKMSG      = 5,
-   DDT_PROFILE       = 6
+   DDT_PROFILE       = 6,
+   DDT_ACTIVE_THREAD = 7
 } DocDataType;
 
 typedef enum 
@@ -132,7 +133,8 @@ public:
                      std::vector<RECT> &thumbs, 
                      bool bComplexShapeText,
                      const RECT *pClipRect = NULL,
-                     bool bCenterSingleLine = false);
+                     bool bCenterSingleLine = false,
+                     int numlinestodraw = -1);
    void DrawPreviewText(HDC hDC,
                         RECT &rect,
                         UCString &text,
@@ -150,11 +152,12 @@ public:
                      std::vector<const int*> &charsizes,
                      std::vector<const int> &linesizes,
                      std::vector<std::vector<shacktagpos>> &linetags,
-                     std::vector<linetype> &linetypes);
+                     std::vector<linetype> &linetypes,
+                     bool tight = false);
    void DrawNewMessagesTab(HDC hDC, RECT &rect, const UCChar *pChar, int *widths, size_t numchars, bool bHover);
-   void DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF AuthorColor, CDCSurface *Flag, RECT &flagrect, bool bFade = false, bool m_bIsInbox=true);
+   void DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF AuthorColor, CDCSurface *Flag, RECT &flagrect, bool bFade = false, bool bIsInbox = true, bool bPrefix = true, RECT *cliprect = NULL);
    void DrawDate(HDC hDC, RECT &rect, UCString &date, COLORREF ago_color, bool bGetExtents=false);
-   void DrawRepliesHint(HDC hDC, RECT &rect, int m_reportedchildcount);
+   void DrawRepliesHint(HDC hDC, RECT &rect, int m_reportedchildcount, bool numberonly = false);
    void DrawCollapseNote(HDC hDC, RECT &rect);
    void DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipped, int shade, COLORREF AuthorColor, const UCString &rootauthor, CDCSurface *Flag, RECT &flagrect);
    void DrawBranch(HDC hDC, RECT &rect, indenttype type, int shade, newness Newness);
@@ -218,6 +221,8 @@ public:
    void ProcessDownload(CDownloadData *pDD);
 
    void ClearAllPinnedThreads();
+
+   void ClearChildren();
 
    void UpdateUnreadShackMessagesCount();
 
@@ -325,6 +330,8 @@ public:
    bool IsExpired(){if(m_rootposts.size() == 1)return (*m_rootposts.begin())->IsExpired();return false;}
 
    void DemoteNewness(unsigned int id);
+
+   void InvalidateContentLayout();
 
 // Implementation
 public:

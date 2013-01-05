@@ -414,6 +414,7 @@ public:
    bool IsCollapsed(){return m_bCollapsed;}
 
    void SetDoc(CLampDoc *pDoc){m_pDoc = pDoc;}
+   CLampDoc *GetDoc(){return m_pDoc;}
    void SetPreviewShade(int value){m_previewshade = value;}
 
    void SetParent(ChattyPost *pParent){m_pParent = pParent;}
@@ -458,6 +459,7 @@ public:
    int DrawRoot(HDC hDC, 
                 RECT &DeviceRectangle, 
                 int pos, 
+                bool bDrawSummary,
                 std::vector<CHotSpot> &hotspots, 
                 unsigned int current_id, 
                 bool bLinkOnly, 
@@ -635,7 +637,7 @@ public:
    bool IsExpired(){return m_expired;}
 protected:
    void SetupCharWidths();
-   void SetupBodyText(RECT &textrect);
+   void SetupBodyText(RECT &textrect, bool tight = false);
    void SetupProfileText(RECT &textrect);
    void DecodeString(UCString &from, UCString &to, std::vector<shacktagpos> &shacktags);
    void GatherIds(std::list<unsigned int> &ids);

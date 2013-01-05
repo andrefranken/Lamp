@@ -1051,15 +1051,18 @@ void ChattyPost::ReadPost(ChattyPost *pOther, CLampDoc *pDoc)
       UpdateAuthorInfo();
 
       m_Newness = pOther->m_Newness;
+      m_bIsPreview = pOther->m_bIsPreview;
+      m_lightningbolt = pOther->m_lightningbolt;
       
       m_bodytext = pOther->m_bodytext;
-      SetupCharWidths();
       m_shacktags = pOther->m_shacktags;
+      SetupCharWidths();
       InitImageLinks();
 
       m_id = pOther->m_id;
 
       m_mylols = theApp.GetMyLol(m_id);
+      UpdateLOLs();
 
       m_lolflags = pOther->m_lolflags;
       m_lol_text = pOther->m_lol_text;
@@ -1076,6 +1079,15 @@ void ChattyPost::ReadPost(ChattyPost *pOther, CLampDoc *pDoc)
 
       m_bShowTruncated = pOther->m_bShowTruncated;
       m_familysize = pOther->m_familysize;
+
+      m_bCollapsed = pOther->m_bCollapsed;
+      m_subject = pOther->m_subject;
+      m_bShowTruncated = pOther->m_bShowTruncated;
+      m_bPinned = pOther->m_bPinned;
+            
+      m_bComplexShapeText = pOther->m_bComplexShapeText;
+      m_pFlaggedUser = pOther->m_pFlaggedUser;
+      m_bUserHasPostedInThread = pOther->m_bUserHasPostedInThread;
 
       if(pOther->m_children.size() > 0)
       {
@@ -1894,9 +1906,9 @@ bool ChattyPost::HasOpenImageLinks()
 }
 
 
-void ChattyPost::SetupBodyText(RECT &textrect)
+void ChattyPost::SetupBodyText(RECT &textrect, bool tight/* = false*/)
 {
-   m_pDoc->CalcBodyText(textrect,m_bodytext,m_pCharWidths,m_shacktags,m_bodytext.Length(),m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes);
+   m_pDoc->CalcBodyText(textrect,m_bodytext,m_pCharWidths,m_shacktags,m_bodytext.Length(),m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes, tight);
 
    m_largest_line_width = 0;
 
@@ -2401,6 +2413,7 @@ int ChattyPost::DrawMessage(HDC hDC, RECT &DeviceRectangle, int pos, std::vector
 int ChattyPost::DrawRoot(HDC hDC, 
                          RECT &DeviceRectangle, 
                          int pos, 
+                         bool bDrawSummary,
                          std::vector<CHotSpot> &hotspots, 
                          unsigned int current_id, 
                          bool bLinkOnly, 
@@ -2420,6 +2433,11 @@ int ChattyPost::DrawRoot(HDC hDC,
       replybuttonwidth = 120;
    }
 
+   if(bDrawSummary)
+   {
+      replybuttonwidth = 0;
+   }
+   
    if(m_pDoc != NULL)
    {
       if(m_bJustText)
@@ -2491,6 +2509,378 @@ int ChattyPost::DrawRoot(HDC hDC,
                hotspots.push_back(hotspot);
             }
          }
+      }
+      else if(bDrawSummary)
+      {
+         m_pos = pos;
+         m_drewtextpos = pos + 20 + theApp.GetCellHeight();
+
+         int fieldwidth = __max(iconsize,theApp.GetHintFieldWidth());
+
+         RECT textrect = DeviceRectangle;
+         textrect.left += (20 + fieldwidth);
+         textrect.right -= (20/* + iconsize*/);
+         textrect.top = 0;
+         textrect.bottom = 0;
+         
+         int numlinestodraw = 0;
+
+         if(textrect.right - textrect.left != m_lasttextrectwidth)
+         {
+            m_lasttextrectwidth = textrect.right - textrect.left;
+            CloseAllImageLinks();
+            SetupBodyText(textrect,true);
+
+            int diff = m_lines_of_text.size() - theApp.MaxSummaryLines();
+
+            if(diff > 0)
+            {
+               textrect.bottom -= (theApp.GetTextHeight() * diff);
+               numlinestodraw = theApp.MaxSummaryLines();
+            }
+
+            m_textrectheight = textrect.bottom;
+         }
+         else
+         {
+            numlinestodraw = m_lines_of_text.size();
+            textrect.bottom = m_textrectheight;
+         }
+
+         int topsize = theApp.GetCellHeight();
+
+         RECT myrect = DeviceRectangle;
+         myrect.top = pos;
+         myrect.bottom = pos + textrect.bottom + topsize;
+
+         if(myrect.bottom - myrect.top < ((iconsize * 2) + theApp.GetTextHeight()))
+         {
+            myrect.bottom = myrect.top + (iconsize * 2) + theApp.GetTextHeight();
+         }
+
+         if(myrect.bottom < DeviceRectangle.top ||
+            myrect.top > DeviceRectangle.bottom)
+         {
+            // do nothing, we are not on the screen
+            // but update the pos
+            pos = myrect.bottom;
+            m_bDrewTextBody = false;
+         }
+         else
+         {
+            m_bDrewTextBody = true;
+
+            bool bAsRoot = true;
+            if(current_id == m_id &&
+               theApp.ShowRootSelected())
+            {
+               bAsRoot = false;
+            }
+
+            RECT backrect = myrect;
+            backrect.right = backrect.left + 20;
+            if(m_bUserHasPostedInThread && theApp.GetAuthorGlow())
+            {
+               m_pDoc->FillBackgroundAuthorGlow(hDC,backrect, true);
+            }
+            else
+            {
+               m_pDoc->FillBackground(hDC,backrect);
+            }          
+
+            backrect.left = myrect.right - 20;
+            backrect.right = myrect.right;
+            if(m_bUserHasPostedInThread && theApp.GetAuthorGlow())
+            {
+               m_pDoc->FillBackgroundAuthorGlow(hDC,backrect, false);
+            }
+            else
+            {
+               m_pDoc->FillBackground(hDC,backrect);
+            }
+
+            int toparea_top = myrect.top + ((topsize - theApp.GetTextHeight()) / 2);
+
+            textrect.top += pos + topsize;
+            textrect.bottom += pos + topsize;
+            pos = myrect.bottom;
+
+            myrect.left += 20;
+            myrect.right -= 20;
+            m_pDoc->FillExpandedBackground(hDC,myrect,bAsRoot,m_category,!theApp.StrokeRootEdges());            
+
+            RECT restrect = myrect;
+
+            std::vector<RECT> spoilers;
+            std::vector<RECT> links;
+            std::vector<RECT> imagelinks;
+            std::vector<RECT> images;
+            std::vector<RECT> thumbs;
+            m_pDoc->DrawBodyText(hDC,textrect,m_lines_of_text,m_charsizes,m_linesizes,m_linetags,m_linetypes,spoilers,links,imagelinks,images,thumbs, m_bComplexShapeText,&textrect,false,numlinestodraw);
+            m_drewtextpos = textrect.top;
+            m_drewtextedge = textrect.left;
+            
+
+            RECT flagrect = textrect;
+            flagrect.left = textrect.left;
+            flagrect.right = textrect.left;
+            flagrect.top = toparea_top;
+            flagrect.bottom = flagrect.top + theApp.GetTextHeight();
+
+            CDCSurface *Flag = NULL;
+
+            if(m_pFlaggedUser != NULL &&
+               m_pFlaggedUser->m_flag_image != NULL)
+            {
+               flagrect.left = m_pFlaggedUser->m_flag_image->m_active_rect.left;
+               flagrect.right = m_pFlaggedUser->m_flag_image->m_active_rect.right;
+
+               if(bAsRoot)
+               {
+                  Flag = m_pFlaggedUser->m_flag_image->m_image_root;
+               }
+               else
+               {
+                  Flag = m_pFlaggedUser->m_flag_image->m_image_reply;
+               }
+            }
+
+            RECT authorrect;
+            authorrect.left = textrect.left;
+            authorrect.right = textrect.left + m_authorsize + 5 + 5;
+            authorrect.top = toparea_top;
+            authorrect.bottom = authorrect.top + theApp.GetTextHeight();
+            m_pDoc->DrawRootAuthor(hDC,authorrect,m_author, m_AuthorColor, Flag, flagrect,false,true,false,&myrect);
+
+            if(m_pFlaggedUser != NULL &&
+               m_pFlaggedUser->m_flag_image != NULL)
+            {
+               CHotSpot hotspot;
+               hotspot.m_bAnim = false;
+               hotspot.m_type = HST_FLAG;
+               hotspot.m_spot = flagrect;
+               hotspot.m_id = m_id;
+               hotspots.push_back(hotspot);
+            }
+            
+            int rightofauthor = authorrect.right;
+
+            CHotSpot hotspot;
+            hotspot.m_bAnim = false;
+            hotspot.m_type = HST_AUTHOR;
+            hotspot.m_spot = authorrect;
+            hotspot.m_id = m_id;
+            hotspots.push_back(hotspot);
+
+            restrect.left = authorrect.right;
+
+            if(m_lightningbolt)
+            {
+               CDCSurface *pLImage = theApp.GetLightningBoltImage(false);
+               if(pLImage != NULL &&
+                  pLImage->GetWidth() < restrect.right - restrect.left)
+               {
+                  //pLImage->Blit(hDC, lightningrect);
+                  hotspot.m_type = HST_LIGHTNINGBOLT;
+                  hotspot.m_spot.left = authorrect.right;
+                  hotspot.m_spot.top = authorrect.top;
+                  hotspot.m_spot.right = hotspot.m_spot.left + pLImage->GetWidth();
+                  hotspot.m_spot.bottom = hotspot.m_spot.top + pLImage->GetHeight();
+                  hotspot.m_id = 0;
+                  hotspots.push_back(hotspot);
+
+                  rightofauthor = hotspot.m_spot.right;
+                  restrect.left = rightofauthor;
+               }
+            }
+
+            hotspot.m_type = HST_COLLAPSEPOST;
+            hotspot.m_spot.left = myrect.left;
+            hotspot.m_spot.right = myrect.left + iconsize;
+            hotspot.m_spot.bottom = myrect.bottom;
+            hotspot.m_spot.top = myrect.bottom - iconsize;
+            hotspot.m_id = m_id;
+            hotspots.push_back(hotspot);
+            
+            if(theApp.IsPinningInStories())
+            {
+               hotspot.m_type = HST_PIN;
+               hotspot.m_bOn = m_bPinned;
+               hotspot.m_spot.left = myrect.left;
+               hotspot.m_spot.top = myrect.top;
+               hotspot.m_spot.right = myrect.left + iconsize;
+               hotspot.m_spot.bottom = myrect.top + iconsize;
+               hotspot.m_id = m_id;
+               hotspots.push_back(hotspot);
+            }
+
+            RECT hintrect = myrect;
+            hintrect.bottom = ((myrect.top + myrect.bottom) / 2) + (theApp.GetTextHeight() / 2);
+            hintrect.top = hintrect.bottom - theApp.GetTextHeight();
+            m_pDoc->DrawRepliesHint(hDC,hintrect,(int)m_familysize,true);
+                        
+            if(theApp.ShowLOLButtons())
+            {
+               RECT lolrect;
+               lolrect.left = rightofauthor + 10;
+               lolrect.right = lolrect.left;
+               lolrect.bottom = authorrect.bottom;
+               if(theApp.ShowSmallLOL())
+               {
+                  lolrect.bottom -= (theApp.GetCellHeight() / 3);
+               }
+               lolrect.top = authorrect.top;
+
+               if(m_lolflags.m_LOLd > 0)
+               {
+                  if(theApp.ShowThomWLOLS())
+                  {
+                     lolrect.left = lolrect.right + 2;
+                     lolrect.right = lolrect.left + m_lol_width + 1;
+                  }
+                  else
+                  {
+                     lolrect.left = lolrect.right + 5;
+                     lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  }
+
+                  if(lolrect.right < restrect.right)
+                  {
+                     restrect.left = lolrect.right;
+
+                     bool lolvoted = (m_mylols & LTT_LOL)?true:false;
+                     bool haslols = m_lolflags.m_LOLd > 0?true:false;
+                     m_pDoc->DrawLOLField(hDC, LTT_LOL, lolrect, m_lol_text,false,lolvoted, bAsRoot, haslols);
+                  }
+               }
+
+               if(m_lolflags.m_INFd > 0)
+               {
+                  if(theApp.ShowThomWLOLS())
+                  {
+                     lolrect.left = lolrect.right + 2;
+                     lolrect.right = lolrect.left + m_inf_width + 1;
+                  }
+                  else
+                  {
+                     lolrect.left = lolrect.right + 5;
+                     lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  }
+
+                  if(lolrect.right < restrect.right)
+                  {
+                     restrect.left = lolrect.right;
+                     bool lolvoted = (m_mylols & LTT_INF)?true:false;
+                     bool haslols = m_lolflags.m_INFd > 0?true:false;
+                     m_pDoc->DrawLOLField(hDC, LTT_INF, lolrect, m_inf_text,false,lolvoted, bAsRoot, haslols);
+                  }
+               }
+
+               if(m_lolflags.m_UNFd > 0)
+               {
+                  if(theApp.ShowThomWLOLS())
+                  {
+                     lolrect.left = lolrect.right + 2;
+                     lolrect.right = lolrect.left + m_unf_width + 1;
+                  }
+                  else
+                  {
+                     lolrect.left = lolrect.right + 5;
+                     lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  }
+
+                  if(lolrect.right < restrect.right)
+                  {
+                     restrect.left = lolrect.right;
+                     bool lolvoted = (m_mylols & LTT_UNF)?true:false;
+                     bool haslols = m_lolflags.m_UNFd > 0?true:false;
+                     m_pDoc->DrawLOLField(hDC, LTT_UNF, lolrect, m_unf_text,false,lolvoted, bAsRoot, haslols);
+                  }
+               }
+
+               if(m_lolflags.m_TAGd > 0)
+               {
+                  if(theApp.ShowThomWLOLS())
+                  {
+                     lolrect.left = lolrect.right + 2;
+                     lolrect.right = lolrect.left + m_tag_width + 1;
+                  }
+                  else
+                  {
+                     lolrect.left = lolrect.right + 5;
+                     lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  }
+
+                  if(lolrect.right < restrect.right)
+                  {
+                     restrect.left = lolrect.right;
+                     bool lolvoted = (m_mylols & LTT_TAG)?true:false;
+                     bool haslols = m_lolflags.m_TAGd > 0?true:false;
+                     m_pDoc->DrawLOLField(hDC, LTT_TAG, lolrect, m_tag_text,false,lolvoted, bAsRoot, haslols);
+                  }
+               }
+
+               if(m_lolflags.m_WTFd > 0)
+               {
+                  if(theApp.ShowThomWLOLS())
+                  {
+                     lolrect.left = lolrect.right + 2;
+                     lolrect.right = lolrect.left + m_wtf_width + 1;
+                  }
+                  else
+                  {
+                     lolrect.left = lolrect.right + 5;
+                     lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  }
+
+                  if(lolrect.right < restrect.right)
+                  {
+                     restrect.left = lolrect.right;
+                     bool lolvoted = (m_mylols & LTT_WTF)?true:false;
+                     bool haslols = m_lolflags.m_WTFd > 0?true:false;
+                     m_pDoc->DrawLOLField(hDC, LTT_WTF, lolrect, m_wtf_text,false,lolvoted, bAsRoot, haslols);
+                  }
+               }
+
+               if(theApp.DoUGH() &&
+                  m_lolflags.m_UGHd > 0)
+               {
+                  if(theApp.ShowThomWLOLS())
+                  {
+                     lolrect.left = lolrect.right + 2;
+                     lolrect.right = lolrect.left + m_ugh_width + 1;
+                  }
+                  else
+                  {
+                     lolrect.left = lolrect.right + 5;
+                     lolrect.right = lolrect.left + theApp.GetLOLFieldWidth();
+                  }
+
+                  if(lolrect.right < restrect.right)
+                  {
+                     restrect.left = lolrect.right;
+                     bool lolvoted = (m_mylols & LTT_UGH)?true:false;
+                     bool haslols = m_lolflags.m_UGHd > 0?true:false;
+                     m_pDoc->DrawLOLField(hDC, LTT_UGH, lolrect, m_ugh_text,false,lolvoted, bAsRoot, haslols);
+                  }
+               }
+            }
+
+            if(restrect.right - restrect.left > theApp.GetTextHeight() * 9)
+            {
+               RECT daterect;
+               daterect = restrect;
+               daterect.bottom = daterect.top + topsize;
+               m_pDoc->DrawDate(hDC,daterect,m_datetext,m_ago_color);
+            }
+
+            hotspot.m_type = HST_POST_AREA;
+            hotspot.m_spot = myrect;
+            hotspot.m_id = m_id;
+            hotspots.push_back(hotspot);
+         }
+
+         m_height = pos - m_pos;
       }
       else
       {
@@ -2797,7 +3187,7 @@ int ChattyPost::DrawRoot(HDC hDC,
                }
             }
 
-            bool bThread = (m_pDoc->GetDataType() == DDT_THREAD);
+            bool bThread = (m_pDoc->GetDataType() == DDT_THREAD || m_pDoc->GetDataType() == DDT_ACTIVE_THREAD);
 
             RECT daterect;
             daterect.left = textrect.left;
@@ -2869,6 +3259,20 @@ int ChattyPost::DrawRoot(HDC hDC,
             {
                if(!bLinkOnly)
                {
+                  bool moverefreshtotop = theApp.MoveRefreshToTop();
+
+                  if(m_pDoc->GetDataType() == DDT_ACTIVE_THREAD)
+                  {
+                     hotspot.m_type = HST_OPENINTAB;
+                     hotspot.m_spot.left = myrect.left;
+                     hotspot.m_spot.top = myrect.top;
+                     hotspot.m_spot.right = myrect.left + iconsize;
+                     hotspot.m_spot.bottom = myrect.top + iconsize;
+                     hotspot.m_id = m_id;
+                     hotspots.push_back(hotspot);
+                     moverefreshtotop = false;
+                  }
+
                   hotspot.m_type = HST_REFRESH;
                   if(m_bRefreshing)
                   {
@@ -2877,7 +3281,7 @@ int ChattyPost::DrawRoot(HDC hDC,
                   hotspot.m_spot.left = myrect.left;
                   hotspot.m_spot.right = myrect.left + iconsize;
 
-                  if(theApp.MoveRefreshToTop())
+                  if(moverefreshtotop)
                   {
                      hotspot.m_spot.top = myrect.top;
                   }
@@ -3461,15 +3865,7 @@ int ChattyPost::DrawReply(HDC hDC,
                daterect.top = textrect.bottom;
                daterect.bottom = myrect.bottom;
                m_pDoc->DrawDate(hDC,daterect,m_datetext,m_ago_color);
-               /*
-               hotspot.m_type = HST_CLOSEREPLY;
-               hotspot.m_spot.left = myrect.left;
-               hotspot.m_spot.right = myrect.left + iconsize;
-               hotspot.m_spot.bottom = myrect.bottom;
-               hotspot.m_spot.top = myrect.bottom - iconsize;
-               hotspot.m_id = m_id;
-               hotspots.push_back(hotspot);
-               */
+              
                hotspot.m_type = HST_REFRESH;
                if(m_bRefreshing)
                {
@@ -3479,8 +3875,9 @@ int ChattyPost::DrawReply(HDC hDC,
                hotspot.m_spot.right = myrect.left + iconsize;
                hotspot.m_id = m_id;
 
-               if(m_pDoc->GetDataType() != DDT_THREAD &&
-                  !theApp.IsPinningInStories())
+               if((m_pDoc->GetDataType() == DDT_STORY &&
+                  !theApp.IsPinningInStories()) ||
+                  m_pDoc->GetDataType() == DDT_ACTIVE_THREAD)
                {
                   hotspot.m_spot.top = myrect.top + iconsize;
                   hotspot.m_spot.bottom = myrect.top + iconsize + iconsize;
