@@ -24,6 +24,8 @@
 #define LAMP_VERSION_MAJOR 3
 #define LAMP_VERSION_MINOR 8
 
+#define QUOTE_FONT_SCALE   1.125f
+
 chattyerror download(const char* host, const char* path, char** out_response, int *psize=NULL);
 
 typedef enum 
@@ -92,6 +94,18 @@ class CMyLol
 public:
    unsigned int m_post_id;
    byte m_mylols;
+};
+
+class CSessionDoc
+{
+public:
+   CSessionDoc(int pane, const UCString &launch)
+   {
+      m_pane = pane;
+      m_launch = launch;
+   }
+   int m_pane;
+   UCString m_launch;
 };
 
 class CSuggestion
@@ -873,6 +887,9 @@ public:
    bool LatestChattySummaryMode(){return m_latestchatty_summary_mode;}
    void LatestChattySummaryMode(bool value);
 
+   bool TightFitSummary(){return m_tight_fit_summary;}
+   void TightFitSummary(bool value){m_tight_fit_summary = value;}
+
    int MaxSummaryLines(){return m_max_summary_lines;}
    void MaxSummaryLines(int value);
 
@@ -1094,9 +1111,10 @@ public:
    bool ShowRawDate(){return m_show_raw_date;}
    void SetShowRawDate(bool value){m_show_raw_date = value;}
    
-   void ClearSession(){m_session.clear();}
+   void ClearSession(){m_session.clear();m_session_panesizes.clear();}
 
-   void AddToSession(UCString &launch){m_session.push_back(launch);}
+   void AddToSession(int pane, UCString &launch){m_session.push_back(CSessionDoc(pane,launch));}
+   void AddPaneSizeToSession(int panesize){m_session_panesizes.push_back(panesize);}
 
    std::vector<CSuggestion> GetCheatSheet(){return m_cheatsheet;}
    size_t GetCheatSheetSize(){return m_cheatsheet.size();}
@@ -1222,6 +1240,18 @@ public:
    std::map<UCString,CFlagImage> &GetFlagImages(){return m_flagimages;}
 
    bool BigSkin(){return m_bigskin;}
+
+   int PaneCount();
+   int WhichPaneHasDoc(CLampDoc *pDoc);
+   int WhichPaneHasLatestChatty();
+   int GetActivePane();
+   void ChangeActivePane(int to);
+   void SetPaneSize(int pane, int panesize);
+   int GetPaneSize(int pane);
+   void RecordLatestChattyPaneSize();
+
+   HMENU GetContextMenu(UINT uiMenuResId);
+
       
 // Overrides
 public:
@@ -1568,7 +1598,8 @@ protected:
 
    std::vector<CSuggestion> m_cheatsheet;
 
-   std::vector<UCString> m_session;
+   std::vector<CSessionDoc> m_session;
+   std::vector<int> m_session_panesizes;
 
    size_t m_unreadmessagecount;
 
@@ -1632,7 +1663,15 @@ protected:
 
    bool m_latestchatty_summary_mode;
 
+   bool m_tight_fit_summary;
+
    int m_max_summary_lines;
+
+   bool m_initing;
+
+   int m_lcpanesize;
+
+   
 
 public:
    afx_msg void OnFileSetuplogininfo();
@@ -1684,6 +1723,11 @@ public:
 };
 
 class CHackedTabCtrl : public CMFCTabCtrl
+{ friend class CLampApp;
+public:
+};
+
+class CHackedContextMenuManager : public CContextMenuManager
 { friend class CLampApp;
 public:
 };

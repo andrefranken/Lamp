@@ -4,6 +4,8 @@
 
 #include "stdafx.h"
 #include "Lamp.h"
+#include "LampView.h"
+#include "LampDoc.h"
 
 #include "ChildFrm.h"
 
@@ -38,6 +40,20 @@ BOOL CChildFrame::PreCreateWindow(CREATESTRUCT& cs)
 		return FALSE;
 
 	return TRUE;
+}
+
+LPCTSTR CChildFrame::GetDocumentName(CObject** pObj)
+{
+   LPCTSTR result = NULL;
+
+   if(GetView() != NULL &&
+      GetView()->GetDocument() != NULL)
+   {
+      GetView()->GetDocument()->GetLaunchString(m_launch, GetView()->GetCurrentId());
+      result = m_launch;
+   }
+
+   return result;
 }
 
 // CChildFrame diagnostics

@@ -95,7 +95,7 @@ UINT DownloadThreadProc( LPVOID pParam )
 }
 
 
-void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic, bool bold, bool sample, const UCChar *fontname, bool *pComplex/* = NULL*/)
+void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic, bool bold, bool sample, bool quote, const UCChar *fontname, bool *pComplex/* = NULL*/)
 {
    bool complex = false;
    if(pComplex != NULL)
@@ -148,6 +148,10 @@ void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic
    if(sample)
    {
       fsize = theApp.GetSampleFontHeight();
+   }
+   else if(quote)
+   {
+      fsize = (int)((float)fsize * QUOTE_FONT_SCALE); 
    }
    int weight = FW_NORMAL;
    if(bold) weight = FW_EXTRABOLD;
@@ -1028,6 +1032,11 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             }
 
             DetermineIfUserHasPostedInThreads();
+
+            if(m_pView != NULL)
+            {
+               m_pView->SetRefreshingLatestChatty(false);
+            }
 
             m_last_refresh_time = ::GetTickCount();
          }
@@ -2685,7 +2694,7 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
             }
          }
 
-         if(!isactivethread)
+         if(!isactivethread && m_initialpostid != 0)
          {
             RefreshThread(rootid, m_initialpostid,true,0,true);
          }
@@ -3447,6 +3456,11 @@ void CLampDoc::ReadLatestChatty()
 {
    if(theApp.UseShack())
    {
+      if(m_pView != NULL)
+      {
+         m_pView->SetRefreshingLatestChatty(true);
+      }
+
       UCString story = L"/chatty?page=";
       story += m_page;
 
@@ -4626,9 +4640,17 @@ int CLampDoc::DrawFromRoot(HDC hDC,
 
       if(it != end)
       {
+         int bordersize = 20;
+         if(GetDataType() == DDT_STORY &&
+            theApp.LatestChattySummaryMode() &&
+            theApp.TightFitSummary())
+         {
+            bordersize = 10;
+         }
+
          RECT backrect = DeviceRectangle;
          backrect.top = pos;
-         backrect.bottom = pos + 20;
+         backrect.bottom = pos + bordersize;
          if(backrect.bottom < DeviceRectangle.top ||
             backrect.top > DeviceRectangle.bottom)
          {
@@ -4638,7 +4660,7 @@ int CLampDoc::DrawFromRoot(HDC hDC,
          {
             FillBackground(hDC,backrect);
          }
-         pos += 20;
+         pos += bordersize;
       }
    }
    return pos;
@@ -6482,6 +6504,10 @@ void CLampDoc::DrawPreviewText(HDC hDC,
             {
                fsize = theApp.GetSampleFontHeight();
             }
+            else if(quote)
+            {
+               fsize = (int)((float)fsize * QUOTE_FONT_SCALE); 
+            }
             int weight = FW_NORMAL;
             if(bold) weight = FW_EXTRABOLD;
             const wchar_t *font = theApp.GetNormalFontName();
@@ -6958,6 +6984,10 @@ void CLampDoc::DrawBodyText(HDC hDC,
                   {
                      fsize = theApp.GetSampleFontHeight();
                   }
+                  else if(quote)
+                  {
+                     fsize = (int)((float)fsize * QUOTE_FONT_SCALE); 
+                  }
                   int weight = FW_NORMAL;
                   if(bold) weight = FW_EXTRABOLD;
                   const wchar_t *font = theApp.GetNormalFontName();
@@ -7229,6 +7259,10 @@ void CLampDoc::DrawBodyText(HDC hDC,
                if(sample)
                {
                   fsize = theApp.GetSampleFontHeight();
+               }
+               else if(quote)
+               {
+                  fsize = (int)((float)fsize * QUOTE_FONT_SCALE); 
                }
                int weight = FW_NORMAL;
                if(bold) weight = FW_EXTRABOLD;
@@ -8009,11 +8043,11 @@ void CLampDoc::GetLaunchString(UCString &launch, unsigned int current_id)
    case DDT_STORY:
       launch = L"LATESTCHATTY";
       break;
-   case DDT_THREAD:
-      launch = L"chatty?id=";
+   case DDT_ACTIVE_THREAD:
+      launch = L"ACTIVE:";
       launch += current_id;
       break;
-   case DDT_ACTIVE_THREAD:
+   case DDT_THREAD:
       launch = L"chatty?id=";
       launch += current_id;
       break;
@@ -8663,7 +8697,7 @@ void CLampDoc::CalcWidthOfAverageProfileGroup()
 
    int widths[2];
 
-   GetCharWidths(sampletext, widths, 1, false, false, false, theApp.GetNormalFontName());
+   GetCharWidths(sampletext, widths, 1, false, false, false, false, theApp.GetNormalFontName());
 
    m_widthofaverageprofilegroup = 40 + (widths[0] * 36);
 }

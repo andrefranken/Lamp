@@ -22,6 +22,7 @@ public:
 
 // Overrides
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+   LPCTSTR GetDocumentName(CObject** pObj);
 
 // Implementation
 public:
@@ -33,6 +34,8 @@ public:
 
 private:
    CLampView *m_pView;
+
+   UCString m_launch;
 
 // Generated message map functions
 protected:

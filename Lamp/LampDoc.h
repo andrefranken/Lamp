@@ -14,7 +14,7 @@ UINT DownloadThreadProc( LPVOID pParam );
 
 bool GetXMLDataFromString(CXMLTree &xmldata, const char *data, int datasize);
 
-void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic, bool bold, bool sample, const UCChar *fontname, bool *pComplex = NULL);
+void GetCharWidths(const UCChar *text, int *widths, size_t numchars, bool italic, bool bold, bool sample, bool quote, const UCChar *fontname, bool *pComplex = NULL);
 
 typedef enum 
 {

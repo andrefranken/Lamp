@@ -206,7 +206,6 @@
 #define ID_UGH_THRESH                   32919
 #define IDR_POPUP_EDIT_SEL              32921
 #define IDR_POPUP_EDIT_NOSEL            32922
-#define IDR_POPUP_SEL                   32923
 #define IDR_POPUP_NOSEL                 32924
 #define ID_SKIN_ROUNDSHACK_2            32925
 #define ID_SKIN_DEFAULT_2               32926
@@ -218,6 +217,10 @@
 #define ID_SHOW_NAV_BUTTONS             32933
 #define ID_LATESTCHATTY_SUMMARY_MODE    32934
 #define IDC_NUM_SUMMARY_LINES           32935
+#define IDR_POPUP_SEL                   32936
+#define ID_SKIN_METRO                   32937
+#define ID_SKIN_METRO_2                 32938
+#define ID_TIGHT_FIT_SUMMARY            32939
 
 #define ID_BOOKMARK_MENUITEM            33000
 
@@ -226,7 +229,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        329
-#define _APS_NEXT_COMMAND_VALUE         32936
+#define _APS_NEXT_COMMAND_VALUE         32940
 #define _APS_NEXT_CONTROL_VALUE         1023
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

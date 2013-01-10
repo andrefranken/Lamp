@@ -862,7 +862,7 @@ void CReplyDlg::RecalcCharWidths()
    {
       int numchars = m_replytext.Length();
       m_pCharWidths = (int*)malloc(sizeof(int) * numchars);
-      GetCharWidths(m_replytext, m_pCharWidths, m_replytext.Length(), false, false, false, theApp.GetNormalFontName(), &m_bComplexShapeText);
+      GetCharWidths(m_replytext, m_pCharWidths, m_replytext.Length(), false, false, false, false, theApp.GetNormalFontName(), &m_bComplexShapeText);
 
       for(int i = 0; i < m_replytext.Length(); i++)
       {
@@ -2284,7 +2284,7 @@ void CReplyDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags, bool &bCloseRep
                {
                   int numchars = m_suggestions[j].display.Length();
                   int *pCharWidths = (int*)malloc(sizeof(int) * numchars);
-                  GetCharWidths(m_suggestions[j].display, pCharWidths, m_suggestions[j].display.Length(), false, false, false, theApp.GetNormalFontName());
+                  GetCharWidths(m_suggestions[j].display, pCharWidths, m_suggestions[j].display.Length(), false, false, false, false, theApp.GetNormalFontName());
                   int thiswidth = 0;
                   for(int k = 0; k < numchars; k++)
                   {
@@ -2303,7 +2303,8 @@ void CReplyDlg::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags, bool &bCloseRep
          break;
       }
       
-      if(nChar != 0x09)// TAB
+      if(nChar != 0x09 && // TAB
+         nChar != 0x10 )// SHIFT
       {
          m_bLastCharWasTab = false;
       }
@@ -2901,7 +2902,7 @@ bool CReplyDlg::OnRButtonDown(UINT nFlags, CPoint point)
                {
                   int numchars = m_suggestions[j].display.Length();
                   int *pCharWidths = (int*)malloc(sizeof(int) * numchars);
-                  GetCharWidths(m_suggestions[j].display, pCharWidths, m_suggestions[j].display.Length(), false, false, false, theApp.GetNormalFontName());
+                  GetCharWidths(m_suggestions[j].display, pCharWidths, m_suggestions[j].display.Length(), false, false, false, false, theApp.GetNormalFontName());
                   int thiswidth = 0;
                   for(int k = 0; k < numchars; k++)
                   {

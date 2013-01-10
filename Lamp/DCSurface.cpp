@@ -580,6 +580,58 @@ void CDCSurface::MakeDecal(CDCSurface *from, byte red, byte green, byte blue)
    }
 }
 
+void CDCSurface::Dim(int from, int to)
+{
+   int myfrom = __max(0,__min(m_PixelHeight - 1, m_PixelHeight - to));
+   int myto = __max(0,__min(m_PixelHeight, m_PixelHeight - from));
+
+   byte *pWriteScanline = (byte *)m_pBits + (m_ScanlineByteLength * myfrom);
+   byte *pWriteScanlineEnd = (byte *)m_pBits + (m_ScanlineByteLength * myto);
+
+   while(pWriteScanline < pWriteScanlineEnd)
+   {
+      byte *pWrite = (byte *)pWriteScanline;
+      byte *pWriteEnd = pWrite + (m_PixelWidth * 3);
+
+      while(pWrite < pWriteEnd)
+      {
+         *pWrite = *pWrite >> 1;
+
+         pWrite++;
+      }
+
+      pWriteScanline += m_ScanlineByteLength;
+   }
+}
+
+
+void CDCSurface::Brighten(int from, int to)
+{
+   int myfrom = __max(0,__min(m_PixelHeight - 1, m_PixelHeight - to));
+   int myto = __max(0,__min(m_PixelHeight, m_PixelHeight - from));
+
+   byte *pWriteScanline = (byte *)m_pBits + (m_ScanlineByteLength * myfrom);
+   byte *pWriteScanlineEnd = (byte *)m_pBits + (m_ScanlineByteLength * myto);
+
+   while(pWriteScanline < pWriteScanlineEnd)
+   {
+      byte *pWrite = (byte *)pWriteScanline;
+      byte *pWriteEnd = pWrite + (m_PixelWidth * 3);
+
+      while(pWrite < pWriteEnd)
+      {
+         //*pWrite = *pWrite << 1;
+         //*pWrite = *pWrite | 1;
+
+         *pWrite = 255 - ((255 - *pWrite) >> 1);
+
+         pWrite++;
+      }
+
+      pWriteScanline += m_ScanlineByteLength;
+   }
+}
+
 void CDCSurface::AddScanline(byte *pScanline, int numbytes, bool reverse /* = false*/, bool invertbits /* = false*/)
 {
    if( m_pBits             != NULL  &&

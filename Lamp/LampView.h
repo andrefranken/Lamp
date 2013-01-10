@@ -147,6 +147,8 @@ public:
 
    void OnMouseWheelImpl(UINT nFlags, short zDelta, CPoint pt);
 
+   void SetRefreshingLatestChatty(bool value){m_refreshing_latestchatty = value;}
+
    bool m_bLBDownOnDblClkable;
    
 protected:
@@ -285,6 +287,8 @@ protected:
    bool m_newpostabove;
    bool m_newpostbelow;
 
+   bool m_refreshing_latestchatty;
+
 // Generated message map functions
 protected:
    
@@ -381,6 +385,8 @@ public:
    afx_msg void OnUpdateShowNavButtons(CCmdUI *pCmdUI);
    afx_msg void OnLatestChattySummaryMode();
    afx_msg void OnUpdateLatestChattySummaryMode(CCmdUI *pCmdUI);
+   afx_msg void OnTightFitSummary();
+   afx_msg void OnUpdateTightFitSummary(CCmdUI *pCmdUI);
    afx_msg void OnFilterNWS();
    afx_msg void OnUpdateFilterNWS(CCmdUI *pCmdUI);
    afx_msg void OnFilterINF();
@@ -397,12 +403,16 @@ public:
    afx_msg void OnUpdateSkinSquareShack(CCmdUI *pCmdUI);
    afx_msg void OnSkinWorksafeShack();
    afx_msg void OnUpdateSkinWorksafeShack(CCmdUI *pCmdUI);
+   afx_msg void OnSkinMetroShack();
+   afx_msg void OnUpdateSkinMetroShack(CCmdUI *pCmdUI);
    afx_msg void OnSkinRoundShack2();
    afx_msg void OnUpdateSkinRoundShack2(CCmdUI *pCmdUI);
    afx_msg void OnSkinSquareShack2();
    afx_msg void OnUpdateSkinSquareShack2(CCmdUI *pCmdUI);
    afx_msg void OnSkinWorksafeShack2();
    afx_msg void OnUpdateSkinWorksafeShack2(CCmdUI *pCmdUI);
+   afx_msg void OnSkinMetroShack2();
+   afx_msg void OnUpdateSkinMetroShack2(CCmdUI *pCmdUI);
    afx_msg void OnSkinCustom();
    afx_msg void OnUpdateSkinCustom(CCmdUI *pCmdUI);
    afx_msg void OnHighlightOP();

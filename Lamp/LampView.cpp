@@ -22,6 +22,7 @@
 #endif
 
 
+
 // CLampView
 
 IMPLEMENT_DYNCREATE(CLampView, CView)
@@ -129,6 +130,8 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_SHOW_NAV_BUTTONS, &CLampView::OnUpdateShowNavButtons)
    ON_COMMAND(ID_LATESTCHATTY_SUMMARY_MODE, &CLampView::OnLatestChattySummaryMode)
    ON_UPDATE_COMMAND_UI(ID_LATESTCHATTY_SUMMARY_MODE, &CLampView::OnUpdateLatestChattySummaryMode)
+   ON_COMMAND(ID_TIGHT_FIT_SUMMARY, &CLampView::OnTightFitSummary)
+   ON_UPDATE_COMMAND_UI(ID_TIGHT_FIT_SUMMARY, &CLampView::OnUpdateTightFitSummary)
    ON_COMMAND(ID_FILTER_ENABLE_NWS, &CLampView::OnFilterNWS)
    ON_UPDATE_COMMAND_UI(ID_FILTER_ENABLE_NWS, &CLampView::OnUpdateFilterNWS)
    ON_COMMAND(ID_FILTER_ENABLE_INF, &CLampView::OnFilterINF)
@@ -145,12 +148,16 @@ BEGIN_MESSAGE_MAP(CLampView, CView)
    ON_UPDATE_COMMAND_UI(ID_SKIN_DEFAULT, &CLampView::OnUpdateSkinSquareShack)
    ON_COMMAND(ID_SKIN_WORKSAFE, &CLampView::OnSkinWorksafeShack)
    ON_UPDATE_COMMAND_UI(ID_SKIN_WORKSAFE, &CLampView::OnUpdateSkinWorksafeShack)
+   ON_COMMAND(ID_SKIN_METRO, &CLampView::OnSkinMetroShack)
+   ON_UPDATE_COMMAND_UI(ID_SKIN_METRO, &CLampView::OnUpdateSkinMetroShack)
    ON_COMMAND(ID_SKIN_ROUNDSHACK_2, &CLampView::OnSkinRoundShack2)
    ON_UPDATE_COMMAND_UI(ID_SKIN_ROUNDSHACK_2, &CLampView::OnUpdateSkinRoundShack2)
    ON_COMMAND(ID_SKIN_DEFAULT_2, &CLampView::OnSkinSquareShack2)
    ON_UPDATE_COMMAND_UI(ID_SKIN_DEFAULT_2, &CLampView::OnUpdateSkinSquareShack2)
    ON_COMMAND(ID_SKIN_WORKSAFE_2, &CLampView::OnSkinWorksafeShack2)
    ON_UPDATE_COMMAND_UI(ID_SKIN_WORKSAFE_2, &CLampView::OnUpdateSkinWorksafeShack2)
+   ON_COMMAND(ID_SKIN_METRO_2, &CLampView::OnSkinMetroShack2)
+   ON_UPDATE_COMMAND_UI(ID_SKIN_METRO_2, &CLampView::OnUpdateSkinMetroShack2)
    ON_COMMAND(ID_SKIN_CUSTOM, &CLampView::OnSkinCustom)
    ON_UPDATE_COMMAND_UI(ID_SKIN_CUSTOM, &CLampView::OnUpdateSkinCustom)
    ON_COMMAND(ID_HIGHLIGHT_OP, &CLampView::OnHighlightOP)
@@ -325,6 +332,7 @@ CLampView::CLampView()
    m_lmb_in_reply = false;
    m_bLBDownOnDblClkable = false;
    m_mousepoint.SetPoint(9999,9999);
+   m_refreshing_latestchatty = false;
 
    m_last_user_activity = ::GetTickCount();
    
@@ -1007,7 +1015,11 @@ void CLampView::OnDraw(CDC* pDC)
 
             m_hotspots.clear();
 
-            if(theApp.HaveNewMessages() && theApp.GetAutoCheckInbox())
+            if(theApp.HaveNewMessages() && 
+               theApp.GetAutoCheckInbox() &&
+              (pDoc->GetDataType() != DDT_STORY || 
+              (pDoc->GetDataType() == DDT_STORY &&
+               !theApp.LatestChattySummaryMode())))
             {
                const UCChar *pChar;
                int *widths;
@@ -1335,7 +1347,12 @@ void CLampView::OnDraw(CDC* pDC)
             ::BitBlt(hDC, m_BannerRectangle.left, m_BannerRectangle.top, m_BannerRectangle.right - m_BannerRectangle.left, m_BannerRectangle.bottom - m_BannerRectangle.top, m_bannerbuffer.GetDC(), 0, 0, SRCCOPY);
          }
 
-         if(!bDrewNewMessagesTab && theApp.HaveNewMessages() && theApp.GetAutoCheckInbox())
+         if(!bDrewNewMessagesTab && 
+            theApp.HaveNewMessages() && 
+            theApp.GetAutoCheckInbox() &&
+           (pDoc->GetDataType() != DDT_STORY || 
+           (pDoc->GetDataType() == DDT_STORY &&
+            !theApp.LatestChattySummaryMode())))
          {
             const UCChar *pChar;
             int *widths;
@@ -1581,6 +1598,19 @@ void CLampView::DrawEverythingToBuffer(CDCSurface *pSurface/* = NULL*/,
          DrawHotSpots(pSurface->GetDC());
       }
    }
+
+   if(m_refreshing_latestchatty)
+   {
+      COLORREF bkclr = theApp.GetBackgroundColor();
+      if((GetRValue(bkclr) + GetGValue(bkclr) + GetBValue(bkclr)) > (127 * 3))
+      {
+         pSurface->Brighten(DeviceRectangle.top, DeviceRectangle.bottom);
+      }
+      else
+      {
+         pSurface->Dim(DeviceRectangle.top, DeviceRectangle.bottom);
+      }
+   }
 }
 
 void CLampView::DrawScrollbar(HDC hDC, const RECT &ScrollRectangle, std::vector<CHotSpot> &hotspots)
@@ -1817,7 +1847,7 @@ void CLampView::DrawTextSelection(HDC hDC, const RECT &DeviceRectangle)
       ChattyPost *pPost = GetDocument()->FindPost(m_textselectionpost);
       if(pPost != NULL)
       {
-         int oldrop = ::GetROP2(hDC);
+         //int oldrop = ::GetROP2(hDC);
          ::SetROP2(hDC,R2_XORPEN);
          HBRUSH selbrush = ::CreateSolidBrush(theApp.GetTextSelectionColor());
          std::vector<RECT> selectionrects;
@@ -1838,7 +1868,7 @@ void CLampView::DrawTextSelection(HDC hDC, const RECT &DeviceRectangle)
             }
          }         
          ::DeleteObject(selbrush);
-         ::SetROP2(hDC,oldrop);
+         ::SetROP2(hDC,R2_COPYPEN);
       }
    }
 }
@@ -7408,6 +7438,26 @@ void CLampView::OnUpdateLatestChattySummaryMode(CCmdUI *pCmdUI)
    }
 }
 
+void CLampView::OnTightFitSummary()
+{
+   theApp.TightFitSummary(!theApp.TightFitSummary());
+   InvalidateEverything();
+}
+
+void CLampView::OnUpdateTightFitSummary(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.TightFitSummary())
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
 void CLampView::OnFilterNWS()
 {
    theApp.SetEnableNWS(!theApp.EnableNWS());
@@ -7560,6 +7610,26 @@ void CLampView::OnUpdateSkinWorksafeShack(CCmdUI *pCmdUI)
    }
 }
 
+void CLampView::OnSkinMetroShack()
+{
+   theApp.SetSkinFolder(L"metro");
+}
+
+void CLampView::OnUpdateSkinMetroShack(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.GetSkinFolder() == L"metro")
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
+
 void CLampView::OnSkinRoundShack2()
 {
    theApp.SetSkinFolder(L"roundshack_2");
@@ -7617,6 +7687,25 @@ void CLampView::OnUpdateSkinWorksafeShack2(CCmdUI *pCmdUI)
    }
 }
 
+void CLampView::OnSkinMetroShack2()
+{
+   theApp.SetSkinFolder(L"metro_2");
+}
+
+void CLampView::OnUpdateSkinMetroShack2(CCmdUI *pCmdUI)
+{
+   pCmdUI->Enable(TRUE);
+
+   if(theApp.GetSkinFolder() == L"metro_2")
+   {
+      pCmdUI->SetCheck(TRUE);
+   }
+   else
+   {
+      pCmdUI->SetCheck(FALSE);
+   }
+}
+
 void CLampView::OnSkinCustom()
 {
    ReleaseCapture();
@@ -7664,9 +7753,11 @@ void CLampView::OnUpdateSkinCustom(CCmdUI *pCmdUI)
    if(theApp.GetSkinFolder() != L"roundshack" &&
       theApp.GetSkinFolder() != L"default" &&
       theApp.GetSkinFolder() != L"worksafe" &&
+      theApp.GetSkinFolder() != L"metro" &&
       theApp.GetSkinFolder() != L"roundshack_2" &&
       theApp.GetSkinFolder() != L"default_2" &&
-      theApp.GetSkinFolder() != L"worksafe_2" )
+      theApp.GetSkinFolder() != L"worksafe_2" &&
+      theApp.GetSkinFolder() != L"metro_2" )
    {
       pCmdUI->SetCheck(TRUE);
    }

@@ -2512,14 +2512,20 @@ int ChattyPost::DrawRoot(HDC hDC,
       }
       else if(bDrawSummary)
       {
+         int bordersize = 20;
+         if(theApp.TightFitSummary())
+         {
+            bordersize = 10;
+         }
+         
          m_pos = pos;
-         m_drewtextpos = pos + 20 + theApp.GetCellHeight();
+         m_drewtextpos = pos + bordersize + theApp.GetCellHeight();
 
          int fieldwidth = __max(iconsize,theApp.GetHintFieldWidth());
 
          RECT textrect = DeviceRectangle;
-         textrect.left += (20 + fieldwidth);
-         textrect.right -= (20/* + iconsize*/);
+         textrect.left += (bordersize + fieldwidth);
+         textrect.right -= (bordersize/* + iconsize*/);
          textrect.top = 0;
          textrect.bottom = 0;
          
@@ -2578,7 +2584,7 @@ int ChattyPost::DrawRoot(HDC hDC,
             }
 
             RECT backrect = myrect;
-            backrect.right = backrect.left + 20;
+            backrect.right = backrect.left + bordersize;
             if(m_bUserHasPostedInThread && theApp.GetAuthorGlow())
             {
                m_pDoc->FillBackgroundAuthorGlow(hDC,backrect, true);
@@ -2588,7 +2594,7 @@ int ChattyPost::DrawRoot(HDC hDC,
                m_pDoc->FillBackground(hDC,backrect);
             }          
 
-            backrect.left = myrect.right - 20;
+            backrect.left = myrect.right - bordersize;
             backrect.right = myrect.right;
             if(m_bUserHasPostedInThread && theApp.GetAuthorGlow())
             {
@@ -2605,8 +2611,8 @@ int ChattyPost::DrawRoot(HDC hDC,
             textrect.bottom += pos + topsize;
             pos = myrect.bottom;
 
-            myrect.left += 20;
-            myrect.right -= 20;
+            myrect.left += bordersize;
+            myrect.right -= bordersize;
             m_pDoc->FillExpandedBackground(hDC,myrect,bAsRoot,m_category,!theApp.StrokeRootEdges());            
 
             RECT restrect = myrect;
@@ -2948,7 +2954,7 @@ int ChattyPost::DrawRoot(HDC hDC,
 
             RECT backrect = myrect;
             backrect.right = backrect.left + 20;
-            if(m_bUserHasPostedInThread && theApp.GetAuthorGlow())
+            if(m_bUserHasPostedInThread && theApp.GetAuthorGlow() && m_pDoc->GetDataType() == DDT_STORY)
             {
                m_pDoc->FillBackgroundAuthorGlow(hDC,backrect, true);
             }
@@ -2959,7 +2965,7 @@ int ChattyPost::DrawRoot(HDC hDC,
 
             backrect.left = myrect.right - 20;
             backrect.right = myrect.right;
-            if(m_bUserHasPostedInThread && theApp.GetAuthorGlow())
+            if(m_bUserHasPostedInThread && theApp.GetAuthorGlow() && m_pDoc->GetDataType() == DDT_STORY)
             {
                m_pDoc->FillBackgroundAuthorGlow(hDC,backrect, false);
             }
@@ -4812,7 +4818,7 @@ void ChattyPost::SetupCharWidths()
             if(quote) fontname = theApp.GetQuotedFontName();
             else if(code) fontname = theApp.GetCodeFontName();
 
-            GetCharWidths(m_bodytext.Str() + lastpos, m_pCharWidths + lastpos, thispos - lastpos, italic, bold, sample, fontname, &m_bComplexShapeText);
+            GetCharWidths(m_bodytext.Str() + lastpos, m_pCharWidths + lastpos, thispos - lastpos, italic, bold, sample, quote, fontname, &m_bComplexShapeText);
             lastpos = thispos;
          }
 
@@ -4836,7 +4842,7 @@ void ChattyPost::SetupCharWidths()
          const UCChar *fontname = theApp.GetNormalFontName();
          if(quote) fontname = theApp.GetQuotedFontName();
          else if(code) fontname = theApp.GetCodeFontName();
-         GetCharWidths(m_bodytext.Str() + lastpos, m_pCharWidths + lastpos, numchars - lastpos, italic, bold, sample, fontname, &m_bComplexShapeText);
+         GetCharWidths(m_bodytext.Str() + lastpos, m_pCharWidths + lastpos, numchars - lastpos, italic, bold, sample, quote, fontname, &m_bComplexShapeText);
       }
       
       for(int i = 0; i < numchars; i++)
@@ -4895,14 +4901,14 @@ void ChattyPost::SetupCharWidths()
 
    m_pAuthorCharWidths = (int*)malloc(sizeof(int) * m_author.Length());
 
-   GetCharWidths(m_author, m_pAuthorCharWidths, m_author.Length(), false, false, false, theApp.GetNormalFontName());
+   GetCharWidths(m_author, m_pAuthorCharWidths, m_author.Length(), false, false, false, false, theApp.GetNormalFontName());
    m_authorpreviewsize = 0;
    for(size_t i = 0; i < (size_t)m_author.Length(); i++)
    {
       m_authorpreviewsize += m_pAuthorCharWidths[i];
    }
 
-   GetCharWidths(m_author, m_pAuthorCharWidths, m_author.Length(), false, true, false, theApp.GetNormalFontName());
+   GetCharWidths(m_author, m_pAuthorCharWidths, m_author.Length(), false, true, false, false, theApp.GetNormalFontName());
    m_authorsize = 0;
    for(size_t i = 0; i < (size_t)m_author.Length(); i++)
    {
@@ -4913,7 +4919,7 @@ void ChattyPost::SetupCharWidths()
    {
       m_pSubjectCharWidths = (int*)malloc(sizeof(int) * m_subject.Length());
 
-      GetCharWidths(m_subject, m_pSubjectCharWidths, m_subject.Length(), false, false, false, theApp.GetNormalFontName());
+      GetCharWidths(m_subject, m_pSubjectCharWidths, m_subject.Length(), false, false, false, false, theApp.GetNormalFontName());
    }
 
    UpdateLOLs();
@@ -7959,7 +7965,7 @@ unsigned int ChattyPost::GetLOLWidth(const UCChar *text)
 
    int *widths = (int*)malloc(sizeof(int) * fulltext.Length());
 
-   GetCharWidths(fulltext, widths, fulltext.Length(), false, false, theApp.ShowSmallLOL(), theApp.GetNormalFontName());
+   GetCharWidths(fulltext, widths, fulltext.Length(), false, false, theApp.ShowSmallLOL(), false, theApp.GetNormalFontName());
 
    unsigned int width = 0;
 
@@ -8165,7 +8171,7 @@ void ChattyPost::UpdateLOLs()
 
       m_plol_preview_charwidths = (int*)malloc(sizeof(int) * m_lol_preview_text.Length());
 
-      GetCharWidths(m_lol_preview_text, m_plol_preview_charwidths, m_lol_preview_text.Length(), false, true, theApp.ShowSmallLOL(), theApp.GetNormalFontName());
+      GetCharWidths(m_lol_preview_text, m_plol_preview_charwidths, m_lol_preview_text.Length(), false, true, theApp.ShowSmallLOL(), false, theApp.GetNormalFontName());
       m_lol_preview_size = 0;
       for(size_t i = 0; i < (size_t)m_lol_preview_text.Length(); i++)
       {
@@ -8313,7 +8319,7 @@ void ChattyPost::SetAsText(const UCChar *text)
    {
       m_pSubjectCharWidths = (int*)malloc(sizeof(int) * m_subject.Length());
 
-      GetCharWidths(m_subject, m_pSubjectCharWidths, m_subject.Length(), false, false, false, theApp.GetNormalFontName());
+      GetCharWidths(m_subject, m_pSubjectCharWidths, m_subject.Length(), false, false, false, false, theApp.GetNormalFontName());
 
       m_subjectwidth = 0;
       for(int i = 0; i < m_subject.Length(); i++)
@@ -8342,7 +8348,7 @@ void ChattyPost::SetAsPageBreak(size_t page)
    {
       m_pSubjectCharWidths = (int*)malloc(sizeof(int) * m_subject.Length());
 
-      GetCharWidths(m_subject, m_pSubjectCharWidths, m_subject.Length(), false, false, false, theApp.GetNormalFontName());
+      GetCharWidths(m_subject, m_pSubjectCharWidths, m_subject.Length(), false, false, false, false, theApp.GetNormalFontName());
 
       m_subjectwidth = 0;
       for(int i = 0; i < m_subject.Length(); i++)

@@ -890,6 +890,7 @@ CLampApp::CLampApp()
    m_auto_refresh = false;
    m_show_nav_buttons = true;
    m_latestchatty_summary_mode = false;
+   m_tight_fit_summary = false;
    m_max_summary_lines = 4;
 
    m_line_thickness = 1;
@@ -945,6 +946,10 @@ CLampApp::CLampApp()
    m_modmode = false;
 
    m_bigskin = false;
+
+   m_initing = false;
+
+   m_lcpanesize = -1;
 
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
@@ -1121,14 +1126,6 @@ BOOL CLampApp::InitInstance()
 	SetRegistryKey(_T("Lamp"));
 	LoadStdProfileSettings(0);  // Load standard INI file options (including MRU)
    WriteProfileStringW(L"Workspace\\Keyboard-0",L"Accelerators",NULL);
-   WriteProfileStringW(L"login",L"username",NULL);
-   WriteProfileStringW(L"login",L"password",NULL);
-   WriteProfileStringW(L"view",L"smooth_scroll",NULL);
-   WriteProfileStringW(L"view",L"AutoShowLoadedImages",NULL);
-   WriteProfileStringW(L"view",L"text_scale",NULL);
-   WriteProfileStringW(L"view",L"DockedMode",NULL);
-   WriteProfileStringW(L"view",L"PinningInStories",NULL);
-   WriteProfileStringW(L"view",L"DoublePageStory",NULL);
 
    m_fontheight = (int)(-13.0f * m_textscaler);
    m_miscfontheight = (int)(-10.0f * m_textscaler);
@@ -1138,10 +1135,10 @@ BOOL CLampApp::InitInstance()
    CalcDescent();
 
    int widths[4];
-   GetCharWidths(L"www", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
+   GetCharWidths(L"www", widths, 3, false, false, ShowSmallLOL(), false, GetNormalFontName());
    m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
 
-   GetCharWidths(L"888", widths, 3, false, true, false, GetNormalFontName());
+   GetCharWidths(L"888", widths, 3, false, true, false, false, GetNormalFontName());
    m_HintFieldWidth = 4 + widths[0] + widths[1] + widths[2];
    
 
@@ -1230,19 +1227,39 @@ BOOL CLampApp::InitInstance()
    
    if(m_session.size() > 0)
    {
+      m_initing = true;
+      int pane = 0;
       // load the tabs that were closed in the last session
       for(size_t i = 0; i < m_session.size(); i++)
       {
-         OpenDocumentFile(m_session[i]);
+         OpenDocumentFile(m_session[i].m_launch);
+
+         if(m_session[i].m_pane > pane)
+         {
+            pMainFrame->MDITabNewGroup();
+            // set the previous pane's size
+            if((int)m_session_panesizes.size() > pane)
+            {
+               SetPaneSize(pane, m_session_panesizes[pane]);
+            }
+            // bump pane
+            pane++;
+         }
       }
 
       m_session.clear();
+      m_session_panesizes.clear();
+
+      RecordLatestChattyPaneSize();
+
+      m_initing = false;
    }
    else
    {
       // launch a latestchatty tab
       OnFileNew();
    }
+  
 
    // get lols
    RefreshLOLs();
@@ -1293,13 +1310,50 @@ int CLampApp::ExitInstance()
 
 CDocument* CLampApp::OpenDocumentFile(LPCTSTR lpszFileName)
 {
-   //CDocument* pNewDoc = CWinAppEx::OpenDocumentFile(lpszFileName);
+   int panecount = PaneCount();
+   int LCpane = WhichPaneHasLatestChatty();
+   int activepane = GetActivePane();
 
+   if(panecount > 1 &&
+      LCpane != -1 &&
+      activepane == LCpane)
+   {
+      int newpane;
+
+      if(activepane == 0)
+      {
+         newpane = 1;
+      }
+      else
+      {
+         newpane = 0;
+      }
+
+      ChangeActivePane(newpane);
+   }
+   
    m_open_doc = lpszFileName;
    CWinApp::OnFileNew();
    CDocument* pNewDoc = m_pDocWho;
    m_open_doc = "";
    m_pDocWho = NULL;
+
+   if(panecount == 1 &&
+      LCpane == 0 &&
+      LatestChattySummaryMode() &&
+      !m_initing)
+   {
+      CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+      if(pMainFrame)
+      {
+         pMainFrame->MDITabNewGroup();
+
+         if(m_lcpanesize != -1)
+         {
+            SetPaneSize(0, m_lcpanesize);
+         }
+      }
+   }
 
    UpdateTabSizes();
 
@@ -1514,107 +1568,117 @@ void CLampApp::UpdateTabSizes()
    if(pMainFrame != NULL &&
       m_MyDocuments.size() > 0)
    {
-      CHackedTabCtrl *tabctrl = (CHackedTabCtrl*)pMainFrame->GetCA()->FindActiveTabWnd();
-      if(tabctrl != NULL)
-      {      
-         bool bMakeFirstVisible = false;
+      const CObList &TabGroups = pMainFrame->GetCA()->GetMDITabGroups(); 
+      if(TabGroups.GetCount() > 0) 
+      { 
+         POSITION crtPos = TabGroups.GetHeadPosition(); 
+         CHackedTabCtrl * tabctrl;
 
-         CRect areaavail;
-         tabctrl->GetTabsRect(areaavail);
-         int widthavail = areaavail.Width();
-         int widthneeded = tabctrl->m_nTabsTotalWidth;
-
-         if(widthneeded < (widthavail - 20 ))
-         {
-            while(widthneeded < (widthavail - 20 ))
+         do { 
+            tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
+            
+            if(tabctrl != NULL)
             {
-               std::list<CLampDoc*>::iterator it = m_MyDocuments.end();
-               it--;
-               std::list<CLampDoc*>::iterator begin = m_MyDocuments.begin();
+               // for each tab group (pane)
+               bool bMakeFirstVisible = false;
 
-               CLampDoc *pShortestName = NULL;
-               int shortestname = 9999;
+               CRect areaavail;
+               tabctrl->GetTabsRect(areaavail);
+               int widthavail = areaavail.Width();
+               int widthneeded = tabctrl->m_nTabsTotalWidth;
 
-               while(1)
+               if(widthneeded < (widthavail - 20 ))
                {
-                  if((*it)->GetAtualTitleSize() < shortestname &&
-                     (*it)->GetAtualTitleSize() < (*it)->GetDesiredTitleSize())
+                  while(widthneeded < (widthavail - 20 ))
                   {
-                     pShortestName = (*it);
-                     shortestname = pShortestName->GetAtualTitleSize();
-                  }
+                     CLampDoc *pShortestName = NULL;
+                     int shortestname = 9999;
 
-                  if(it == begin)
-                  {
-                     break;
-                  }
-                  else
-                  {
-                     it--;
+                     int numtabs = tabctrl->GetTabsNum();
+                     for(int i = numtabs - 1; i >= 0; i--)
+                     {
+                        CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
+                        if(pFrame != NULL)
+                        {
+                           CLampView *pView = pFrame->GetView();
+                           if(pView != NULL &&
+                              pView->GetDocument() != NULL)
+                           {
+                              CLampDoc *pDoc = pView->GetDocument();
+                                                            
+                              if(pDoc->GetAtualTitleSize() < shortestname &&
+                                 pDoc->GetAtualTitleSize() < pDoc->GetDesiredTitleSize())
+                              {
+                                 pShortestName = pDoc;
+                                 shortestname = pShortestName->GetAtualTitleSize();
+                              }
+                           }
+                        }
+                     }
+
+                     if(pShortestName != NULL)
+                     {
+                        pShortestName->ExpandAtualTitle(1);
+                        widthneeded = tabctrl->m_nTabsTotalWidth;
+                     }
+                     else
+                     {
+                        break;
+                     }
                   }
                }
+               else if(widthavail < widthneeded)
+               {
+                  while(widthavail < widthneeded)
+                  {
+                     CLampDoc *pLongestName = NULL;
+                     int longestname = 0;
 
-               if(pShortestName != NULL)
-               {
-                  pShortestName->ExpandAtualTitle(1);
-                  widthneeded = tabctrl->m_nTabsTotalWidth;
+                     int numtabs = tabctrl->GetTabsNum();
+                     for(int i = numtabs - 1; i >= 0; i--)
+                     {
+                        CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
+                        if(pFrame != NULL)
+                        {
+                           CLampView *pView = pFrame->GetView();
+                           if(pView != NULL &&
+                              pView->GetDocument() != NULL)
+                           {
+                              CLampDoc *pDoc = pView->GetDocument();
+
+                              if(pDoc->GetAtualTitleSize() > longestname)
+                              {
+                                 pLongestName = pDoc;
+                                 longestname = pLongestName->GetAtualTitleSize();
+                              }
+                           }
+                        }
+                     }
+
+                     if(pLongestName->GetAtualTitleSize() > 1)
+                     {
+                        pLongestName->TrimAtualTitle(1);
+                        widthneeded = tabctrl->m_nTabsTotalWidth;
+                        bMakeFirstVisible = true;
+                     }
+                     else
+                     {
+                        bMakeFirstVisible = false;
+                        break;
+                     }
+                  }
                }
-               else
+               
+               if(bMakeFirstVisible)
                {
-                  break;
+                  tabctrl->EnsureVisible(0);
                }
             }
-         }
-         else if(widthavail < widthneeded)
-         {
-            while(widthavail < widthneeded)
-            {
-               std::list<CLampDoc*>::iterator it = m_MyDocuments.end();
-               it--;
-               std::list<CLampDoc*>::iterator begin = m_MyDocuments.begin();
-
-               CLampDoc *pLongestName = (*it);
-               int longestname = pLongestName->GetAtualTitleSize();
-
-               while(1)
-               {
-                  if((*it)->GetAtualTitleSize() > longestname)
-                  {
-                     pLongestName = (*it);
-                     longestname = pLongestName->GetAtualTitleSize();
-                  }
-
-                  if(it == begin)
-                  {
-                     break;
-                  }
-                  else
-                  {
-                     it--;
-                  }
-               }
-
-               if(pLongestName->GetAtualTitleSize() > 1)
-               {
-                  pLongestName->TrimAtualTitle(1);
-                  widthneeded = tabctrl->m_nTabsTotalWidth;
-                  bMakeFirstVisible = true;
-               }
-               else
-               {
-                  bMakeFirstVisible = false;
-                  break;
-               }
-            }
-         }
-
-         pMainFrame->GetCA()->UpdateMDITabbedGroups(TRUE);
-         if(bMakeFirstVisible)
-         {
-            tabctrl->EnsureVisible(0);
-         }
+         } while(crtPos != NULL);
       }
    }
+
+   pMainFrame->GetCA()->UpdateMDITabbedGroups(TRUE);
 }
 
 
@@ -1689,10 +1753,10 @@ void CLampApp::PreLoadState()
    strName = L"EditNoSel";
    GetContextMenuManager()->AddMenu(strName, IDR_POPUP_EDIT_NOSEL);
 
-   strName = L"Sel";
+   strName = L"ViewSel";
    GetContextMenuManager()->AddMenu(strName, IDR_POPUP_SEL);
    
-   strName = L"NoSel";
+   strName = L"ViewNoSel";
    GetContextMenuManager()->AddMenu(strName, IDR_POPUP_NOSEL);
 
    strName = L"Default";
@@ -2034,6 +2098,10 @@ void CLampApp::ReadSettingsFile()
    if(setting!=NULL) m_latestchatty_summary_mode = setting->GetValue();
    else m_latestchatty_summary_mode = false;
 
+   setting = hostxml.FindChildElement(L"tight_fit_summary");
+   if(setting!=NULL) m_tight_fit_summary = setting->GetValue();
+   else m_tight_fit_summary = false;
+
    setting = hostxml.FindChildElement(L"max_summary_lines");
    if(setting!=NULL) m_max_summary_lines = setting->GetValue();
    else m_max_summary_lines = 4;
@@ -2319,13 +2387,39 @@ void CLampApp::ReadSettingsFile()
    setting = hostxml.FindChildElement(L"Session");
    if(setting != NULL)
    {
+      m_session.clear();
       int num = setting->CountChildren();
       for(int i = 0; i < num; i++)
       {
-         CXMLElement *tab = setting->GetChildElement(i);
-         if(tab != NULL && tab->GetTag() == L"tab")
+         CXMLElement *element = setting->GetChildElement(i);
+         if(element != NULL)
          {
-            m_session.push_back(tab->GetValue());
+            if(element->GetTag() == L"tab")
+            {
+               int pane = 0;
+               UCString pane_str = element->GetAttributeValue(L"pane");
+               if(!pane_str.IsEmpty())
+               {
+                  pane = pane_str;
+               }
+
+               AddToSession(pane, element->GetValue());
+            }
+            else if(element->GetTag() == L"panesizes")
+            {
+               m_session_panesizes.clear();
+
+               int numatts = element->CountAttributes();
+               for(int i = 0; i < numatts; i++)
+               {
+                  CXMLAttribute *pAttrib = element->GetAttribute(i);
+                  if(pAttrib != NULL)
+                  {
+                     int panesize = pAttrib->GetValue();
+                     m_session_panesizes.push_back(panesize);
+                  }
+               }
+            }
          }
       }
    }
@@ -2508,6 +2602,7 @@ void CLampApp::WriteSettingsFile()
    settingsxml.AddChildElement(L"auto_refresh",UCString(m_auto_refresh));
    settingsxml.AddChildElement(L"show_nav_buttons",UCString(m_show_nav_buttons));
    settingsxml.AddChildElement(L"latestchatty_summary_mode",UCString(m_latestchatty_summary_mode));
+   settingsxml.AddChildElement(L"tight_fit_summary",UCString(m_tight_fit_summary));
    settingsxml.AddChildElement(L"max_summary_lines",UCString(m_max_summary_lines));
    settingsxml.AddChildElement(L"AlwaysOnTopWhenNotDocked",UCString(m_bAlwaysOnTopWhenNotDocked));
    settingsxml.AddChildElement(L"num_minutes_update_tab",UCString(m_num_minutes_update_tab));
@@ -2593,7 +2688,26 @@ void CLampApp::WriteSettingsFile()
 
       for(size_t i = 0; i < m_session.size(); i++)
       {
-         session->AddChildElement(L"tab",m_session[i]);
+         CXMLElement *element = session->AddChildElement();
+         if(element != NULL)
+         {
+            element->SetTag(L"tab");
+            element->SetValue(m_session[i].m_launch);
+            element->AddAttribute(L"pane",UCString(m_session[i].m_pane));
+         }
+      }
+
+      if(m_session_panesizes.size() > 0)
+      {
+         CXMLElement *element = session->AddChildElement();
+         if(element != NULL)
+         {
+            element->SetTag(L"panesizes");
+            for(size_t i = 0; i < m_session_panesizes.size(); i++)
+            {
+               element->AddAttribute(UCString(i),UCString(m_session_panesizes[i]));
+            }
+         }
       }
    }
 
@@ -3835,6 +3949,8 @@ void CLampApp::CheckForUpdates(bool bManual)
 
 void CLampApp::RefreshLOLs()
 {
+   RecordLatestChattyPaneSize();
+
    CDownloadData *pDD = new CDownloadData();
 
    // http://lmnopc.com/greasemonkey/shacklol/api.php?special=getcounts
@@ -4005,10 +4121,10 @@ void CLampApp::SetShowSmallLOL(bool value)
 {
    m_bShowSmallLOL = value;
    int widths[4];
-   GetCharWidths(L"www", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
+   GetCharWidths(L"www", widths, 3, false, false, ShowSmallLOL(), false, GetNormalFontName());
    m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
 
-   GetCharWidths(L"888", widths, 3, false, true, false, GetNormalFontName());
+   GetCharWidths(L"888", widths, 3, false, true, false, false, GetNormalFontName());
    m_HintFieldWidth = 4 + widths[0] + widths[1] + widths[2];
 
    // have all the tabs update their lol count info
@@ -4077,10 +4193,10 @@ void CLampApp::InvalidateSkinAllViews()
    CalcDescent();
 
    int widths[4];
-   GetCharWidths(L"www", widths, 3, false, false, ShowSmallLOL(), GetNormalFontName());
+   GetCharWidths(L"www", widths, 3, false, false, ShowSmallLOL(), false, GetNormalFontName());
    m_LOLFieldWidth = widths[0] + widths[1] + widths[2];
 
-   GetCharWidths(L"888", widths, 3, false, true, false, GetNormalFontName());
+   GetCharWidths(L"888", widths, 3, false, true, false, false, GetNormalFontName());
    m_HintFieldWidth = 4 + widths[0] + widths[1] + widths[2];
 
    UpdateNewMessages();
@@ -4114,24 +4230,18 @@ void CLampApp::ShowNewMessages()
 {
    bool bInboxTookIt = false;
    // if the inbox is open, and it is on page 1, update it
-   std::list<CLampView*>::iterator it = m_views.begin();
-   std::list<CLampView*>::iterator end = m_views.end();
-
-   while(it != end)
+   CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+   if(pMainFrame != NULL)
    {
-      if((*it)->GetDocument()->GetDataType() == DDT_SHACKMSG &&
-         (*it)->GetDocument()->GetShackMessageType() == SMT_INBOX)
-      {
-         if((*it)->GetDocument()->GetPage() > 1)
-         {
-            (*it)->GetDocument()->SetPage(1);
-            (*it)->GetDocument()->Refresh();
-         }
-         
-         CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
-         if(pMainFrame)
-         {
-            CHackedTabCtrl *tabctrl = (CHackedTabCtrl*)pMainFrame->GetCA()->FindActiveTabWnd();
+      const CObList &TabGroups = pMainFrame->GetCA()->GetMDITabGroups(); 
+      if(TabGroups.GetCount() > 0) 
+      { 
+         POSITION crtPos = TabGroups.GetHeadPosition(); 
+         CHackedTabCtrl * tabctrl;
+
+         do { 
+            tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
+            
             if(tabctrl != NULL)
             {
                int numtabs = tabctrl->GetTabsNum();
@@ -4142,19 +4252,19 @@ void CLampApp::ShowNewMessages()
                   {
                      CLampView *pView = pFrame->GetView();
                      if(pView != NULL &&
-                        pView == (*it))
+                        pView->GetDocument() != NULL &&
+                        pView->GetDocument()->GetDataType() == DDT_SHACKMSG &&
+                        pView->GetDocument()->GetShackMessageType() == SMT_INBOX)
                      {
                         tabctrl->SetActiveTab(i);
+                        bInboxTookIt = true;
                         break;
                      }
                   }
                }
             }
-         }
-
-         bInboxTookIt = true;
+         } while(crtPos != NULL);
       }
-      it++;
    }
 
    if(!bInboxTookIt)
@@ -4186,7 +4296,7 @@ void CLampApp::UpdateNewMessages()
       if(m_unreadmessagecount == 1)
          m_new_messages_charcount--;
 
-      GetCharWidths(m_pNewMessages, m_new_messages_widths, m_new_messages_charcount, false, false, false, GetNormalFontName());
+      GetCharWidths(m_pNewMessages, m_new_messages_widths, m_new_messages_charcount, false, false, false, false, GetNormalFontName());
 
       m_new_messages_textwidth = 0;
       for(size_t i = 0; i < m_new_messages_charcount; i++)
@@ -6314,6 +6424,279 @@ void CLampApp::MaxSummaryLines(int value)
             (*it)->InvalidateEverything();
          }
          it++;
+      }
+   }
+}
+
+int CLampApp::PaneCount()
+{
+   int result = 1;
+
+   CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+   if(pMainFrame)
+   {
+      const CObList &TabGroups = pMainFrame->GetCA()->GetMDITabGroups(); 
+      result = TabGroups.GetCount();
+   }
+
+   return result;
+}
+
+int CLampApp::WhichPaneHasDoc(CLampDoc *pDoc)
+{
+   int result = -1;
+
+   CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+   if(pMainFrame != NULL &&
+      pDoc != NULL)
+   {
+      const CObList &TabGroups = pMainFrame->GetCA()->GetMDITabGroups(); 
+      if(TabGroups.GetCount() > 0) 
+      { 
+         int pane = 0;
+         POSITION crtPos = TabGroups.GetHeadPosition(); 
+         CHackedTabCtrl * tabctrl;
+
+         do { 
+            tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
+            
+            if(tabctrl != NULL)
+            {
+               int numtabs = tabctrl->GetTabsNum();
+               for(int i=0; i < numtabs; i++)
+               {
+                  CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
+                  if(pFrame != NULL)
+                  {
+                     CLampView *pView = pFrame->GetView();
+                     if(pView != NULL &&
+                        pView->GetDocument() != NULL &&
+                        pView->GetDocument() == pDoc)
+                     {
+                        result = pane;
+                        break;
+                     }
+                  }
+               }
+            }
+
+            pane++;
+         } while(crtPos != NULL);
+      }
+   }
+
+   return result;
+}
+
+int CLampApp::WhichPaneHasLatestChatty()
+{
+   int result = -1;
+
+   CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+   if(pMainFrame != NULL)
+   {
+      const CObList &TabGroups = pMainFrame->GetCA()->GetMDITabGroups(); 
+      if(TabGroups.GetCount() > 0) 
+      { 
+         int pane = 0;
+         POSITION crtPos = TabGroups.GetHeadPosition(); 
+         CHackedTabCtrl * tabctrl;
+
+         do { 
+            tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
+            
+            if(tabctrl != NULL)
+            {
+               int numtabs = tabctrl->GetTabsNum();
+               for(int i=0; i < numtabs; i++)
+               {
+                  CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
+                  if(pFrame != NULL)
+                  {
+                     CLampView *pView = pFrame->GetView();
+                     if(pView != NULL &&
+                        pView->GetDocument() != NULL &&
+                        pView->GetDocument()->GetDataType() == DDT_STORY)
+                     {
+                        result = pane;
+                        break;
+                     }
+                  }
+               }
+            }
+
+            pane++;
+         } while(crtPos != NULL);
+      }
+   }
+
+   return result;
+}
+
+int CLampApp::GetActivePane()
+{
+   int result = -1;
+
+   CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+   if(pMainFrame != NULL)
+   {
+      const CObList &TabGroups = pMainFrame->GetCA()->GetMDITabGroups(); 
+      if(TabGroups.GetCount() > 0) 
+      { 
+         int pane = 0;
+         POSITION crtPos = TabGroups.GetHeadPosition(); 
+         CHackedTabCtrl * tabctrl;
+
+         do { 
+            tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
+            
+            if(tabctrl != NULL)
+            {
+               if(tabctrl->IsActiveInMDITabGroup())
+               {
+                  result = pane;
+                  break;
+               }
+            }
+
+            pane++;
+         } while(crtPos != NULL);
+      }
+   }
+
+   return result;
+}
+
+void CLampApp::ChangeActivePane(int to)
+{
+   CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+   if(pMainFrame != NULL)
+   {
+      const CObList &TabGroups = pMainFrame->GetCA()->GetMDITabGroups(); 
+      if(TabGroups.GetCount() > 0) 
+      { 
+         int pane = 0;
+         POSITION crtPos = TabGroups.GetHeadPosition(); 
+         CHackedTabCtrl * tabctrl;
+
+         do { 
+            tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
+            
+            if(tabctrl != NULL)
+            {
+               if(pane == to)
+               {
+                  tabctrl->ActivateMDITab();   
+               }
+            }
+
+            pane++;
+         } while(crtPos != NULL);
+      }
+   }
+}
+
+void CLampApp::SetPaneSize(int pane, int panesize)
+{
+   CHackedTabCtrl *left_tabctrl = NULL;
+   CHackedTabCtrl *right_tabctrl = NULL;
+
+   CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+   if(pMainFrame != NULL)
+   {
+      const CObList &TabGroups = pMainFrame->GetCA()->GetMDITabGroups(); 
+      int numpanes = TabGroups.GetCount();
+      if(numpanes > 1) 
+      { 
+         int thispane = 0;
+         POSITION crtPos = TabGroups.GetHeadPosition(); 
+         CHackedTabCtrl * tabctrl;
+
+         do { 
+            tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
+            
+            if(tabctrl != NULL)
+            {
+               if(thispane == numpanes - 2)
+               {
+                  left_tabctrl = tabctrl;
+               }
+               else if(thispane == numpanes - 1)
+               {
+                  right_tabctrl = tabctrl;
+               }
+            }
+            thispane++;
+         } while(crtPos != NULL);
+      }
+
+      if(left_tabctrl != NULL &&
+         right_tabctrl != NULL)
+      {
+         CRect left_panerect;
+         left_tabctrl->GetWndArea(left_panerect);
+
+         CRect right_panerect;
+         right_tabctrl->GetWndArea(right_panerect);
+
+         int leftwidth = left_panerect.right - left_panerect.left;
+         int rightwidth = right_panerect.right - right_panerect.left;
+         int totalwidth = leftwidth + rightwidth;
+
+         left_panerect.right = panesize + 3;
+         right_panerect.right = (totalwidth - panesize) - 3;
+
+         left_tabctrl->MoveWindow(left_panerect.left, left_panerect.top, left_panerect.right - left_panerect.left, left_panerect.bottom - left_panerect.top);
+         right_tabctrl->MoveWindow(right_panerect.left, right_panerect.top, right_panerect.right - right_panerect.left, right_panerect.bottom - right_panerect.top);
+      }
+   }
+}
+
+int CLampApp::GetPaneSize(int pane)
+{
+   int result = -1;
+
+   CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+   if(pMainFrame != NULL)
+   {
+      const CObList &TabGroups = pMainFrame->GetCA()->GetMDITabGroups(); 
+      if(TabGroups.GetCount() > 0) 
+      { 
+         POSITION crtPos = TabGroups.GetHeadPosition(); 
+         CHackedTabCtrl * tabctrl;
+
+         int thispane = 0;
+
+         do { 
+            tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
+            
+            if(tabctrl != NULL &&
+               thispane == pane)
+            {
+               CRect panerect;
+               tabctrl->GetWndArea(panerect);
+               result = panerect.right - panerect.left;
+               break;
+            }
+
+            thispane++;
+         } while(crtPos != NULL);
+      }
+   }
+
+   return result;
+}
+
+void CLampApp::RecordLatestChattyPaneSize()
+{
+   if(PaneCount() > 1)
+   {
+      int lcpane = WhichPaneHasLatestChatty();
+      int panesize = GetPaneSize(lcpane);
+
+      if(panesize != -1)
+      {
+         m_lcpanesize = panesize;
       }
    }
 }

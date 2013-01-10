@@ -88,6 +88,9 @@ public:
 
    void MakeDecal(CDCSurface *from, byte red, byte green, byte blue);
 
+   void Dim(int from, int to);
+   void Brighten(int from, int to);
+
 protected:
    void setupBlendTable(void);
 

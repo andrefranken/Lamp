@@ -182,6 +182,12 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 	return TRUE;
 }
 
+CMDIChildWndEx* CMainFrame::CreateDocumentWindow(LPCTSTR lpcszDocName, CObject* pObj)
+{
+   return CMDIFrameWndEx::CreateDocumentWindow(lpcszDocName, pObj);
+}
+
+
 // CMainFrame diagnostics
 
 #ifdef _DEBUG
@@ -268,32 +274,48 @@ void CMainFrame::OnUpdateApplicationLook(CCmdUI* pCmdUI)
 void CMainFrame::RecordSession()
 {
    theApp.ClearSession();
-   CHackedTabCtrl *tabctrl = (CHackedTabCtrl*)GetCA()->FindActiveTabWnd();
-   if(tabctrl != NULL)
-   {
-      int numtabs = tabctrl->GetTabsNum();
-      for(int i=0; i < numtabs; i++)
-      {
-         CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
-         if(pFrame != NULL)
+
+   const CObList &TabGroups = GetCA()->GetMDITabGroups(); 
+   if(TabGroups.GetCount() > 0) 
+   { 
+      POSITION crtPos = TabGroups.GetHeadPosition(); 
+      CHackedTabCtrl * tabctrl;
+
+      int pane = 0;
+
+      do { 
+         tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
+         
+         if(tabctrl != NULL)
          {
-            CLampView *pView = pFrame->GetView();
-            if(pView != NULL)
+            CRect panerect;
+            tabctrl->GetWndArea(panerect);
+            theApp.AddPaneSizeToSession(panerect.right - panerect.left);
+
+            int numtabs = tabctrl->GetTabsNum();
+            for(int i=0; i < numtabs; i++)
             {
-               unsigned int current_id = pView->GetCurrentId();
-               CLampDoc *pDoc = pView->GetDocument();
-               if(pDoc != NULL)
+               CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
+               if(pFrame != NULL)
                {
-                  UCString launch;
-                  pDoc->GetLaunchString(launch, current_id);
-                  if(!launch.IsEmpty())
+                  CLampView *pView = pFrame->GetView();
+                  if(pView != NULL &&
+                     pView->GetDocument() != NULL)
                   {
-                     theApp.AddToSession(launch);
+                     UCString launch;
+                     pView->GetDocument()->GetLaunchString(launch, pView->GetCurrentId());
+                     if(!launch.IsEmpty())
+                     {
+                        theApp.AddToSession(pane,launch);
+                     }  
                   }
                }
             }
          }
-      }
+
+         pane++;
+
+      } while(crtPos != NULL);
    }
 }
 

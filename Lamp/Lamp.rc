@@ -291,6 +291,7 @@ BEGIN
             MENUITEM "Show Root As Selected",       ID_SHOW_ROOT_SELECTED
             MENUITEM "Move Refresh Button to Top",  ID_MOVEREFRESHTOTOP
             MENUITEM "Show Nav Buttons",            ID_SHOW_NAV_BUTTONS
+            MENUITEM "Tight Fitting Summary",       ID_TIGHT_FIT_SUMMARY
             POPUP "Fonts"
             BEGIN
                 MENUITEM "Font for Normal Text",        ID_NORM_FONT
@@ -322,10 +323,12 @@ BEGIN
                 MENUITEM "Round Shack",                 ID_SKIN_ROUNDSHACK
                 MENUITEM "Square Shack",                ID_SKIN_DEFAULT
                 MENUITEM "Worksafe Shack",              ID_SKIN_WORKSAFE
+                MENUITEM "Metro Shack",                 ID_SKIN_METRO
                 MENUITEM SEPARATOR
                 MENUITEM "Round Shack (large)",         ID_SKIN_ROUNDSHACK_2
                 MENUITEM "Square Shack (large)",        ID_SKIN_DEFAULT_2
                 MENUITEM "Worksafe Shack (large)",      ID_SKIN_WORKSAFE_2
+                MENUITEM "Metro Shack (large)",         ID_SKIN_METRO_2
                 MENUITEM SEPARATOR
                 MENUITEM "Custom",                      ID_SKIN_CUSTOM
             END
@@ -391,12 +394,12 @@ END
 
 IDR_POPUP_SEL MENU 
 BEGIN
-    POPUP "Sel"
+    POPUP "ViewSel"
     BEGIN
-        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM "Copy\tCtrl+C",                ID_EDIT_COPY
         MENUITEM SEPARATOR
-        MENUITEM "&Copy Link",                  ID_COPYLINK
-        MENUITEM "&Copy Post",                  ID_COPYPOST
+        MENUITEM "Copy Link",                   ID_COPYLINK
+        MENUITEM "Copy Post",                   ID_COPYPOST
         MENUITEM SEPARATOR
         MENUITEM "Google",                      ID_GOOGLE_SELECTED
         MENUITEM "Google, in quotes",           ID_GOOGLE_SELECTED_W_QUOTES
@@ -406,8 +409,9 @@ BEGIN
         MENUITEM "Wolfram",                     ID_WOLFRAM_SELECTED
         MENUITEM "IMDb",                        ID_IMDB_SELECTED
         MENUITEM SEPARATOR
-        MENUITEM "&Refresh\tF5",                ID_EDIT_REFRESH
-        MENUITEM "&Bookmark This Post",         ID_EDIT_BOOKMARK_THIS_POST
+        MENUITEM "Refresh\tF5",                 ID_EDIT_REFRESH
+        MENUITEM "&Find Text\tCtrl+F",          ID_EDIT_FIND
+        MENUITEM "Bookmark This Post",          ID_EDIT_BOOKMARK_THIS_POST
         MENUITEM SEPARATOR
         MENUITEM "Load All Images",             ID_EDIT_LOADALLIMAGES
         MENUITEM "Close All Images",            ID_EDIT_CLOSEALLIMAGES
@@ -419,7 +423,7 @@ END
 
 IDR_POPUP_NOSEL MENU 
 BEGIN
-    POPUP "NoSel"
+    POPUP "ViewNoSel"
     BEGIN
         MENUITEM "&Copy Link",                  ID_COPYLINK
         MENUITEM "&Copy Post",                  ID_COPYPOST
@@ -433,6 +437,7 @@ BEGIN
         MENUITEM "IMDb",                        ID_IMDB_SELECTED
         MENUITEM SEPARATOR
         MENUITEM "&Refresh\tF5",                ID_EDIT_REFRESH
+        MENUITEM "&Find Text\tCtrl+F",          ID_EDIT_FIND
         MENUITEM "&Bookmark This Post",         ID_EDIT_BOOKMARK_THIS_POST
         MENUITEM SEPARATOR
         MENUITEM "Load All Images",             ID_EDIT_LOADALLIMAGES
