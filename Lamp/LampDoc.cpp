@@ -972,6 +972,25 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
 
                DetermineIfUserHasPostedInThreads();
 
+               if(m_datatype == DDT_ACTIVE_THREAD &&
+                  m_initialpostid != 0 &&
+                  m_rootposts.size() > 0)
+               {
+                  // update latest chatty know know about any changes from active thread
+                  CLampDoc *pDoc = NULL;
+                  ChattyPost *pExistingPost = theApp.FindFromLatestChatty(m_initialpostid, &pDoc);
+                  if(pExistingPost != NULL)
+                  {
+                     ChattyPost *post = m_rootposts.front();
+                     if(post != NULL)
+                     {
+                        pExistingPost->ClearChildren();
+                        pExistingPost->ReadPost(post,pDoc);
+                        pExistingPost->UpdateLOLs(true); // since the latest chatty is in summary mode, collect all lols
+                     }
+                  }
+               }
+
                m_last_refresh_time = ::GetTickCount();
             }
          }
@@ -2137,11 +2156,13 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
       if(m_pView != NULL)
       {
          m_pView->CloseReplyOnlyDlg();
+         m_pView->ResetSelection();
       }
             
       if(m_initialpostid != 0 &&
          m_rootposts.size() > 0)
       {
+         // update latest chatty know know about any changes from active thread
          CLampDoc *pDoc = NULL;
          ChattyPost *pExistingPost = theApp.FindFromLatestChatty(m_initialpostid, &pDoc);
          if(pExistingPost != NULL)
@@ -2151,6 +2172,7 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
             {
                pExistingPost->ClearChildren();
                pExistingPost->ReadPost(post,pDoc);
+               pExistingPost->UpdateLOLs(true); // since the latest chatty is in summary mode, collect all lols
             }
          }
       }
@@ -2192,6 +2214,14 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
       if(http != NULL)
       {
          start = http + 25;
+      }
+      else
+      {
+         http = wcsstr(start, L"https://www.shacknews.com/");
+         if(http != NULL)
+         {
+            start = http + 26;
+         }
       }
    }
 
@@ -4828,6 +4858,12 @@ void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsign
                                  {
                                     m_rootposts.pop_back();
                                     delete post;
+                                 }
+
+                                 if(m_datatype == DDT_STORY &&
+                                    theApp.LatestChattySummaryMode())
+                                 {
+                                    post->UpdateLOLs(true); // since the latest chatty is in summary mode, collect all lols
                                  }
                               }
                            }
@@ -7996,6 +8032,12 @@ void CLampDoc::UpdateLOLsRecurse()
       if((*it) != NULL)
       {
          (*it)->UpdateLOLsRecurse();
+
+         if(m_datatype == DDT_STORY &&
+            theApp.LatestChattySummaryMode())
+         {
+            (*it)->UpdateLOLs(true); // since the latest chatty is in summary mode, collect all lols
+         }
       }
       it++;
    }

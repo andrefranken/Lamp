@@ -420,19 +420,16 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                      UpdateNewMessages();
                
                      // if the inbox is open, and it is on page 1, update it
-                     std::list<CLampView*>::iterator it = m_views.begin();
-                     std::list<CLampView*>::iterator end = m_views.end();
+                     CLampDoc *pInboxDoc = GetInboxDoc();
 
-                     while(it != end)
+                     if(pInboxDoc != NULL)
                      {
-                        if((*it)->GetDocument()->GetDataType() == DDT_SHACKMSG &&
-                           (*it)->GetDocument()->GetShackMessageType() == SMT_INBOX &&
-                           (*it)->GetDocument()->GetPage() == 1 &&
-                           !(*it)->GetDLGUp())
+                        if(pInboxDoc->GetPage() == 1 &&
+                           pInboxDoc->GetView() != NULL &&
+                           !pInboxDoc->GetView()->GetDLGUp())
                         {
-                           (*it)->GetDocument()->ReadShackMessages(xmldata);
+                           pInboxDoc->ReadShackMessages(xmldata);
                         }
-                        it++;
                      }
 
                      if(GetMainWnd() != NULL)
@@ -514,24 +511,21 @@ BOOL CLampApp::PreTranslateMessage(MSG* pMsg)
                      UpdateNewMessages();
                
                      // if the inbox is open, and it is on page 1, update it
-                     std::list<CLampView*>::iterator vit = m_views.begin();
-                     std::list<CLampView*>::iterator vend = m_views.end();
+                     CLampDoc *pInboxDoc = GetInboxDoc();
 
-                     while(vit != vend)
+                     if(pInboxDoc != NULL)
                      {
-                        if((*vit)->GetDocument()->GetDataType() == DDT_SHACKMSG &&
-                           (*vit)->GetDocument()->GetShackMessageType() == SMT_INBOX &&
-                           (*vit)->GetDocument()->GetPage() == 1 &&
-                           !(*vit)->GetDLGUp())
+                        if(pInboxDoc->GetPage() == 1 &&
+                           pInboxDoc->GetView() != NULL &&
+                           !pInboxDoc->GetView()->GetDLGUp())
                         {
-                           (*vit)->GetDocument()->ReadShackMessagesHTML(pDD->m_stdstring);
+                           pInboxDoc->ReadShackMessagesHTML(pDD->m_stdstring);
 
                            if(m_unreadmessagecount > 0)
                            {
-                              (*vit)->GetDocument()->NewContent();
+                              pInboxDoc->NewContent();
                            }
                         }
-                        vit++;
                      }
 
                      if(GetMainWnd() != NULL)
@@ -1360,22 +1354,9 @@ CDocument* CLampApp::OpenDocumentFile(LPCTSTR lpszFileName)
    return pNewDoc;
 }
 
-void CLampApp::OpenActiveDocumentFile(LPCTSTR lpszFileName)
+void CLampApp::OpenActiveDocumentFile(LPCTSTR lpszFileName, bool dofocusstuff)
 {
-   CLampDoc *active = NULL;
-
-   std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
-   std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
-
-   while(it != end)
-   {
-      if((*it)->GetDataType() == DDT_ACTIVE_THREAD)
-      {
-         active = (*it);
-         break;
-      }
-      it++;
-   }
+   CLampDoc *active = GetActiveThread();
    
    if(active != NULL)
    {
@@ -1384,173 +1365,30 @@ void CLampApp::OpenActiveDocumentFile(LPCTSTR lpszFileName)
    else
    {
       OpenDocumentFile(lpszFileName);
-
-      it = m_MyDocuments.begin();
-
-      while(it != end)
-      {
-         if((*it)->GetDataType() == DDT_ACTIVE_THREAD)
-         {
-            active = (*it);
-            break;
-         }
-         it++;
-      }
+      active = GetActiveThread();
    }
 
-   // now set focus to it
-   if(active != NULL)
+   if(dofocusstuff)
    {
-      CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
-      if(pMainFrame)
-      {
-         const CObList &TabGroups = pMainFrame->GetCA()->GetMDITabGroups(); 
-         if(TabGroups.GetCount() > 0) 
-         { 
-            POSITION crtPos = TabGroups.GetHeadPosition(); 
-            CHackedTabCtrl * tabctrl;
+      // now set focus to it
+      SetActiveTabDoc(active, true);
 
-            do { 
-               tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
-               
-               if(tabctrl != NULL)
-               {
-                  int numtabs = tabctrl->GetTabsNum();
-                  for(int i=0; i < numtabs; i++)
-                  {
-                     CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
-                     if(pFrame != NULL)
-                     {
-                        CLampView *pView = pFrame->GetView();
-                        if(pView != NULL &&
-                           pView->GetDocument() == active)
-                        {
-                           unsigned int id = pView->GetDocument()->GetInitialPostId();
-                           pView->SetCurrentId(id);
-                           pView->SetPos(0);
-                           tabctrl->SetActiveTab(i);
-                           break;
-                        }
-                     }
-                  }
-               }
-            } while(crtPos != NULL);
-
-            // now set focus back to the latest chatty tab
-
-            crtPos = TabGroups.GetHeadPosition(); 
-
-            do { 
-               tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
-               
-               if(tabctrl != NULL)
-               {
-                  int numtabs = tabctrl->GetTabsNum();
-                  for(int i=0; i < numtabs; i++)
-                  {
-                     CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
-                     if(pFrame != NULL)
-                     {
-                        CLampView *pView = pFrame->GetView();
-                        if(pView != NULL &&
-                           pView->GetDocument()->GetDataType() == DDT_STORY)
-                        {
-                           tabctrl->SetActiveTab(i);
-                           break;
-                        }
-                     }
-                  }
-               }
-            } while(crtPos != NULL);
-         }
-      }
+      // now set focus back to the latest chatty tab
+      SetLatestChattyActive();
    }
 }
 
-void CLampApp::ActivateActiveThread()
+void CLampApp::ActivateActiveThread(bool dofocusstuff)
 {
-   CLampDoc *active = NULL;
-
-   std::list<CLampDoc*>::iterator it = m_MyDocuments.begin();
-   std::list<CLampDoc*>::iterator end = m_MyDocuments.end();
-
-   while(it != end)
-   {
-      if((*it)->GetDataType() == DDT_ACTIVE_THREAD)
-      {
-         active = (*it);
-         break;
-      }
-      it++;
-   }
+   CLampDoc *active = GetActiveThread();
    
-   
-   // now set focus to it
-   if(active != NULL)
+   if(dofocusstuff)
    {
-      CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
-      if(pMainFrame)
-      {
-         const CObList &TabGroups = pMainFrame->GetCA()->GetMDITabGroups(); 
-         if(TabGroups.GetCount() > 0) 
-         { 
-            POSITION crtPos = TabGroups.GetHeadPosition(); 
-            CHackedTabCtrl * tabctrl;
+      // now set focus to it
+      SetActiveTabDoc(active);
 
-            do { 
-               tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
-               
-               if(tabctrl != NULL)
-               {
-                  int numtabs = tabctrl->GetTabsNum();
-                  for(int i=0; i < numtabs; i++)
-                  {
-                     CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
-                     if(pFrame != NULL)
-                     {
-                        CLampView *pView = pFrame->GetView();
-                        if(pView != NULL &&
-                           pView->GetDocument() == active)
-                        {
-                           unsigned int id = pView->GetDocument()->GetInitialPostId();
-                           pView->SetCurrentId(id);
-                           pView->SetPos(0);
-                           tabctrl->SetActiveTab(i);
-                           break;
-                        }
-                     }
-                  }
-               }
-            } while(crtPos != NULL);
-
-            // now set focus back to the latest chatty tab
-
-            crtPos = TabGroups.GetHeadPosition(); 
-
-            do { 
-               tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
-               
-               if(tabctrl != NULL)
-               {
-                  int numtabs = tabctrl->GetTabsNum();
-                  for(int i=0; i < numtabs; i++)
-                  {
-                     CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
-                     if(pFrame != NULL)
-                     {
-                        CLampView *pView = pFrame->GetView();
-                        if(pView != NULL &&
-                           pView->GetDocument()->GetDataType() == DDT_STORY)
-                        {
-                           tabctrl->SetActiveTab(i);
-                           break;
-                        }
-                     }
-                  }
-               }
-            } while(crtPos != NULL);
-         }
-      }
+      // now set focus back to the latest chatty tab
+      SetLatestChattyActive();
    }
 }
 
@@ -3815,7 +3653,8 @@ void CLampApp::OpenShackLink(const UCString &shackpath, bool NWS /*= false*/)
    }
    else
    {   
-      if(_wcsnicmp(shackpath,L"http://www.shacknews.com/",25) == 0)
+      if(_wcsnicmp(shackpath,L"http://www.shacknews.com/",25) == 0 ||
+         _wcsnicmp(shackpath,L"https://www.shacknews.com/",26) == 0)
       {
          const UCChar *work = wcsstr(shackpath,L"?id=");
          if(work != NULL)
@@ -4228,46 +4067,13 @@ void CLampApp::InvalidateFlagsAllViews()
 
 void CLampApp::ShowNewMessages()
 {
-   bool bInboxTookIt = false;
-   // if the inbox is open, and it is on page 1, update it
-   CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
-   if(pMainFrame != NULL)
+   CLampDoc *pInboxDoc = GetInboxDoc();
+
+   if(pInboxDoc != NULL)
    {
-      const CObList &TabGroups = pMainFrame->GetCA()->GetMDITabGroups(); 
-      if(TabGroups.GetCount() > 0) 
-      { 
-         POSITION crtPos = TabGroups.GetHeadPosition(); 
-         CHackedTabCtrl * tabctrl;
-
-         do { 
-            tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
-            
-            if(tabctrl != NULL)
-            {
-               int numtabs = tabctrl->GetTabsNum();
-               for(int i=0; i < numtabs; i++)
-               {
-                  CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
-                  if(pFrame != NULL)
-                  {
-                     CLampView *pView = pFrame->GetView();
-                     if(pView != NULL &&
-                        pView->GetDocument() != NULL &&
-                        pView->GetDocument()->GetDataType() == DDT_SHACKMSG &&
-                        pView->GetDocument()->GetShackMessageType() == SMT_INBOX)
-                     {
-                        tabctrl->SetActiveTab(i);
-                        bInboxTookIt = true;
-                        break;
-                     }
-                  }
-               }
-            }
-         } while(crtPos != NULL);
-      }
+      SetActiveTabDoc(pInboxDoc);
    }
-
-   if(!bInboxTookIt)
+   else
    {
       OpenDocumentFile(L"SHACKMSG_INBOX");
    }
@@ -6699,4 +6505,139 @@ void CLampApp::RecordLatestChattyPaneSize()
          m_lcpanesize = panesize;
       }
    }
+}
+
+
+void CLampApp::SetActiveTabDoc(CLampDoc *pDoc, bool setinitialpost /* = false*/, bool forcefocus /* = false*/)
+{
+   if(pDoc != NULL)
+   {
+      CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+      if(pMainFrame)
+      {
+         const CObList &TabGroups = pMainFrame->GetCA()->GetMDITabGroups(); 
+         if(TabGroups.GetCount() > 0) 
+         { 
+            POSITION crtPos = TabGroups.GetHeadPosition(); 
+            CHackedTabCtrl * tabctrl;
+
+            do { 
+               tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
+               
+               if(tabctrl != NULL)
+               {
+                  int numtabs = tabctrl->GetTabsNum();
+                  for(int i=0; i < numtabs; i++)
+                  {
+                     CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
+                     if(pFrame != NULL)
+                     {
+                        CLampView *pView = pFrame->GetView();
+                        if(pView != NULL &&
+                           pView->GetDocument() == pDoc)
+                        {
+                           if(setinitialpost)
+                           {
+                              unsigned int id = pView->GetDocument()->GetInitialPostId();
+                              pView->SetCurrentId(id);
+                              pView->SetPos(0);
+                              pView->InvalidateEverything();
+                           }
+
+                           if(forcefocus || tabctrl->GetActiveTab() != i)
+                           {
+                              tabctrl->SetActiveTab(i);
+                           }
+                           return;
+                        }
+                     }
+                  }
+               }
+            } while(crtPos != NULL);
+         }
+      }
+   }
+}
+
+void CLampApp::SetLatestChattyActive()
+{
+   CMainFrame *pMainFrame = (CMainFrame*)GetMainWnd();
+   if(pMainFrame)
+   {
+      const CObList &TabGroups = pMainFrame->GetCA()->GetMDITabGroups(); 
+      if(TabGroups.GetCount() > 0) 
+      { 
+         POSITION crtPos = TabGroups.GetHeadPosition(); 
+         CHackedTabCtrl * tabctrl;
+
+         do { 
+            tabctrl = (CHackedTabCtrl*)TabGroups.GetNext(crtPos);
+            
+            if(tabctrl != NULL)
+            {
+               int numtabs = tabctrl->GetTabsNum();
+               for(int i=0; i < numtabs; i++)
+               {
+                  CChildFrame *pFrame = (CChildFrame*)tabctrl->GetTabWnd(i);
+                  if(pFrame != NULL)
+                  {
+                     CLampView *pView = pFrame->GetView();
+                     if(pView != NULL &&
+                        pView->GetDocument()->GetDataType() == DDT_STORY)
+                     {
+                        tabctrl->SetActiveTab(i);
+
+                        CFindTextDlg *pFD = pView->GetFindDlg();
+                        if(pFD != NULL)
+                        {
+                           pFD->SetFocus();
+                        }
+
+                        return;
+                     }
+                  }
+               }
+            }
+         } while(crtPos != NULL);
+      }
+   }
+}
+
+CLampDoc *CLampApp::GetInboxDoc()
+{
+   CLampDoc *result = NULL;
+   std::list<CLampView*>::iterator it = m_views.begin();
+   std::list<CLampView*>::iterator end = m_views.end();
+
+   while(it != end)
+   {
+      if((*it)->GetDocument()->GetDataType() == DDT_SHACKMSG &&
+         (*it)->GetDocument()->GetShackMessageType() == SMT_INBOX)
+      {
+         result = (*it)->GetDocument();
+         break;
+      }
+      it++;
+   }
+
+   return result;
+}
+
+CLampDoc *CLampApp::GetActiveThread()
+{
+   CLampDoc *result = NULL;
+   std::list<CLampView*>::iterator it = m_views.begin();
+   std::list<CLampView*>::iterator end = m_views.end();
+
+   while(it != end)
+   {
+      if((*it)->GetDocument()->GetDataType() == DDT_ACTIVE_THREAD)
+      {
+         result = (*it)->GetDocument();
+         break;
+      }
+      it++;
+   }
+
+   return result;
 }

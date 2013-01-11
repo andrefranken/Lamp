@@ -52,7 +52,7 @@ public:
    std::vector<CHotSpot> &GetHotspots(){return m_hotspots;}
 
    unsigned int GetCurrentId(){return m_current_id;}
-   void SetCurrentId(unsigned int id);
+   void SetCurrentId(unsigned int id, bool dofocusstuff = true);
 
    unsigned int GetHoverPreviewId(){return m_hover_preview_id;}
    void SetHoverPreviewId(unsigned int id);
@@ -93,7 +93,11 @@ public:
    selectionend = m_selectionend;
    }
 
-   void FindNext();
+   void ShowTextSelection(unsigned int textselectionpost, int selectionstart, int selectionend);
+
+   void FindText(bool fromstart = false);
+
+   CFindTextDlg *GetFindDlg(){return m_pFindDlg;}
 
    void FindDlgClosing(){m_pFindDlg = NULL;}
 

@@ -1064,6 +1064,7 @@ void ChattyPost::ReadPost(ChattyPost *pOther, CLampDoc *pDoc)
       m_mylols = theApp.GetMyLol(m_id);
       UpdateLOLs();
 
+      /*
       m_lolflags = pOther->m_lolflags;
       m_lol_text = pOther->m_lol_text;
       m_inf_text = pOther->m_inf_text;
@@ -1071,7 +1072,7 @@ void ChattyPost::ReadPost(ChattyPost *pOther, CLampDoc *pDoc)
       m_tag_text = pOther->m_tag_text;
       m_wtf_text = pOther->m_wtf_text;
       m_ugh_text = pOther->m_ugh_text;
-      
+      */
       m_lasttextrectwidth = 0;
       m_textrectheight = 0;
       m_largest_line_width = 0;
@@ -2720,10 +2721,13 @@ int ChattyPost::DrawRoot(HDC hDC,
                hotspots.push_back(hotspot);
             }
 
-            RECT hintrect = myrect;
-            hintrect.bottom = ((myrect.top + myrect.bottom) / 2) + (theApp.GetTextHeight() / 2);
-            hintrect.top = hintrect.bottom - theApp.GetTextHeight();
-            m_pDoc->DrawRepliesHint(hDC,hintrect,(int)m_familysize,true);
+            if(m_familysize > 0)
+            {
+               RECT hintrect = myrect;
+               hintrect.bottom = ((myrect.top + myrect.bottom) / 2) + (theApp.GetTextHeight() / 2);
+               hintrect.top = hintrect.bottom - theApp.GetTextHeight();
+               m_pDoc->DrawRepliesHint(hDC,hintrect,(int)m_familysize,true);
+            }
                         
             if(theApp.ShowLOLButtons())
             {
@@ -7941,6 +7945,27 @@ bool ChattyPost::CanDemote()
    return result;
 }
 
+void ChattyPost::CollectThreadLOLs(CLOLFlags &lolflags)
+{
+   lolflags.m_LOLd += m_lolflags.m_LOLd;
+   lolflags.m_INFd += m_lolflags.m_INFd;
+   lolflags.m_UNFd += m_lolflags.m_UNFd;
+   lolflags.m_TAGd += m_lolflags.m_TAGd;
+   lolflags.m_WTFd += m_lolflags.m_WTFd;
+   lolflags.m_UGHd += m_lolflags.m_UGHd;
+
+   std::list<ChattyPost*>::iterator it = m_children.begin();
+   std::list<ChattyPost*>::iterator end = m_children.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         (*it)->CollectThreadLOLs(lolflags);
+      }
+      it++;
+   }
+}
+
 void ChattyPost::UpdateLOLsRecurse()
 {
    UpdateLOLs();
@@ -7978,10 +8003,18 @@ unsigned int ChattyPost::GetLOLWidth(const UCChar *text)
    return width;
 }
 
-void ChattyPost::UpdateLOLs()
+void ChattyPost::UpdateLOLs(bool forwholethread /*= false*/)
 {
    m_bHaveLOLPreview = false;
+
    m_lolflags = theApp.GetKnownLOLFlags(m_id);
+
+   if(forwholethread)
+   {
+      CLOLFlags lolflags;
+      CollectThreadLOLs(lolflags);
+      m_lolflags = lolflags;
+   }
 
    if(theApp.ShowThomWLOLS())
    {

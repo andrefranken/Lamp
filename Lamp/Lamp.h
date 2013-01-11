@@ -248,9 +248,9 @@ public:
 
    virtual CDocument* OpenDocumentFile(LPCTSTR lpszFileName);
 
-   void OpenActiveDocumentFile(LPCTSTR lpszFileName);
+   void OpenActiveDocumentFile(LPCTSTR lpszFileName, bool dofocusstuff);
 
-   void ActivateActiveThread();
+   void ActivateActiveThread(bool dofocusstuff);
 
    void OpenShackLink(const UCString &shackpath, bool NWS = false);
 
@@ -1251,6 +1251,11 @@ public:
    void RecordLatestChattyPaneSize();
 
    HMENU GetContextMenu(UINT uiMenuResId);
+
+   void SetActiveTabDoc(CLampDoc *pDoc, bool setinitialpost = false, bool forcefocus = false);
+   void SetLatestChattyActive();
+   CLampDoc *GetInboxDoc();
+   CLampDoc *GetActiveThread();
 
       
 // Overrides

@@ -52,8 +52,7 @@ void CFindTextDlg::OnBnClickedOk()
 
 void CFindTextDlg::OnBnNext()
 {
-   m_pView->GetSelection(m_textselectionpost,m_selectionstart,m_selectionend);
-   m_pView->FindNext();
+   m_pView->FindText();
 }
 
 void CFindTextDlg::PostNcDestroy()
@@ -97,7 +96,9 @@ void CFindTextDlg::OnEditChange()
       pThread->GetWindowTextW(temp);
       m_findtext = temp;
       theApp.SetFindText(m_findtext);
-      m_pView->SetSelection(m_textselectionpost,m_selectionstart,m_selectionend);
-      m_pView->FindNext();
+      if(!m_findtext.IsEmpty())
+      {
+         m_pView->FindText(true);
+      }
    }
 }

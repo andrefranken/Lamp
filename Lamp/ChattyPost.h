@@ -545,8 +545,10 @@ public:
    void RemoveLolTag(loltagtype tag){if(m_mylols & tag){m_mylols ^= tag;} UpdateLOLs();}
    bool DidLolTag(loltagtype tag){if(m_mylols & tag) return true; return false;}
 
-   void UpdateLOLs();
+   void UpdateLOLs(bool forwholethread = false);
    void UpdateLOLsRecurse();
+
+   void CollectThreadLOLs(CLOLFlags &lolflags);
 
    void LoadAllImageLinks();
    void CloseAllImageLinks();
