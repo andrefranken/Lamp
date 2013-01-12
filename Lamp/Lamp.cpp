@@ -6313,6 +6313,13 @@ int CLampApp::WhichPaneHasLatestChatty()
             
             if(tabctrl != NULL)
             {
+               //////////////////////
+               /*
+               tabctrl->SetActiveTabColor(RGB(0,0,0));
+
+               tabctrl->SetActiveTabTextColor(RGB(255,255,255));
+               */
+               ///////////////////////
                int numtabs = tabctrl->GetTabsNum();
                for(int i=0; i < numtabs; i++)
                {
@@ -6575,6 +6582,22 @@ void CLampApp::SetLatestChattyActive()
             
             if(tabctrl != NULL)
             {
+               ///////////////
+               /*
+               const CArray<COLORREF,COLORREF> &colors = tabctrl->GetAutoColors();
+
+               CArray<CPoint,CPoint> myArray;
+
+               for(int i=0; i < colors.GetCount(); i++)
+               {
+                  COLORREF ref = colors.ElementAt(i);
+                  byte red = GetRValue(ref);
+                  byte green = GetGValue(ref);
+                  byte blue = GetBValue(ref);
+                  int foo = 5;
+               }
+               */
+               ///////////////
                int numtabs = tabctrl->GetTabsNum();
                for(int i=0; i < numtabs; i++)
                {

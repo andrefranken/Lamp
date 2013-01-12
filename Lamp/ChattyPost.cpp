@@ -1507,11 +1507,21 @@ void ChattyPost::InitImageLinks()
             begin = i;
          }
 
+         if(m_shacktags[i].m_tag == ST_IMAGE_LINK)
+         {
+            begin = i;
+         }
+
          if(m_shacktags[i].m_tag == ST_LINK_END)
          {
             end = i;
          }
 
+         if(m_shacktags[i].m_tag == ST_IMAGE_LINK_END)
+         {
+            end = i;
+         }
+         
          if(begin != -1 && end != -1)
          {
             UCString link = m_shacktags[begin].m_href;
@@ -2534,9 +2544,9 @@ int ChattyPost::DrawRoot(HDC hDC,
 
          if(textrect.right - textrect.left != m_lasttextrectwidth)
          {
-            m_lasttextrectwidth = textrect.right - textrect.left;
             CloseAllImageLinks();
             SetupBodyText(textrect,true);
+            m_lasttextrectwidth = textrect.right - textrect.left;
 
             int diff = m_lines_of_text.size() - theApp.MaxSummaryLines();
 
