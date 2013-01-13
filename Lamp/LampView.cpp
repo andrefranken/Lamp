@@ -3219,9 +3219,8 @@ void CLampView::FindText(bool fromstart /*= false*/)
       m_selectionstart = 0;
       m_selectionend = 0;
    }
-
-   if(GetDocument()->GetDataType() == DDT_STORY &&
-      theApp.LatestChattySummaryMode())
+   else if(GetDocument()->GetDataType() == DDT_STORY &&
+           theApp.LatestChattySummaryMode())
    {
       CLampDoc *pAT = theApp.GetActiveThread();
 
@@ -5513,7 +5512,8 @@ void CLampView::OnMButtonUp(UINT nFlags, CPoint point)
                case HST_OPENINTAB:
                case HST_REFRESH:
                   {
-                     if(GetDocument()->GetDataType() == DDT_STORY)
+                     if(GetDocument()->GetDataType() == DDT_STORY ||
+                        GetDocument()->GetDataType() == DDT_ACTIVE_THREAD)
                      {
                         unsigned int id = GetDocument()->GetID(m_hotspots[i].m_id);
                         unsigned int rootid = GetDocument()->GetRootId(id);
@@ -6019,16 +6019,56 @@ void CLampView::PrevNewPost()
 
 void CLampView::DemoteNewness()
 {
-   ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
-   if(pPost != NULL &&
-      GetDocument()->GetDataType() != DDT_STORY ||
-      !theApp.LatestChattySummaryMode())
+   if(GetDocument()->GetDataType() == DDT_STORY &&
+      theApp.LatestChattySummaryMode())
    {
-      if(pPost->CanDemote())
+      CLampDoc *pAT = theApp.GetActiveThread();
+      if(pAT != NULL)
       {
-         GetDocument()->DemoteNewness(pPost->GetId());
-         GetDocument()->Viewed();
-         InvalidateEverything();
+         theApp.SetActiveTabDoc(pAT);
+         if(pAT->GetView() != NULL)
+         {
+            pAT->GetView()->DemoteNewness();
+         }
+      }
+   }
+   else
+   {
+      ChattyPost *pPost = GetDocument()->FindPost(GetCurrentId());
+      if(pPost != NULL)
+      {
+         if(pPost->CanDemote())
+         {
+            GetDocument()->DemoteNewness(pPost->GetId());
+            GetDocument()->Viewed();
+            InvalidateEverything();
+
+
+            if(GetDocument()->GetDataType() == DDT_ACTIVE_THREAD &&
+               GetDocument()->GetInitialPostId() != 0 &&
+               GetDocument()->GetRootCount() > 0)
+            {
+               // update latest chatty know know about any changes from active thread
+               CLampDoc *pDoc = NULL;
+               ChattyPost *pExistingPost = theApp.FindFromLatestChatty(GetDocument()->GetInitialPostId(), &pDoc);
+               if(pExistingPost != NULL)
+               {
+                  ChattyPost *post = GetDocument()->GetRootPost(GetDocument()->GetInitialPostId());
+                  if(post != NULL)
+                  {
+                     pExistingPost->ClearChildren();
+                     pExistingPost->ReadPost(post,pDoc);
+                     pExistingPost->UpdateLOLs(true); // since the latest chatty is in summary mode, collect all lols
+                     pExistingPost->CountNews();
+                     if(pDoc != NULL && 
+                        pDoc->GetView() != NULL)
+                     {
+                        pDoc->GetView()->InvalidateEverything();
+                     }
+                  }
+               }
+            }
+         }
       }
    }
 }
@@ -6606,6 +6646,21 @@ void CLampView::OnEditFindtext()
    if(m_pReplyDlg == NULL)
    {
       ReleaseCapture();
+
+      if(GetDocument() != NULL &&
+         GetDocument()->GetDataType() == DDT_STORY &&
+         theApp.LatestChattySummaryMode())
+      {
+         CLampDoc *active = theApp.GetActiveThread();
+         if(active != NULL)
+         {
+            // now set focus to it
+            theApp.SetActiveTabDoc(active);
+            // now set focus back to the latest chatty tab
+            theApp.SetLatestChattyActive();
+         }
+      }
+
       m_pFindDlg = new CFindTextDlg(this);
 
       m_pFindDlg->m_pView = this;
@@ -7512,7 +7567,6 @@ void CLampView::OnOpenInTab()
    for(size_t i = 0; i < m_hotspots.size(); i++)
    {
       if(GetDocument()->GetDataType() != DDT_THREAD &&
-         GetDocument()->GetDataType() != DDT_ACTIVE_THREAD &&
          m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
          m_rbuttondownpoint.x < m_hotspots[i].m_spot.right &&
          m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&
@@ -7546,7 +7600,6 @@ void CLampView::OnUpdateOpenInTab(CCmdUI *pCmdUI)
    for(size_t i = 0; i < m_hotspots.size(); i++)
    {
       if(GetDocument()->GetDataType() != DDT_THREAD &&
-         GetDocument()->GetDataType() != DDT_ACTIVE_THREAD &&
          m_rbuttondownpoint.x >= m_hotspots[i].m_spot.left &&
          m_rbuttondownpoint.x < m_hotspots[i].m_spot.right &&
          m_rbuttondownpoint.y >= m_hotspots[i].m_spot.top &&

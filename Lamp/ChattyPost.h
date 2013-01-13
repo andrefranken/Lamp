@@ -624,6 +624,9 @@ public:
    void InvalidateContentLayout(){m_lasttextrectwidth = 0;}
 
    bool IsNWSPost();
+   bool IsNotNew();
+   void MakeOld();
+   void CountNews();
 
    CReplyDlg *FindReplyDlgInPostRecurse(unsigned int &who_id);
 
@@ -647,6 +650,7 @@ protected:
    void UpdateDate();
    bool IsRoot(){if(m_pParent != NULL)return false;return true;}
    void IfUserHasPostedInThread(bool &result);
+   void CountNewsRecurse(int &news);
 
    unsigned int GetLOLWidth(const UCChar *text);
 
@@ -753,4 +757,6 @@ protected:
    CFlaggedUser           *m_pFlaggedUser;
 
    bool                    m_bUserHasPostedInThread;
+
+   int                     m_num_news;
 };

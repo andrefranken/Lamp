@@ -156,8 +156,8 @@ public:
                      bool tight = false);
    void DrawNewMessagesTab(HDC hDC, RECT &rect, const UCChar *pChar, int *widths, size_t numchars, bool bHover);
    void DrawRootAuthor(HDC hDC, RECT &rect,UCString &author, COLORREF AuthorColor, CDCSurface *Flag, RECT &flagrect, bool bFade = false, bool bIsInbox = true, bool bPrefix = true, RECT *cliprect = NULL);
-   void DrawDate(HDC hDC, RECT &rect, UCString &date, COLORREF ago_color, bool bGetExtents=false);
-   void DrawRepliesHint(HDC hDC, RECT &rect, int m_reportedchildcount, bool numberonly = false);
+   void DrawDate(HDC hDC, RECT &rect, UCString &date, COLORREF ago_color, bool bGetExtents = false);
+   void DrawRepliesHint(HDC hDC, RECT &rect, int m_reportedchildcount, bool numberonly = false, bool smallfont = false);
    void DrawCollapseNote(HDC hDC, RECT &rect);
    void DrawPreviewAuthor(HDC hDC, RECT &rect, UCString &text, bool clipped, int shade, COLORREF AuthorColor, const UCString &rootauthor, CDCSurface *Flag, RECT &flagrect);
    void DrawBranch(HDC hDC, RECT &rect, indenttype type, int shade, newness Newness);
@@ -378,6 +378,10 @@ protected:
 
    void CalcWidthOfAverageProfileGroup();
 
+   void RecordNewness();
+
+   void MakePureNewThreadsOld();
+
    DocDataType            m_datatype;
    unsigned int           m_storyid;
    unsigned int           m_initialpostid;
@@ -462,6 +466,9 @@ protected:
    COLORREF m_image_link_color;
 
    DWORD m_last_refresh_time;
+
+   std::map<unsigned int,newness> m_post_newness_for_refresh;
+
 // Generated message map functions
 protected:
 	DECLARE_MESSAGE_MAP()

@@ -2560,7 +2560,7 @@ int ChattyPost::DrawRoot(HDC hDC,
          }
          else
          {
-            numlinestodraw = m_lines_of_text.size();
+            numlinestodraw = __min(theApp.MaxSummaryLines(), (int)m_lines_of_text.size());
             textrect.bottom = m_textrectheight;
          }
 
@@ -2570,9 +2570,13 @@ int ChattyPost::DrawRoot(HDC hDC,
          myrect.top = pos;
          myrect.bottom = pos + textrect.bottom + topsize;
 
-         if(myrect.bottom - myrect.top < ((iconsize * 2) + theApp.GetTextHeight()))
+         int middlesize = 0;
+         if(m_familysize > 0) middlesize += theApp.GetTextHeight();
+         if(m_num_news > 0) middlesize += theApp.GetTextHeight();
+
+         if(myrect.bottom - myrect.top < ((iconsize * 2) + middlesize))
          {
-            myrect.bottom = myrect.top + (iconsize * 2) + theApp.GetTextHeight();
+            myrect.bottom = myrect.top + (iconsize * 2) + middlesize;
          }
 
          if(myrect.bottom < DeviceRectangle.top ||
@@ -2734,9 +2738,30 @@ int ChattyPost::DrawRoot(HDC hDC,
             if(m_familysize > 0)
             {
                RECT hintrect = myrect;
-               hintrect.bottom = ((myrect.top + myrect.bottom) / 2) + (theApp.GetTextHeight() / 2);
-               hintrect.top = hintrect.bottom - theApp.GetTextHeight();
+               hintrect.right = hintrect.left + fieldwidth;
+
+               if(m_num_news > 0)
+               {
+                  // 2 lines
+                  hintrect.bottom = ((myrect.top + myrect.bottom) / 2);
+                  hintrect.top = hintrect.bottom - theApp.GetTextHeight();
+               }
+               else
+               {
+                  // 1 line
+                  hintrect.bottom = ((myrect.top + myrect.bottom) / 2) + (theApp.GetTextHeight() / 2);
+                  hintrect.top = hintrect.bottom - theApp.GetTextHeight();
+               }
+
                m_pDoc->DrawRepliesHint(hDC,hintrect,(int)m_familysize,true);
+
+               if(m_num_news > 0)
+               {
+                  hintrect.bottom += theApp.GetTextHeight();
+                  hintrect.top += theApp.GetTextHeight();
+
+                  m_pDoc->DrawRepliesHint(hDC,hintrect,(int)m_num_news,true,true);
+               }
             }
                         
             if(theApp.ShowLOLButtons())
@@ -8261,14 +8286,7 @@ void ChattyPost::EstablishNewness(std::map<unsigned int,newness> &post_newness, 
    }   
    else
    {
-      if(post_newness.size() == 0)
-      {
-         m_Newness = N_OLD;
-      }
-      else
-      {
-         m_Newness = N_NEW;
-      }
+      m_Newness = N_NEW;
    }
 
    std::list<ChattyPost*>::iterator it = m_children.begin();
@@ -8551,5 +8569,80 @@ void ChattyPost::IfUserHasPostedInThread(bool &result)
          }
          it++;
       }
+   }
+}
+
+bool ChattyPost::IsNotNew()
+{
+   if(m_Newness != N_NEW)
+   {
+      return true;
+   }
+ 
+   std::list<ChattyPost*>::iterator it = m_children.begin();
+   std::list<ChattyPost*>::iterator end = m_children.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         if((*it)->IsNotNew())
+         {
+            return true;
+         }
+      }
+      it++;
+   }
+
+   return false;
+}
+
+void ChattyPost::MakeOld()
+{
+   m_Newness = N_OLD;
+ 
+   std::list<ChattyPost*>::iterator it = m_children.begin();
+   std::list<ChattyPost*>::iterator end = m_children.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         (*it)->MakeOld();
+      }
+      it++;
+   }
+}
+
+void ChattyPost::CountNews()
+{
+   m_num_news = 0;
+ 
+   std::list<ChattyPost*>::iterator it = m_children.begin();
+   std::list<ChattyPost*>::iterator end = m_children.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         (*it)->CountNewsRecurse(m_num_news);
+      }
+      it++;
+   }
+}
+
+void ChattyPost::CountNewsRecurse(int &news)
+{
+   if(m_Newness == N_NEW)
+   {
+      news++;
+   }
+
+   std::list<ChattyPost*>::iterator it = m_children.begin();
+   std::list<ChattyPost*>::iterator end = m_children.end();
+   while(it != end)
+   {
+      if((*it) != NULL)
+      {
+         (*it)->CountNewsRecurse(news);
+      }
+      it++;
    }
 }

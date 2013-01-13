@@ -847,6 +847,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                // scrape HTML
                ReadChattyPageFromHTML(pDD->m_stdstring, existing_threads, false, false, preservenewness);
 
+               MakePureNewThreadsOld();
+
                if(m_datatype == DDT_THREAD ||
                   m_datatype == DDT_ACTIVE_THREAD)
                {
@@ -987,6 +989,12 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                         pExistingPost->ClearChildren();
                         pExistingPost->ReadPost(post,pDoc);
                         pExistingPost->UpdateLOLs(true); // since the latest chatty is in summary mode, collect all lols
+                        pExistingPost->CountNews();
+                        if(pDoc != NULL && 
+                           pDoc->GetView() != NULL)
+                        {
+                           pDoc->GetView()->InvalidateEverything();
+                        }
                      }
                   }
                }
@@ -1038,6 +1046,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             
             // scrape HTML
             ReadChattyPageFromHTML(pDD->m_stdstring, existing_threads, true);
+
+            MakePureNewThreadsOld();
             
             it = m_rootposts.begin();
             end = m_rootposts.end();
@@ -1087,6 +1097,8 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
             
             // scrape HTML
             ReadChattyPageFromHTML(pDD->m_stdstring, existing_threads, true, true);
+
+            MakePureNewThreadsOld();
 
             if(last != end)
             {
@@ -2173,6 +2185,12 @@ BOOL CLampDoc::OnOpenDocumentImpl( LPCTSTR lpszPathName )
                pExistingPost->ClearChildren();
                pExistingPost->ReadPost(post,pDoc);
                pExistingPost->UpdateLOLs(true); // since the latest chatty is in summary mode, collect all lols
+               pExistingPost->CountNews();
+               if(pDoc != NULL && 
+                  pDoc->GetView() != NULL)
+               {
+                  pDoc->GetView()->InvalidateEverything();
+               }
             }
          }
       }
@@ -3563,6 +3581,9 @@ bool CLampDoc::Refresh(bool soft/* = false*/)
             {
                m_page = 1;
             }
+
+            RecordNewness();
+
             ReadLatestChatty();
             bResetPos = true;
          }
@@ -3577,6 +3598,7 @@ bool CLampDoc::Refresh(bool soft/* = false*/)
    case DDT_ACTIVE_THREAD:
       if(m_rootposts.size() > 0)
       {
+         RecordNewness();
          RefreshThread((*m_rootposts.begin())->GetId(),m_pView->GetCurrentId(),false,0,soft);
       }
       break;
@@ -3615,6 +3637,8 @@ bool CLampDoc::RefreshThread(unsigned int id,
                              bool soft /*= false*/)
 {
    m_last_refresh_time = ::GetTickCount();
+
+   RecordNewness();
 
    if(!soft)
    {
@@ -4812,7 +4836,7 @@ void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsign
                               
                               bool bAlreadyHadIt = false;
                               bool bSkip = false;
-                              std::map<unsigned int,newness> post_newness;
+                              
                               std::map<unsigned int,std::vector<shacktagpos>> post_tags;
 
                               for(size_t j = 0; j < existing_threads.size(); j++)
@@ -4826,7 +4850,6 @@ void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsign
                                     else
                                     {
                                        post = FindRootPost(root_id);
-                                       post->RecordNewness(post_newness);
                                        post->RecordTags(post_tags);
                                        if(post->CheckForChildrenFromHTML(sit))
                                        {
@@ -4848,11 +4871,10 @@ void CLampDoc::ReadChattyPageFromHTML(std::string &stdstring, std::vector<unsign
                                  }
 
                                  post->ReadRootChattyFromHTML(sit, this, root_id);
-                                 post->EstablishNewness(post_newness, !preservenewness);
+                                 post->EstablishNewness(m_post_newness_for_refresh, !preservenewness);
                                  post->EstablishTags(post_tags, !preservenewness);
                                  post->SetupPreviewShades(false);
                                  post->CountFamilySize();
-                                 post->UpdateRootReplyList();
                                  post->SetParent(NULL);
                                  if(post->IsFiltered() && !bAlreadyHadIt)
                                  {
@@ -7466,16 +7488,28 @@ void CLampDoc::DrawCollapseNote(HDC hDC, RECT &rect)
    MySelectFont(hDC,oldfont);
 }
 
-void CLampDoc::DrawRepliesHint(HDC hDC, RECT &rect, int m_reportedchildcount, bool numberonly/* = false*/)
+void CLampDoc::DrawRepliesHint(HDC hDC, RECT &rect, int m_reportedchildcount, bool numberonly/* = false*/, bool smallfont/*= false*/)
 {
    if(numberonly)
    {
-      HFONT oldfont = MySelectFont(hDC,m_boldfont);
-      ::SetTextAlign(hDC,TA_LEFT|TA_BOTTOM);
+      HFONT oldfont;
+      if(smallfont)
+      {
+         oldfont = MySelectFont(hDC,m_miscboldfont);
+         //::SetTextColor(hDC,theApp.GetBranchColorShade(10, N_LAST));
+         ::SetTextColor(hDC,theApp.GetBranchColorShade(10, N_NEW));
+      }
+      else
+      {
+         oldfont = MySelectFont(hDC,m_boldfont);
+         //::SetTextColor(hDC,theApp.GetMyPostColor());
+         ::SetTextColor(hDC,theApp.GetBranchColorShade(8, N_OLD));
+      }
+      ::SetTextAlign(hDC,TA_CENTER|TA_BOTTOM);
       
       UCString text = m_reportedchildcount;
-      ::SetTextColor(hDC,theApp.GetMyPostColor());
-      ::ExtTextOutW(hDC, rect.left + 2, rect.bottom, 0, NULL, text, text.Length(), NULL);
+      
+      ::ExtTextOutW(hDC, (rect.left + rect.right) / 2, rect.bottom, 0, NULL, text, text.Length(), NULL);
 
       MySelectFont(hDC,oldfont);
    }
@@ -8833,3 +8867,37 @@ void CLampDoc::InvalidateContentLayout()
    }
 }
 
+void CLampDoc::RecordNewness()
+{
+   if(m_datatype == DDT_ACTIVE_THREAD)
+   {
+      m_post_newness_for_refresh.clear();
+   }
+   
+   std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+   std::list<ChattyPost*>::iterator end = m_rootposts.end();
+   while(it != end)
+   {
+      (*it)->RecordNewness(m_post_newness_for_refresh);
+      it++;
+   }
+}
+
+void CLampDoc::MakePureNewThreadsOld()
+{
+   std::list<ChattyPost*>::iterator it = m_rootposts.begin();
+   std::list<ChattyPost*>::iterator end = m_rootposts.end();
+   while(it != end)
+   {
+      if(!(*it)->IsNotNew())
+      {
+         (*it)->MakeOld();
+      }
+
+      (*it)->CountNews();
+
+      (*it)->UpdateRootReplyList();
+
+      it++;
+   }
+}
