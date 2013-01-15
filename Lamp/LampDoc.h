@@ -53,6 +53,7 @@ public:
       m_start_time = 0;
       m_recieve_time = 0;
       m_end_time = 0;
+      m_secure = false;
    }
 
    void download(int numtries);
@@ -70,6 +71,7 @@ public:
    UCString m_username;
    UCString m_password;
    UCString m_originalurl;
+   bool m_secure;
    void *m_data;
    int m_datasize;
    std::string m_stdstring;

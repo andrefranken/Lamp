@@ -177,6 +177,8 @@ typedef enum
    ST_FADE_END
 }shacktag;
 
+void RecalcImgurLink(UCString &href);
+
 class shacktagpos
 {
 public:

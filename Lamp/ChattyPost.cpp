@@ -11,6 +11,30 @@
 
 UCString blank_string;
 
+void RecalcImgurLink(UCString &href)
+{
+   if(href.beginswith(L"http://imgur.com/") != NULL &&
+      href.beginswith(L"http://imgur.com/a/") == NULL &&
+      href.endswith(L".jpg") == NULL &&
+      href.endswith(L".png") == NULL)
+   {
+      UCString temp = L"http://i.imgur.com/";
+
+      const UCChar *begin = href.Str();
+      const UCChar *work = begin + href.Length() - 1;
+      if(*work == '/') work--;
+      while(*work != '/' && work > begin) work--;
+      work++;
+      temp += work;
+      if(temp.endswith(L"/") != NULL)
+      {
+         temp.TrimEnd(1);
+      }
+      temp += L".jpg";
+      href = temp;
+   }
+}
+
 size_t HTML_GetIDAttribute(tree<htmlcxx::HTML::Node>::sibling_iterator &it, const char *attr_name/* = NULL*/)
 {
    size_t result = 0;
@@ -1526,6 +1550,8 @@ void ChattyPost::InitImageLinks()
          {
             UCString link = m_shacktags[begin].m_href;
 
+            //RecalcImgurLink(link);
+
             unsigned int index = 0;
 
             if(theApp.ShowImageThumbs() &&
@@ -1548,12 +1574,18 @@ void ChattyPost::InitImageLinks()
             else if((link.endswith(L".jpg") != NULL ||
                      link.endswith(L".jpeg") != NULL ||
                      link.endswith(L".png") != NULL) &&
-                     link.beginswith(L"http://"))
+                    (link.beginswith(L"http://") != NULL ||
+                     link.beginswith(L"https://") != NULL))
             {
                if(theApp.ShowImageThumbs() &&
                   theApp.AutoLoadChattypicsThumbs() &&
                   (link.beginswith(L"http://www.chattypics.com") != NULL ||
-                   link.beginswith(L"http://chattypics.com") != NULL))
+                   link.beginswith(L"http://chattypics.com") != NULL ||
+                   link.beginswith(L"http://i.imgur.com") != NULL ||
+                   link.beginswith(L"http://i.stack.imgur.com") != NULL ||
+                   link.beginswith(L"http://www.fukung.net") != NULL ||
+                   link.beginswith(L"http://media.fukung.net") != NULL ||
+                   link.beginswith(L"http://fukung.net") != NULL))
                {
                   if(!theApp.DontAutoLoadNWSThumbs() ||
                      !IsNWSPost())
@@ -1620,6 +1652,8 @@ void ChattyPost::LoadAllImageLinks()
       if(begin != -1 && end != -1)
       {
          UCString link = m_shacktags[begin].m_href;
+
+         //RecalcImgurLink(link);
 
          const UCChar *ext = link.Str() + link.Length();
          while(ext > link.Str() && *ext != L'.') ext--;
@@ -2726,6 +2760,17 @@ int ChattyPost::DrawRoot(HDC hDC,
             if(theApp.IsPinningInStories())
             {
                hotspot.m_type = HST_PIN;
+               hotspot.m_bOn = m_bPinned;
+               hotspot.m_spot.left = myrect.left;
+               hotspot.m_spot.top = myrect.top;
+               hotspot.m_spot.right = myrect.left + iconsize;
+               hotspot.m_spot.bottom = myrect.top + iconsize;
+               hotspot.m_id = m_id;
+               hotspots.push_back(hotspot);
+            }
+            else
+            {
+               hotspot.m_type = HST_OPENINTAB;
                hotspot.m_bOn = m_bPinned;
                hotspot.m_spot.left = myrect.left;
                hotspot.m_spot.top = myrect.top;

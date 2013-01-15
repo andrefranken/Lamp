@@ -209,6 +209,7 @@ public:
 
    CImageCacheItem()
    {
+      m_secure = false;
    }
 
    CImageCacheItem(const CImageCacheItem &other)
@@ -216,6 +217,7 @@ public:
       m_host = other.m_host;
       m_path = other.m_path;
       m_ext = other.m_ext;
+      m_secure = other.m_secure;
    }
 
    ~CImageCacheItem()
@@ -232,6 +234,7 @@ public:
    UCString m_host;
    UCString m_path;
    UCString m_ext;
+   bool m_secure;
 
    CDCSurface m_image;
    CDCSurface m_imagethumb;

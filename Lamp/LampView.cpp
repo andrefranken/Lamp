@@ -3099,8 +3099,15 @@ void CLampView::MakeCurrentPostLegal(bool bTopOnly/* = false*/, bool bKeepInSame
 
          RECT DeviceRectangle;
          GetClientRect(&DeviceRectangle);
-         DeviceRectangle.top += (20 + m_banneroffset);
-         DeviceRectangle.bottom -= 20;
+
+         int bordersize = 20;
+         if(theApp.TightFitSummary())
+         {
+            bordersize = 10;
+         }
+                  
+         DeviceRectangle.top += (bordersize + m_banneroffset);
+         DeviceRectangle.bottom -= bordersize;
 
          m_gotopos = m_pos;
 
@@ -4590,6 +4597,8 @@ void CLampView::OnClick(CPoint point)
                               UCString link;
                               pPost->GetImageLink(m_mousepoint.x, m_mousepoint.y, link);
 
+                              //RecalcImgurLink(link);
+
                               const UCChar *begin = link;
                               const UCChar *end = begin + link.Length();
                               const UCChar *ext = end;
@@ -4647,6 +4656,8 @@ void CLampView::OnClick(CPoint point)
                               UpdateCurrentIdAsRoot(id);
                               UCString link;
                               pPost->GetThumbLink(m_mousepoint.x, m_mousepoint.y, link);
+
+                              //RecalcImgurLink(link);
 
                               unsigned int index;
                               CDCSurface *pImage = theApp.GetLinkedImageThumb(link,index);

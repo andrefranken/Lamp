@@ -34,6 +34,7 @@ chattyerror webclient_download(const char* host,
                                const char* username, 
                                const char* password, 
                                char**      out_response,
+                               bool        secure,
                                int*        psize = NULL);
 
 chattyerror webclient_post(const char* host, 

@@ -498,7 +498,7 @@ void CDownloadData::download(int numtries)
    while(numtries > 0)
    {
       DWORD starttime = ::GetTickCount();
-      err = webclient_download(enc_host, enc_path, enc_username, enc_password, (char**)&m_data, &m_datasize);
+      err = webclient_download(enc_host, enc_path, enc_username, enc_password, (char**)&m_data, m_secure, &m_datasize);
       DWORD endtime = ::GetTickCount();
 
       if(m_data == NULL && 
@@ -1680,6 +1680,7 @@ void CLampDoc::ProcessDownload(CDownloadData *pDD)
                            if(pLatestChatty != NULL)
                            {
                               pLatestChatty->ClearChildren();
+                              theApp.SetLatestChattyActive();
                               pLatestChatty->Refresh();
                            }
                         }
@@ -3583,6 +3584,22 @@ bool CLampDoc::Refresh(bool soft/* = false*/)
             }
 
             RecordNewness();
+
+            if(theApp.LatestChattySummaryMode())
+            {
+               CLampDoc *pAT = theApp.GetActiveThread();
+               if(pAT != NULL)
+               {
+                  pAT->SetInitialPostId(0);
+                  pAT->ClearChildren();
+                  if(pAT->GetView() != NULL)
+                  {
+                     pAT->GetView()->SetCurrentId(0);
+                     pAT->GetView()->SetPos(0);
+                     pAT->GetView()->InvalidateEverything();
+                  }
+               }
+            }
 
             ReadLatestChatty();
             bResetPos = true;

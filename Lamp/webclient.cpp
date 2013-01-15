@@ -63,9 +63,11 @@ chattyerror webclient_download(const char* host,
                                const char* username, 
                                const char* password, 
                                char** out_response, 
+                               bool secure,
                                int *psize/* = NULL*/)
 {
    static const char* url_template = "http://%s%s";
+   static const char* url_template_s = "https://%s%s";
    unsigned int   size;
    mydown_options opt;
    char           *url;
@@ -81,10 +83,26 @@ chattyerror webclient_download(const char* host,
    opt.filedata = (unsigned char**) out_response;
    opt.get      = (uint8_t*)"GET";
 
-   size_t allocsize = strlen(url_template) + strlen(host) + strlen(path) + 1;
+   size_t allocsize;
+   if(secure)
+   {
+      allocsize = strlen(url_template_s) + strlen(host) + strlen(path) + 1;
+   }
+   else
+   {
+      allocsize = strlen(url_template) + strlen(host) + strlen(path) + 1;  
+   }
 
    url = (char*)malloc(allocsize);
-   sprintf_s(url, allocsize, url_template, host, path);
+
+   if(secure)
+   {
+      sprintf_s(url, allocsize, url_template_s, host, path);
+   }
+   else
+   {
+      sprintf_s(url, allocsize, url_template, host, path);
+   }
 
    size = mydown((uint8_t*)url, NULL, &opt);
 

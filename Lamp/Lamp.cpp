@@ -52,7 +52,7 @@ chattyerror download(const char* host, const char* path, char** out_response, in
    while(numtries > 0)
    {
       DWORD starttime = ::GetTickCount();
-      err = webclient_download(host, path, NULL, NULL, out_response,psize);
+      err = webclient_download(host, path, NULL, NULL, out_response, false, psize);
       DWORD endtime = ::GetTickCount();
 
       if(*out_response == NULL && 
@@ -4764,10 +4764,18 @@ bool CLampApp::HasLinkedImage(const UCString &link, unsigned int &index)
    const UCChar *end = begin + link.Length();
    const UCChar *work = begin;
    
+   bool secure = false;
+   
    if(wcsncmp(work, L"http://",7) == 0)
    {
       work += 7;
       begin = work;
+   }
+   else if(wcsncmp(work, L"https://",8) == 0)
+   {
+      work += 8;
+      begin = work;
+      secure = true;
    }
 
    while(work < end && *work != L'/')work++;
@@ -4785,7 +4793,8 @@ bool CLampApp::HasLinkedImage(const UCString &link, unsigned int &index)
    while(it != iend)
    {
       if(it->second.m_host == host &&
-         it->second.m_path == path)
+         it->second.m_path == path &&
+         it->second.m_secure == secure)
       {
          index = it->first;
          result = true;
@@ -4805,11 +4814,19 @@ CDCSurface *CLampApp::GetLinkedImage(const UCString &link, unsigned int &index)
    const UCChar *begin = link;
    const UCChar *end = begin + link.Length();
    const UCChar *work = begin;
+
+   bool secure = false;
    
    if(wcsncmp(work, L"http://",7) == 0)
    {
       work += 7;
       begin = work;
+   }
+   else if(wcsncmp(work, L"https://",8) == 0)
+   {
+      work += 8;
+      begin = work;
+      secure = true;
    }
 
    while(work < end && *work != L'/')work++;
@@ -4827,7 +4844,8 @@ CDCSurface *CLampApp::GetLinkedImage(const UCString &link, unsigned int &index)
    while(it != iend)
    {
       if(it->second.m_host == host &&
-         it->second.m_path == path)
+         it->second.m_path == path &&
+         it->second.m_secure == secure)
       {
          index = it->first;
          break;
@@ -4846,6 +4864,7 @@ CDCSurface *CLampApp::GetLinkedImage(const UCString &link, unsigned int &index)
       ici.m_host = host;
       ici.m_path = path;
       ici.m_ext = ext;
+      ici.m_secure = secure;
 
       m_imagecache[m_nextimagecacheindex] = ici;
       index = m_nextimagecacheindex;
@@ -4896,10 +4915,18 @@ CDCSurface *CLampApp::GetLinkedImageThumb(const UCString &link, unsigned int &in
    const UCChar *end = begin + link.Length();
    const UCChar *work = begin;
    
+   bool secure = false;
+   
    if(wcsncmp(work, L"http://",7) == 0)
    {
       work += 7;
       begin = work;
+   }
+   else if(wcsncmp(work, L"https://",8) == 0)
+   {
+      work += 8;
+      begin = work;
+      secure = true;
    }
 
    while(work < end && *work != L'/')work++;
@@ -4917,7 +4944,8 @@ CDCSurface *CLampApp::GetLinkedImageThumb(const UCString &link, unsigned int &in
    while(it != iend)
    {
       if(it->second.m_host == host &&
-         it->second.m_path == path)
+         it->second.m_path == path &&
+         it->second.m_secure == secure)
       {
          index = it->first;
          break;
@@ -4936,6 +4964,7 @@ CDCSurface *CLampApp::GetLinkedImageThumb(const UCString &link, unsigned int &in
       ici.m_host = host;
       ici.m_path = path;
       ici.m_ext = ext;
+      ici.m_secure = secure;
 
       m_imagecache[m_nextimagecacheindex] = ici;
       index = m_nextimagecacheindex;
@@ -5058,12 +5087,21 @@ void CLampApp::LoadImage(unsigned int index, unsigned int postid)
       }
 
       if(ici.m_host == L"www.fukung.net" ||
-         ici.m_host == L"fukung.net")
+         ici.m_host == L"fukung.net" ||
+         ici.m_host == L"media.fukung.net")
       {
          // http://www.fukung.net/v/32798/b3194b0e9a4e7f629059c0ff55d91bff.jpg
          // http://media.fukung.net/images/32798/b3194b0e9a4e7f629059c0ff55d91bff.jpg
          temppath.Replace(L"/v/",L"/images/");
          temphost = L"media.fukung.net";
+      }
+
+      if(ici.m_host == L"www.dropbox.com")
+      {
+         // https://www.dropbox.com/s/dyc241f6jjh556c/2013-01-14%2016.47.48.jpg
+         // https://dl.dropbox.com/s/dyc241f6jjh556c/2013-01-14%2016.47.48.jpg
+         // 
+         temphost = L"dl.dropbox.com";
       }
 
       if(!temppath.IsEmpty())
@@ -5085,6 +5123,7 @@ void CLampApp::LoadImage(unsigned int index, unsigned int postid)
       pDD->m_refreshid = 0;
       pDD->reply_to_id = 0;
       pDD->m_postrootid = 0;
+      pDD->m_secure = ici.m_secure;
 
       AfxBeginThread(DownloadThreadProc, pDD);
    }
@@ -5101,12 +5140,35 @@ void CLampApp::LoadImageThumb(unsigned int index, unsigned int postid)
       UCString temppath = ici.m_path;
 
       if(ici.m_host == L"www.chattypics.com" ||
-         ici.m_host == L"chattypics.com")
+         ici.m_host == L"chattypics.com" ||
+         ici.m_host == L"i.imgur.com" ||
+         ici.m_host == L"i.stack.imgur.com" ||
+         ici.m_host == L"www.fukung.net" ||
+         ici.m_host == L"media.fukung.net" ||
+         ici.m_host == L"fukung.net")
       {
-         // http://chattypics.com/thumber.php?file=PhotoAug0474517AM_uaxvbytxa9.jpeg
-         temppath.Replace(L"viewer.php?file=",L"thumber.php?file=");
-         temppath.Replace(L"/files/",L"/thumber.php?file=");
-         temphost = L"chattypics.com";
+         if(ici.m_host == L"i.imgur.com" ||
+            ici.m_host == L"i.stack.imgur.com")
+         {
+            temppath.Replace(L".jpg",L"t.jpg");
+            temppath.Replace(L".png",L"t.png");
+            temphost = ici.m_host;
+         }
+         else if(ici.m_host == L"www.fukung.net" ||
+                 ici.m_host == L"media.fukung.net" ||
+                 ici.m_host == L"fukung.net")
+         {
+            temppath.Replace(L"/v/",L"/thumbs/");
+            temppath.Replace(L"/images/",L"/thumbs/");
+            temphost = L"media.fukung.net";
+         }
+         else // chattypicx
+         {
+            // http://chattypics.com/thumber.php?file=PhotoAug0474517AM_uaxvbytxa9.jpeg
+            temppath.Replace(L"viewer.php?file=",L"thumber.php?file=");
+            temppath.Replace(L"/files/",L"/thumber.php?file=");
+            temphost = L"chattypics.com";
+         }
 
          ici.AddNotify(postid);
 
@@ -5128,6 +5190,7 @@ void CLampApp::LoadImageThumb(unsigned int index, unsigned int postid)
          pDD->m_refreshid = 0;
          pDD->reply_to_id = 0;
          pDD->m_postrootid = 0;
+         pDD->m_secure = ici.m_secure;
 
          AfxBeginThread(DownloadThreadProc, pDD);
       }
