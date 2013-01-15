@@ -17,3 +17,6 @@
 *.user
 *.msi
 *.enc
+*.sbr
+*.db
+*.bsc
