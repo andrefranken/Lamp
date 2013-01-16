@@ -22,7 +22,7 @@
 #define WM_WAKEUP (WM_USER + 102)
 
 #define LAMP_VERSION_MAJOR 3
-#define LAMP_VERSION_MINOR 8
+#define LAMP_VERSION_MINOR 9
 
 #define QUOTE_FONT_SCALE   1.125f
 
